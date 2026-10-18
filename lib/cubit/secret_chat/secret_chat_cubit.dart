@@ -116,6 +116,8 @@ class SecretChatCubit extends Cubit<SecretChatState> {
       outgoing: record.outgoing,
       status: secretMessageStatus(record.status),
       date: record.date,
+      selfDestructTtl: record.ttl,
+      selfDestructAt: record.expiresAt,
     );
     final bytes = record.media;
     if (bytes == null) return message;

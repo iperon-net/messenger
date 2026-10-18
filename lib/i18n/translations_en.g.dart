@@ -3847,6 +3847,15 @@ class Translations$secretChat$en {
 	/// en: 'Secret chat closed'
 	String get closed => 'Secret chat closed';
 
+	/// en: 'No new messages will arrive here. The history is kept only on this device.'
+	String get closedHint => 'No new messages will arrive here. The history is kept only on this device.';
+
+	/// en: 'Delete chat'
+	String get deleteChatShort => 'Delete chat';
+
+	/// en: 'The history will be deleted from this device.'
+	String get deleteClosedConfirm => 'The history will be deleted from this device.';
+
 	/// en: 'Messages in this chat use end-to-end encryption: only you and your contact can read them, the server can't. The chat exists only on this device — it isn't on your other devices and isn't stored in the cloud.'
 	String get intro => 'Messages in this chat use end-to-end encryption: only you and your contact can read them, the server can\'t. The chat exists only on this device — it isn\'t on your other devices and isn\'t stored in the cloud.';
 
@@ -3903,6 +3912,12 @@ class Translations$secretChat$en {
 
 	/// en: 'Off'
 	String get ttlOff => 'Off';
+
+	/// en: '{n}d'
+	String ttlShortDays({required Object n}) => '${n}d';
+
+	/// en: '{n}h'
+	String ttlShortHours({required Object n}) => '${n}h';
 
 	/// en: 'New messages will be deleted for you and your contact this long after they are read.'
 	String get ttlFooter => 'New messages will be deleted for you and your contact this long after they are read.';
@@ -5082,6 +5097,9 @@ extension on Translations {
 			'secretChat.waitingShort' => 'Waiting for the contact…',
 			'secretChat.created' => 'Secret chat created',
 			'secretChat.closed' => 'Secret chat closed',
+			'secretChat.closedHint' => 'No new messages will arrive here. The history is kept only on this device.',
+			'secretChat.deleteChatShort' => 'Delete chat',
+			'secretChat.deleteClosedConfirm' => 'The history will be deleted from this device.',
 			'secretChat.intro' => 'Messages in this chat use end-to-end encryption: only you and your contact can read them, the server can\'t. The chat exists only on this device — it isn\'t on your other devices and isn\'t stored in the cloud.',
 			'secretChat.inputPlaceholder' => 'Secret message',
 			'secretChat.encryptionKey' => 'Encryption Key',
@@ -5101,6 +5119,8 @@ extension on Translations {
 			'secretChat.errorGeneric' => 'Couldn\'t start a secret chat.',
 			'secretChat.ttl' => 'Self-destruct timer',
 			'secretChat.ttlOff' => 'Off',
+			'secretChat.ttlShortDays' => ({required Object n}) => '${n}d',
+			'secretChat.ttlShortHours' => ({required Object n}) => '${n}h',
 			'secretChat.ttlFooter' => 'New messages will be deleted for you and your contact this long after they are read.',
 			'secretChat.ttlSeconds' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} second', other: '${n} seconds', ), 
 			'secretChat.ttlMinutes' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} minute', other: '${n} minutes', ), 

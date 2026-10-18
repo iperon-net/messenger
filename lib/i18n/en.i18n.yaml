@@ -1233,6 +1233,9 @@ dateTime:
   "waitingShort": "Waiting for the contact…"
   "created": "Secret chat created"
   "closed": "Secret chat closed"
+  "closedHint": "No new messages will arrive here. The history is kept only on this device."
+  "deleteChatShort": "Delete chat"
+  "deleteClosedConfirm": "The history will be deleted from this device."
   "intro": "Messages in this chat use end-to-end encryption: only you and your contact can read them, the server can't. The chat exists only on this device — it isn't on your other devices and isn't stored in the cloud."
   "inputPlaceholder": "Secret message"
   "encryptionKey": "Encryption Key"
@@ -1252,6 +1255,8 @@ dateTime:
   "errorGeneric": "Couldn't start a secret chat."
   "ttl": "Self-destruct timer"
   "ttlOff": "Off"
+  "ttlShortDays": "{n}d"
+  "ttlShortHours": "{n}h"
   "ttlFooter": "New messages will be deleted for you and your contact this long after they are read."
   "ttlSeconds(plural)":
     one: "{n} second"

@@ -219,19 +219,89 @@ class _SecretChatCupertinoState extends State<SecretChatCupertino> {
     ];
   }
 
+  Future<void> _confirmDelete(BuildContext context) async {
+    final t = context.t.secretChat;
+    final confirmed = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (dialogContext) => CupertinoAlertDialog(
+        title: Text(t.deleteChatShort),
+        content: Text(t.deleteClosedConfirm),
+        actions: [
+          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(t.deleteChatShort),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) await context.read<SecretChatCubit>().deleteChat();
+  }
+
+  /// Вместо поля ввода, пока писать нельзя: ждём собеседника (индикатор) или
+  /// чат закрыт (замок, пояснение и «Удалить чат»).
+  Widget _statusBar(BuildContext context, SecretChatState state) {
+    final t = context.t;
+    final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
+    final closed = state.secretStatus == models.SecretChatStatus.closed;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: CupertinoColors.separator.resolveFrom(context), width: 0.5)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
+        child: closed
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      HugeIcon(icon: HugeIcons.strokeRoundedSquareLock02, size: 18, color: secondary, strokeWidth: 2),
+                      const SizedBox(width: 6),
+                      Text(
+                        t.secretChat.closed,
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    t.secretChat.closedHint,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 13, color: secondary),
+                  ),
+                  CupertinoButton(
+                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                    minimumSize: const Size(44, 36),
+                    onPressed: () => _confirmDelete(context),
+                    child: Text(t.secretChat.deleteChatShort, style: const TextStyle(fontSize: 15, color: CupertinoColors.destructiveRed)),
+                  ),
+                ],
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CupertinoActivityIndicator(radius: 8),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      secretChatStatusText(t, state.secretStatus, state.title),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14, color: secondary),
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+
   Widget _composer(BuildContext context, SecretChatState state) {
     final t = context.t;
     final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
-    if (!state.canSend) {
-      return Padding(
-        padding: const EdgeInsets.all(14),
-        child: Text(
-          secretChatStatusText(t, state.secretStatus, state.title),
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14, color: secondary),
-        ),
-      );
-    }
+    if (!state.canSend) return _statusBar(context, state);
     final primary = CupertinoTheme.of(context).primaryColor;
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 6, 4, 6),

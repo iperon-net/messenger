@@ -362,6 +362,12 @@ class Message with MessageMappable {
   /// публикации или админ закрыл досрочно); `null` — без ограничения.
   final DateTime? commentsCloseDate;
 
+  /// Таймер самоуничтожения (секретный чат), секунд; 0 — нет. У времени —
+  /// значок с остатком: до прочтения — сам таймер, потом — обратный отсчёт до
+  /// [selfDestructAt].
+  final int selfDestructTtl;
+  final DateTime? selfDestructAt;
+
   const Message({
     required this.id,
     required this.chatID,
@@ -405,6 +411,8 @@ class Message with MessageMappable {
     this.commentsCount = 0,
     this.commenters = const [],
     this.commentsCloseDate,
+    this.selfDestructTtl = 0,
+    this.selfDestructAt,
   });
 
   /// Комментарии к посту закрыты — ветку можно только читать.

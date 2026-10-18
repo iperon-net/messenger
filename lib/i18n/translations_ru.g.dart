@@ -1651,6 +1651,9 @@ class _Translations$secretChat$ru extends Translations$secretChat$en {
 	@override String get waitingShort => 'Ожидание собеседника…';
 	@override String get created => 'Секретный чат создан';
 	@override String get closed => 'Секретный чат закрыт';
+	@override String get closedHint => 'Новые сообщения сюда больше не придут. Переписка осталась только на этом устройстве.';
+	@override String get deleteChatShort => 'Удалить чат';
+	@override String get deleteClosedConfirm => 'Переписка будет удалена с этого устройства.';
 	@override String get intro => 'Сообщения в этом чате защищены сквозным шифрованием: их видите только вы и собеседник, сервер прочитать их не может. Чат есть только на этом устройстве — на других ваших устройствах его нет, и он не сохраняется в облаке.';
 	@override String get inputPlaceholder => 'Секретное сообщение';
 	@override String get encryptionKey => 'Ключ шифрования';
@@ -1670,6 +1673,8 @@ class _Translations$secretChat$ru extends Translations$secretChat$en {
 	@override String get errorGeneric => 'Не удалось начать секретный чат.';
 	@override String get ttl => 'Таймер самоуничтожения';
 	@override String get ttlOff => 'Выкл';
+	@override String ttlShortDays({required Object n}) => '${n} д';
+	@override String ttlShortHours({required Object n}) => '${n} ч';
 	@override String get ttlFooter => 'Новые сообщения будут удаляться у вас и у собеседника через выбранное время после того, как их прочитают.';
 	@override String ttlSeconds({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
 		one: '${n} секунда',
@@ -2835,6 +2840,9 @@ extension on TranslationsRu {
 			'secretChat.waitingShort' => 'Ожидание собеседника…',
 			'secretChat.created' => 'Секретный чат создан',
 			'secretChat.closed' => 'Секретный чат закрыт',
+			'secretChat.closedHint' => 'Новые сообщения сюда больше не придут. Переписка осталась только на этом устройстве.',
+			'secretChat.deleteChatShort' => 'Удалить чат',
+			'secretChat.deleteClosedConfirm' => 'Переписка будет удалена с этого устройства.',
 			'secretChat.intro' => 'Сообщения в этом чате защищены сквозным шифрованием: их видите только вы и собеседник, сервер прочитать их не может. Чат есть только на этом устройстве — на других ваших устройствах его нет, и он не сохраняется в облаке.',
 			'secretChat.inputPlaceholder' => 'Секретное сообщение',
 			'secretChat.encryptionKey' => 'Ключ шифрования',
@@ -2854,6 +2862,8 @@ extension on TranslationsRu {
 			'secretChat.errorGeneric' => 'Не удалось начать секретный чат.',
 			'secretChat.ttl' => 'Таймер самоуничтожения',
 			'secretChat.ttlOff' => 'Выкл',
+			'secretChat.ttlShortDays' => ({required Object n}) => '${n} д',
+			'secretChat.ttlShortHours' => ({required Object n}) => '${n} ч',
 			'secretChat.ttlFooter' => 'Новые сообщения будут удаляться у вас и у собеседника через выбранное время после того, как их прочитают.',
 			'secretChat.ttlSeconds' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} секунда', few: '${n} секунды', many: '${n} секунд', other: '${n} секунды', ), 
 			'secretChat.ttlMinutes' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} минута', few: '${n} минуты', many: '${n} минут', other: '${n} минуты', ), 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
 
@@ -757,6 +758,11 @@ class MessageBubble extends StatelessWidget {
           const SizedBox(width: 6),
         ],
         if (m.pinned) ...[PinIcon(onlyMe: m.pinnedOnlyMe, size: 12, color: metaColor), const SizedBox(width: 2)],
+        // Самоуничтожение (секретный чат) — остаток времени.
+        if (m.selfDestructTtl > 0) ...[
+          SelfDestructBadge(ttl: m.selfDestructTtl, expiresAt: m.selfDestructAt, style: metaStyle, color: metaColor),
+          const SizedBox(width: 4),
+        ],
         Text(metaText, style: metaStyle),
         if (out && m.kind != models.MessageKind.call) ...[
           const SizedBox(width: 3),
@@ -781,7 +787,7 @@ class MessageBubble extends StatelessWidget {
         : metaRow;
     // Невидимый хвост под время: nbsp, чтобы не переносился отдельно.
     final trailing =
-        '  ${m.authorSignature.isNotEmpty ? '${m.authorSignature.replaceAll(' ', '\u00a0')}\u00a0\u00a0' : ''}${views.isNotEmpty ? '\u00a0\u00a0\u00a0\u00a0$views\u00a0\u00a0' : ''}${m.pinned ? '\u00a0\u00a0\u00a0' : ''}$metaText${out && m.kind != models.MessageKind.call ? '     ' : ''}';
+        '  ${m.authorSignature.isNotEmpty ? '${m.authorSignature.replaceAll(' ', '\u00a0')}\u00a0\u00a0' : ''}${views.isNotEmpty ? '\u00a0\u00a0\u00a0\u00a0$views\u00a0\u00a0' : ''}${m.pinned ? '\u00a0\u00a0\u00a0' : ''}${m.selfDestructTtl > 0 ? '\u00a0' * 9 : ''}$metaText${out && m.kind != models.MessageKind.call ? '     ' : ''}';
 
     // Пока вложения грузятся — тап по медиа не открывает просмотр.
     final mediaTap = m.isUploading ? null : onMediaTap;
@@ -2144,4 +2150,76 @@ class PinIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Icon(onlyMe ? mi.Icons.push_pin_outlined : mi.Icons.push_pin, size: size, color: color);
+}
+
+/// Значок самоуничтожения у времени сообщения: секундомер и остаток —
+/// «0:05», «12:30», «3 ч», «6 д». До прочтения ([expiresAt] = null) — сам
+/// таймер, после — обратный отсчёт раз в секунду.
+class SelfDestructBadge extends StatefulWidget {
+  final int ttl;
+  final DateTime? expiresAt;
+  final TextStyle style;
+  final Color color;
+
+  const SelfDestructBadge({super.key, required this.ttl, required this.expiresAt, required this.style, required this.color});
+
+  /// Короткая запись длительности [seconds].
+  static String format(Translations t, int seconds) {
+    final s = seconds < 0 ? 0 : seconds;
+    if (s >= 86400) return t.secretChat.ttlShortDays(n: (s / 86400).ceil());
+    if (s >= 3600) return t.secretChat.ttlShortHours(n: (s / 3600).ceil());
+    return '${s ~/ 60}:${(s % 60).toString().padLeft(2, '0')}';
+  }
+
+  @override
+  State<SelfDestructBadge> createState() => _SelfDestructBadgeState();
+}
+
+class _SelfDestructBadgeState extends State<SelfDestructBadge> {
+  Timer? _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    _sync();
+  }
+
+  @override
+  void didUpdateWidget(SelfDestructBadge oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _sync();
+  }
+
+  /// Тикать раз в секунду, только пока идёт отсчёт.
+  void _sync() {
+    if (widget.expiresAt == null) {
+      _ticker?.cancel();
+      _ticker = null;
+    } else {
+      _ticker ??= Timer.periodic(const Duration(seconds: 1), (_) => setState(() {}));
+    }
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final at = widget.expiresAt;
+    final seconds = at == null ? widget.ttl : (at.difference(DateTime.now()).inMilliseconds / 1000).ceil();
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        FaIcon(FontAwesomeIcons.stopwatch, size: 10, color: widget.color),
+        const SizedBox(width: 2),
+        Text(
+          SelfDestructBadge.format(context.t, seconds),
+          style: widget.style.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+        ),
+      ],
+    );
+  }
 }

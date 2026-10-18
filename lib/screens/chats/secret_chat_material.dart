@@ -212,19 +212,84 @@ class _SecretChatMaterialState extends State<SecretChatMaterial> {
     );
   }
 
-  Widget _composer(BuildContext context, SecretChatState state) {
+  Future<void> _confirmDelete(BuildContext context) async {
+    final t = context.t.secretChat;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.deleteChatShort),
+        content: Text(t.deleteClosedConfirm),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.deleteChatShort)),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) await context.read<SecretChatCubit>().deleteChat();
+  }
+
+  /// Вместо поля ввода, пока писать нельзя: ждём собеседника (индикатор) или
+  /// чат закрыт (замок, пояснение и «Удалить чат»).
+  Widget _statusBar(BuildContext context, SecretChatState state) {
     final t = context.t;
     final theme = Theme.of(context);
-    if (!state.canSend) {
+    final scheme = theme.colorScheme;
+    if (state.secretStatus != models.SecretChatStatus.closed) {
       return Padding(
-        padding: const EdgeInsets.all(14),
-        child: Text(
-          secretChatStatusText(t, state.secretStatus, state.title),
-          textAlign: TextAlign.center,
-          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+            const SizedBox(width: 10),
+            Flexible(
+              child: Text(
+                secretChatStatusText(t, state.secretStatus, state.title),
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+              ),
+            ),
+          ],
         ),
       );
     }
+    return Card(
+      margin: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+      color: scheme.surfaceContainerHigh,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                HugeIcon(icon: HugeIcons.strokeRoundedSquareLock02, size: 18, color: scheme.onSurfaceVariant),
+                const SizedBox(width: 6),
+                Text(t.secretChat.closed, style: theme.textTheme.titleSmall),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              t.secretChat.closedHint,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: scheme.error),
+              onPressed: () => _confirmDelete(context),
+              child: Text(t.secretChat.deleteChatShort),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _composer(BuildContext context, SecretChatState state) {
+    final t = context.t;
+    final theme = Theme.of(context);
+    if (!state.canSend) return _statusBar(context, state);
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 6, 4, 6),
       child: Row(

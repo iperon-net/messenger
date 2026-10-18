@@ -2026,6 +2026,19 @@ class MessageMapper extends ClassMapperBase<Message> {
     _$commentsCloseDate,
     opt: true,
   );
+  static int _$selfDestructTtl(Message v) => v.selfDestructTtl;
+  static const Field<Message, int> _f$selfDestructTtl = Field(
+    'selfDestructTtl',
+    _$selfDestructTtl,
+    opt: true,
+    def: 0,
+  );
+  static DateTime? _$selfDestructAt(Message v) => v.selfDestructAt;
+  static const Field<Message, DateTime> _f$selfDestructAt = Field(
+    'selfDestructAt',
+    _$selfDestructAt,
+    opt: true,
+  );
 
   @override
   final MappableFields<Message> fields = const {
@@ -2071,6 +2084,8 @@ class MessageMapper extends ClassMapperBase<Message> {
     #commentsCount: _f$commentsCount,
     #commenters: _f$commenters,
     #commentsCloseDate: _f$commentsCloseDate,
+    #selfDestructTtl: _f$selfDestructTtl,
+    #selfDestructAt: _f$selfDestructAt,
   };
 
   static Message _instantiate(DecodingData data) {
@@ -2117,6 +2132,8 @@ class MessageMapper extends ClassMapperBase<Message> {
       commentsCount: data.dec(_f$commentsCount),
       commenters: data.dec(_f$commenters),
       commentsCloseDate: data.dec(_f$commentsCloseDate),
+      selfDestructTtl: data.dec(_f$selfDestructTtl),
+      selfDestructAt: data.dec(_f$selfDestructAt),
     );
   }
 
@@ -2246,6 +2263,8 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     int? commentsCount,
     List<String>? commenters,
     DateTime? commentsCloseDate,
+    int? selfDestructTtl,
+    DateTime? selfDestructAt,
   });
   MessageCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -2365,6 +2384,8 @@ class _MessageCopyWithImpl<$R, $Out>
     int? commentsCount,
     List<String>? commenters,
     Object? commentsCloseDate = $none,
+    int? selfDestructTtl,
+    Object? selfDestructAt = $none,
   }) => $apply(
     FieldCopyWithData({
       if (id != null) #id: id,
@@ -2410,6 +2431,8 @@ class _MessageCopyWithImpl<$R, $Out>
       if (commentsCount != null) #commentsCount: commentsCount,
       if (commenters != null) #commenters: commenters,
       if (commentsCloseDate != $none) #commentsCloseDate: commentsCloseDate,
+      if (selfDestructTtl != null) #selfDestructTtl: selfDestructTtl,
+      if (selfDestructAt != $none) #selfDestructAt: selfDestructAt,
     }),
   );
   @override
@@ -2465,6 +2488,8 @@ class _MessageCopyWithImpl<$R, $Out>
       #commentsCloseDate,
       or: $value.commentsCloseDate,
     ),
+    selfDestructTtl: data.get(#selfDestructTtl, or: $value.selfDestructTtl),
+    selfDestructAt: data.get(#selfDestructAt, or: $value.selfDestructAt),
   );
 
   @override
