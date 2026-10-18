@@ -21,7 +21,7 @@ export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
 export 'secret_payload_v1.pbenum.dart';
 
-enum SecretPayload_Payload { text, read, delete, media, notSet }
+enum SecretPayload_Payload { text, read, delete, media, setTtl, screenshot, notSet }
 
 /// SecretPayload — открытый текст конверта секретного чата (до шифрования
 /// храповиком, lib/crypto/secret_chat.dart). Сервер его не видит и не разбирает
@@ -35,6 +35,8 @@ class SecretPayload extends $pb.GeneratedMessage {
     SecretRead? read,
     SecretDelete? delete,
     SecretMedia? media,
+    SecretSetTtl? setTtl,
+    SecretScreenshot? screenshot,
   }) {
     final result = create();
     if (layer != null) result.layer = layer;
@@ -42,6 +44,8 @@ class SecretPayload extends $pb.GeneratedMessage {
     if (read != null) result.read = read;
     if (delete != null) result.delete = delete;
     if (media != null) result.media = media;
+    if (setTtl != null) result.setTtl = setTtl;
+    if (screenshot != null) result.screenshot = screenshot;
     return result;
   }
 
@@ -57,16 +61,20 @@ class SecretPayload extends $pb.GeneratedMessage {
     3: SecretPayload_Payload.read,
     4: SecretPayload_Payload.delete,
     5: SecretPayload_Payload.media,
+    6: SecretPayload_Payload.setTtl,
+    7: SecretPayload_Payload.screenshot,
     0: SecretPayload_Payload.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SecretPayload',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [2, 3, 4, 5])
+    ..oo(0, [2, 3, 4, 5, 6, 7])
     ..aI(1, _omitFieldNames ? '' : 'layer')
     ..aOM<SecretText>(2, _omitFieldNames ? '' : 'text', subBuilder: SecretText.create)
     ..aOM<SecretRead>(3, _omitFieldNames ? '' : 'read', subBuilder: SecretRead.create)
     ..aOM<SecretDelete>(4, _omitFieldNames ? '' : 'delete', subBuilder: SecretDelete.create)
     ..aOM<SecretMedia>(5, _omitFieldNames ? '' : 'media', subBuilder: SecretMedia.create)
+    ..aOM<SecretSetTtl>(6, _omitFieldNames ? '' : 'setTtl', protoName: 'setTtl', subBuilder: SecretSetTtl.create)
+    ..aOM<SecretScreenshot>(7, _omitFieldNames ? '' : 'screenshot', subBuilder: SecretScreenshot.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -90,11 +98,15 @@ class SecretPayload extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   @$pb.TagNumber(4)
   @$pb.TagNumber(5)
+  @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
   SecretPayload_Payload whichPayload() => _SecretPayload_PayloadByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(2)
   @$pb.TagNumber(3)
   @$pb.TagNumber(4)
   @$pb.TagNumber(5)
+  @$pb.TagNumber(6)
+  @$pb.TagNumber(7)
   void clearPayload() => $_clearField($_whichOneof(0));
 
   /// Версия формата у отправителя (как layer в Telegram): новые поля / действия
@@ -151,6 +163,28 @@ class SecretPayload extends $pb.GeneratedMessage {
   void clearMedia() => $_clearField(5);
   @$pb.TagNumber(5)
   SecretMedia ensureMedia() => $_ensure(4);
+
+  @$pb.TagNumber(6)
+  SecretSetTtl get setTtl => $_getN(5);
+  @$pb.TagNumber(6)
+  set setTtl(SecretSetTtl value) => $_setField(6, value);
+  @$pb.TagNumber(6)
+  $core.bool hasSetTtl() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearSetTtl() => $_clearField(6);
+  @$pb.TagNumber(6)
+  SecretSetTtl ensureSetTtl() => $_ensure(5);
+
+  @$pb.TagNumber(7)
+  SecretScreenshot get screenshot => $_getN(6);
+  @$pb.TagNumber(7)
+  set screenshot(SecretScreenshot value) => $_setField(7, value);
+  @$pb.TagNumber(7)
+  $core.bool hasScreenshot() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearScreenshot() => $_clearField(7);
+  @$pb.TagNumber(7)
+  SecretScreenshot ensureScreenshot() => $_ensure(6);
 }
 
 /// Текстовое сообщение. randomID — в SecretChats.Send (одно на отправку).
@@ -158,10 +192,12 @@ class SecretText extends $pb.GeneratedMessage {
   factory SecretText({
     $core.String? text,
     $fixnum.Int64? replyToRandomID,
+    $core.int? ttl,
   }) {
     final result = create();
     if (text != null) result.text = text;
     if (replyToRandomID != null) result.replyToRandomID = replyToRandomID;
+    if (ttl != null) result.ttl = ttl;
     return result;
   }
 
@@ -176,6 +212,7 @@ class SecretText extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'text')
     ..aInt64(2, _omitFieldNames ? '' : 'replyToRandomID', protoName: 'replyToRandomID')
+    ..aI(3, _omitFieldNames ? '' : 'ttl')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -212,6 +249,17 @@ class SecretText extends $pb.GeneratedMessage {
   $core.bool hasReplyToRandomID() => $_has(1);
   @$pb.TagNumber(2)
   void clearReplyToRandomID() => $_clearField(2);
+
+  /// Таймер самоуничтожения, секунд (0 — без него): отсчёт — с момента, когда
+  /// получатель прочитал; по истечении сообщение удаляют оба (каждый у себя).
+  @$pb.TagNumber(3)
+  $core.int get ttl => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set ttl($core.int value) => $_setSignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasTtl() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearTtl() => $_clearField(3);
 }
 
 /// Прочитаны мои сообщения с этими randomID (галочки у отправителя).
@@ -323,6 +371,7 @@ class SecretMedia extends $pb.GeneratedMessage {
     $core.List<$core.int>? waveform,
     $core.String? caption,
     $fixnum.Int64? replyToRandomID,
+    $core.int? ttl,
   }) {
     final result = create();
     if (kind != null) result.kind = kind;
@@ -342,6 +391,7 @@ class SecretMedia extends $pb.GeneratedMessage {
     if (waveform != null) result.waveform = waveform;
     if (caption != null) result.caption = caption;
     if (replyToRandomID != null) result.replyToRandomID = replyToRandomID;
+    if (ttl != null) result.ttl = ttl;
     return result;
   }
 
@@ -371,6 +421,7 @@ class SecretMedia extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(15, _omitFieldNames ? '' : 'waveform', $pb.PbFieldType.OY)
     ..aOS(16, _omitFieldNames ? '' : 'caption')
     ..aInt64(17, _omitFieldNames ? '' : 'replyToRandomID', protoName: 'replyToRandomID')
+    ..aI(18, _omitFieldNames ? '' : 'ttl')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -549,6 +600,100 @@ class SecretMedia extends $pb.GeneratedMessage {
   $core.bool hasReplyToRandomID() => $_has(16);
   @$pb.TagNumber(17)
   void clearReplyToRandomID() => $_clearField(17);
+
+  /// Таймер самоуничтожения, секунд — как SecretText.ttl.
+  @$pb.TagNumber(18)
+  $core.int get ttl => $_getIZ(17);
+  @$pb.TagNumber(18)
+  set ttl($core.int value) => $_setSignedInt32(17, value);
+  @$pb.TagNumber(18)
+  $core.bool hasTtl() => $_has(17);
+  @$pb.TagNumber(18)
+  void clearTtl() => $_clearField(18);
+}
+
+/// Таймер самоуничтожения новых сообщений чата (layer 3): seconds = 0 —
+/// выключен. Действует у обоих; у каждого — служебное «… установил таймер».
+class SecretSetTtl extends $pb.GeneratedMessage {
+  factory SecretSetTtl({
+    $core.int? seconds,
+  }) {
+    final result = create();
+    if (seconds != null) result.seconds = seconds;
+    return result;
+  }
+
+  SecretSetTtl._();
+
+  factory SecretSetTtl.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SecretSetTtl.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SecretSetTtl',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'seconds')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SecretSetTtl clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SecretSetTtl copyWith(void Function(SecretSetTtl) updates) =>
+      super.copyWith((message) => updates(message as SecretSetTtl)) as SecretSetTtl;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SecretSetTtl create() => SecretSetTtl._();
+  @$core.override
+  SecretSetTtl createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static SecretSetTtl getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SecretSetTtl>(create);
+  static SecretSetTtl? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get seconds => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set seconds($core.int value) => $_setSignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasSeconds() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSeconds() => $_clearField(1);
+}
+
+/// Отправитель сделал снимок экрана чата (layer 3; iOS — системное
+/// уведомление о скриншоте, на Android снимок запрещён FLAG_SECURE).
+class SecretScreenshot extends $pb.GeneratedMessage {
+  factory SecretScreenshot() => create();
+
+  SecretScreenshot._();
+
+  factory SecretScreenshot.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SecretScreenshot.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SecretScreenshot',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SecretScreenshot clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SecretScreenshot copyWith(void Function(SecretScreenshot) updates) =>
+      super.copyWith((message) => updates(message as SecretScreenshot)) as SecretScreenshot;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SecretScreenshot create() => SecretScreenshot._();
+  @$core.override
+  SecretScreenshot createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static SecretScreenshot getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SecretScreenshot>(create);
+  static SecretScreenshot? _defaultInstance;
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

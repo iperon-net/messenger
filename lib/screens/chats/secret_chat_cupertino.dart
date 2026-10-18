@@ -3,9 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:screen_protector/screen_protector.dart';
 
-import '../../components/chats/chat_tile.dart';
-import '../../components/chats/message_bubble.dart';
+import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
@@ -15,9 +16,9 @@ import 'chat_no_forwards.dart';
 import 'message_context_menu_cupertino.dart';
 import 'secret_chat_common.dart';
 
-/// Окно секретного чата (iOS): шапка с замком и состоянием (тап — «Ключ
-/// шифрования»), лента пузырей, поле ввода. Скриншоты запрещены, как в чате с
-/// защитой содержимого. См. docs/plans/secret-chats-e2ee.md.
+/// Окно секретного чата (iOS): обои и лента как в обычных чатах, шапка с
+/// замком и состоянием, справа — «Ключ шифрования». Скриншоты защищены, а о
+/// сделанном снимке узнаёт собеседник. См. docs/plans/secret-chats-e2ee.md.
 class SecretChatCupertino extends StatefulWidget {
   const SecretChatCupertino({super.key});
 
@@ -29,7 +30,16 @@ class _SecretChatCupertinoState extends State<SecretChatCupertino> {
   final _input = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    // Снимок экрана (iOS сообщает о нём) — служебное «сделал скриншот» у обоих.
+    final cubit = context.read<SecretChatCubit>();
+    ScreenProtector.addListener(cubit.screenshotTaken, null);
+  }
+
+  @override
   void dispose() {
+    ScreenProtector.removeListener();
     _input.dispose();
     super.dispose();
   }
@@ -75,48 +85,66 @@ class _SecretChatCupertinoState extends State<SecretChatCupertino> {
       listener: _notice,
       builder: (context, state) {
         final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
+        final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
+        final background = dark ? const Color(0xFF000000) : CupertinoColors.systemGroupedBackground.resolveFrom(context);
+        final barColor = ThemesCupertino.appBackground.resolveFrom(context).withValues(alpha: 0.92);
         return ChatScreenProtector(
           enabled: true,
           child: CupertinoPageScaffold(
-            backgroundColor: ThemesCupertino.appBackground.resolveFrom(context),
-            navigationBar: CupertinoNavigationBar(
-              previousPageTitle: '',
-              middle: GestureDetector(
-                onTap: () => _openInfo(context),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const FaIcon(FontAwesomeIcons.lock, size: 12, color: ChatTileContent.secretColor),
-                        const SizedBox(width: 5),
-                        Flexible(child: Text(state.title, maxLines: 1, overflow: TextOverflow.ellipsis)),
-                      ],
-                    ),
-                    Text(
-                      secretChatStatusText(t, state.secretStatus, state.title),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: secondary),
-                    ),
-                  ],
+            backgroundColor: background,
+            navigationBar: AppCupertinoNavigationBar(
+              child: CupertinoNavigationBar(
+                previousPageTitle: '',
+                automaticBackgroundVisibility: false,
+                backgroundColor: barColor,
+                middle: GestureDetector(
+                  onTap: () => _openInfo(context),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const FaIcon(FontAwesomeIcons.lock, size: 12, color: ChatTileContent.secretColor),
+                          const SizedBox(width: 5),
+                          Flexible(child: Text(state.title, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                        ],
+                      ),
+                      Text(
+                        secretChatStatusText(t, state.secretStatus, state.title),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: secondary),
+                      ),
+                    ],
+                  ),
+                ),
+                trailing: CupertinoButton(
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(44, 44),
+                  onPressed: () => _openInfo(context),
+                  child: HugeIcon(
+                    icon: HugeIcons.strokeRoundedSecurityLock,
+                    color: ThemesCupertino.navActionColor(context),
+                    size: 24,
+                    strokeWidth: 2,
+                  ),
                 ),
               ),
-              trailing: CupertinoButton(
-                padding: EdgeInsets.zero,
-                minimumSize: const Size(44, 44),
-                onPressed: () => _openInfo(context),
-                child: Icon(CupertinoIcons.lock_shield, color: ThemesCupertino.navActionColor(context)),
-              ),
             ),
-            child: SafeArea(
-              child: Column(
-                children: [
-                  Expanded(child: state.messages.isEmpty ? _intro(context) : _list(context, state)),
-                  _composer(context, state),
-                ],
-              ),
+            // Обои — на весь экран, в том числе под полупрозрачной панелью.
+            child: Stack(
+              children: [
+                Positioned.fill(child: SecretChatWallpaper(dark: dark)),
+                SafeArea(
+                  child: Column(
+                    children: [
+                      Expanded(child: state.messages.isEmpty ? _intro(context) : _list(context, state)),
+                      ColoredBox(color: barColor, child: _composer(context, state)),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -129,7 +157,7 @@ class _SecretChatCupertinoState extends State<SecretChatCupertino> {
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: DecoratedBox(
-          decoration: BoxDecoration(color: const Color(0x22000000), borderRadius: BorderRadius.circular(18)),
+          decoration: BoxDecoration(color: const Color(0x66000000), borderRadius: BorderRadius.circular(18)),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -140,7 +168,7 @@ class _SecretChatCupertinoState extends State<SecretChatCupertino> {
                 Text(
                   context.t.secretChat.intro,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                  style: const TextStyle(fontSize: 14, color: Color(0xFFFFFFFF)),
                 ),
               ],
             ),
@@ -151,32 +179,18 @@ class _SecretChatCupertinoState extends State<SecretChatCupertino> {
   }
 
   Widget _list(BuildContext context, SecretChatState state) {
-    final style = ChatCupertino.bubbleStyle(context);
-    final messages = state.messages;
-    return ListView.builder(
-      reverse: true,
+    final cubit = context.read<SecretChatCubit>();
+    return ChatMessagesView(
+      messages: state.messages,
+      chatType: models.ChatType.private,
+      style: ChatCupertino.bubbleStyle(context),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      itemCount: messages.length,
-      itemBuilder: (context, reversedIndex) {
-        final index = messages.length - 1 - reversedIndex;
-        final message = messages[index];
-        return Padding(
-          key: ValueKey(message.id),
-          padding: const EdgeInsets.only(top: 2),
-          child: MessageBubble(
-            message: message,
-            style: style,
-            tail: secretBubbleTail(messages, index),
-            showSender: false,
-            onLongPress: () {},
-            onMediaTap: (index) => openSecretMedia(context, state, message, index),
-            // Крестик на кольце загрузки — не отправлять.
-            onCancelUpload: () => context.read<SecretChatCubit>().deleteMessage(message),
-            menuWrapper: (bubble, preview) =>
-                MessageContextMenuCupertino(actions: _actions(context, message), bubble: bubble, preview: (maxWidth) => preview(maxWidth)),
-          ),
-        );
-      },
+      onLongPress: (_) {},
+      menuWrapper: (message, bubble, preview) =>
+          MessageContextMenuCupertino(actions: _actions(context, message), bubble: bubble, preview: (maxWidth) => preview(maxWidth)),
+      onMediaTap: (message, index) => openSecretMedia(context, state, message, index),
+      // Крестик на кольце загрузки — не отправлять.
+      onCancelUpload: cubit.deleteMessage,
     );
   }
 

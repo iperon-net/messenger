@@ -119,6 +119,10 @@ nonisolated struct Iperon_V1_PushPayload: Sendable {
     /// текста сообщения, без текста args[1] — вид вложения («photo», «voice»…);
     /// без превью args и body пустые.
     case messageReaction // = 13
+
+    /// Новое сообщение секретного чата (chatID — secretChatID): только имя
+    /// отправителя, текста нет (у сервера его нет); только на устройство чата.
+    case secretMessage // = 14
     case UNRECOGNIZED(Int)
 
     init() {
@@ -135,6 +139,7 @@ nonisolated struct Iperon_V1_PushPayload: Sendable {
       case 11: self = .readHistory
       case 12: self = .messageDeleted
       case 13: self = .messageReaction
+      case 14: self = .secretMessage
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -149,6 +154,7 @@ nonisolated struct Iperon_V1_PushPayload: Sendable {
       case .readHistory: return 11
       case .messageDeleted: return 12
       case .messageReaction: return 13
+      case .secretMessage: return 14
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -163,6 +169,7 @@ nonisolated struct Iperon_V1_PushPayload: Sendable {
       .readHistory,
       .messageDeleted,
       .messageReaction,
+      .secretMessage,
     ]
 
   }
@@ -271,5 +278,5 @@ nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobu
 }
 
 nonisolated extension Iperon_V1_PushPayload.Kind: SwiftProtobuf._ProtoNameProviding {
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0UNKNOWN\0\u{1}TEST\0\u{1}CONTACT_JOINED\0\u{1}CALL_MISSED\0\u{2}\u{7}MESSAGE\0\u{1}READ_HISTORY\0\u{1}MESSAGE_DELETED\0\u{1}MESSAGE_REACTION\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0UNKNOWN\0\u{1}TEST\0\u{1}CONTACT_JOINED\0\u{1}CALL_MISSED\0\u{2}\u{7}MESSAGE\0\u{1}READ_HISTORY\0\u{1}MESSAGE_DELETED\0\u{1}MESSAGE_REACTION\0\u{1}SECRET_MESSAGE\0")
 }

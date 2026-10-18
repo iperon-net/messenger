@@ -16,6 +16,7 @@
     <string name="push_app_name">Iperon</string>
     <string name="push_fallback_body">New notification</string>
     <string name="push_message_no_preview">New message</string>
+    <string name="push_secret_message">New message in a secret chat</string>
     <string name="push_contact_joined_body">joined Iperon</string>
     <string name="push_call_missed_body">Missed call</string>
     <string name="push_reaction_text">%1$s to your message “%2$s”</string>

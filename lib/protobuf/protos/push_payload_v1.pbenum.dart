@@ -28,6 +28,10 @@ class PushPayload_Kind extends $pb.ProtobufEnum {
   /// без превью args и body пустые.
   static const PushPayload_Kind MESSAGE_REACTION = PushPayload_Kind._(13, _omitEnumNames ? '' : 'MESSAGE_REACTION');
 
+  /// Новое сообщение секретного чата (chatID — secretChatID): только имя
+  /// отправителя, текста нет (у сервера его нет); только на устройство чата.
+  static const PushPayload_Kind SECRET_MESSAGE = PushPayload_Kind._(14, _omitEnumNames ? '' : 'SECRET_MESSAGE');
+
   static const $core.List<PushPayload_Kind> values = <PushPayload_Kind>[
     UNKNOWN,
     TEST,
@@ -37,6 +41,7 @@ class PushPayload_Kind extends $pb.ProtobufEnum {
     READ_HISTORY,
     MESSAGE_DELETED,
     MESSAGE_REACTION,
+    SECRET_MESSAGE,
   ];
 
   static final $core.Map<$core.int, PushPayload_Kind> _byValue = $pb.ProtobufEnum.initByValue(values);

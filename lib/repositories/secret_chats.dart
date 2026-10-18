@@ -56,6 +56,9 @@ class SecretChatRecord {
   final DateTime createdAt;
   final int unreadCount;
 
+  /// Таймер самоуничтожения новых сообщений, секунд (0 — выключен).
+  final int ttl;
+
   /// Последнее сообщение (для списка чатов).
   final SecretMessageRecord? lastMessage;
 
@@ -72,6 +75,7 @@ class SecretChatRecord {
     this.discardReason = -1,
     required this.createdAt,
     this.unreadCount = 0,
+    this.ttl = 0,
     this.lastMessage,
   });
 }
@@ -81,8 +85,19 @@ class SecretChatRecord {
 /// (прочитал я). Номера — часть схемы.
 enum SecretMessageStatus { pending, sent, read, unread, failed }
 
-/// Тип сообщения секретного чата. Номера — часть схемы.
-enum SecretMessageKind { text, photo, video, file, voice }
+/// Тип сообщения секретного чата. Номера — часть схемы. [ttlChange] и
+/// [screenshot] — служебные («установил таймер», «сделал скриншот»).
+enum SecretMessageKind {
+  text,
+  photo,
+  video,
+  file,
+  voice,
+  ttlChange,
+  screenshot;
+
+  bool get isService => this == ttlChange || this == screenshot;
+}
 
 class SecretMessageRecord {
   final Uint8List secretChatID;
@@ -105,6 +120,13 @@ class SecretMessageRecord {
   /// скачиваний под своим fileID).
   final String localPath;
 
+  /// Таймер самоуничтожения, секунд (0 — нет); у [SecretMessageKind.ttlChange]
+  /// — новый таймер чата.
+  final int ttl;
+
+  /// Когда удалить (таймер пошёл — прочитано); `null` — не идёт.
+  final DateTime? expiresAt;
+
   const SecretMessageRecord({
     required this.secretChatID,
     required this.randomID,
@@ -116,6 +138,8 @@ class SecretMessageRecord {
     this.kind = SecretMessageKind.text,
     this.media,
     this.localPath = '',
+    this.ttl = 0,
+    this.expiresAt,
   });
 }
 
@@ -129,6 +153,9 @@ class SecretOutboxRecord {
 
   /// Файлы сообщения (fileID) — открыто в `Send.fileIDs`.
   final List<Uint8List> files;
+
+  /// Сообщение, а не служебное — `Send.notify` (push получателю).
+  final bool notify;
   final DateTime createdAt;
 
   const SecretOutboxRecord({
@@ -136,6 +163,7 @@ class SecretOutboxRecord {
     required this.randomID,
     required this.envelope,
     this.files = const [],
+    this.notify = false,
     required this.createdAt,
   });
 }
@@ -238,6 +266,15 @@ class SecretChatsRepository {
     ''',
   ];
 
+  /// Таймер самоуничтожения (миграция 34; тесты создают и её): таймер чата,
+  /// таймер и срок сообщения, флаг «уведомить» у конверта outbox.
+  static const schemaTimer = [
+    'ALTER TABLE secretChats ADD COLUMN ttl INTEGER NOT NULL DEFAULT 0;',
+    'ALTER TABLE secretMessages ADD COLUMN ttl INTEGER NOT NULL DEFAULT 0;',
+    'ALTER TABLE secretMessages ADD COLUMN expiresAt INTEGER NOT NULL DEFAULT 0;',
+    'ALTER TABLE secretOutbox ADD COLUMN notify INTEGER NOT NULL DEFAULT 0;',
+  ];
+
   static Uint8List _joinFiles(List<List<int>> files) => Uint8List.fromList([for (final file in files) ...file]);
 
   static List<Uint8List> _splitFiles(Object? value) {
@@ -260,6 +297,11 @@ class SecretChatsRepository {
     kind: SecretMessageKind.values[row['${prefix}kind'] as int? ?? 0],
     media: _bytesOrNull(row['${prefix}media']),
     localPath: row['${prefix}localPath'] as String? ?? '',
+    ttl: row['${prefix}ttl'] as int? ?? 0,
+    expiresAt: switch (row['${prefix}expiresAt'] as int? ?? 0) {
+      0 => null,
+      final ms => DateTime.fromMillisecondsSinceEpoch(ms),
+    },
   );
 
   static SecretChatRecord _chat(Map<String, Object?> row) {
@@ -277,6 +319,7 @@ class SecretChatsRepository {
       discardReason: row['discardReason'] as int,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row['createdAt'] as int),
       unreadCount: row['unreadCount'] as int,
+      ttl: row['ttl'] as int? ?? 0,
       lastMessage: row['m_randomID'] == null ? null : _message(row, prefix: 'm_'),
     );
   }
@@ -284,7 +327,8 @@ class SecretChatsRepository {
   static const _chatSelect = '''
     SELECT c.*,
       m.secretChatID AS m_secretChatID, m.randomID AS m_randomID, m.outgoing AS m_outgoing, m.text AS m_text,
-      m.date AS m_date, m.status AS m_status, m.replyToRandomID AS m_replyToRandomID, m.kind AS m_kind
+      m.date AS m_date, m.status AS m_status, m.replyToRandomID AS m_replyToRandomID, m.kind AS m_kind,
+      m.ttl AS m_ttl
     FROM secretChats c
     LEFT JOIN secretMessages m ON m.rowid = (
       SELECT rowid FROM secretMessages
@@ -459,6 +503,7 @@ class SecretChatsRepository {
     required int randomID,
     required Uint8List envelope,
     List<List<int>> files = const [],
+    bool notify = false,
     DateTime? createdAt,
     SecretMessageRecord? message,
     Future<void> Function(SecretChatsTx tx)? apply,
@@ -472,8 +517,16 @@ class SecretChatsRepository {
         secretChatID,
       ]);
       await tx.execute(
-        'INSERT INTO secretOutbox (sessionID, secretChatID, randomID, envelope, files, createdAt) VALUES (?, ?, ?, ?, ?, ?);',
-        [sessionID, secretChatID, randomID, envelope, files.isEmpty ? null : _joinFiles(files), createdAt?.millisecondsSinceEpoch ?? now],
+        'INSERT INTO secretOutbox (sessionID, secretChatID, randomID, envelope, files, notify, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?);',
+        [
+          sessionID,
+          secretChatID,
+          randomID,
+          envelope,
+          files.isEmpty ? null : _joinFiles(files),
+          notify ? 1 : 0,
+          createdAt?.millisecondsSinceEpoch ?? now,
+        ],
       );
       final scoped = SecretChatsTx._(tx, sessionID, secretChatID);
       if (message != null) await scoped.insertMessage(message);
@@ -484,7 +537,7 @@ class SecretChatsRepository {
   /// Неотправленные конверты по порядку постановки.
   Future<List<SecretOutboxRecord>> outbox({required List<int> sessionID}) async {
     final rows = await db.getAll(
-      'SELECT secretChatID, randomID, envelope, files, createdAt FROM secretOutbox WHERE sessionID = ? ORDER BY createdAt, rowid;',
+      'SELECT secretChatID, randomID, envelope, files, notify, createdAt FROM secretOutbox WHERE sessionID = ? ORDER BY createdAt, rowid;',
       [sessionID],
     );
     return [
@@ -494,6 +547,7 @@ class SecretChatsRepository {
           randomID: row['randomID'] as int,
           envelope: _bytes(row['envelope']),
           files: _splitFiles(row['files']),
+          notify: row['notify'] == 1,
           createdAt: DateTime.fromMillisecondsSinceEpoch(row['createdAt'] as int),
         ),
     ];
@@ -546,6 +600,22 @@ class SecretChatsRepository {
       randomID,
     ]);
     return row == null ? null : _message(row);
+  }
+
+  /// Сообщения устройства, чей таймер самоуничтожения истёк к [now].
+  Future<List<SecretMessageRecord>> expired({required List<int> sessionID, required DateTime now}) async {
+    final rows = await db.getAll('SELECT * FROM secretMessages WHERE sessionID = ? AND expiresAt > 0 AND expiresAt <= ?;', [
+      sessionID,
+      now.millisecondsSinceEpoch,
+    ]);
+    return [for (final row in rows) _message(row)];
+  }
+
+  /// Ближайший срок самоуничтожения; `null` — таймеров не идёт.
+  Future<DateTime?> nextExpiry({required List<int> sessionID}) async {
+    final row = await db.get('SELECT MIN(expiresAt) AS at FROM secretMessages WHERE sessionID = ? AND expiresAt > 0;', [sessionID]);
+    final at = row['at'] as int?;
+    return at == null ? null : DateTime.fromMillisecondsSinceEpoch(at);
   }
 
   /// Сообщения чата с вложениями (что убрать с устройства при удалении чата).
@@ -625,8 +695,8 @@ class SecretChatsTx {
     await _tx.execute(
       '''
       INSERT OR IGNORE INTO secretMessages
-        (sessionID, secretChatID, randomID, outgoing, text, date, status, replyToRandomID, kind, media, localPath)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        (sessionID, secretChatID, randomID, outgoing, text, date, status, replyToRandomID, kind, media, localPath, ttl, expiresAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       ''',
       [
         _sessionID,
@@ -640,6 +710,8 @@ class SecretChatsTx {
         message.kind.index,
         message.media,
         message.localPath,
+        message.ttl,
+        message.expiresAt?.millisecondsSinceEpoch ?? 0,
       ],
     );
     final inserted = (await _tx.get('SELECT changes() AS n;'))['n'] == 1;
@@ -652,23 +724,46 @@ class SecretChatsTx {
   }
 
   /// Собеседник прочитал мои сообщения.
-  Future<void> markOutgoingRead(List<int> randomIDs) async {
+  ///
+  /// [now] — с этого момента идёт таймер самоуничтожения (у кого он есть).
+  Future<void> markOutgoingRead(List<int> randomIDs, {DateTime? now}) async {
     for (final randomID in randomIDs) {
       await _tx.execute(
         'UPDATE secretMessages SET status = ? WHERE sessionID = ? AND secretChatID = ? AND randomID = ? AND outgoing = 1;',
         [SecretMessageStatus.read.index, _sessionID, _secretChatID, randomID],
       );
     }
+    await _startTimers(randomIDs, now ?? DateTime.now());
+  }
+
+  /// Таймеры самоуничтожения сообщений [randomIDs] (у кого он есть и ещё не
+  /// идёт) — с момента [now].
+  Future<void> _startTimers(List<int> randomIDs, DateTime now) async {
+    for (final randomID in randomIDs) {
+      await _tx.execute(
+        '''
+        UPDATE secretMessages SET expiresAt = ? + ttl * 1000
+        WHERE sessionID = ? AND secretChatID = ? AND randomID = ? AND ttl > 0 AND expiresAt = 0 AND kind != ?;
+        ''',
+        [now.millisecondsSinceEpoch, _sessionID, _secretChatID, randomID, SecretMessageKind.ttlChange.index],
+      );
+    }
+  }
+
+  /// Новый таймер самоуничтожения чата.
+  Future<void> setTtl(int seconds) async {
+    await _tx.execute('UPDATE secretChats SET ttl = ? WHERE sessionID = ? AND secretChatID = ?;', [seconds, _sessionID, _secretChatID]);
   }
 
   /// Я прочитал входящие: статус и счётчик непрочитанных.
-  Future<void> markIncomingRead(List<int> randomIDs) async {
+  Future<void> markIncomingRead(List<int> randomIDs, {DateTime? now}) async {
     for (final randomID in randomIDs) {
       await _tx.execute(
         'UPDATE secretMessages SET status = ? WHERE sessionID = ? AND secretChatID = ? AND randomID = ? AND outgoing = 0;',
         [SecretMessageStatus.read.index, _sessionID, _secretChatID, randomID],
       );
     }
+    await _startTimers(randomIDs, now ?? DateTime.now());
     await _recountUnread();
   }
 

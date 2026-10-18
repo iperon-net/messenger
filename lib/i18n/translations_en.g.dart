@@ -3897,6 +3897,63 @@ class Translations$secretChat$en {
 
 	/// en: 'Couldn't start a secret chat.'
 	String get errorGeneric => 'Couldn\'t start a secret chat.';
+
+	/// en: 'Self-destruct timer'
+	String get ttl => 'Self-destruct timer';
+
+	/// en: 'Off'
+	String get ttlOff => 'Off';
+
+	/// en: 'New messages will be deleted for you and your contact this long after they are read.'
+	String get ttlFooter => 'New messages will be deleted for you and your contact this long after they are read.';
+
+	/// en: '(one) {{n} second} (other) {{n} seconds}'
+	String ttlSeconds({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} second',
+		other: '${n} seconds',
+	);
+
+	/// en: '(one) {{n} minute} (other) {{n} minutes}'
+	String ttlMinutes({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} minute',
+		other: '${n} minutes',
+	);
+
+	/// en: '(one) {{n} hour} (other) {{n} hours}'
+	String ttlHours({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} hour',
+		other: '${n} hours',
+	);
+
+	/// en: '(one) {{n} day} (other) {{n} days}'
+	String ttlDays({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} day',
+		other: '${n} days',
+	);
+
+	/// en: '(one) {{n} week} (other) {{n} weeks}'
+	String ttlWeeks({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} week',
+		other: '${n} weeks',
+	);
+
+	/// en: 'You set the self-destruct timer to {period}'
+	String ttlServiceYou({required Object period}) => 'You set the self-destruct timer to ${period}';
+
+	/// en: 'You disabled the self-destruct timer'
+	String get ttlServiceYouOff => 'You disabled the self-destruct timer';
+
+	/// en: '{name} set the self-destruct timer to {period}'
+	String ttlService({required Object name, required Object period}) => '${name} set the self-destruct timer to ${period}';
+
+	/// en: '{name} disabled the self-destruct timer'
+	String ttlServiceOff({required Object name}) => '${name} disabled the self-destruct timer';
+
+	/// en: 'You took a screenshot'
+	String get screenshotYou => 'You took a screenshot';
+
+	/// en: '{name} took a screenshot'
+	String screenshot({required Object name}) => '${name} took a screenshot';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -5042,6 +5099,20 @@ extension on Translations {
 			'secretChat.errorPrivacyRestricted' => 'This person restricted who can message them.',
 			'secretChat.errorFlood' => 'Too many requests. Try again later.',
 			'secretChat.errorGeneric' => 'Couldn\'t start a secret chat.',
+			'secretChat.ttl' => 'Self-destruct timer',
+			'secretChat.ttlOff' => 'Off',
+			'secretChat.ttlFooter' => 'New messages will be deleted for you and your contact this long after they are read.',
+			'secretChat.ttlSeconds' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} second', other: '${n} seconds', ), 
+			'secretChat.ttlMinutes' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} minute', other: '${n} minutes', ), 
+			'secretChat.ttlHours' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} hour', other: '${n} hours', ), 
+			'secretChat.ttlDays' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} day', other: '${n} days', ), 
+			'secretChat.ttlWeeks' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} week', other: '${n} weeks', ), 
+			'secretChat.ttlServiceYou' => ({required Object period}) => 'You set the self-destruct timer to ${period}',
+			'secretChat.ttlServiceYouOff' => 'You disabled the self-destruct timer',
+			'secretChat.ttlService' => ({required Object name, required Object period}) => '${name} set the self-destruct timer to ${period}',
+			'secretChat.ttlServiceOff' => ({required Object name}) => '${name} disabled the self-destruct timer',
+			'secretChat.screenshotYou' => 'You took a screenshot',
+			'secretChat.screenshot' => ({required Object name}) => '${name} took a screenshot',
 			_ => null,
 		};
 	}

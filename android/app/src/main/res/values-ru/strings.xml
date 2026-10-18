@@ -12,6 +12,7 @@
     <string name="push_app_name">Iperon</string>
     <string name="push_fallback_body">Новое уведомление</string>
     <string name="push_message_no_preview">Новое сообщение</string>
+    <string name="push_secret_message">Новое сообщение в секретном чате</string>
     <string name="push_contact_joined_body">теперь в Iperon</string>
     <string name="push_call_missed_body">Пропущенный звонок</string>
     <string name="push_reaction_text">%1$s к вашему сообщению «%2$s»</string>

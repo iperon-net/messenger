@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
+import '../../chats/secret/secret_chats_list.dart';
 import 'chat_no_forwards.dart';
 import 'secret_chat_common.dart';
 
@@ -76,6 +77,26 @@ class SecretChatInfoMaterial extends StatelessWidget {
                         ),
                 ),
                 const SizedBox(height: 16),
+                // Таймер самоуничтожения — пока в чат можно писать.
+                if (state.canSend) ...[
+                  Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    child: ListTile(
+                      leading: Icon(Icons.timer_outlined, color: secondary),
+                      title: Text(t.ttl),
+                      subtitle: Text(secretTtlLabel(context.t, state.ttl)),
+                      onTap: () async {
+                        final cubit = context.read<SecretChatCubit>();
+                        final seconds = await pickSecretTtlMaterial(context, state.ttl);
+                        if (seconds != null) await cubit.setTtl(seconds);
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(28, 8, 28, 16),
+                    child: Text(t.ttlFooter, style: theme.textTheme.bodySmall?.copyWith(color: secondary)),
+                  ),
+                ],
                 Card(
                   margin: const EdgeInsets.symmetric(horizontal: 16),
                   child: ListTile(

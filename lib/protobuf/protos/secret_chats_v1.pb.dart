@@ -1219,12 +1219,14 @@ class SecretChats_Send extends $pb.GeneratedMessage {
     $fixnum.Int64? randomID,
     $core.List<$core.int>? envelope,
     $core.Iterable<$core.List<$core.int>>? fileIDs,
+    $core.bool? notify,
   }) {
     final result = create();
     if (secretChatID != null) result.secretChatID = secretChatID;
     if (randomID != null) result.randomID = randomID;
     if (envelope != null) result.envelope = envelope;
     if (fileIDs != null) result.fileIDs.addAll(fileIDs);
+    if (notify != null) result.notify = notify;
     return result;
   }
 
@@ -1241,6 +1243,7 @@ class SecretChats_Send extends $pb.GeneratedMessage {
     ..aInt64(2, _omitFieldNames ? '' : 'randomID', protoName: 'randomID')
     ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'envelope', $pb.PbFieldType.OY)
     ..p<$core.List<$core.int>>(4, _omitFieldNames ? '' : 'fileIDs', $pb.PbFieldType.PY, protoName: 'fileIDs')
+    ..aOB(5, _omitFieldNames ? '' : 'notify')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1289,6 +1292,19 @@ class SecretChats_Send extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(4)
   $pb.PbList<$core.List<$core.int>> get fileIDs => $_getList(3);
+
+  /// Сообщение, о котором стоит уведомить получателя (текст, вложение,
+  /// скриншот), а не служебное (прочитано, удалить, таймер): если устройство
+  /// получателя не в сети — push SECRET_MESSAGE без текста (содержимого у
+  /// сервера нет), только на это устройство.
+  @$pb.TagNumber(5)
+  $core.bool get notify => $_getBF(4);
+  @$pb.TagNumber(5)
+  set notify($core.bool value) => $_setBool(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasNotify() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearNotify() => $_clearField(5);
 }
 
 class SecretChats_SendResult extends $pb.GeneratedMessage {

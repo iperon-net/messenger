@@ -30,6 +30,7 @@ data class PushPayload(
         const val KIND_READ_HISTORY = 11
         const val KIND_MESSAGE_DELETED = 12
         const val KIND_MESSAGE_REACTION = 13
+        const val KIND_SECRET_MESSAGE = 14
 
         private const val WIRE_VARINT = 0
         private const val WIRE_FIXED64 = 1

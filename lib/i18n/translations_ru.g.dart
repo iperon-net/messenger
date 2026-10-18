@@ -1668,6 +1668,45 @@ class _Translations$secretChat$ru extends Translations$secretChat$en {
 	@override String get errorPrivacyRestricted => 'Собеседник ограничил, кто может ему писать.';
 	@override String get errorFlood => 'Слишком много запросов. Попробуйте позже.';
 	@override String get errorGeneric => 'Не удалось начать секретный чат.';
+	@override String get ttl => 'Таймер самоуничтожения';
+	@override String get ttlOff => 'Выкл';
+	@override String get ttlFooter => 'Новые сообщения будут удаляться у вас и у собеседника через выбранное время после того, как их прочитают.';
+	@override String ttlSeconds({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} секунда',
+		few: '${n} секунды',
+		many: '${n} секунд',
+		other: '${n} секунды',
+	);
+	@override String ttlMinutes({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} минута',
+		few: '${n} минуты',
+		many: '${n} минут',
+		other: '${n} минуты',
+	);
+	@override String ttlHours({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} час',
+		few: '${n} часа',
+		many: '${n} часов',
+		other: '${n} часа',
+	);
+	@override String ttlDays({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} день',
+		few: '${n} дня',
+		many: '${n} дней',
+		other: '${n} дня',
+	);
+	@override String ttlWeeks({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} неделя',
+		few: '${n} недели',
+		many: '${n} недель',
+		other: '${n} недели',
+	);
+	@override String ttlServiceYou({required Object period}) => 'Вы установили таймер самоуничтожения: ${period}';
+	@override String get ttlServiceYouOff => 'Вы выключили таймер самоуничтожения';
+	@override String ttlService({required Object name, required Object period}) => '${name} установил(а) таймер самоуничтожения: ${period}';
+	@override String ttlServiceOff({required Object name}) => '${name} выключил(а) таймер самоуничтожения';
+	@override String get screenshotYou => 'Вы сделали скриншот';
+	@override String screenshot({required Object name}) => '${name} сделал(а) скриншот';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -2813,6 +2852,20 @@ extension on TranslationsRu {
 			'secretChat.errorPrivacyRestricted' => 'Собеседник ограничил, кто может ему писать.',
 			'secretChat.errorFlood' => 'Слишком много запросов. Попробуйте позже.',
 			'secretChat.errorGeneric' => 'Не удалось начать секретный чат.',
+			'secretChat.ttl' => 'Таймер самоуничтожения',
+			'secretChat.ttlOff' => 'Выкл',
+			'secretChat.ttlFooter' => 'Новые сообщения будут удаляться у вас и у собеседника через выбранное время после того, как их прочитают.',
+			'secretChat.ttlSeconds' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} секунда', few: '${n} секунды', many: '${n} секунд', other: '${n} секунды', ), 
+			'secretChat.ttlMinutes' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} минута', few: '${n} минуты', many: '${n} минут', other: '${n} минуты', ), 
+			'secretChat.ttlHours' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} час', few: '${n} часа', many: '${n} часов', other: '${n} часа', ), 
+			'secretChat.ttlDays' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} день', few: '${n} дня', many: '${n} дней', other: '${n} дня', ), 
+			'secretChat.ttlWeeks' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} неделя', few: '${n} недели', many: '${n} недель', other: '${n} недели', ), 
+			'secretChat.ttlServiceYou' => ({required Object period}) => 'Вы установили таймер самоуничтожения: ${period}',
+			'secretChat.ttlServiceYouOff' => 'Вы выключили таймер самоуничтожения',
+			'secretChat.ttlService' => ({required Object name, required Object period}) => '${name} установил(а) таймер самоуничтожения: ${period}',
+			'secretChat.ttlServiceOff' => ({required Object name}) => '${name} выключил(а) таймер самоуничтожения',
+			'secretChat.screenshotYou' => 'Вы сделали скриншот',
+			'secretChat.screenshot' => ({required Object name}) => '${name} сделал(а) скриншот',
 			_ => null,
 		};
 	}

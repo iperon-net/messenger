@@ -40,6 +40,12 @@ class _FakeServer {
   /// Прикреплённые файлы: fileID (hex) → чат (hex); освобождённые.
   final attached = <String, String>{};
   final released = <String>{};
+
+  /// randomID конвертов, отправленных с notify (push получателю).
+  final notified = <int>{};
+
+  /// Часы устройств (самоуничтожение) — двигаются тестом.
+  DateTime now = DateTime(2026, 10, 18, 12);
   final pushes = <(_Device, sc.SecretUpdate)>[];
   var _nextID = 1;
 
@@ -143,6 +149,7 @@ class _FakeServer {
           if (owner != null && owner != _hex(chat.id)) _fail('secretChat.fileForbidden');
           attached[_hex(file)] = _hex(chat.id);
         }
+        if (request.send.notify) notified.add(request.send.randomID.toInt());
         if (sentRandomIDs.add('${_hex(device.sessionID)}:${request.send.randomID}')) {
           final recipient = chat.initiator == device ? chat.peer! : chat.initiator;
           _enqueue(
@@ -278,6 +285,8 @@ class _Device {
       uploader: uploader,
       mediaDir: () async => mediaDir,
       releaseLocal: (ids) => evicted.addAll([for (final id in ids) _hex(id)]),
+      clock: () => server.now,
+      clearNotifications: (_) {},
     );
     transport.device = this;
     uploader.device = this;
@@ -314,7 +323,7 @@ void main() {
     counter++;
     final db = SqliteDatabase(path: '${dir.path}/device$counter.db');
     databases.add(db);
-    for (final statement in [...SecretChatsRepository.schema, ...SecretChatsRepository.schemaMedia]) {
+    for (final statement in [...SecretChatsRepository.schema, ...SecretChatsRepository.schemaMedia, ...SecretChatsRepository.schemaTimer]) {
       await db.execute(statement);
     }
     final media = await Directory('${dir.path}/media$counter').create();
@@ -639,6 +648,69 @@ void main() {
     await a.sync.onConnected();
     await server.deliver();
     expect(await b.messages(id), isEmpty);
+  });
+
+  test('таймер самоуничтожения: у обоих, отсчёт с прочтения', () async {
+    final a = await device();
+    final b = await device();
+    final id = await handshake(a, b);
+
+    await a.sync.setTtl(id, 5);
+    await server.deliver();
+    expect((await a.chat(id)).ttl, 5);
+    expect((await b.chat(id)).ttl, 5);
+    final serviceB = (await b.messages(id)).single;
+    expect(serviceB.kind, SecretMessageKind.ttlChange);
+    expect(serviceB.ttl, 5);
+    expect((await b.chat(id)).unreadCount, 0, reason: 'служебное не непрочитанное');
+
+    await a.sync.sendText(id, 'сгорит');
+    await server.deliver();
+    final inB = (await b.messages(id)).last;
+    expect(inB.ttl, 5);
+    expect(inB.expiresAt, isNull, reason: 'не прочитано — таймер не идёт');
+
+    await b.sync.markRead(id);
+    await server.deliver();
+    final started = server.now;
+    expect((await b.messages(id)).last.expiresAt, started.add(const Duration(seconds: 5)));
+    expect((await a.messages(id)).last.expiresAt, started.add(const Duration(seconds: 5)));
+
+    server.now = started.add(const Duration(seconds: 4));
+    await a.sync.expireNow();
+    expect(await a.messages(id), hasLength(2));
+
+    server.now = started.add(const Duration(seconds: 6));
+    await a.sync.expireNow();
+    await b.sync.expireNow();
+    expect([for (final m in await a.messages(id)) m.kind], [SecretMessageKind.ttlChange]);
+    expect([for (final m in await b.messages(id)) m.kind], [SecretMessageKind.ttlChange]);
+
+    // Выключили — новые без таймера.
+    await b.sync.setTtl(id, 0);
+    await server.deliver();
+    await a.sync.sendText(id, 'останется');
+    await server.deliver();
+    expect((await b.messages(id)).last.ttl, 0);
+  });
+
+  test('скриншот и push только о сообщениях', () async {
+    final a = await device();
+    final b = await device();
+    final id = await handshake(a, b);
+
+    await a.sync.sendText(id, 'текст');
+    await server.deliver();
+    final text = (await a.messages(id)).single.randomID;
+    await b.sync.markRead(id);
+    await a.sync.screenshotTaken(id);
+    await server.deliver();
+
+    final inB = await b.messages(id);
+    expect(inB.last.kind, SecretMessageKind.screenshot);
+    expect(inB.last.outgoing, isFalse);
+    expect((await a.messages(id)).last.kind, SecretMessageKind.screenshot);
+    expect(server.notified, {text, inB.last.randomID}, reason: '«прочитано» — без пуша');
   });
 
   test('у собеседника нет поддерживающих устройств', () async {

@@ -2,7 +2,6 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
@@ -29,33 +28,6 @@ class ProfileCupertino extends StatefulWidget {
 }
 
 class _ProfileCupertino extends State<ProfileCupertino> {
-  /// «Начать секретный чат»: создать и открыть; ошибка (нет сети, нет Premium,
-  /// у собеседника нет поддержки) — алертом.
-  Future<void> _startSecretChat(BuildContext context) async {
-    final result = await context.read<ProfileCubit>().startSecretChat(context.t);
-    if (!context.mounted) return;
-    if (result.chatID case final chatID?) {
-      await context.push('/chats/secret/$chatID');
-      return;
-    }
-    final error = result.error;
-    if (error == null) return;
-    await showCupertinoDialog<void>(
-      context: context,
-      builder: (dialogContext) => CupertinoAlertDialog(
-        title: Text(context.t.secretChat.title),
-        content: Text(error),
-        actions: [
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(context.t.common.close),
-          ),
-        ],
-      ),
-    );
-  }
-
   final logger = getIt.get<Logger>();
 
   /// Свой ли это профиль — на нём кнопку звонка не показываем.
@@ -248,14 +220,6 @@ class _ProfileCupertino extends State<ProfileCupertino> {
                       borderRadius: const BorderRadius.all(Radius.circular(18)),
                     ),
                     children: [
-                      if (state.secretChatAvailable)
-                        CupertinoListTileIcon(
-                          title: Text(context.t.secretChat.start),
-                          color: ChatTileContent.secretColor,
-                          icon: FontAwesomeIcons.lock,
-                          isTrailing: true,
-                          onTab: state.secretChatStarting ? null : () => _startSecretChat(context),
-                        ),
                       CupertinoListTileIcon(
                         title: Text(context.t.screenProfile.hideProfile),
                         color: const Color(0xFF22D393),

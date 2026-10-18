@@ -133,6 +133,20 @@ class SecretChatStateMapper extends ClassMapperBase<SecretChatState> {
     opt: true,
     def: '',
   );
+  static int _$ttl(SecretChatState v) => v.ttl;
+  static const Field<SecretChatState, int> _f$ttl = Field(
+    'ttl',
+    _$ttl,
+    opt: true,
+    def: 0,
+  );
+  static String _$avatarPath(SecretChatState v) => v.avatarPath;
+  static const Field<SecretChatState, String> _f$avatarPath = Field(
+    'avatarPath',
+    _$avatarPath,
+    opt: true,
+    def: '',
+  );
   static List<models.Message> _$messages(SecretChatState v) => v.messages;
   static const Field<SecretChatState, List<models.Message>> _f$messages = Field(
     'messages',
@@ -172,6 +186,8 @@ class SecretChatStateMapper extends ClassMapperBase<SecretChatState> {
     #outgoing: _f$outgoing,
     #emoji: _f$emoji,
     #fingerprintHex: _f$fingerprintHex,
+    #ttl: _f$ttl,
+    #avatarPath: _f$avatarPath,
     #messages: _f$messages,
     #notice: _f$notice,
     #noticeCount: _f$noticeCount,
@@ -188,6 +204,8 @@ class SecretChatStateMapper extends ClassMapperBase<SecretChatState> {
       outgoing: data.dec(_f$outgoing),
       emoji: data.dec(_f$emoji),
       fingerprintHex: data.dec(_f$fingerprintHex),
+      ttl: data.dec(_f$ttl),
+      avatarPath: data.dec(_f$avatarPath),
       messages: data.dec(_f$messages),
       notice: data.dec(_f$notice),
       noticeCount: data.dec(_f$noticeCount),
@@ -273,6 +291,8 @@ abstract class SecretChatStateCopyWith<$R, $In extends SecretChatState, $Out>
     bool? outgoing,
     List<String>? emoji,
     String? fingerprintHex,
+    int? ttl,
+    String? avatarPath,
     List<models.Message>? messages,
     SecretChatNotice? notice,
     int? noticeCount,
@@ -319,6 +339,8 @@ class _SecretChatStateCopyWithImpl<$R, $Out>
     bool? outgoing,
     List<String>? emoji,
     String? fingerprintHex,
+    int? ttl,
+    String? avatarPath,
     List<models.Message>? messages,
     SecretChatNotice? notice,
     int? noticeCount,
@@ -333,6 +355,8 @@ class _SecretChatStateCopyWithImpl<$R, $Out>
       if (outgoing != null) #outgoing: outgoing,
       if (emoji != null) #emoji: emoji,
       if (fingerprintHex != null) #fingerprintHex: fingerprintHex,
+      if (ttl != null) #ttl: ttl,
+      if (avatarPath != null) #avatarPath: avatarPath,
       if (messages != null) #messages: messages,
       if (notice != null) #notice: notice,
       if (noticeCount != null) #noticeCount: noticeCount,
@@ -349,6 +373,8 @@ class _SecretChatStateCopyWithImpl<$R, $Out>
     outgoing: data.get(#outgoing, or: $value.outgoing),
     emoji: data.get(#emoji, or: $value.emoji),
     fingerprintHex: data.get(#fingerprintHex, or: $value.fingerprintHex),
+    ttl: data.get(#ttl, or: $value.ttl),
+    avatarPath: data.get(#avatarPath, or: $value.avatarPath),
     messages: data.get(#messages, or: $value.messages),
     notice: data.get(#notice, or: $value.notice),
     noticeCount: data.get(#noticeCount, or: $value.noticeCount),

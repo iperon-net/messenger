@@ -2,10 +2,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../../components/chats/chat_tile.dart';
-import '../../components/chats/message_bubble.dart';
+import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
@@ -13,9 +13,9 @@ import 'chat_material.dart';
 import 'chat_no_forwards.dart';
 import 'secret_chat_common.dart';
 
-/// Окно секретного чата (Android): шапка с замком и состоянием (тап — «Ключ
-/// шифрования»), лента пузырей, поле ввода. Скриншоты запрещены
-/// (FLAG_SECURE). См. docs/plans/secret-chats-e2ee.md.
+/// Окно секретного чата (Android): обои и лента как в обычных чатах, шапка с
+/// аватаром, замком и состоянием, справа — «Ключ шифрования». Скриншоты
+/// запрещены (FLAG_SECURE). См. docs/plans/secret-chats-e2ee.md.
 class SecretChatMaterial extends StatefulWidget {
   const SecretChatMaterial({super.key});
 
@@ -92,38 +92,76 @@ class _SecretChatMaterialState extends State<SecretChatMaterial> {
       listener: _notice,
       builder: (context, state) {
         final theme = Theme.of(context);
+        final scheme = theme.colorScheme;
+        final dark = theme.brightness == Brightness.dark;
         return ChatScreenProtector(
           enabled: true,
           child: Scaffold(
+            backgroundColor: dark ? const Color(0xFF000000) : scheme.surfaceContainerLow,
             appBar: AppBar(
               titleSpacing: 0,
               title: InkWell(
                 onTap: () => _openInfo(context),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
                   children: [
-                    Row(
-                      children: [
-                        const FaIcon(FontAwesomeIcons.lock, size: 14, color: ChatTileContent.secretColor),
-                        const SizedBox(width: 6),
-                        Flexible(child: Text(state.title, maxLines: 1, overflow: TextOverflow.ellipsis)),
-                      ],
+                    // Таймер самоуничтожения — значок на аватаре (как в обычных чатах).
+                    ChatAvatar(
+                      chat: state.chat,
+                      size: 40,
+                      accentColor: scheme.primary,
+                      accentForeground: scheme.onPrimary,
+                      ttlBadgeColor: scheme.outline,
                     ),
-                    Text(
-                      secretChatStatusText(t, state.secretStatus, state.title),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              const FaIcon(FontAwesomeIcons.lock, size: 14, color: ChatTileContent.secretColor),
+                              const SizedBox(width: 6),
+                              Flexible(
+                                child: Text(
+                                  state.title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 18),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            secretChatStatusText(t, state.secretStatus, state.title),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-              actions: [IconButton(onPressed: () => _openInfo(context), icon: const Icon(Icons.vpn_key_outlined))],
+              actions: [
+                IconButton(
+                  onPressed: () => _openInfo(context),
+                  icon: HugeIcon(icon: HugeIcons.strokeRoundedSecurityLock, color: scheme.onSurfaceVariant),
+                ),
+              ],
             ),
             body: SafeArea(
               child: Column(
                 children: [
-                  Expanded(child: state.messages.isEmpty ? _intro(context) : _list(context, state)),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        Positioned.fill(child: SecretChatWallpaper(dark: dark)),
+                        state.messages.isEmpty ? _intro(context) : _list(context, state),
+                      ],
+                    ),
+                  ),
                   _composer(context, state),
                 ],
               ),
@@ -161,30 +199,16 @@ class _SecretChatMaterialState extends State<SecretChatMaterial> {
   }
 
   Widget _list(BuildContext context, SecretChatState state) {
-    final style = ChatMaterial.bubbleStyle(context);
-    final messages = state.messages;
-    return ListView.builder(
-      reverse: true,
+    final cubit = context.read<SecretChatCubit>();
+    return ChatMessagesView(
+      messages: state.messages,
+      chatType: models.ChatType.private,
+      style: ChatMaterial.bubbleStyle(context),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      itemCount: messages.length,
-      itemBuilder: (context, reversedIndex) {
-        final index = messages.length - 1 - reversedIndex;
-        final message = messages[index];
-        return Padding(
-          key: ValueKey(message.id),
-          padding: const EdgeInsets.only(top: 2),
-          child: MessageBubble(
-            message: message,
-            style: style,
-            tail: secretBubbleTail(messages, index),
-            showSender: false,
-            onLongPress: () => _messageActions(context, message),
-            onMediaTap: (index) => openSecretMedia(context, context.read<SecretChatCubit>().state, message, index),
-            // Крестик на кольце загрузки — не отправлять.
-            onCancelUpload: () => context.read<SecretChatCubit>().deleteMessage(message),
-          ),
-        );
-      },
+      onLongPress: (message) => _messageActions(context, message),
+      onMediaTap: (message, index) => openSecretMedia(context, state, message, index),
+      // Крестик на кольце загрузки — не отправлять.
+      onCancelUpload: cubit.deleteMessage,
     );
   }
 

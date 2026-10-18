@@ -11,6 +11,7 @@ import '../../chats/secret/secret_chats_media.dart';
 import '../../chats/secret/secret_chats_sync.dart';
 import '../../constants.dart';
 import '../../crypto.dart';
+import '../../i18n/translations.g.dart';
 import '../../di.dart';
 import '../../logger.dart';
 import '../../models.dart' as models;
@@ -57,6 +58,8 @@ class SecretChatCubit extends Cubit<SecretChatState> {
       }),
     );
     _downloads = SecretChatsMedia.instance.changed.listen((_) => _reload());
+    // Истёкшее за время, пока приложение было закрыто, — сразу.
+    unawaited(_sync.expireNow());
   }
 
   void _reload() {
@@ -83,7 +86,9 @@ class SecretChatCubit extends Cubit<SecretChatState> {
         outgoing: chat.outgoing,
         emoji: chat.emoji,
         fingerprintHex: chat.fingerprint == null ? '' : utils.bytesToHex(chat.fingerprint!),
-        messages: [for (final record in records) await _message(record, listID)],
+        ttl: chat.ttl,
+        avatarPath: await secretPeerAvatar(chat.peerUserID),
+        messages: [for (final record in records) await _message(record, listID, title)],
       ),
     );
     if (_visible && chat.unreadCount > 0) unawaited(_markRead());
@@ -92,7 +97,17 @@ class SecretChatCubit extends Cubit<SecretChatState> {
   /// Сообщение для ленты: у вложения — файл (копия неотправленного или
   /// скачанный; ещё нет — ставится в очередь скачивания), обложка видео из
   /// конверта и прогресс загрузки / скачивания.
-  Future<models.Message> _message(SecretMessageRecord record, String listID) async {
+  Future<models.Message> _message(SecretMessageRecord record, String listID, String title) async {
+    if (record.kind.isService) {
+      return models.Message(
+        id: '${record.randomID}',
+        chatID: listID,
+        service: true,
+        outgoing: record.outgoing,
+        text: secretServiceText(LocaleSettings.instance.currentTranslations, record, title),
+        date: record.date,
+      );
+    }
     final message = models.Message(
       id: '${record.randomID}',
       chatID: listID,
@@ -213,6 +228,25 @@ class SecretChatCubit extends Cubit<SecretChatState> {
       }
     } on SecretChatException {
       _notice(SecretChatNotice.notReady);
+    }
+  }
+
+  /// Таймер самоуничтожения новых сообщений ([secretTtlOptions]).
+  Future<void> setTtl(int seconds) async {
+    if (seconds == state.ttl) return;
+    try {
+      await _sync.setTtl(_chatID, seconds);
+    } on SecretChatException {
+      _notice(SecretChatNotice.notReady);
+    }
+  }
+
+  /// Снимок экрана окна чата (iOS сообщает о нём): собеседнику — служебное.
+  Future<void> screenshotTaken() async {
+    try {
+      await _sync.screenshotTaken(_chatID);
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
     }
   }
 

@@ -96,7 +96,9 @@ object MessagePushHandler {
         // Включён код-пароль или отправитель — локально скрытый профиль («Скрыть
         // профиль») — ни имени, ни текста на экране блокировки/в шторке.
         val hidden = PushKeyStore.isPasscodeEnabled(context) || PushKeyStore.isHiddenUser(context, payload.fromUserID)
-        val isMessage = payload.kind == PushPayload.KIND_MESSAGE
+        // Секретный чат — как сообщение, но текста у сервера нет.
+        val secret = payload.kind == PushPayload.KIND_SECRET_MESSAGE
+        val isMessage = payload.kind == PushPayload.KIND_MESSAGE || secret
         val isChat = isMessage || payload.kind == PushPayload.KIND_MESSAGE_REACTION
         val tag = if (isMessage) chatTag(payload) else payload.id.ifEmpty { "kind:${payload.kind}" }
 
@@ -114,7 +116,11 @@ object MessagePushHandler {
 
             isMessage -> {
                 val sender = Person.Builder().setName(payload.title.ifEmpty { appName }).build()
-                val text = payload.body.ifEmpty { context.getString(R.string.push_message_no_preview) }
+                val text = if (secret) {
+                    context.getString(R.string.push_secret_message)
+                } else {
+                    payload.body.ifEmpty { context.getString(R.string.push_message_no_preview) }
+                }
                 val active = activeNotification(context, tag)
                 val style = active?.let { NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(it) }
                     ?: NotificationCompat.MessagingStyle(Person.Builder().setName(appName).build())

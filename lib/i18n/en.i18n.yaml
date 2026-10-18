@@ -1250,3 +1250,27 @@ dateTime:
   "errorPrivacyRestricted": "This person restricted who can message them."
   "errorFlood": "Too many requests. Try again later."
   "errorGeneric": "Couldn't start a secret chat."
+  "ttl": "Self-destruct timer"
+  "ttlOff": "Off"
+  "ttlFooter": "New messages will be deleted for you and your contact this long after they are read."
+  "ttlSeconds(plural)":
+    one: "{n} second"
+    other: "{n} seconds"
+  "ttlMinutes(plural)":
+    one: "{n} minute"
+    other: "{n} minutes"
+  "ttlHours(plural)":
+    one: "{n} hour"
+    other: "{n} hours"
+  "ttlDays(plural)":
+    one: "{n} day"
+    other: "{n} days"
+  "ttlWeeks(plural)":
+    one: "{n} week"
+    other: "{n} weeks"
+  "ttlServiceYou": "You set the self-destruct timer to {period}"
+  "ttlServiceYouOff": "You disabled the self-destruct timer"
+  "ttlService": "{name} set the self-destruct timer to {period}"
+  "ttlServiceOff": "{name} disabled the self-destruct timer"
+  "screenshotYou": "You took a screenshot"
+  "screenshot": "{name} took a screenshot"

@@ -100,6 +100,11 @@ class NotificationService: UNNotificationServiceExtension {
       content.title = title
       content.body = payload.body.isEmpty ? Self.text("PUSH_MESSAGE_NO_PREVIEW") : payload.body
       content.threadIdentifier = "chat:" + PushKeychain.hex(payload.chatID)
+    case .secretMessage:
+      // Секретный чат: текста у сервера нет — только «новое сообщение».
+      content.title = title
+      content.body = Self.text("PUSH_SECRET_MESSAGE")
+      content.threadIdentifier = "chat:" + PushKeychain.hex(payload.chatID)
     case .messageReaction:
       // messageID — моё сообщение: прочитал чат на другом устройстве —
       // READ_HISTORY снимет и это уведомление.

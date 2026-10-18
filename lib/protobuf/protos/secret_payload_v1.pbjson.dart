@@ -24,6 +24,8 @@ const SecretPayload$json = {
     {'1': 'read', '3': 3, '4': 1, '5': 11, '6': '.iperon.v1.SecretRead', '9': 0, '10': 'read'},
     {'1': 'delete', '3': 4, '4': 1, '5': 11, '6': '.iperon.v1.SecretDelete', '9': 0, '10': 'delete'},
     {'1': 'media', '3': 5, '4': 1, '5': 11, '6': '.iperon.v1.SecretMedia', '9': 0, '10': 'media'},
+    {'1': 'setTtl', '3': 6, '4': 1, '5': 11, '6': '.iperon.v1.SecretSetTtl', '9': 0, '10': 'setTtl'},
+    {'1': 'screenshot', '3': 7, '4': 1, '5': 11, '6': '.iperon.v1.SecretScreenshot', '9': 0, '10': 'screenshot'},
   ],
   '8': [
     {'1': 'payload'},
@@ -36,7 +38,9 @@ final $typed_data.Uint8List secretPayloadDescriptor =
         'Blcm9uLnYxLlNlY3JldFRleHRIAFIEdGV4dBIrCgRyZWFkGAMgASgLMhUuaXBlcm9uLnYxLlNl'
         'Y3JldFJlYWRIAFIEcmVhZBIxCgZkZWxldGUYBCABKAsyFy5pcGVyb24udjEuU2VjcmV0RGVsZX'
         'RlSABSBmRlbGV0ZRIuCgVtZWRpYRgFIAEoCzIWLmlwZXJvbi52MS5TZWNyZXRNZWRpYUgAUgVt'
-        'ZWRpYUIJCgdwYXlsb2Fk');
+        'ZWRpYRIxCgZzZXRUdGwYBiABKAsyFy5pcGVyb24udjEuU2VjcmV0U2V0VHRsSABSBnNldFR0bB'
+        'I9CgpzY3JlZW5zaG90GAcgASgLMhsuaXBlcm9uLnYxLlNlY3JldFNjcmVlbnNob3RIAFIKc2Ny'
+        'ZWVuc2hvdEIJCgdwYXlsb2Fk');
 
 @$core.Deprecated('Use secretTextDescriptor instead')
 const SecretText$json = {
@@ -44,13 +48,14 @@ const SecretText$json = {
   '2': [
     {'1': 'text', '3': 1, '4': 1, '5': 9, '10': 'text'},
     {'1': 'replyToRandomID', '3': 2, '4': 1, '5': 3, '10': 'replyToRandomID'},
+    {'1': 'ttl', '3': 3, '4': 1, '5': 5, '10': 'ttl'},
   ],
 };
 
 /// Descriptor for `SecretText`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List secretTextDescriptor =
     $convert.base64Decode('CgpTZWNyZXRUZXh0EhIKBHRleHQYASABKAlSBHRleHQSKAoPcmVwbHlUb1JhbmRvbUlEGAIgAS'
-        'gDUg9yZXBseVRvUmFuZG9tSUQ=');
+        'gDUg9yZXBseVRvUmFuZG9tSUQSEAoDdHRsGAMgASgFUgN0dGw=');
 
 @$core.Deprecated('Use secretReadDescriptor instead')
 const SecretRead$json = {
@@ -95,6 +100,7 @@ const SecretMedia$json = {
     {'1': 'waveform', '3': 15, '4': 1, '5': 12, '10': 'waveform'},
     {'1': 'caption', '3': 16, '4': 1, '5': 9, '10': 'caption'},
     {'1': 'replyToRandomID', '3': 17, '4': 1, '5': 3, '10': 'replyToRandomID'},
+    {'1': 'ttl', '3': 18, '4': 1, '5': 5, '10': 'ttl'},
   ],
   '4': [SecretMedia_Kind$json],
 };
@@ -120,5 +126,24 @@ final $typed_data.Uint8List secretMediaDescriptor =
         'QSGgoIZHVyYXRpb24YCyABKAVSCGR1cmF0aW9uEhwKCXRodW1iaGFzaBgMIAEoCVIJdGh1bWJo'
         'YXNoEhQKBXRodW1iGA0gASgMUgV0aHVtYhIYCgdzcG9pbGVyGA4gASgIUgdzcG9pbGVyEhoKCH'
         'dhdmVmb3JtGA8gASgMUgh3YXZlZm9ybRIYCgdjYXB0aW9uGBAgASgJUgdjYXB0aW9uEigKD3Jl'
-        'cGx5VG9SYW5kb21JRBgRIAEoA1IPcmVwbHlUb1JhbmRvbUlEIjEKBEtpbmQSCQoFUEhPVE8QAB'
-        'IJCgVWSURFTxABEggKBEZJTEUQAhIJCgVWT0lDRRAD');
+        'cGx5VG9SYW5kb21JRBgRIAEoA1IPcmVwbHlUb1JhbmRvbUlEEhAKA3R0bBgSIAEoBVIDdHRsIj'
+        'EKBEtpbmQSCQoFUEhPVE8QABIJCgVWSURFTxABEggKBEZJTEUQAhIJCgVWT0lDRRAD');
+
+@$core.Deprecated('Use secretSetTtlDescriptor instead')
+const SecretSetTtl$json = {
+  '1': 'SecretSetTtl',
+  '2': [
+    {'1': 'seconds', '3': 1, '4': 1, '5': 5, '10': 'seconds'},
+  ],
+};
+
+/// Descriptor for `SecretSetTtl`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List secretSetTtlDescriptor = $convert.base64Decode('CgxTZWNyZXRTZXRUdGwSGAoHc2Vjb25kcxgBIAEoBVIHc2Vjb25kcw==');
+
+@$core.Deprecated('Use secretScreenshotDescriptor instead')
+const SecretScreenshot$json = {
+  '1': 'SecretScreenshot',
+};
+
+/// Descriptor for `SecretScreenshot`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List secretScreenshotDescriptor = $convert.base64Decode('ChBTZWNyZXRTY3JlZW5zaG90');

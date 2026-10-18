@@ -8,10 +8,13 @@ import '../../chats/reactions.dart';
 import '../../chats/slow_mode.dart';
 import '../../components.dart';
 import '../../cubit.dart';
+import '../../utils.dart';
+import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
+import 'secret_chat_common.dart';
 import 'chat_admins_cupertino.dart';
 import 'chat_banned_cupertino.dart';
 import 'chat_create_form_cupertino.dart';
@@ -48,6 +51,19 @@ class ChatInfoCupertino extends StatefulWidget {
 }
 
 class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
+  /// «Начать секретный чат» в «Ещё» — для собеседника [_secretCheckedFor]
+  /// (проверка асинхронная: флаги и Premium из кэша).
+  bool _secretAvailable = false;
+  String? _secretCheckedFor;
+
+  void _checkSecret(models.Chat chat) {
+    if (chat.type != models.ChatType.private || chat.peerUserID.isEmpty || chat.peerUserID == _secretCheckedFor) return;
+    _secretCheckedFor = chat.peerUserID;
+    secretChatAvailable(getIt.get<Utils>().hexToBytes(chat.peerUserID)).then((available) {
+      if (mounted && available != _secretAvailable) setState(() => _secretAvailable = available);
+    });
+  }
+
   ChatInfoTab? _tab;
   final _scroll = ScrollController();
 
@@ -98,8 +114,16 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
   /// у пункта — отдельным меню от той же кнопки.
   List<_MoreItem> _moreItems(BuildContext context, models.Chat chat) {
     if (chat.isSelf || !chat.isMember) return const [];
+    _checkSecret(chat);
     final t = context.t;
     return [
+      // Секретный чат с собеседником (как «Начать секретный чат» в Telegram).
+      if (chat.type == models.ChatType.private && _secretAvailable)
+        _MoreItem(
+          title: t.secretChat.start,
+          icon: CupertinoIcons.lock,
+          onTap: () => startSecretChat(context, getIt.get<Utils>().hexToBytes(chat.peerUserID)),
+        ),
       if (chat.type == models.ChatType.private)
         _MoreItem(
           title: t.chatTtl.titleLong,

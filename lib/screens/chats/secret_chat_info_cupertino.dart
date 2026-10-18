@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
+import '../../chats/secret/secret_chats_list.dart';
 import 'chat_no_forwards.dart';
 import 'secret_chat_common.dart';
 
@@ -90,6 +91,30 @@ class SecretChatInfoCupertino extends StatelessWidget {
                           ),
                   ),
                   const SizedBox(height: 16),
+                  // Таймер самоуничтожения — пока в чат можно писать.
+                  if (state.canSend)
+                    CupertinoListSection.insetGrouped(
+                      backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                      decoration: BoxDecoration(
+                        color: ThemesCupertino.groupedCard.resolveFrom(context),
+                        borderRadius: const BorderRadius.all(Radius.circular(18)),
+                      ),
+                      footer: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Text(t.ttlFooter, style: TextStyle(fontSize: 13, color: secondary)),
+                      ),
+                      children: [
+                        CupertinoMenuAnchor(
+                          menuChildren: secretTtlMenuCupertino(context, state.ttl, context.read<SecretChatCubit>().setTtl),
+                          builder: (context, controller, child) => CupertinoListTile(
+                            title: Text(t.ttl),
+                            additionalInfo: Text(secretTtlLabel(context.t, state.ttl), style: TextStyle(color: secondary)),
+                            trailing: const CupertinoListTileChevron(),
+                            onTap: () => controller.isOpen ? controller.close() : controller.open(),
+                          ),
+                        ),
+                      ],
+                    ),
                   CupertinoListSection.insetGrouped(
                     backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
                     decoration: BoxDecoration(

@@ -42,13 +42,6 @@ class ProfileState with ProfileStateMappable {
   /// Расшифрованный аватар для показа. `null`, пока не скачан/не задан.
   final Uint8List? avatarBytes;
 
-  /// Показывать «Начать секретный чат»: фича включена (Remote Config) и, если
-  /// она только для Premium, у меня Premium (кэш MY_PROFILE).
-  final bool secretChatAvailable;
-
-  /// Идёт создание секретного чата (кнопка неактивна).
-  final bool secretChatStarting;
-
   const ProfileState({
     this.status = Status.initialization,
     this.error = "",
@@ -67,7 +60,5 @@ class ProfileState with ProfileStateMappable {
     this.boringAvatarHash = "",
     this.boringAvatarType = BoringAvatarType.ring,
     this.avatarBytes,
-    this.secretChatAvailable = false,
-    this.secretChatStarting = false,
   });
 }

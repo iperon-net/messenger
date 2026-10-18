@@ -28,6 +28,9 @@ message PushPayload {
     // текста сообщения, без текста args[1] — вид вложения («photo», «voice»…);
     // без превью args и body пустые.
     MESSAGE_REACTION = 13;
+    // Новое сообщение секретного чата (chatID — secretChatID): только имя
+    // отправителя, текста нет (у сервера его нет); только на устройство чата.
+    SECRET_MESSAGE = 14;
   }
 
   Kind kind = 1;

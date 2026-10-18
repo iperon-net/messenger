@@ -29,6 +29,12 @@ class SecretChatState with SecretChatStateMappable {
   final List<String> emoji;
   final String fingerprintHex;
 
+  /// Таймер самоуничтожения новых сообщений, секунд (0 — выключен).
+  final int ttl;
+
+  /// Фото собеседника (кэш профилей); пусто — заглушка.
+  final String avatarPath;
+
   /// Переписка по времени (старые сверху).
   final List<models.Message> messages;
 
@@ -48,6 +54,8 @@ class SecretChatState with SecretChatStateMappable {
     this.outgoing = false,
     this.emoji = const [],
     this.fingerprintHex = '',
+    this.ttl = 0,
+    this.avatarPath = '',
     this.messages = const [],
     this.notice = SecretChatNotice.none,
     this.noticeCount = 0,
@@ -55,4 +63,15 @@ class SecretChatState with SecretChatStateMappable {
   });
 
   bool get canSend => secretStatus == models.SecretChatStatus.ready;
+
+  /// Чат как строка списка — для аватара и обоев в шапке.
+  models.Chat get chat => models.Chat(
+    id: chatID,
+    type: models.ChatType.private,
+    title: title,
+    peerUserID: peerUserID,
+    avatarPath: avatarPath,
+    ttlPeriod: ttl,
+    secretStatus: secretStatus,
+  );
 }

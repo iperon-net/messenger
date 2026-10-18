@@ -743,6 +743,16 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(34, (tx) async {
+        // Таймер самоуничтожения секретных чатов: таймер чата, таймер / срок
+        // сообщения, «уведомить» у конверта (SecretChatsRepository.schemaTimer).
+        for (final statement in SecretChatsRepository.schemaTimer) {
+          await tx.execute(statement);
+        }
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

@@ -3,6 +3,7 @@
 "PUSH_APP_NAME" = "Iperon";
 "PUSH_FALLBACK_BODY" = "Новое уведомление";
 "PUSH_MESSAGE_NO_PREVIEW" = "Новое сообщение";
+"PUSH_SECRET_MESSAGE" = "Новое сообщение в секретном чате";
 "PUSH_TEST_TITLE" = "Iperon";
 "PUSH_TEST_ENCRYPTED_BODY" = "Шифрованное тестовое уведомление: расшифровка работает.";
 "PUSH_CONTACT_JOINED_BODY" = "теперь в Iperon";

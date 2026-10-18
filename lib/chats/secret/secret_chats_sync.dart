@@ -14,6 +14,7 @@ import '../../cdn.dart';
 import '../../crypto.dart';
 import '../../di.dart';
 import '../../logger.dart';
+import '../../push.dart';
 import '../../protobuf/protos/secret_chats_v1.pb.dart' as sc;
 import '../../protobuf/protos/secret_payload_v1.pb.dart' as sp;
 import '../../protobuf/protos/v1.pb.dart' show MessageType;
@@ -27,8 +28,11 @@ import 'secret_chats_media.dart';
 const secretChatsCapability = 'secretChats';
 
 /// Версия формата `SecretPayload` у этой сборки (см. secret_payload_v1.proto):
-/// 2 — вложения (`SecretMedia`).
-const secretPayloadLayer = 2;
+/// 2 — вложения (`SecretMedia`), 3 — таймер самоуничтожения и скриншоты.
+const secretPayloadLayer = 3;
+
+/// Варианты таймера самоуничтожения, секунд (0 — выключен), как в Telegram.
+const secretTtlOptions = [0, 5, 30, 60, 3600, 86400, 604800];
 
 /// Каталог файлов вложений секретных чатов на устройстве: копии
 /// неотправленных и кадры-обложки видео из конвертов (отдельно от outbox
@@ -121,7 +125,7 @@ sp.SecretMedia_Kind secretMediaKindToPb(SecretMessageKind kind) => switch (kind)
   SecretMessageKind.video => sp.SecretMedia_Kind.VIDEO,
   SecretMessageKind.file => sp.SecretMedia_Kind.FILE,
   SecretMessageKind.voice => sp.SecretMedia_Kind.VOICE,
-  SecretMessageKind.photo || SecretMessageKind.text => sp.SecretMedia_Kind.PHOTO,
+  _ => sp.SecretMedia_Kind.PHOTO,
 };
 
 SecretMessageKind secretMediaKindFromPb(sp.SecretMedia_Kind kind) => switch (kind) {
@@ -200,6 +204,8 @@ class SecretChatsSync {
     SecretMediaUploader? uploader,
     Future<Directory> Function()? mediaDir,
     void Function(List<Uint8List> fileIDs)? releaseLocal,
+    DateTime Function()? clock,
+    void Function(List<int> chatID)? clearNotifications,
   }) : _storeOf = store,
        _cryptoOf = crypto,
        _sessionIDOf = sessionID,
@@ -207,7 +213,9 @@ class SecretChatsSync {
        _loggerOf = logger,
        _uploader = uploader ?? _CdnSecretMediaUploader(),
        _mediaDir = mediaDir ?? secretOutboxMediaDir,
-       _releaseLocal = releaseLocal ?? _evictDownloads;
+       _releaseLocal = releaseLocal ?? _evictDownloads,
+       _clock = clock ?? DateTime.now,
+       _clearNotifications = clearNotifications ?? _clearPushes;
 
   static SecretChatsSync? _instance;
 
@@ -234,6 +242,12 @@ class SecretChatsSync {
 
   /// Убрать с устройства скачанные файлы удалённых сообщений.
   final void Function(List<Uint8List> fileIDs) _releaseLocal;
+  final DateTime Function() _clock;
+
+  /// Снять показанные уведомления чата (прочитан / удалён).
+  final void Function(List<int> chatID) _clearNotifications;
+
+  static void _clearPushes(List<int> chatID) => unawaited(PushManager.clearChatNotifications(chatID, all: true));
 
   static void _evictDownloads(List<Uint8List> fileIDs) {
     for (final id in fileIDs) {
@@ -303,6 +317,7 @@ class SecretChatsSync {
   /// Стрим (пере)подключился: догнать очередь, отправить отложенное.
   Future<void> onConnected() async {
     if (_sessionID.isEmpty) return;
+    await expireNow();
     try {
       await _locked(_catchUp);
     } catch (error, stackTrace) {
@@ -502,6 +517,33 @@ class SecretChatsSync {
                 replyToRandomID: media.replyToRandomID.toInt(),
                 kind: secretMediaKindFromPb(media.kind),
                 media: media.writeToBuffer(),
+                ttl: media.ttl,
+              ),
+            );
+          case sp.SecretPayload_Payload.setTtl:
+            await tx.setTtl(payload.setTtl.seconds);
+            await tx.insertMessage(
+              SecretMessageRecord(
+                secretChatID: chatID,
+                randomID: randomID,
+                outgoing: false,
+                text: '',
+                date: date,
+                status: SecretMessageStatus.read,
+                kind: SecretMessageKind.ttlChange,
+                ttl: payload.setTtl.seconds,
+              ),
+            );
+          case sp.SecretPayload_Payload.screenshot:
+            await tx.insertMessage(
+              SecretMessageRecord(
+                secretChatID: chatID,
+                randomID: randomID,
+                outgoing: false,
+                text: '',
+                date: date,
+                status: SecretMessageStatus.read,
+                kind: SecretMessageKind.screenshot,
               ),
             );
           case sp.SecretPayload_Payload.text:
@@ -514,10 +556,11 @@ class SecretChatsSync {
                 date: date,
                 status: SecretMessageStatus.unread,
                 replyToRandomID: payload.text.replyToRandomID.toInt(),
+                ttl: payload.text.ttl,
               ),
             );
           case sp.SecretPayload_Payload.read:
-            await tx.markOutgoingRead([for (final id in payload.read.randomIDs) id.toInt()]);
+            await tx.markOutgoingRead([for (final id in payload.read.randomIDs) id.toInt()], now: _clock());
           case sp.SecretPayload_Payload.delete:
             removed.addAll(await tx.deleteMessages([for (final id in payload.delete.randomIDs) id.toInt()]));
           case sp.SecretPayload_Payload.notSet:
@@ -527,6 +570,7 @@ class SecretChatsSync {
       },
     );
     await _cleanup(removed);
+    _scheduleExpiry();
   }
 
   Future<void> _onDiscarded(Uint8List chatID, sc.SecretUpdate_Discarded discarded) async {
@@ -545,6 +589,7 @@ class SecretChatsSync {
       deleteHistory: discarded.deleteHistory,
     );
     await _cleanup(media);
+    if (discarded.deleteHistory) _clearNotifications(chatID);
   }
 
   // --- действия ---
@@ -579,14 +624,16 @@ class SecretChatsSync {
   /// Отправить текст. Без сети — ждёт в outbox (конверт уже зашифрован).
   Future<void> sendText(List<int> chatID, String text, {int replyToRandomID = 0}) async {
     final randomID = _newRandomID();
+    final ttl = (await store.chat(sessionID: _sessionID, secretChatID: chatID))?.ttl ?? 0;
     final payload = sp.SecretPayload(
       layer: secretPayloadLayer,
-      text: sp.SecretText(text: text, replyToRandomID: Int64(replyToRandomID)),
+      text: sp.SecretText(text: text, replyToRandomID: Int64(replyToRandomID), ttl: ttl),
     );
     await _enqueue(
       chatID,
       payload,
       randomID,
+      notify: true,
       message: SecretMessageRecord(
         secretChatID: Uint8List.fromList(chatID),
         randomID: randomID,
@@ -595,9 +642,107 @@ class SecretChatsSync {
         date: DateTime.now(),
         status: SecretMessageStatus.pending,
         replyToRandomID: replyToRandomID,
+        ttl: ttl,
       ),
     );
     unawaited(flush());
+  }
+
+  /// Таймер самоуничтожения новых сообщений чата ([secretTtlOptions]; 0 —
+  /// выключить): у обоих — служебное «… установил таймер».
+  Future<void> setTtl(List<int> chatID, int seconds) async {
+    final randomID = _newRandomID();
+    await _enqueue(
+      chatID,
+      sp.SecretPayload(
+        layer: secretPayloadLayer,
+        setTtl: sp.SecretSetTtl(seconds: seconds),
+      ),
+      randomID,
+      message: SecretMessageRecord(
+        secretChatID: Uint8List.fromList(chatID),
+        randomID: randomID,
+        outgoing: true,
+        text: '',
+        date: _clock(),
+        status: SecretMessageStatus.pending,
+        kind: SecretMessageKind.ttlChange,
+        ttl: seconds,
+      ),
+      apply: (tx) => tx.setTtl(seconds),
+    );
+    unawaited(flush());
+  }
+
+  /// Я сделал снимок экрана чата (iOS): собеседнику — «… сделал скриншот».
+  /// Чат не готов — некому сказать.
+  Future<void> screenshotTaken(List<int> chatID) async {
+    final chat = await store.chat(sessionID: _sessionID, secretChatID: chatID);
+    if (chat == null || !chat.state.canSend) return;
+    final randomID = _newRandomID();
+    await _enqueue(
+      chatID,
+      sp.SecretPayload(layer: secretPayloadLayer, screenshot: sp.SecretScreenshot()),
+      randomID,
+      notify: true,
+      message: SecretMessageRecord(
+        secretChatID: Uint8List.fromList(chatID),
+        randomID: randomID,
+        outgoing: true,
+        text: '',
+        date: _clock(),
+        status: SecretMessageStatus.pending,
+        kind: SecretMessageKind.screenshot,
+      ),
+    );
+    unawaited(flush());
+  }
+
+  // --- самоуничтожение ---
+
+  Timer? _expiryTimer;
+
+  /// Удалить сообщения, чей таймер истёк (каждый у себя — собеседнику
+  /// сообщать не нужно, у него тот же таймер), и завести таймер на
+  /// следующее.
+  Future<void> expireNow() async {
+    if (_sessionID.isEmpty) return;
+    try {
+      final expired = await store.expired(sessionID: _sessionID, now: _clock());
+      final byChat = <String, List<SecretMessageRecord>>{};
+      for (final message in expired) {
+        byChat.putIfAbsent(_hex(message.secretChatID), () => []).add(message);
+      }
+      for (final messages in byChat.values) {
+        final removed = <SecretMessageRecord>[];
+        await _locked(
+          () => store.update(
+            sessionID: _sessionID,
+            secretChatID: messages.first.secretChatID,
+            apply: (tx) async => removed.addAll(await tx.deleteMessages([for (final m in messages) m.randomID])),
+          ),
+        );
+        await _cleanup(removed);
+      }
+    } catch (error, stackTrace) {
+      _log(error, stackTrace);
+    }
+    _scheduleExpiry();
+  }
+
+  void _scheduleExpiry() {
+    unawaited(() async {
+      try {
+        final next = await store.nextExpiry(sessionID: _sessionID);
+        _expiryTimer?.cancel();
+        _expiryTimer = null;
+        if (next == null) return;
+        final wait = next.difference(_clock());
+        _expiryTimer = Timer(wait.isNegative ? Duration.zero : wait + const Duration(milliseconds: 50), () => unawaited(expireNow()));
+      } catch (error, stackTrace) {
+        _log(error, stackTrace);
+      }
+    }());
   }
 
   /// Сколько байт кадра-обложки видео можно положить прямо в конверт (больше
@@ -621,6 +766,7 @@ class SecretChatsSync {
       if (await file.exists() && await file.length() <= maxInlineThumb) thumb = await file.readAsBytes();
     }
     final media = sp.SecretMedia(
+      ttl: chat.ttl,
       kind: secretMediaKindToPb(draft.kind),
       size: Int64(await source.length()),
       mimeType: draft.mimeType,
@@ -649,6 +795,7 @@ class SecretChatsSync {
         kind: draft.kind,
         media: media.writeToBuffer(),
         localPath: name,
+        ttl: chat.ttl,
       ),
     );
     unawaited(flush());
@@ -744,9 +891,15 @@ class SecretChatsSync {
     final unread = await store.unreadIncoming(sessionID: _sessionID, secretChatID: chatID);
     if (unread.isEmpty) return;
     final chat = await store.chat(sessionID: _sessionID, secretChatID: chatID);
+    _clearNotifications(chatID);
     if (chat == null || !chat.state.canSend) {
       // Чат закрыт — сказать собеседнику нечем, отмечаем только у себя.
-      await store.update(sessionID: _sessionID, secretChatID: chatID, apply: (tx) => tx.markIncomingRead(unread));
+      await store.update(
+        sessionID: _sessionID,
+        secretChatID: chatID,
+        apply: (tx) => tx.markIncomingRead(unread, now: _clock()),
+      );
+      _scheduleExpiry();
       return;
     }
     await _enqueue(
@@ -756,8 +909,9 @@ class SecretChatsSync {
         read: sp.SecretRead(randomIDs: [for (final id in unread) Int64(id)]),
       ),
       _newRandomID(),
-      apply: (tx) => tx.markIncomingRead(unread),
+      apply: (tx) => tx.markIncomingRead(unread, now: _clock()),
     );
+    _scheduleExpiry();
     unawaited(flush());
   }
 
@@ -796,6 +950,7 @@ class SecretChatsSync {
     List<int> chatID,
     sp.SecretPayload payload,
     int randomID, {
+    bool notify = false,
     SecretMessageRecord? message,
     Future<void> Function(SecretChatsTx tx)? apply,
   }) {
@@ -811,6 +966,7 @@ class SecretChatsSync {
         ratchet: encrypted.state.toBytes(),
         randomID: randomID,
         envelope: encrypted.envelope,
+        notify: notify,
         message: message,
         apply: apply,
       );
@@ -846,6 +1002,7 @@ class SecretChatsSync {
       }
     });
     await _cleanup(media);
+    if (removeLocal || deleteHistory) _clearNotifications(chatID);
   }
 
   // --- отправка отложенного ---
@@ -980,6 +1137,7 @@ class SecretChatsSync {
           randomID: randomID,
           envelope: encrypted.envelope,
           files: [uploaded.fileID],
+          notify: true,
           createdAt: upload.createdAt,
           apply: (tx) => tx.setUploaded(randomID, complete),
         );
@@ -1019,6 +1177,7 @@ class SecretChatsSync {
               randomID: Int64(item.randomID),
               envelope: item.envelope,
               fileIDs: item.files,
+              notify: item.notify,
             ),
           ),
         );

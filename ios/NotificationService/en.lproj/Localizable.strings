@@ -3,6 +3,7 @@
 "PUSH_APP_NAME" = "Iperon";
 "PUSH_FALLBACK_BODY" = "New notification";
 "PUSH_MESSAGE_NO_PREVIEW" = "New message";
+"PUSH_SECRET_MESSAGE" = "New message in a secret chat";
 "PUSH_TEST_TITLE" = "Iperon";
 "PUSH_TEST_ENCRYPTED_BODY" = "Encrypted test notification: decryption works.";
 "PUSH_CONTACT_JOINED_BODY" = "joined Iperon";
