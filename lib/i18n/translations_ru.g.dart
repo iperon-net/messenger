@@ -903,6 +903,7 @@ class _Translations$screenChatInfo$ru extends Translations$screenChatInfo$en {
 	final TranslationsRu _root; // ignore: unused_field
 
 	// Translations
+	@override String get message => 'Сообщение';
 	@override String get call => 'Звонок';
 	@override String get video => 'Видео';
 	@override String get mute => 'Выкл. звук';
@@ -2341,6 +2342,7 @@ extension on TranslationsRu {
 			'screenSettingsAppearance.chatThemes' => 'Темы для чатов',
 			'screenSettingsAppearance.quickReaction' => 'Быстрая реакция',
 			'screenSettingsAppearance.quickReactionDescription' => 'Ставится двойным тапом по сообщению',
+			'screenChatInfo.message' => 'Сообщение',
 			'screenChatInfo.call' => 'Звонок',
 			'screenChatInfo.video' => 'Видео',
 			'screenChatInfo.mute' => 'Выкл. звук',
@@ -2747,9 +2749,9 @@ extension on TranslationsRu {
 			'screenCall.endedConnectionLost' => 'Связь прервалась',
 			'screenCall.ended' => 'Звонок завершён',
 			'screenCall.decline' => 'Отклонить',
-			'screenCall.accept' => 'Принять',
 			_ => null,
 		} ?? switch (path) {
+			'screenCall.accept' => 'Принять',
 			'screenCall.hangup' => 'Завершить',
 			'screenCall.micOn' => 'Вкл. звук',
 			'screenCall.micOff' => 'Выкл. звук',

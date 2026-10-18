@@ -128,6 +128,33 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
     _$avatarBytes,
     opt: true,
   );
+  static bool _$online(ProfileState v) => v.online;
+  static const Field<ProfileState, bool> _f$online = Field(
+    'online',
+    _$online,
+    opt: true,
+    def: false,
+  );
+  static DateTime? _$lastSeen(ProfileState v) => v.lastSeen;
+  static const Field<ProfileState, DateTime> _f$lastSeen = Field(
+    'lastSeen',
+    _$lastSeen,
+    opt: true,
+  );
+  static String _$chatID(ProfileState v) => v.chatID;
+  static const Field<ProfileState, String> _f$chatID = Field(
+    'chatID',
+    _$chatID,
+    opt: true,
+    def: "",
+  );
+  static bool _$chatResolved(ProfileState v) => v.chatResolved;
+  static const Field<ProfileState, bool> _f$chatResolved = Field(
+    'chatResolved',
+    _$chatResolved,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<ProfileState> fields = const {
@@ -146,6 +173,10 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
     #boringAvatarHash: _f$boringAvatarHash,
     #boringAvatarType: _f$boringAvatarType,
     #avatarBytes: _f$avatarBytes,
+    #online: _f$online,
+    #lastSeen: _f$lastSeen,
+    #chatID: _f$chatID,
+    #chatResolved: _f$chatResolved,
   };
 
   static ProfileState _instantiate(DecodingData data) {
@@ -165,6 +196,10 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
       boringAvatarHash: data.dec(_f$boringAvatarHash),
       boringAvatarType: data.dec(_f$boringAvatarType),
       avatarBytes: data.dec(_f$avatarBytes),
+      online: data.dec(_f$online),
+      lastSeen: data.dec(_f$lastSeen),
+      chatID: data.dec(_f$chatID),
+      chatResolved: data.dec(_f$chatResolved),
     );
   }
 
@@ -247,6 +282,10 @@ abstract class ProfileStateCopyWith<$R, $In extends ProfileState, $Out>
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
     Uint8List? avatarBytes,
+    bool? online,
+    DateTime? lastSeen,
+    String? chatID,
+    bool? chatResolved,
   });
   ProfileStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -283,6 +322,10 @@ class _ProfileStateCopyWithImpl<$R, $Out>
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
     Object? avatarBytes = $none,
+    bool? online,
+    Object? lastSeen = $none,
+    String? chatID,
+    bool? chatResolved,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -300,6 +343,10 @@ class _ProfileStateCopyWithImpl<$R, $Out>
       if (boringAvatarHash != null) #boringAvatarHash: boringAvatarHash,
       if (boringAvatarType != null) #boringAvatarType: boringAvatarType,
       if (avatarBytes != $none) #avatarBytes: avatarBytes,
+      if (online != null) #online: online,
+      if (lastSeen != $none) #lastSeen: lastSeen,
+      if (chatID != null) #chatID: chatID,
+      if (chatResolved != null) #chatResolved: chatResolved,
     }),
   );
   @override
@@ -319,6 +366,10 @@ class _ProfileStateCopyWithImpl<$R, $Out>
     boringAvatarHash: data.get(#boringAvatarHash, or: $value.boringAvatarHash),
     boringAvatarType: data.get(#boringAvatarType, or: $value.boringAvatarType),
     avatarBytes: data.get(#avatarBytes, or: $value.avatarBytes),
+    online: data.get(#online, or: $value.online),
+    lastSeen: data.get(#lastSeen, or: $value.lastSeen),
+    chatID: data.get(#chatID, or: $value.chatID),
+    chatResolved: data.get(#chatResolved, or: $value.chatResolved),
   );
 
   @override

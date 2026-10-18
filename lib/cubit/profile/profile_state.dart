@@ -42,6 +42,19 @@ class ProfileState with ProfileStateMappable {
   /// Расшифрованный аватар для показа. `null`, пока не скачан/не задан.
   final Uint8List? avatarBytes;
 
+  /// «В сети» и время захода — из [ChatsPresence] и кэша профилей
+  /// (`lastSeen == null` — скрыто или неизвестно: «был(а) недавно»).
+  final bool online;
+  final DateTime? lastSeen;
+
+  /// Личный чат с этим пользователем, если переписка уже есть (локально) —
+  /// тогда в профиле его секции: звук, медиа, «Ещё». Пусто — чата нет.
+  final String chatID;
+
+  /// Чат искали ([chatID] уже достоверен) — до этого секции чата не рисуем,
+  /// чтобы экран не перестраивался.
+  final bool chatResolved;
+
   const ProfileState({
     this.status = Status.initialization,
     this.error = "",
@@ -60,5 +73,9 @@ class ProfileState with ProfileStateMappable {
     this.boringAvatarHash = "",
     this.boringAvatarType = BoringAvatarType.ring,
     this.avatarBytes,
+    this.online = false,
+    this.lastSeen,
+    this.chatID = "",
+    this.chatResolved = false,
   });
 }

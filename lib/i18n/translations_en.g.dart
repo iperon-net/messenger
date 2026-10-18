@@ -2116,6 +2116,9 @@ class Translations$screenChatInfo$en {
 
 	// Translations
 
+	/// en: 'Message'
+	String get message => 'Message';
+
 	/// en: 'Call'
 	String get call => 'Call';
 
@@ -4598,6 +4601,7 @@ extension on Translations {
 			'screenSettingsAppearance.chatThemes' => 'Chat themes',
 			'screenSettingsAppearance.quickReaction' => 'Quick reaction',
 			'screenSettingsAppearance.quickReactionDescription' => 'Set by double-tapping a message',
+			'screenChatInfo.message' => 'Message',
 			'screenChatInfo.call' => 'Call',
 			'screenChatInfo.video' => 'Video',
 			'screenChatInfo.mute' => 'Mute',
@@ -5004,9 +5008,9 @@ extension on Translations {
 			'screenCall.endedConnectionLost' => 'Connection lost',
 			'screenCall.ended' => 'Call ended',
 			'screenCall.decline' => 'Decline',
-			'screenCall.accept' => 'Accept',
 			_ => null,
 		} ?? switch (path) {
+			'screenCall.accept' => 'Accept',
 			'screenCall.hangup' => 'End',
 			'screenCall.micOn' => 'Unmute',
 			'screenCall.micOff' => 'Mute',

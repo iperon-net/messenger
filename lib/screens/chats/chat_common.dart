@@ -403,9 +403,21 @@ class ChatsFloodListener<B extends StateStreamable<S>, S> extends StatelessWidge
   );
 }
 
-/// Тап по упоминанию по имени (без @username) — личный чат с человеком.
-/// Источник — как у экранов: демо или настоящие чаты.
-void openMentionName(BuildContext context, String userID) async {
+/// Тап по упоминанию по имени (без @username) — профиль человека.
+void openMentionName(BuildContext context, String userID) => openUserProfile(context, userID);
+
+/// Тап по человеку (участник, упоминание, «Переслано от») — его профиль. В
+/// демо у людей нет настоящих userID — сразу личный чат, как раньше.
+Future<void> openUserProfile(BuildContext context, String userID) async {
+  if (userID.isEmpty) return;
+  if (context.read<CommonCubit>().state.settingsDevice.chatsDemo) return openPrivateChatWith(context, userID);
+  await context.push('/profile/$userID');
+}
+
+/// Личный чат с [userID] («Сообщение» в профиле): существующий — сразу (и
+/// без сети), новый создаёт сервер — без сети «Нет соединения». Источник — как
+/// у экранов: демо или настоящие чаты.
+Future<void> openPrivateChatWith(BuildContext context, String userID) async {
   if (userID.isEmpty) return;
   final source = chatsDataSource(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo);
   if (source == null) return;

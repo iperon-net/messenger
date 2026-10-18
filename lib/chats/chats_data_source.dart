@@ -94,6 +94,11 @@ abstract class ChatsDataSource {
   /// существующий или новый пустой. Возвращает id чата (пусто — не найден).
   Future<String> openPrivateChat(String userID);
 
+  /// Уже существующий личный чат с [userID] — только из локального кэша, без
+  /// сервера (профиль пользователя: секции чата, если переписка есть). Пусто —
+  /// чата нет.
+  Future<String> findPrivateChat(String userID);
+
   /// Свободно ли публичное имя группы/канала/сообщества (форма создания и
   /// «Изменить»; своё текущее имя чата [exceptChatID] — свободно).
   Future<bool> isUsernameAvailable(String username, {String exceptChatID = ''});

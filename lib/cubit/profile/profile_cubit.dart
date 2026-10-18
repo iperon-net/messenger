@@ -12,6 +12,9 @@ import '../../peer_names.dart';
 import '../../protobuf.dart';
 import '../../repositories/repositories.dart';
 import '../../cdn.dart';
+import '../../chats/chats_mapping.dart';
+import '../../chats/chats_presence.dart';
+import '../../chats/chats_remote_data_source.dart';
 import '../../utils.dart';
 import '../../models.dart' as models;
 import 'profile_state.dart';
@@ -29,10 +32,18 @@ class ProfileCubit extends Cubit<ProfileState> {
   final cdnManager = getIt.get<CDNManager>();
 
   StreamSubscription<Uint8List>? _subscription;
+  StreamSubscription<void>? _presenceSubscription;
+  Uint8List? _presenceUser;
+  bool _demo = false;
 
   /// [userID] — сырые байты ObjectID пользователя, чей профиль показываем.
-  Future<void> initialization({required List<int> userID, required AppLocale locale}) async {
-    emit(state.copyWith(status: Status.loading, locale: locale, userID: userID));
+  /// [demo] — флаг «Демо чатов» (где искать личный чат); [chatID] — чат уже
+  /// известен (профиль открыт из окна этого чата), искать не нужно.
+  Future<void> initialization({required List<int> userID, required AppLocale locale, bool demo = false, String? chatID}) async {
+    _demo = demo;
+    emit(state.copyWith(status: Status.loading, locale: locale, userID: userID, chatID: chatID ?? '', chatResolved: chatID != null));
+    if (chatID == null) unawaited(resolveChat());
+    _watchPresence(Uint8List.fromList(userID));
 
     // Слушаем PROFILE: сервер отвечает на наш запрос тем же типом. Фильтруем по
     // userID (в одном стриме могут прийти профили разных пользователей).
@@ -127,9 +138,40 @@ class ProfileCubit extends Cubit<ProfileState> {
     await sendFuture;
   }
 
+  /// Найти личный чат с пользователем в локальном кэше (без сервера) —
+  /// при открытии и после «Сообщение» / удаления чата (он мог появиться или
+  /// исчезнуть).
+  Future<void> resolveChat() async {
+    final source = chatsDataSource(demo: _demo);
+    final chatID = source == null ? '' : await source.findPrivateChat(utils.bytesToHex(Uint8List.fromList(state.userID)));
+    if (!isClosed) emit(state.copyWith(chatID: chatID, chatResolved: true));
+  }
+
+  /// «В сети» — спрашиваем при открытии и держим свежим, пока экран открыт
+  /// (как окно личного чата); время захода [ChatsPresence] пишет в кэш
+  /// профилей — читаем оттуда (видно и без сети).
+  void _watchPresence(Uint8List userID) {
+    _presenceUser = userID;
+    ChatsPresence.instance.watch(userID);
+    _presenceSubscription = ChatsPresence.instance.changed.listen((_) => _readPresence());
+    unawaited(_readPresence());
+  }
+
+  Future<void> _readPresence() async {
+    final userID = _presenceUser;
+    if (userID == null) return;
+    final lastSeen = await repositories.profiles.getLastSeenByUserIDs(userIDs: [userID], toHex: idHex);
+    if (isClosed) return;
+    final hex = idHex(userID);
+    emit(state.copyWith(online: ChatsPresence.instance.isOnline(hex), lastSeen: lastSeen[hex]));
+  }
+
   @override
   Future<void> close() {
     _subscription?.cancel();
+    _presenceSubscription?.cancel();
+    final userID = _presenceUser;
+    if (userID != null) ChatsPresence.instance.unwatch(userID);
     return super.close();
   }
 }

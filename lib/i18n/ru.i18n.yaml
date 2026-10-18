@@ -698,6 +698,7 @@
 
 
 "screenChatInfo":
+  "message": "Сообщение"
   "call": "Звонок"
   "video": "Видео"
   "mute": "Выкл. звук"

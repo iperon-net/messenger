@@ -172,11 +172,20 @@ String lastSeenText(Translations t, DateTime date) {
 }
 
 /// Присутствие собеседника личного чата: «в сети» (активно) / «был(а) …».
-({String text, bool active}) chatPresence(Translations t, models.Chat chat) {
-  if (chat.online) return (text: t.screenChat.online, active: true);
-  final seen = chat.lastSeen;
-  return (text: seen == null ? t.screenChat.lastSeenRecently : lastSeenText(t, seen), active: false);
+({String text, bool active}) chatPresence(Translations t, models.Chat chat) =>
+    userPresence(t, online: chat.online, lastSeen: chat.lastSeen);
+
+/// «в сети» (активно) / «был(а) …» / «был(а) недавно» (время скрыто).
+({String text, bool active}) userPresence(Translations t, {required bool online, DateTime? lastSeen}) {
+  if (online) return (text: t.screenChat.online, active: true);
+  return (text: lastSeen == null ? t.screenChat.lastSeenRecently : lastSeenText(t, lastSeen), active: false);
 }
+
+/// Профиль личного чата с собеседником — это профиль пользователя
+/// (`profile_*.dart`); у «Избранного», веток и демо-чатов (без userID) —
+/// профиль чата.
+bool chatInfoIsUser(models.Chat chat) =>
+    chat.type == models.ChatType.private && !chat.isSelf && !chat.isThread && chat.peerUserID.isNotEmpty;
 
 /// Подпись роли в списке участников; `null` — обычный участник с записью.
 String? chatRoleLabel(Translations t, models.ChatRole role) => switch (role) {

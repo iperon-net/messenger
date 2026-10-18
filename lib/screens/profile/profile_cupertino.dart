@@ -1,239 +1,437 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:intl/intl.dart';
 
-import '../../extensions.dart';
-
-import '../../auth.dart';
-import '../../calls.dart';
-import '../../cubit.dart';
-import '../../di.dart';
-import '../../logger.dart';
-import '../../themes.dart';
-import '../../utils.dart';
 import '../../components.dart';
+import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
+import '../../models.dart' as models;
+import '../../themes.dart';
+import '../chats/chat_actions_cupertino.dart';
+import '../chats/chat_common.dart';
+import '../chats/chat_info_common.dart';
+import '../chats/chat_info_cupertino.dart';
+import '../chats/chat_mute.dart';
+import '../chats/chat_no_forwards.dart';
+import '../chats/chat_ttl.dart';
+import '../chats/secret_chat_common.dart';
+import 'profile_common.dart';
 
-/// Просмотр публичного профиля чужого пользователя (read-only): аватар, ФИО,
-/// телефон, username, «о себе».
-class ProfileCupertino extends StatefulWidget {
-  const ProfileCupertino({super.key});
+/// Профиль пользователя (iOS) — один экран, откуда бы его ни открыли:
+/// Контакты, Звонки, участник группы, упоминание или шапка личного чата
+/// ([fromChat], тогда cubit чата — от окна чата, а результат — [ChatInfoResult]).
+/// Данные человека — [ProfileCubit]; если с ним уже есть переписка (локально),
+/// ещё и секции чата: «Звук», «Ещё» (автоудаление, защита, удалить),
+/// вкладки медиа.
+class ProfileCupertino extends StatelessWidget {
+  final bool fromChat;
+
+  const ProfileCupertino({super.key, this.fromChat = false});
 
   @override
-  State<ProfileCupertino> createState() => _ProfileCupertino();
+  Widget build(BuildContext context) {
+    if (fromChat) return const _ProfileView(fromChat: true, hasChat: true);
+    return BlocBuilder<ProfileCubit, ProfileState>(
+      buildWhen: (previous, current) => previous.chatID != current.chatID || previous.chatResolved != current.chatResolved,
+      builder: (context, state) {
+        // Чат ищется в локальной БД (миллисекунды) — не рисуем профиль без
+        // его секций, чтобы он не перестроился у пользователя на глазах.
+        if (!state.chatResolved) {
+          return CupertinoPageScaffold(backgroundColor: ThemesCupertino.groupedBackground, child: const SizedBox.shrink());
+        }
+        if (state.chatID.isEmpty) return const _ProfileView(fromChat: false, hasChat: false);
+        return BlocProvider<ChatCubit>(
+          key: ValueKey(state.chatID),
+          create: (context) => ChatCubit()
+            ..initialization(
+              chatID: state.chatID,
+              demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+              // Профиль переписку не читает — только показывает её секции.
+              markRead: false,
+            ),
+          child: const _ProfileView(fromChat: false, hasChat: true),
+        );
+      },
+    );
+  }
 }
 
-class _ProfileCupertino extends State<ProfileCupertino> {
-  final logger = getIt.get<Logger>();
+class _ProfileView extends StatefulWidget {
+  final bool fromChat;
 
-  /// Свой ли это профиль — на нём кнопку звонка не показываем.
-  bool _isSelf(List<int> userID) => listEquals(userID, getIt.get<Auth>().session.userID);
+  /// В дереве есть [ChatCubit] личного чата.
+  final bool hasChat;
 
-  Widget _fieldTile(BuildContext context, String label, String value) {
-    return CupertinoListTile(
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: TextStyle(fontSize: AppFontSizes.body)),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: AppFontSizes.value,
-              color: CupertinoDynamicColor.withBrightness(
-                color: CupertinoTheme.of(context).primaryColor,
-                darkColor: CupertinoColors.white.withValues(alpha: 0.5),
-              ).resolveFrom(context),
-            ),
-          ),
-        ],
-      ),
-      padding: EdgeInsets.all(10),
-    );
+  const _ProfileView({required this.fromChat, required this.hasChat});
+
+  @override
+  State<_ProfileView> createState() => _ProfileViewState();
+}
+
+class _ProfileViewState extends State<_ProfileView> {
+  ChatInfoTab? _tab;
+
+  /// «Начать секретный чат» в «Ещё» (проверка асинхронная: флаги и Premium
+  /// из кэша).
+  bool _secretAvailable = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final userID = context.read<ProfileCubit>().state.userID;
+    if (!profileIsSelf(userID)) {
+      secretChatAvailable(userID).then((available) {
+        if (mounted && available != _secretAvailable) setState(() => _secretAvailable = available);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileCubit, ProfileState>(
-      builder: (context, state) {
-        final firstNameTile = state.firstName.isNotEmpty ? _fieldTile(context, context.t.screenProfile.firstName, state.firstName) : null;
-        final lastNameTile = state.lastName.isNotEmpty ? _fieldTile(context, context.t.screenProfile.lastName, state.lastName) : null;
-        // В русской локали принят порядок «фамилия, имя», в остальных — «имя, фамилия».
-        final nameTiles = <Widget>[
-          if (state.locale == AppLocale.ru) ...[?lastNameTile, ?firstNameTile] else ...[?firstNameTile, ?lastNameTile],
-        ];
+      builder: (context, profile) => widget.hasChat
+          ? BlocBuilder<ChatCubit, ChatState>(builder: (context, chatState) => _build(context, profile, chatState))
+          : _build(context, profile, null),
+    );
+  }
 
-        final birthDate = state.birthDate;
-        final birthDateTile = birthDate != null
-            ? _fieldTile(
-                context,
-                context.t.screenProfile.birthDate,
-                // Владелец скрыл год → только «9 мая» (без года и возраста).
-                // Иначе «9 мая 1981 (43 года)» — день, месяц, год + возраст в скобках.
-                state.hideBirthYear
-                    ? DateFormat('d MMMM').format(birthDate)
-                    : '${DateFormat('d MMMM y').format(birthDate)} (${context.t.screenProfile.age(n: birthDate.ageInYears())})',
-              )
-            : null;
-        final hasSection = nameTiles.isNotEmpty || birthDateTile != null || state.phoneNumber.isNotEmpty || state.username.isNotEmpty;
+  /// «Сообщение»: из окна чата — назад в него, иначе — личный чат (новый
+  /// создаёт сервер); вернулись — переписка могла появиться.
+  Future<void> _message(BuildContext context, ProfileState profile) async {
+    if (widget.fromChat) {
+      Navigator.of(context).pop();
+      return;
+    }
+    final cubit = context.read<ProfileCubit>();
+    await openPrivateChatWith(context, profileHex(profile.userID));
+    if (!cubit.isClosed) await cubit.resolveChat();
+  }
 
-        return CupertinoPageScaffold(
-          backgroundColor: ThemesCupertino.groupedBackground,
-          navigationBar: AppCupertinoNavigationBar(
-            child: CupertinoNavigationBar(
-              previousPageTitle: '',
-              automaticBackgroundVisibility: false,
-              backgroundColor: ThemesCupertino.groupedBackground,
-              // end:0 — прижимаем правую группу кнопок к краю (по умолчанию навбар
-              // добавляет 16pt); start:16 оставляем стандартным.
-              padding: const EdgeInsetsDirectional.only(start: 16, end: 0),
-              middle: Text(context.t.screenProfile.profile),
-              trailing: (state.userID.isNotEmpty && !_isSelf(state.userID))
-                  ? Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CupertinoButton(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          minimumSize: const Size(44, 44),
-                          onPressed: () async {
-                            await ensureCallMicPermission();
-                            await getIt.get<Calls>().startCall(toUserID: state.userID, video: false);
-                          },
-                          child: HugeIcon(
-                            icon: HugeIcons.strokeRoundedCall02,
-                            color: ThemesCupertino.navActionColor(context),
-                            size: 22.0,
-                            strokeWidth: 2,
-                          ),
-                        ),
-                        CupertinoButton(
-                          // 44×44 — минимальная зона нажатия по HIG; прежние
-                          // padding:zero + minimumSize:zero давали хит-area размером с
-                          // саму иконку (~20pt), поэтому тап часто не срабатывал.
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          minimumSize: const Size(44, 44),
-                          onPressed: () async {
-                            await ensureCallMicPermission();
-                            await getIt.get<Calls>().startCall(toUserID: state.userID, video: true);
-                          },
-                          child: HugeIcon(
-                            icon: HugeIcons.strokeRoundedVideo01,
-                            color: ThemesCupertino.navActionColor(context),
-                            size: 22.0,
-                            strokeWidth: 2,
-                          ),
-                        ),
-                      ],
-                    )
-                  : null,
-            ),
+  /// Чат удалён: из окна чата — в список, иначе остаёмся в профиле без
+  /// секций чата.
+  Future<void> _afterDelete(BuildContext context, ProfileCubit profileCubit, models.Chat chat) async {
+    if (widget.fromChat) {
+      if (context.mounted) context.go(chatLeaveRoute(chat));
+    } else {
+      await profileCubit.resolveChat();
+    }
+  }
+
+  Future<void> _delete(BuildContext context, models.Chat chat) async {
+    final chatCubit = context.read<ChatCubit>();
+    final profileCubit = context.read<ProfileCubit>();
+    final confirm = chatLeaveConfirm(context.t, chat);
+    final confirmed = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (dialogContext) => CupertinoAlertDialog(
+        title: Text(confirm.title),
+        content: confirm.message == null ? null : Text(confirm.message!),
+        actions: [
+          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(chatLeaveLabel(context.t, chat)),
           ),
-          child: SafeArea(
-            child: ListView(
-              children: [
-                const SizedBox(height: 12),
-                Center(
-                  child: SizedBox(
-                    width: 96,
-                    height: 96,
-                    child: state.avatarBytes != null
-                        ? ClipOval(
-                            child: Image.memory(
-                              state.avatarBytes!,
-                              width: 96,
-                              height: 96,
-                              fit: BoxFit.cover,
-                              gaplessPlayback: true,
-                              // См. profile_material.dart: декодируем под размер слота, а не
-                              // в полный битмап исходной (крупной) аватарки.
-                              cacheWidth: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
-                              cacheHeight: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
-                            ),
-                          )
-                        : AnimatedBoringAvatar(
-                            name: state.boringAvatarHash,
-                            type: state.boringAvatarType,
-                            shape: const CircleBorder(),
-                            curve: Curves.bounceIn,
-                            duration: const Duration(seconds: 1),
-                          ),
-                  ),
+        ],
+      ),
+    );
+    if (!(confirmed ?? false)) return;
+    // Без сети чат не удалён — остаёмся (cubit покажет «Нет соединения»).
+    if (!await chatCubit.deleteChat()) return;
+    if (context.mounted) await _afterDelete(context, profileCubit, chat);
+  }
+
+  /// Пункты «Ещё»: секретный чат, автоудаление и защита содержимого (есть
+  /// переписка), «Скрыть профиль», удалить чат («у обоих / только у меня» —
+  /// меню от той же кнопки).
+  List<ChatInfoMoreItem> _moreItems(BuildContext context, ProfileState profile, models.Chat? chat) {
+    if (profileIsSelf(profile.userID)) return const [];
+    final t = context.t;
+    final chatCubit = chat == null ? null : context.read<ChatCubit>();
+    final profileCubit = context.read<ProfileCubit>();
+    return [
+      if (_secretAvailable)
+        ChatInfoMoreItem(title: t.secretChat.start, icon: CupertinoIcons.lock, onTap: () => startSecretChat(context, profile.userID)),
+      if (chat != null && chatCubit != null) ...[
+        ChatInfoMoreItem(
+          title: t.chatTtl.titleLong,
+          subtitle: chatTTLLabel(t, chat.ttlPeriod),
+          icon: CupertinoIcons.timer,
+          submenu: chatTTLMenuCupertino(context, chat.ttlPeriod, (period) => setChatTTL(context, chatCubit, period)),
+        ),
+        ChatInfoMoreItem(
+          title: chatNoForwardsActionLabel(t, noForwards: chat.noForwards, mine: chat.noForwardsMine),
+          icon: chat.noForwards ? CupertinoIcons.lock_open : CupertinoIcons.lock_shield,
+          onTap: () => setChatNoForwards(context, chatCubit, !chat.noForwards),
+        ),
+      ],
+      ChatInfoMoreItem(
+        title: t.screenProfile.hideProfile,
+        icon: CupertinoIcons.eye_slash,
+        onTap: () => context.push('/profile/${profileHex(profile.userID)}/hide'),
+      ),
+      if (chat != null && chatCubit != null)
+        ChatInfoMoreItem(
+          title: chatLeaveLabel(t, chat),
+          icon: CupertinoIcons.delete,
+          destructive: true,
+          submenu: chatDeleteScoped(chat)
+              ? scopeMenuCupertino(context, (forEveryone) async {
+                  if (!await chatCubit.deleteChat(forEveryone: forEveryone)) return;
+                  if (context.mounted) await _afterDelete(context, profileCubit, chat);
+                })
+              : null,
+          onTap: () => _delete(context, chat),
+        ),
+    ];
+  }
+
+  Widget _section(BuildContext context, List<Widget> children) => CupertinoListSection.insetGrouped(
+    clipBehavior: Clip.antiAlias,
+    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+    decoration: BoxDecoration(
+      color: ThemesCupertino.groupedCard.resolveFrom(context),
+      borderRadius: const BorderRadius.all(Radius.circular(10)),
+    ),
+    children: children,
+  );
+
+  /// Строка данных: значение (копируется по тапу — пузырёк «Скопировать») и
+  /// подпись под ним.
+  Widget _field(
+    BuildContext context, {
+    required Color color,
+    required List<List<dynamic>> icon,
+    required String value,
+    required String label,
+    String? copy,
+    int maxLines = 1,
+  }) => CopyTooltip(
+    value: copy ?? value,
+    label: context.t.screenProfile.copy,
+    child: CupertinoListTileIcon(
+      color: color,
+      hugeIcon: icon,
+      title: Text(value, maxLines: maxLines, overflow: TextOverflow.ellipsis),
+      subtitle: Text(label),
+      onTab: null,
+    ),
+  );
+
+  Widget _avatar(BuildContext context, ProfileState profile) => SizedBox(
+    width: 96,
+    height: 96,
+    child: profile.avatarBytes != null
+        ? ClipOval(
+            child: Image.memory(
+              profile.avatarBytes!,
+              width: 96,
+              height: 96,
+              fit: BoxFit.cover,
+              gaplessPlayback: true,
+              // Декодируем под размер слота, а не в полный битмап исходной
+              // (крупной) аватарки.
+              cacheWidth: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
+              cacheHeight: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
+            ),
+          )
+        : AnimatedBoringAvatar(
+            name: profile.boringAvatarHash,
+            type: profile.boringAvatarType,
+            shape: const CircleBorder(),
+            curve: Curves.bounceIn,
+            duration: const Duration(seconds: 1),
+          ),
+  );
+
+  Widget _build(BuildContext context, ProfileState profile, ChatState? chatState) {
+    final t = context.t;
+    final primary = CupertinoTheme.of(context).primaryColor;
+    final action = ThemesCupertino.actionColor(context);
+    final label = CupertinoColors.label.resolveFrom(context);
+    final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
+    final card = ThemesCupertino.groupedCard.resolveFrom(context);
+    final background = ThemesCupertino.groupedBackground.resolveFrom(context);
+    final chat = chatState?.chat;
+    final self = profileIsSelf(profile.userID);
+    final name = profile.displayName.isNotEmpty ? profile.displayName : (chat == null ? '' : ChatTileContent.title(t, chat));
+    // Из окна чата — его подзаголовок («печатает…» тоже), иначе — присутствие.
+    final subtitle = self
+        ? null
+        : (chat != null ? chatSubtitle(t, chat) : userPresence(t, online: profile.online, lastSeen: profile.lastSeen));
+    final tabs = chat == null ? const <ChatInfoTab>[] : chatInfoTabs(chat);
+    final tab = tabs.contains(_tab) ? _tab! : (tabs.firstOrNull ?? ChatInfoTab.media);
+    final moreItems = _moreItems(context, profile, chat);
+    final birthDate = profile.birthDate;
+    final username = profile.username.isEmpty || profile.username.startsWith('@') ? profile.username : '@${profile.username}';
+    final style = ChatInfoStyle(
+      text: label,
+      secondary: secondary,
+      accent: primary,
+      onAccent: ThemesCupertino.onAccent(context),
+      separator: CupertinoColors.separator.resolveFrom(context),
+      action: action,
+    );
+
+    return CupertinoPageScaffold(
+      backgroundColor: background,
+      navigationBar: AppCupertinoNavigationBar(
+        child: CupertinoNavigationBar(
+          previousPageTitle: '',
+          automaticBackgroundVisibility: false,
+          backgroundColor: background,
+          border: null,
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: ListView(
+          children: [
+            const SizedBox(height: 4),
+            Center(child: _avatar(context, profile)),
+            if (name.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  name,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: label),
                 ),
-                if (state.displayName.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      state.displayName,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 20),
-                if (hasSection)
-                  CupertinoListSection.insetGrouped(
-                    clipBehavior: Clip.antiAlias,
-                    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-                    decoration: BoxDecoration(
-                      color: ThemesCupertino.groupedCard.resolveFrom(context),
-                      borderRadius: const BorderRadius.all(Radius.circular(18)),
-                    ),
-                    children: [
-                      ...nameTiles,
-                      ?birthDateTile,
-                      if (state.phoneNumber.isNotEmpty)
-                        CopyTooltip(
-                          value: state.phoneNumber,
-                          label: context.t.screenProfile.copy,
-                          child: _fieldTile(context, context.t.screenProfile.mobilePhone, state.phoneNumber),
-                        ),
-                      if (state.username.isNotEmpty)
-                        CopyTooltip(
-                          value: state.username,
-                          label: context.t.screenProfile.copy,
-                          child: _fieldTile(context, context.t.screenProfile.username, state.username),
-                        ),
-                    ],
-                  ),
-                if (state.aboutMe.isNotEmpty)
-                  CupertinoListSection.insetGrouped(
-                    clipBehavior: Clip.antiAlias,
-                    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-                    decoration: BoxDecoration(
-                      color: ThemesCupertino.groupedCard.resolveFrom(context),
-                      borderRadius: const BorderRadius.all(Radius.circular(18)),
-                    ),
-                    children: [_fieldTile(context, context.t.screenProfile.aboutMe, state.aboutMe)],
-                  ),
-                // «Скрыть профиль» — только для чужого профиля (свой прятать из
-                // своих же списков смысла нет).
-                if (state.userID.isNotEmpty && !_isSelf(state.userID))
-                  CupertinoListSection.insetGrouped(
-                    clipBehavior: Clip.antiAlias,
-                    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-                    decoration: BoxDecoration(
-                      color: ThemesCupertino.groupedCard.resolveFrom(context),
-                      borderRadius: const BorderRadius.all(Radius.circular(18)),
-                    ),
-                    children: [
-                      CupertinoListTileIcon(
-                        title: Text(context.t.screenProfile.hideProfile),
-                        color: const Color(0xFF22D393),
-                        hugeIcon: HugeIcons.strokeRoundedLockPassword,
-                        isTrailing: true,
-                        onTab: () => context.push('/profile/${getIt.get<Utils>().bytesToHex(Uint8List.fromList(state.userID))}/hide'),
+              ),
+            ],
+            if (subtitle != null && subtitle.text.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(
+                  subtitle.text,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 15, color: subtitle.active ? primary : secondary),
+                ),
+              ),
+            const SizedBox(height: 16),
+            if (profile.userID.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    // Из окна чата писать и так есть где — там вместо «Сообщения» «Поиск».
+                    if (!widget.fromChat)
+                      ChatInfoActionButton(
+                        icon: HugeIcons.strokeRoundedMessage01,
+                        label: t.screenChatInfo.message,
+                        color: action,
+                        onTap: () => _message(context, profile),
+                      ),
+                    if (!self) ...[
+                      ChatInfoActionButton(
+                        icon: HugeIcons.strokeRoundedCall02,
+                        label: t.screenChatInfo.call,
+                        color: action,
+                        onTap: () => profileCall(profile.userID, video: false),
+                      ),
+                      ChatInfoActionButton(
+                        icon: HugeIcons.strokeRoundedVideo01,
+                        label: t.screenChatInfo.video,
+                        color: action,
+                        onTap: () => profileCall(profile.userID, video: true),
                       ),
                     ],
+                    if (chat != null)
+                      ChatInfoActionButton(
+                        // Значок — текущее состояние: звук включён / выключен.
+                        icon: chat.muted ? HugeIcons.strokeRoundedNotificationOff01 : HugeIcons.strokeRoundedNotification01,
+                        // Заглушён на время — «до 18:30» вместо «Звук».
+                        label: chat.muted && chat.mutedUntil != null ? chatMutedUntilLabel(t, chat.mutedUntil!) : t.screenChatInfo.sound,
+                        color: action,
+                        onTap: () => context.read<ChatCubit>().setMuted(false),
+                        menuChildren: chatMuteMenuCupertino(context, chat),
+                      ),
+                    if (widget.fromChat)
+                      ChatInfoActionButton(
+                        icon: HugeIcons.strokeRoundedSearch01,
+                        label: t.screenChatInfo.search,
+                        color: action,
+                        onTap: () => Navigator.of(context).pop(const ChatInfoResult.search()),
+                      ),
+                    if (moreItems.isNotEmpty) ChatInfoMoreButton(label: t.screenChatInfo.more, color: action, items: moreItems),
+                  ],
+                ),
+              ),
+            if (profile.phoneNumber.isNotEmpty || profile.aboutMe.isNotEmpty || username.isNotEmpty || birthDate != null)
+              _section(context, [
+                if (profile.phoneNumber.isNotEmpty)
+                  _field(
+                    context,
+                    color: const Color(0xFF34C759),
+                    icon: HugeIcons.strokeRoundedSmartPhone01,
+                    value: profile.phoneNumber,
+                    label: t.screenProfile.mobilePhone,
                   ),
-              ],
-            ),
-          ),
-        );
-      },
+                if (profile.aboutMe.isNotEmpty)
+                  _field(
+                    context,
+                    color: const Color(0xFF1368E6),
+                    icon: HugeIcons.strokeRoundedInformationCircle,
+                    value: profile.aboutMe,
+                    label: t.screenChatInfo.about,
+                    maxLines: 6,
+                  ),
+                if (username.isNotEmpty)
+                  _field(
+                    context,
+                    color: const Color(0xFF049A40),
+                    icon: HugeIcons.strokeRoundedAt,
+                    value: username,
+                    label: t.screenChatInfo.username,
+                  ),
+                if (birthDate != null)
+                  _field(
+                    context,
+                    color: const Color(0xFFFF9500),
+                    icon: HugeIcons.strokeRoundedBirthdayCake,
+                    value: profileBirthDateText(t, birthDate, hideYear: profile.hideBirthYear),
+                    label: t.screenProfile.birthDate,
+                  ),
+              ]),
+            // Вкладки — полосой над карточкой (как в профиле чата), содержимое — карточкой.
+            if (chat != null && chatState != null && tabs.isNotEmpty) ...[
+              if (tabs.length > 1)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                  child: ChatFolderTabsCupertino(
+                    tabs: [for (final item in tabs) ChatFolderTab(title: chatInfoTabLabel(t, item, chat))],
+                    selectedIndex: tabs.indexOf(tab),
+                    onTap: (index) => setState(() => _tab = tabs[index]),
+                  ),
+                ),
+              Container(
+                margin: EdgeInsets.fromLTRB(20, tabs.length > 1 ? 0 : 20, 20, 0),
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(color: card, borderRadius: BorderRadius.circular(10)),
+                child: Padding(
+                  // Сетка медиа — до краёв карточки, списки — с отступом сверху.
+                  padding: EdgeInsets.symmetric(vertical: tab == ChatInfoTab.media ? 0 : 6),
+                  child: ChatInfoTabContent(
+                    tab: tab,
+                    chat: chat,
+                    messages: chatState.messages,
+                    members: chatState.members,
+                    style: style,
+                    // Из окна чата — назад к сообщению, иначе — открыть чат.
+                    onOpenMessage: (id) =>
+                        widget.fromChat ? Navigator.of(context).pop(ChatInfoResult.goTo(id)) : context.push('/chats/chat/${chat.id}'),
+                  ),
+                ),
+              ),
+            ],
+            SizedBox(height: 32 + MediaQuery.paddingOf(context).bottom),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -731,6 +731,7 @@ class Routers {
             ..initialization(
               userID: getIt.get<Utils>().hexToBytes(state.pathParameters['userID'] ?? ''),
               locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en,
+              demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
             ),
           child: const ProfileCupertino(),
         ),
@@ -1490,6 +1491,7 @@ class Routers {
             ..initialization(
               userID: getIt.get<Utils>().hexToBytes(state.pathParameters['userID'] ?? ''),
               locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en,
+              demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
             ),
           child: const ProfileMaterial(),
         ),

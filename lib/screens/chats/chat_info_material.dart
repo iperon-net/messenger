@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../chats/chats_mapping.dart';
 import '../../chats/reactions.dart';
 import '../../chats/slow_mode.dart';
 import '../../components.dart';
@@ -28,15 +29,43 @@ import 'chat_ttl.dart';
 import 'community_common.dart';
 import 'community_material.dart';
 import 'chat_actions_material.dart';
+import '../profile/profile_material.dart';
 
 /// Профиль чата (Android) — тап по шапке окна чата. Результат — что сделать в
 /// чате: поиск или переход к сообщению.
+/// У личного чата с собеседником — его профиль пользователя
+/// ([ProfileMaterial]) на том же cubit чата.
 Future<ChatInfoResult?> showChatInfoMaterial(BuildContext context, ChatCubit cubit) {
+  final chat = cubit.state.chat;
   return Navigator.of(context).push<ChatInfoResult>(
     FullSwipeBackRoute(
-      builder: (_) => BlocProvider.value(value: cubit, child: const ChatInfoMaterial()),
+      builder: (_) => chat != null && chatInfoIsUser(chat)
+          ? MultiBlocProvider(
+              providers: [
+                BlocProvider.value(value: cubit),
+                BlocProvider(
+                  create: (_) => ProfileCubit()
+                    ..initialization(
+                      userID: idBytes(chat.peerUserID),
+                      locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en,
+                      demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                      chatID: chat.id,
+                    ),
+                ),
+              ],
+              child: const ProfileMaterial(fromChat: true),
+            )
+          : BlocProvider.value(value: cubit, child: const ChatInfoMaterial()),
     ),
   );
+}
+
+/// «Звук» в профиле: заглушённый — включить сразу, иначе — «Заглушить на…».
+Future<void> toggleChatMuteMaterial(BuildContext context, models.Chat chat) async {
+  final cubit = context.read<ChatCubit>();
+  if (chat.muted) return cubit.setMuted(false);
+  final choice = await pickChatMute(context);
+  if (choice != null) await cubit.setMuted(true, until: chatMuteUntil(choice));
 }
 
 /// Аватар, название и статус, кнопки «Звук» / «Поиск», «О себе» / описание
@@ -186,14 +215,6 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
     if (context.mounted) context.go(chatLeaveRoute(chat));
   }
 
-  /// «Звук»: заглушённый — включить сразу, иначе — «Заглушить на…».
-  Future<void> _toggleMute(BuildContext context, models.Chat chat) async {
-    final cubit = context.read<ChatCubit>();
-    if (chat.muted) return cubit.setMuted(false);
-    final choice = await pickChatMute(context);
-    if (choice != null) await cubit.setMuted(true, until: chatMuteUntil(choice));
-  }
-
   /// «Как в сообществе»: вернуть чату сообщества его настройки по умолчанию.
   Future<void> _resetToCommunity(BuildContext context) async {
     final t = context.t.screenChatInfo;
@@ -298,6 +319,19 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
         }
     }
   }
+
+  /// Тап по участнику — его профиль; действия (написать, роль, исключить) —
+  /// по удержанию. В демо у людей нет настоящих userID — действия по тапу.
+  bool get _demo => context.read<CommonCubit>().state.settingsDevice.chatsDemo;
+
+  Future<void> _memberTap(BuildContext context, models.Chat chat, models.ChatMember member) async {
+    if (member.isSelf) return;
+    if (_demo) return _memberActions(context, chat, member);
+    await openUserProfile(context, member.id);
+  }
+
+  Widget Function(models.ChatMember member, Widget row)? _memberLongPress(BuildContext context, models.Chat chat) =>
+      _demo ? null : (member, row) => GestureDetector(onLongPress: () => _memberActions(context, chat, member), child: row);
 
   /// «Добавить участников» (админ): выбор из контактов, кроме участников.
   Future<void> _addMembers(BuildContext context) async {
@@ -427,14 +461,14 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                               // Звонок — только собеседнику личного чата (в демо
                               // peerUserID пуст: звонить некому).
                               if (chat.peerUserID.isNotEmpty) ...[
-                                _ActionButton(
+                                ChatInfoActionButton(
                                   icon: HugeIcons.strokeRoundedCall02,
                                   label: t.screenChatInfo.call,
                                   color: scheme.primary,
                                   background: card,
                                   onTap: () => chatInfoCall(chat, video: false),
                                 ),
-                                _ActionButton(
+                                ChatInfoActionButton(
                                   icon: HugeIcons.strokeRoundedVideo01,
                                   label: t.screenChatInfo.video,
                                   color: scheme.primary,
@@ -443,7 +477,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                                 ),
                               ],
                               if (!chat.isSelf)
-                                _ActionButton(
+                                ChatInfoActionButton(
                                   // Значок — текущее состояние: звук включён / выключен.
                                   icon: chat.muted ? HugeIcons.strokeRoundedNotificationOff01 : HugeIcons.strokeRoundedNotification01,
                                   // Заглушён на время — «до 18:30» вместо «Звук».
@@ -452,11 +486,11 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                                       : t.screenChatInfo.sound,
                                   color: scheme.primary,
                                   background: card,
-                                  onTap: () => _toggleMute(context, chat),
+                                  onTap: () => toggleChatMuteMaterial(context, chat),
                                 ),
                               // У сообщества своей ленты нет — искать негде.
                               if (!community)
-                                _ActionButton(
+                                ChatInfoActionButton(
                                   icon: HugeIcons.strokeRoundedSearch01,
                                   label: t.screenChatInfo.search,
                                   color: scheme.primary,
@@ -466,7 +500,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                               // «Ещё» (как в Telegram): автоудаление и удалить / покинуть
                               // (канал объявлений покидают только вместе с сообществом).
                               if (!chat.isSelf && chat.isMember && (chat.type == models.ChatType.private || !chat.announcements))
-                                _ActionButton(
+                                ChatInfoActionButton(
                                   icon: HugeIcons.strokeRoundedMoreHorizontal,
                                   label: t.screenChatInfo.more,
                                   color: scheme.primary,
@@ -643,7 +677,8 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                         ),
                         decoration: BoxDecoration(color: card, borderRadius: BorderRadius.circular(12)),
                         margin: EdgeInsets.fromLTRB(12, tabs.length > 1 ? 0 : 16, 12, 0),
-                        onMemberTap: (member) => _memberActions(context, chat, member),
+                        onMemberTap: (member) => _memberTap(context, chat, member),
+                        memberWrapper: _memberLongPress(context, chat),
                         onAddMembers: chat.canManage ? () => _addMembers(context) : null,
                       )
                     else if (tabs.isNotEmpty)
@@ -668,7 +703,8 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                                   separator: scheme.outlineVariant,
                                 ),
                                 onOpenMessage: (id) => Navigator.of(context).pop(ChatInfoResult.goTo(id)),
-                                onMemberTap: (member) => _memberActions(context, chat, member),
+                                onMemberTap: (member) => _memberTap(context, chat, member),
+                                memberWrapper: _memberLongPress(context, chat),
                                 onAddMembers: chat.canManage ? () => _addMembers(context) : null,
                               ),
                             ],
@@ -686,7 +722,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
 
 /// Кнопка под шапкой профиля: значок и подпись на карточке; все кнопки ряда —
 /// одной ширины.
-class _ActionButton extends StatelessWidget {
+class ChatInfoActionButton extends StatelessWidget {
   /// HugeIcons.* (сырые данные пути, не IconData).
   final List<List<dynamic>> icon;
   final String label;
@@ -694,7 +730,14 @@ class _ActionButton extends StatelessWidget {
   final Color background;
   final VoidCallback onTap;
 
-  const _ActionButton({required this.icon, required this.label, required this.color, required this.background, required this.onTap});
+  const ChatInfoActionButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.background,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {

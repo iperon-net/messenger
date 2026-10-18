@@ -529,6 +529,14 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   }
 
   @override
+  Future<String> findPrivateChat(String userID) async {
+    final peer = idBytes(userID);
+    if (peer.isEmpty) return '';
+    final local = await _store.dialogByPeer(userID: _sync.me, peerUserID: peer);
+    return local == null ? '' : idHex(local.chatID);
+  }
+
+  @override
   Future<bool> isUsernameAvailable(String username, {String exceptChatID = ''}) async => _unsupported('Публичные имена чатов');
 
   @override

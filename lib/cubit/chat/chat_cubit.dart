@@ -90,9 +90,16 @@ class ChatCubit extends Cubit<ChatState> {
   /// Что доступно в источнике — экраны прячут остальное (реакции, закреп …).
   ChatsFeatures get features => _source?.features ?? const ChatsFeatures.none();
 
+  /// Окно чата открыто ([initialization] без `markRead: false`): входящие
+  /// читаются сразу и спрашивается, можно ли писать. Профиль пользователя
+  /// держит cubit его личного чата только для секций (звук, медиа, «Ещё») —
+  /// переписку он не читает.
+  bool _markRead = true;
+
   /// [demo] — флаг «Демо чатов» из `settingsDevice`.
-  void initialization({required String chatID, required bool demo}) {
+  void initialization({required String chatID, required bool demo, bool markRead = true}) {
     _chatID = chatID;
+    _markRead = markRead;
     _source = chatsDataSource(demo: demo);
     final source = _source;
     if (source == null) {
@@ -129,7 +136,7 @@ class ChatCubit extends Cubit<ChatState> {
       _openUnread ??= chat?.unreadCount;
       // Чат открыт — всё входящее сразу прочитано (у сообщества своей ленты
       // нет — его чаты читаются, когда их открывают).
-      if (chat != null && chat.hasUnread && !community) source.setRead(chatID, true);
+      if (markRead && chat != null && chat.hasUnread && !community) source.setRead(chatID, true);
       emit(
         state.copyWith(
           chat: chat,
@@ -196,7 +203,7 @@ class ChatCubit extends Cubit<ChatState> {
   /// мне писать»), — чтобы показать плашку до попытки отправить. Нет сети —
   /// не знаем, поле ввода остаётся (отказ при отправке покажет плашку).
   void _checkCanWrite(ChatsDataSource source, models.Chat? chat) {
-    if (_writeChecked || source is! ChatsRemoteDataSource || chat == null) return;
+    if (!_markRead || _writeChecked || source is! ChatsRemoteDataSource || chat == null) return;
     if (chat.type != models.ChatType.private || chat.isSelf || chat.peerUserID.isEmpty) return;
     _writeChecked = true;
     // Ответ придёт и в [ChatsSync.writeRestricted] — его ловит подписка.

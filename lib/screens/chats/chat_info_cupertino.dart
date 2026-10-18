@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../chats/chats_mapping.dart';
 import '../../chats/reactions.dart';
 import '../../chats/slow_mode.dart';
 import '../../components.dart';
@@ -29,15 +30,52 @@ import 'chats_new_cupertino.dart';
 import 'community_common.dart';
 import 'community_cupertino.dart';
 import 'chat_actions_cupertino.dart';
+import '../profile/profile_cupertino.dart';
 
 /// Профиль чата (iOS) — тап по шапке окна чата. Результат — что сделать в
 /// чате: поиск или переход к сообщению.
+/// У личного чата с собеседником — его профиль пользователя
+/// ([ProfileCupertino]) на том же cubit чата.
 Future<ChatInfoResult?> showChatInfoCupertino(BuildContext context, ChatCubit cubit) {
+  final chat = cubit.state.chat;
   return Navigator.of(context).push<ChatInfoResult>(
     FullSwipeBackRoute(
-      builder: (_) => BlocProvider.value(value: cubit, child: const ChatInfoCupertino()),
+      builder: (_) => chat != null && chatInfoIsUser(chat)
+          ? MultiBlocProvider(
+              providers: [
+                BlocProvider.value(value: cubit),
+                BlocProvider(
+                  create: (_) => ProfileCubit()
+                    ..initialization(
+                      userID: idBytes(chat.peerUserID),
+                      locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en,
+                      demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                      chatID: chat.id,
+                    ),
+                ),
+              ],
+              child: const ProfileCupertino(fromChat: true),
+            )
+          : BlocProvider.value(value: cubit, child: const ChatInfoCupertino()),
     ),
   );
+}
+
+/// «Звук» в профиле: заглушённый — включить сразу (`null`, тап), иначе —
+/// выпадающее меню «Заглушить на…».
+List<Widget>? chatMuteMenuCupertino(BuildContext context, models.Chat chat) {
+  if (chat.muted) return null;
+  final t = context.t;
+  final cubit = context.read<ChatCubit>();
+  return [
+    for (final value in ChatMuteFor.values)
+      CupertinoMenuItem(
+        isDestructiveAction: value == ChatMuteFor.forever,
+        trailing: Icon(value == ChatMuteFor.forever ? CupertinoIcons.bell_slash : CupertinoIcons.clock),
+        onPressed: () => cubit.setMuted(true, until: chatMuteUntil(value)),
+        child: Text(chatMuteLabel(t, value)),
+      ),
+  ];
 }
 
 /// Аватар, название и статус, кнопки «Звук» / «Поиск», «О себе» / описание
@@ -112,20 +150,20 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
   /// Пункты «Ещё»: автоудаление (личный чат с собеседником) и удалить /
   /// покинуть (канал объявлений покидают только вместе с сообществом). Выбор
   /// у пункта — отдельным меню от той же кнопки.
-  List<_MoreItem> _moreItems(BuildContext context, models.Chat chat) {
+  List<ChatInfoMoreItem> _moreItems(BuildContext context, models.Chat chat) {
     if (chat.isSelf || !chat.isMember) return const [];
     _checkSecret(chat);
     final t = context.t;
     return [
       // Секретный чат с собеседником (как «Начать секретный чат» в Telegram).
       if (chat.type == models.ChatType.private && _secretAvailable)
-        _MoreItem(
+        ChatInfoMoreItem(
           title: t.secretChat.start,
           icon: CupertinoIcons.lock,
           onTap: () => startSecretChat(context, getIt.get<Utils>().hexToBytes(chat.peerUserID)),
         ),
       if (chat.type == models.ChatType.private)
-        _MoreItem(
+        ChatInfoMoreItem(
           title: t.chatTtl.titleLong,
           subtitle: chatTTLLabel(t, chat.ttlPeriod),
           icon: CupertinoIcons.timer,
@@ -133,13 +171,13 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
         ),
       // Защита содержимого: включить; включил я — снять; собеседник — попросить.
       if (chat.type == models.ChatType.private)
-        _MoreItem(
+        ChatInfoMoreItem(
           title: chatNoForwardsActionLabel(t, noForwards: chat.noForwards, mine: chat.noForwardsMine),
           icon: chat.noForwards ? CupertinoIcons.lock_open : CupertinoIcons.lock_shield,
           onTap: () => setChatNoForwards(context, context.read<ChatCubit>(), !chat.noForwards),
         ),
       if (!chat.announcements)
-        _MoreItem(
+        ChatInfoMoreItem(
           title: chatLeaveLabel(t, chat),
           icon: chatInfoDeletes(chat) ? CupertinoIcons.delete : CupertinoIcons.square_arrow_right,
           destructive: true,
@@ -172,22 +210,6 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
     if (context.mounted) context.go(chatLeaveRoute(chat));
   }
 
-  /// «Звук»: заглушённый — включить сразу, иначе — выпадающее меню
-  /// «Заглушить на…».
-  List<Widget>? _muteMenu(BuildContext context, models.Chat chat) {
-    if (chat.muted) return null;
-    final t = context.t;
-    return [
-      for (final value in ChatMuteFor.values)
-        CupertinoMenuItem(
-          isDestructiveAction: value == ChatMuteFor.forever,
-          trailing: Icon(value == ChatMuteFor.forever ? CupertinoIcons.bell_slash : CupertinoIcons.clock),
-          onPressed: () => context.read<ChatCubit>().setMuted(true, until: chatMuteUntil(value)),
-          child: Text(chatMuteLabel(t, value)),
-        ),
-    ];
-  }
-
   /// «Как в сообществе»: вернуть чату сообщества его настройки по умолчанию.
   Future<void> _resetToCommunity(BuildContext context) async {
     final t = context.t.screenChatInfo;
@@ -206,7 +228,12 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
     if (confirmed ?? false) await cubit.resetToCommunity();
   }
 
-  /// Тап по участнику — личный чат с ним («Написать сообщение»).
+  /// Тап по участнику — его профиль.
+  Future<void> _openMember(BuildContext context, models.ChatMember member) async {
+    if (!member.isSelf) await openUserProfile(context, member.id);
+  }
+
+  /// «Написать сообщение» участнику — личный чат с ним.
   Future<void> _messageMember(BuildContext context, models.ChatMember member) async {
     if (member.isSelf) return;
     final chatID = await context.read<ChatCubit>().privateChatWith(member);
@@ -408,13 +435,13 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                     // Звонок — только собеседнику личного чата (в демо
                                     // peerUserID пуст: звонить некому).
                                     if (chat.peerUserID.isNotEmpty) ...[
-                                      _ActionButton(
+                                      ChatInfoActionButton(
                                         icon: HugeIcons.strokeRoundedCall02,
                                         label: t.screenChatInfo.call,
                                         color: action,
                                         onTap: () => chatInfoCall(chat, video: false),
                                       ),
-                                      _ActionButton(
+                                      ChatInfoActionButton(
                                         icon: HugeIcons.strokeRoundedVideo01,
                                         label: t.screenChatInfo.video,
                                         color: action,
@@ -422,7 +449,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                       ),
                                     ],
                                     if (!chat.isSelf)
-                                      _ActionButton(
+                                      ChatInfoActionButton(
                                         // Значок — текущее состояние: звук включён / выключен.
                                         icon: chat.muted ? HugeIcons.strokeRoundedNotificationOff01 : HugeIcons.strokeRoundedNotification01,
                                         // Заглушён на время — «до 18:30» вместо «Звук».
@@ -431,11 +458,11 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                             : t.screenChatInfo.sound,
                                         color: action,
                                         onTap: () => context.read<ChatCubit>().setMuted(false),
-                                        menuChildren: _muteMenu(context, chat),
+                                        menuChildren: chatMuteMenuCupertino(context, chat),
                                       ),
                                     // У сообщества своей ленты нет — искать негде.
                                     if (!community)
-                                      _ActionButton(
+                                      ChatInfoActionButton(
                                         icon: HugeIcons.strokeRoundedSearch01,
                                         label: t.screenChatInfo.search,
                                         color: action,
@@ -443,7 +470,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                       ),
                                     // «Ещё» (как в Telegram): автоудаление и удалить / покинуть.
                                     if (_moreItems(context, chat) case final items when items.isNotEmpty)
-                                      _MoreActionButton(label: t.screenChatInfo.more, color: action, items: items),
+                                      ChatInfoMoreButton(label: t.screenChatInfo.more, color: action, items: items),
                                   ],
                                 ),
                               ),
@@ -630,7 +657,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                               ),
                               decoration: BoxDecoration(color: card, borderRadius: BorderRadius.circular(10)),
                               margin: EdgeInsets.fromLTRB(20, tabs.length > 1 ? 0 : 20, 20, 0),
-                              onMemberTap: (member) => _messageMember(context, member),
+                              onMemberTap: (member) => _openMember(context, member),
                               memberWrapper: (member, row) =>
                                   RowContextMenuCupertino(background: card, actions: _memberMenuActions(context, chat, member), child: row),
                               onAddMembers: chat.canManage ? () => _addMembers(context) : null,
@@ -664,7 +691,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                           action: action,
                                         ),
                                         onOpenMessage: (id) => Navigator.of(context).pop(ChatInfoResult.goTo(id)),
-                                        onMemberTap: (member) => _messageMember(context, member),
+                                        onMemberTap: (member) => _openMember(context, member),
                                         memberWrapper: (member, row) => RowContextMenuCupertino(
                                           background: card,
                                           actions: _memberMenuActions(context, chat, member),
@@ -730,7 +757,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
 
 /// Пункт меню «Ещё»: [submenu] — следующее меню от той же кнопки (выбор
 /// срока, «у меня / у обоих»), иначе [onTap].
-class _MoreItem {
+class ChatInfoMoreItem {
   final String title;
   final String? subtitle;
   final IconData icon;
@@ -738,24 +765,24 @@ class _MoreItem {
   final List<Widget>? submenu;
   final VoidCallback? onTap;
 
-  const _MoreItem({required this.title, required this.icon, this.subtitle, this.destructive = false, this.submenu, this.onTap});
+  const ChatInfoMoreItem({required this.title, required this.icon, this.subtitle, this.destructive = false, this.submenu, this.onTap});
 }
 
 /// Кнопка «Ещё» под шапкой профиля: выпадающее меню [items]; пункт с
 /// подменю не закрывает меню, а сразу подменяет его пункты следующими
 /// (вложенных меню на iOS нет — как и в контекстном меню чата).
-class _MoreActionButton extends StatefulWidget {
+class ChatInfoMoreButton extends StatefulWidget {
   final String label;
   final Color color;
-  final List<_MoreItem> items;
+  final List<ChatInfoMoreItem> items;
 
-  const _MoreActionButton({required this.label, required this.color, required this.items});
+  const ChatInfoMoreButton({super.key, required this.label, required this.color, required this.items});
 
   @override
-  State<_MoreActionButton> createState() => _MoreActionButtonState();
+  State<ChatInfoMoreButton> createState() => _ChatInfoMoreButtonState();
 }
 
-class _MoreActionButtonState extends State<_MoreActionButton> {
+class _ChatInfoMoreButtonState extends State<ChatInfoMoreButton> {
   /// Открытое подменю (`null` — главное); закрыли меню — снова главное.
   List<Widget>? _submenu;
 
@@ -785,7 +812,7 @@ class _MoreActionButtonState extends State<_MoreActionButton> {
         child: CupertinoMenuAnchor(
           onClose: () => mounted ? setState(() => _submenu = null) : null,
           menuChildren: _submenu ?? main,
-          builder: (context, controller, child) => _ActionButton(
+          builder: (context, controller, child) => ChatInfoActionButton(
             icon: HugeIcons.strokeRoundedMoreHorizontal,
             label: widget.label,
             color: widget.color,
@@ -799,7 +826,7 @@ class _MoreActionButtonState extends State<_MoreActionButton> {
 
 /// Кнопка под шапкой профиля: значок и подпись на белой плашке; все кнопки
 /// ряда — одной ширины.
-class _ActionButton extends StatelessWidget {
+class ChatInfoActionButton extends StatelessWidget {
   /// HugeIcons.* (сырые данные пути, не IconData).
   final List<List<dynamic>> icon;
   final String label;
@@ -809,7 +836,14 @@ class _ActionButton extends StatelessWidget {
   /// Есть — по тапу выпадающее меню вместо [onTap].
   final List<Widget>? menuChildren;
 
-  const _ActionButton({required this.icon, required this.label, required this.color, required this.onTap, this.menuChildren});
+  const ChatInfoActionButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+    this.menuChildren,
+  });
 
   @override
   Widget build(BuildContext context) {

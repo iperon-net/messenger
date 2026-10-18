@@ -674,6 +674,7 @@
 
 
 "screenChatInfo":
+  "message": "Message"
   "call": "Call"
   "video": "Video"
   "mute": "Mute"

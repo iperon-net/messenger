@@ -461,6 +461,9 @@ class ChatsDemoDataSource implements ChatsDataSource {
   Future<List<models.ChatMember>> contacts() async => _contacts();
 
   @override
+  Future<String> findPrivateChat(String userID) async => _chats.any((c) => c.id == userID) ? userID : '';
+
+  @override
   Future<String> openPrivateChat(String userID) async {
     if (_chats.any((c) => c.id == userID)) {
       // Чат мог быть в архиве — достаём, как при новом сообщении.
