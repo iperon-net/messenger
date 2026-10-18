@@ -14,6 +14,13 @@ message UploadConfirm {
     reserved "fileName";
     string contentType = 5;
     string folder = 6;
+    // Непрозрачная загрузка (секретные чаты, docs/plans/secret-chats-e2ee.md
+    // в репозитории клиента): ключа у сервера нет — encryptionKey / hkdfSalt
+    // пустые, folder игнорируется (сервер кладёт в «secret»). Ключ, соль и хеш
+    // уходят собеседнику внутри зашифрованного SecretPayload. Такой файл
+    // нельзя прикрепить к обычному сообщению или аватару; ссылку выдаёт только
+    // SecretChats.GetFiles участнику чата, к которому файл прикреплён (Send).
+    bool opaque = 7;
   }
 
   message Response {

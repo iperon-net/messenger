@@ -614,9 +614,11 @@ Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController
     return;
   }
   final items = switch (result) {
-    ToolbarAttachmentImageResult(:final file, :final source) => [_draft(file.path, asFile: source == ToolbarAttachmentTabKind.file)],
+    ToolbarAttachmentImageResult(:final file, :final source) => [
+      attachmentDraft(file.path, asFile: source == ToolbarAttachmentTabKind.file),
+    ],
     ToolbarAttachmentMultiImageResult(:final files, :final source) => [
-      for (final file in files) _draft(file.path, asFile: source == ToolbarAttachmentTabKind.file),
+      for (final file in files) attachmentDraft(file.path, asFile: source == ToolbarAttachmentTabKind.file),
     ],
     ToolbarAttachmentEmojiResult() || ToolbarAttachmentLinkResult() || ToolbarAttachmentPollResult() || null => const <AttachmentDraft>[],
   };
@@ -629,7 +631,7 @@ Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController
 /// из скрепки.
 Future<void> sendPastedMedia(BuildContext context, List<String> paths, {TextEditingController? input}) async {
   if (paths.isEmpty || !checkSlowMode(context) || !checkNewcomer(context, media: true)) return;
-  await sendAttachmentDrafts(context, [for (final path in paths) _draft(path)], input: input);
+  await sendAttachmentDrafts(context, [for (final path in paths) attachmentDraft(path)], input: input);
 }
 
 /// «Вставить» в поле ввода, когда в буфере обмена фото / видео (например,
@@ -652,27 +654,25 @@ Future<void> insertKeyboardMedia(BuildContext context, KeyboardInsertedContent c
   await sendPastedMedia(context, [path], input: input);
 }
 
-/// Превью с подписью и отправка выбранных вложений [items] (см.
-/// [pickAndSendAttachments]).
-Future<void> sendAttachmentDrafts(BuildContext context, List<AttachmentDraft> items, {TextEditingController? input}) async {
-  final cubit = context.read<ChatCubit>();
-  if (items.isEmpty || !context.mounted) return;
-  // Медленный режим — только одно сообщение: один альбом или один файл.
-  final mediaCount = items.where((i) => i.isMedia).length;
-  final messages = (mediaCount + models.Message.maxAlbum - 1) ~/ models.Message.maxAlbum + items.length - mediaCount;
-  if (!checkSlowMode(context, count: messages)) return;
-
+/// Превью с подписью и сжатие выбранных вложений [items]: подпись, фото и
+/// видео (сжатые, в исходном порядке) и файлы как есть; `null` — отменили.
+/// Текст из поля ввода [input] переносится в подпись (и из поля убирается).
+/// [onCompressing] — началось сжатие видео (вернуть «закончилось»).
+Future<({String caption, List<models.MessageMedia> media, List<AttachmentDraft> files})?> prepareAttachmentDrafts(
+  BuildContext context,
+  List<AttachmentDraft> items, {
+  TextEditingController? input,
+  VoidCallback Function()? onCompressing,
+}) async {
+  if (items.isEmpty || !context.mounted) return null;
   final initial = input?.text ?? '';
   final sheet = Platform.isIOS
       ? await showMediaCaptionCupertino(context, items, initialCaption: initial)
       : await showMediaCaptionMaterial(context, items, initialCaption: initial);
-  if (sheet == null || !context.mounted) return;
-  final caption = sheet.caption;
+  if (sheet == null || !context.mounted) return null;
 
   // Фото — параллельно; видео — по очереди, с окном прогресса и «Отмена».
-  // Сжатие видео бывает долгим — собеседник видит «отправляет видео…» уже
-  // сейчас (дальше его продолжит загрузка, см. ChatsSync).
-  final compressing = items.any((i) => i.kind == models.MessageKind.video) ? cubit.beginActivity(models.ChatActivity.uploadVideo) : null;
+  final done = items.any((i) => i.kind == models.MessageKind.video) ? onCompressing?.call() : null;
   final List<models.MessageMedia> media;
   try {
     media = await _prepareMedia(
@@ -685,14 +685,47 @@ Future<void> sendAttachmentDrafts(BuildContext context, List<AttachmentDraft> it
       quality: sheet.hd ? ChatVideoQuality.hd : ChatVideoQuality.standard,
     );
   } on ChatVideoCancelled {
-    return;
+    return null;
   } finally {
-    cubit.endActivity(compressing);
+    done?.call();
   }
   // Текст из поля ввода ушёл в подпись (после отмены сжатия — остаётся).
   if (initial.isNotEmpty) input?.clear();
+  return (
+    caption: sheet.caption,
+    media: media,
+    files: [
+      for (final i in items)
+        if (!i.isMedia) i,
+    ],
+  );
+}
 
-  var pending = caption;
+/// Превью с подписью и отправка выбранных вложений [items] (см.
+/// [pickAndSendAttachments]).
+Future<void> sendAttachmentDrafts(BuildContext context, List<AttachmentDraft> items, {TextEditingController? input}) async {
+  final cubit = context.read<ChatCubit>();
+  if (items.isEmpty || !context.mounted) return;
+  // Медленный режим — только одно сообщение: один альбом или один файл.
+  final mediaCount = items.where((i) => i.isMedia).length;
+  final messages = (mediaCount + models.Message.maxAlbum - 1) ~/ models.Message.maxAlbum + items.length - mediaCount;
+  if (!checkSlowMode(context, count: messages)) return;
+
+  // Сжатие видео бывает долгим — собеседник видит «отправляет видео…» уже
+  // сейчас (дальше его продолжит загрузка, см. ChatsSync).
+  final prepared = await prepareAttachmentDrafts(
+    context,
+    items,
+    input: input,
+    onCompressing: () {
+      final handle = cubit.beginActivity(models.ChatActivity.uploadVideo);
+      return () => cubit.endActivity(handle);
+    },
+  );
+  if (prepared == null) return;
+  final media = prepared.media;
+
+  var pending = prepared.caption;
   String takeCaption() {
     final value = pending;
     pending = '';
@@ -709,7 +742,7 @@ Future<void> sendAttachmentDrafts(BuildContext context, List<AttachmentDraft> it
       caption: takeCaption(),
     );
   }
-  for (final file in items.where((i) => !i.isMedia)) {
+  for (final file in prepared.files) {
     await cubit.sendMedia(kind: file.kind, localPath: file.path, fileName: p.basename(file.path), caption: takeCaption());
   }
 }
@@ -914,7 +947,7 @@ Future<models.MessageMedia> _prepare(AttachmentDraft item, {bool spoiler = false
 const _videoExtensions = {'.mp4', '.mov', '.m4v', '.3gp', '.webm', '.mkv'};
 const _imageExtensions = {'.jpg', '.jpeg', '.png', '.heic', '.heif', '.webp', '.gif'};
 
-AttachmentDraft _draft(String path, {bool asFile = false}) {
+AttachmentDraft attachmentDraft(String path, {bool asFile = false}) {
   final ext = p.extension(path).toLowerCase();
   // Из таба «Файл» — всегда файлом (фото/видео без сжатия, как в Telegram).
   final kind = asFile

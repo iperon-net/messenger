@@ -28,6 +28,16 @@ models.MessageStatus secretMessageStatus(SecretMessageStatus status) => switch (
   SecretMessageStatus.pending => models.MessageStatus.pending,
   SecretMessageStatus.sent || SecretMessageStatus.unread => models.MessageStatus.sent,
   SecretMessageStatus.read => models.MessageStatus.read,
+  SecretMessageStatus.failed => models.MessageStatus.failed,
+};
+
+/// Тип сообщения для ленты и превью в списке.
+models.MessageKind secretMessageKind(SecretMessageKind kind) => switch (kind) {
+  SecretMessageKind.text => models.MessageKind.text,
+  SecretMessageKind.photo => models.MessageKind.photo,
+  SecretMessageKind.video => models.MessageKind.video,
+  SecretMessageKind.file => models.MessageKind.file,
+  SecretMessageKind.voice => models.MessageKind.voice,
 };
 
 /// Секретные чаты этого устройства как строки общего списка чатов;
@@ -57,6 +67,7 @@ Stream<List<models.Chat>> watchSecretChats() {
           lastMessage: record.lastMessage == null
               ? null
               : models.ChatLastMessage(
+                  kind: secretMessageKind(record.lastMessage!.kind),
                   text: record.lastMessage!.text,
                   outgoing: record.lastMessage!.outgoing,
                   status: secretMessageStatus(record.lastMessage!.status),

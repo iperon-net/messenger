@@ -732,6 +732,17 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(33, (tx) async {
+        // Вложения секретных чатов: тип / SecretMedia / локальный файл
+        // сообщения, файлы конверта outbox, очередь загрузок
+        // (SecretChatsRepository.schemaMedia).
+        for (final statement in SecretChatsRepository.schemaMedia) {
+          await tx.execute(statement);
+        }
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

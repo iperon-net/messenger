@@ -64,7 +64,8 @@ class _SecretChatMaterialState extends State<SecretChatMaterial> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(leading: const Icon(Icons.copy), title: Text(t.copy), onTap: () => Navigator.of(sheetContext).pop('copy')),
+            if (message.text.isNotEmpty)
+              ListTile(leading: const Icon(Icons.copy), title: Text(t.copy), onTap: () => Navigator.of(sheetContext).pop('copy')),
             ListTile(
               leading: Icon(Icons.delete_outline, color: Theme.of(sheetContext).colorScheme.error),
               title: Text(t.deleteMessage, style: TextStyle(color: Theme.of(sheetContext).colorScheme.error)),
@@ -178,6 +179,9 @@ class _SecretChatMaterialState extends State<SecretChatMaterial> {
             tail: secretBubbleTail(messages, index),
             showSender: false,
             onLongPress: () => _messageActions(context, message),
+            onMediaTap: (index) => openSecretMedia(context, context.read<SecretChatCubit>().state, message, index),
+            // Крестик на кольце загрузки — не отправлять.
+            onCancelUpload: () => context.read<SecretChatCubit>().deleteMessage(message),
           ),
         );
       },
@@ -198,10 +202,15 @@ class _SecretChatMaterialState extends State<SecretChatMaterial> {
       );
     }
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 6, 4, 6),
+      padding: const EdgeInsets.fromLTRB(0, 6, 4, 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          IconButton(
+            icon: const Icon(Icons.attach_file),
+            color: theme.colorScheme.onSurfaceVariant,
+            onPressed: () => pickSecretAttachments(context, input: _input),
+          ),
           Expanded(
             child: TextField(
               controller: _input,

@@ -615,6 +615,67 @@ class SecretUpdate extends $pb.GeneratedMessage {
   SecretUpdate_Discarded ensureDiscarded() => $_ensure(7);
 }
 
+/// Файл секретного чата: где лежит шифротекст. Расшифровать его можно только
+/// ключом из SecretPayload (SecretMedia).
+class SecretFile extends $pb.GeneratedMessage {
+  factory SecretFile({
+    $core.List<$core.int>? fileID,
+    $core.String? url,
+  }) {
+    final result = create();
+    if (fileID != null) result.fileID = fileID;
+    if (url != null) result.url = url;
+    return result;
+  }
+
+  SecretFile._();
+
+  factory SecretFile.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SecretFile.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SecretFile',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'fileID', $pb.PbFieldType.OY, protoName: 'fileID')
+    ..aOS(2, _omitFieldNames ? '' : 'url')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SecretFile clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SecretFile copyWith(void Function(SecretFile) updates) => super.copyWith((message) => updates(message as SecretFile)) as SecretFile;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SecretFile create() => SecretFile._();
+  @$core.override
+  SecretFile createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static SecretFile getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SecretFile>(create);
+  static SecretFile? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get fileID => $_getN(0);
+  @$pb.TagNumber(1)
+  set fileID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasFileID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearFileID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get url => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set url($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasUrl() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearUrl() => $_clearField(2);
+}
+
 /// Push по стриму (SECRET_UPDATES) в сессию.
 class SecretUpdates extends $pb.GeneratedMessage {
   factory SecretUpdates({
@@ -1148,16 +1209,22 @@ class SecretChats_DiscardResult extends $pb.GeneratedMessage {
 
 /// Отправить конверт собеседнику. Повтор того же randomID в течение жизни
 /// очереди не дублирует сообщение.
+///
+/// fileIDs — файлы сообщения (cdnID непрозрачных загрузок отправителя,
+/// UploadConfirm.opaque): сервер прикрепляет их к чату — после этого ссылку
+/// на них выдаёт GetFiles обоим участникам. Ключи файлов — внутри конверта.
 class SecretChats_Send extends $pb.GeneratedMessage {
   factory SecretChats_Send({
     $core.List<$core.int>? secretChatID,
     $fixnum.Int64? randomID,
     $core.List<$core.int>? envelope,
+    $core.Iterable<$core.List<$core.int>>? fileIDs,
   }) {
     final result = create();
     if (secretChatID != null) result.secretChatID = secretChatID;
     if (randomID != null) result.randomID = randomID;
     if (envelope != null) result.envelope = envelope;
+    if (fileIDs != null) result.fileIDs.addAll(fileIDs);
     return result;
   }
 
@@ -1173,6 +1240,7 @@ class SecretChats_Send extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'secretChatID', $pb.PbFieldType.OY, protoName: 'secretChatID')
     ..aInt64(2, _omitFieldNames ? '' : 'randomID', protoName: 'randomID')
     ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'envelope', $pb.PbFieldType.OY)
+    ..p<$core.List<$core.int>>(4, _omitFieldNames ? '' : 'fileIDs', $pb.PbFieldType.PY, protoName: 'fileIDs')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1218,6 +1286,9 @@ class SecretChats_Send extends $pb.GeneratedMessage {
   $core.bool hasEnvelope() => $_has(2);
   @$pb.TagNumber(3)
   void clearEnvelope() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $pb.PbList<$core.List<$core.int>> get fileIDs => $_getList(3);
 }
 
 class SecretChats_SendResult extends $pb.GeneratedMessage {
@@ -1466,7 +1537,199 @@ class SecretChats_AckResult extends $pb.GeneratedMessage {
   static SecretChats_AckResult? _defaultInstance;
 }
 
-enum SecretChats_Request_Request { createChat, accept, commit, discard, send, getUpdates, ack, notSet }
+/// Ссылки на файлы чата (для скачивания шифротекста). Только участнику и
+/// только файлы, прикреплённые к этому чату; чужие / удалённые — пропускаются.
+/// Ссылка временная (как у вложений чатов): 403 — взять свежую.
+class SecretChats_GetFiles extends $pb.GeneratedMessage {
+  factory SecretChats_GetFiles({
+    $core.List<$core.int>? secretChatID,
+    $core.Iterable<$core.List<$core.int>>? fileIDs,
+  }) {
+    final result = create();
+    if (secretChatID != null) result.secretChatID = secretChatID;
+    if (fileIDs != null) result.fileIDs.addAll(fileIDs);
+    return result;
+  }
+
+  SecretChats_GetFiles._();
+
+  factory SecretChats_GetFiles.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SecretChats_GetFiles.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SecretChats.GetFiles',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'secretChatID', $pb.PbFieldType.OY, protoName: 'secretChatID')
+    ..p<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'fileIDs', $pb.PbFieldType.PY, protoName: 'fileIDs')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SecretChats_GetFiles clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SecretChats_GetFiles copyWith(void Function(SecretChats_GetFiles) updates) =>
+      super.copyWith((message) => updates(message as SecretChats_GetFiles)) as SecretChats_GetFiles;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SecretChats_GetFiles create() => SecretChats_GetFiles._();
+  @$core.override
+  SecretChats_GetFiles createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static SecretChats_GetFiles getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SecretChats_GetFiles>(create);
+  static SecretChats_GetFiles? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get secretChatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set secretChatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasSecretChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSecretChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<$core.List<$core.int>> get fileIDs => $_getList(1);
+}
+
+class SecretChats_GetFilesResult extends $pb.GeneratedMessage {
+  factory SecretChats_GetFilesResult({
+    $core.Iterable<SecretFile>? files,
+  }) {
+    final result = create();
+    if (files != null) result.files.addAll(files);
+    return result;
+  }
+
+  SecretChats_GetFilesResult._();
+
+  factory SecretChats_GetFilesResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SecretChats_GetFilesResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SecretChats.GetFilesResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..pPM<SecretFile>(1, _omitFieldNames ? '' : 'files', subBuilder: SecretFile.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SecretChats_GetFilesResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SecretChats_GetFilesResult copyWith(void Function(SecretChats_GetFilesResult) updates) =>
+      super.copyWith((message) => updates(message as SecretChats_GetFilesResult)) as SecretChats_GetFilesResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SecretChats_GetFilesResult create() => SecretChats_GetFilesResult._();
+  @$core.override
+  SecretChats_GetFilesResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static SecretChats_GetFilesResult getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SecretChats_GetFilesResult>(create);
+  static SecretChats_GetFilesResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<SecretFile> get files => $_getList(0);
+}
+
+/// Файлы больше не нужны (удалили сообщения у обоих): сервер удалит их
+/// позже (сборка мусора). Чужие / уже удалённые — без ошибки. Закрытие чата
+/// освобождает все его файлы само.
+class SecretChats_ReleaseFiles extends $pb.GeneratedMessage {
+  factory SecretChats_ReleaseFiles({
+    $core.List<$core.int>? secretChatID,
+    $core.Iterable<$core.List<$core.int>>? fileIDs,
+  }) {
+    final result = create();
+    if (secretChatID != null) result.secretChatID = secretChatID;
+    if (fileIDs != null) result.fileIDs.addAll(fileIDs);
+    return result;
+  }
+
+  SecretChats_ReleaseFiles._();
+
+  factory SecretChats_ReleaseFiles.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SecretChats_ReleaseFiles.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SecretChats.ReleaseFiles',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'secretChatID', $pb.PbFieldType.OY, protoName: 'secretChatID')
+    ..p<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'fileIDs', $pb.PbFieldType.PY, protoName: 'fileIDs')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SecretChats_ReleaseFiles clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SecretChats_ReleaseFiles copyWith(void Function(SecretChats_ReleaseFiles) updates) =>
+      super.copyWith((message) => updates(message as SecretChats_ReleaseFiles)) as SecretChats_ReleaseFiles;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SecretChats_ReleaseFiles create() => SecretChats_ReleaseFiles._();
+  @$core.override
+  SecretChats_ReleaseFiles createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static SecretChats_ReleaseFiles getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SecretChats_ReleaseFiles>(create);
+  static SecretChats_ReleaseFiles? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get secretChatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set secretChatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasSecretChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSecretChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<$core.List<$core.int>> get fileIDs => $_getList(1);
+}
+
+class SecretChats_ReleaseFilesResult extends $pb.GeneratedMessage {
+  factory SecretChats_ReleaseFilesResult() => create();
+
+  SecretChats_ReleaseFilesResult._();
+
+  factory SecretChats_ReleaseFilesResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory SecretChats_ReleaseFilesResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SecretChats.ReleaseFilesResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SecretChats_ReleaseFilesResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SecretChats_ReleaseFilesResult copyWith(void Function(SecretChats_ReleaseFilesResult) updates) =>
+      super.copyWith((message) => updates(message as SecretChats_ReleaseFilesResult)) as SecretChats_ReleaseFilesResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SecretChats_ReleaseFilesResult create() => SecretChats_ReleaseFilesResult._();
+  @$core.override
+  SecretChats_ReleaseFilesResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static SecretChats_ReleaseFilesResult getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SecretChats_ReleaseFilesResult>(create);
+  static SecretChats_ReleaseFilesResult? _defaultInstance;
+}
+
+enum SecretChats_Request_Request { createChat, accept, commit, discard, send, getUpdates, ack, getFiles, releaseFiles, notSet }
 
 class SecretChats_Request extends $pb.GeneratedMessage {
   factory SecretChats_Request({
@@ -1477,6 +1740,8 @@ class SecretChats_Request extends $pb.GeneratedMessage {
     SecretChats_Send? send,
     SecretChats_GetUpdates? getUpdates,
     SecretChats_Ack? ack,
+    SecretChats_GetFiles? getFiles,
+    SecretChats_ReleaseFiles? releaseFiles,
   }) {
     final result = create();
     if (createChat != null) result.createChat = createChat;
@@ -1486,6 +1751,8 @@ class SecretChats_Request extends $pb.GeneratedMessage {
     if (send != null) result.send = send;
     if (getUpdates != null) result.getUpdates = getUpdates;
     if (ack != null) result.ack = ack;
+    if (getFiles != null) result.getFiles = getFiles;
+    if (releaseFiles != null) result.releaseFiles = releaseFiles;
     return result;
   }
 
@@ -1504,11 +1771,13 @@ class SecretChats_Request extends $pb.GeneratedMessage {
     5: SecretChats_Request_Request.send,
     6: SecretChats_Request_Request.getUpdates,
     7: SecretChats_Request_Request.ack,
+    8: SecretChats_Request_Request.getFiles,
+    9: SecretChats_Request_Request.releaseFiles,
     0: SecretChats_Request_Request.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SecretChats.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9])
     ..aOM<SecretChats_Create>(1, _omitFieldNames ? '' : 'createChat', protoName: 'createChat', subBuilder: SecretChats_Create.create)
     ..aOM<SecretChats_Accept>(2, _omitFieldNames ? '' : 'accept', subBuilder: SecretChats_Accept.create)
     ..aOM<SecretChats_Commit>(3, _omitFieldNames ? '' : 'commit', subBuilder: SecretChats_Commit.create)
@@ -1517,6 +1786,9 @@ class SecretChats_Request extends $pb.GeneratedMessage {
     ..aOM<SecretChats_GetUpdates>(6, _omitFieldNames ? '' : 'getUpdates',
         protoName: 'getUpdates', subBuilder: SecretChats_GetUpdates.create)
     ..aOM<SecretChats_Ack>(7, _omitFieldNames ? '' : 'ack', subBuilder: SecretChats_Ack.create)
+    ..aOM<SecretChats_GetFiles>(8, _omitFieldNames ? '' : 'getFiles', protoName: 'getFiles', subBuilder: SecretChats_GetFiles.create)
+    ..aOM<SecretChats_ReleaseFiles>(9, _omitFieldNames ? '' : 'releaseFiles',
+        protoName: 'releaseFiles', subBuilder: SecretChats_ReleaseFiles.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1543,6 +1815,8 @@ class SecretChats_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   @$pb.TagNumber(6)
   @$pb.TagNumber(7)
+  @$pb.TagNumber(8)
+  @$pb.TagNumber(9)
   SecretChats_Request_Request whichRequest() => _SecretChats_Request_RequestByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -1551,6 +1825,8 @@ class SecretChats_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   @$pb.TagNumber(6)
   @$pb.TagNumber(7)
+  @$pb.TagNumber(8)
+  @$pb.TagNumber(9)
   void clearRequest() => $_clearField($_whichOneof(0));
 
   /// createChat, а не create: в Dart `create` — служебный метод сообщения.
@@ -1630,9 +1906,31 @@ class SecretChats_Request extends $pb.GeneratedMessage {
   void clearAck() => $_clearField(7);
   @$pb.TagNumber(7)
   SecretChats_Ack ensureAck() => $_ensure(6);
+
+  @$pb.TagNumber(8)
+  SecretChats_GetFiles get getFiles => $_getN(7);
+  @$pb.TagNumber(8)
+  set getFiles(SecretChats_GetFiles value) => $_setField(8, value);
+  @$pb.TagNumber(8)
+  $core.bool hasGetFiles() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearGetFiles() => $_clearField(8);
+  @$pb.TagNumber(8)
+  SecretChats_GetFiles ensureGetFiles() => $_ensure(7);
+
+  @$pb.TagNumber(9)
+  SecretChats_ReleaseFiles get releaseFiles => $_getN(8);
+  @$pb.TagNumber(9)
+  set releaseFiles(SecretChats_ReleaseFiles value) => $_setField(9, value);
+  @$pb.TagNumber(9)
+  $core.bool hasReleaseFiles() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearReleaseFiles() => $_clearField(9);
+  @$pb.TagNumber(9)
+  SecretChats_ReleaseFiles ensureReleaseFiles() => $_ensure(8);
 }
 
-enum SecretChats_Response_Response { createChat, accept, commit, discard, send, getUpdates, ack, notSet }
+enum SecretChats_Response_Response { createChat, accept, commit, discard, send, getUpdates, ack, getFiles, releaseFiles, notSet }
 
 class SecretChats_Response extends $pb.GeneratedMessage {
   factory SecretChats_Response({
@@ -1643,6 +1941,8 @@ class SecretChats_Response extends $pb.GeneratedMessage {
     SecretChats_SendResult? send,
     SecretChats_GetUpdatesResult? getUpdates,
     SecretChats_AckResult? ack,
+    SecretChats_GetFilesResult? getFiles,
+    SecretChats_ReleaseFilesResult? releaseFiles,
   }) {
     final result = create();
     if (createChat != null) result.createChat = createChat;
@@ -1652,6 +1952,8 @@ class SecretChats_Response extends $pb.GeneratedMessage {
     if (send != null) result.send = send;
     if (getUpdates != null) result.getUpdates = getUpdates;
     if (ack != null) result.ack = ack;
+    if (getFiles != null) result.getFiles = getFiles;
+    if (releaseFiles != null) result.releaseFiles = releaseFiles;
     return result;
   }
 
@@ -1670,11 +1972,13 @@ class SecretChats_Response extends $pb.GeneratedMessage {
     5: SecretChats_Response_Response.send,
     6: SecretChats_Response_Response.getUpdates,
     7: SecretChats_Response_Response.ack,
+    8: SecretChats_Response_Response.getFiles,
+    9: SecretChats_Response_Response.releaseFiles,
     0: SecretChats_Response_Response.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SecretChats.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9])
     ..aOM<SecretChats_CreateResult>(1, _omitFieldNames ? '' : 'createChat',
         protoName: 'createChat', subBuilder: SecretChats_CreateResult.create)
     ..aOM<SecretChats_AcceptResult>(2, _omitFieldNames ? '' : 'accept', subBuilder: SecretChats_AcceptResult.create)
@@ -1684,6 +1988,10 @@ class SecretChats_Response extends $pb.GeneratedMessage {
     ..aOM<SecretChats_GetUpdatesResult>(6, _omitFieldNames ? '' : 'getUpdates',
         protoName: 'getUpdates', subBuilder: SecretChats_GetUpdatesResult.create)
     ..aOM<SecretChats_AckResult>(7, _omitFieldNames ? '' : 'ack', subBuilder: SecretChats_AckResult.create)
+    ..aOM<SecretChats_GetFilesResult>(8, _omitFieldNames ? '' : 'getFiles',
+        protoName: 'getFiles', subBuilder: SecretChats_GetFilesResult.create)
+    ..aOM<SecretChats_ReleaseFilesResult>(9, _omitFieldNames ? '' : 'releaseFiles',
+        protoName: 'releaseFiles', subBuilder: SecretChats_ReleaseFilesResult.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1710,6 +2018,8 @@ class SecretChats_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   @$pb.TagNumber(6)
   @$pb.TagNumber(7)
+  @$pb.TagNumber(8)
+  @$pb.TagNumber(9)
   SecretChats_Response_Response whichResponse() => _SecretChats_Response_ResponseByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -1718,6 +2028,8 @@ class SecretChats_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   @$pb.TagNumber(6)
   @$pb.TagNumber(7)
+  @$pb.TagNumber(8)
+  @$pb.TagNumber(9)
   void clearResponse() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -1796,6 +2108,28 @@ class SecretChats_Response extends $pb.GeneratedMessage {
   void clearAck() => $_clearField(7);
   @$pb.TagNumber(7)
   SecretChats_AckResult ensureAck() => $_ensure(6);
+
+  @$pb.TagNumber(8)
+  SecretChats_GetFilesResult get getFiles => $_getN(7);
+  @$pb.TagNumber(8)
+  set getFiles(SecretChats_GetFilesResult value) => $_setField(8, value);
+  @$pb.TagNumber(8)
+  $core.bool hasGetFiles() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearGetFiles() => $_clearField(8);
+  @$pb.TagNumber(8)
+  SecretChats_GetFilesResult ensureGetFiles() => $_ensure(7);
+
+  @$pb.TagNumber(9)
+  SecretChats_ReleaseFilesResult get releaseFiles => $_getN(8);
+  @$pb.TagNumber(9)
+  set releaseFiles(SecretChats_ReleaseFilesResult value) => $_setField(9, value);
+  @$pb.TagNumber(9)
+  $core.bool hasReleaseFiles() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearReleaseFiles() => $_clearField(9);
+  @$pb.TagNumber(9)
+  SecretChats_ReleaseFilesResult ensureReleaseFiles() => $_ensure(8);
 }
 
 class SecretChats extends $pb.GeneratedMessage {

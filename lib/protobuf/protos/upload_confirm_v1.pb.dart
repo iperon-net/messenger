@@ -25,6 +25,7 @@ class UploadConfirm_Request extends $pb.GeneratedMessage {
     $core.List<$core.int>? hkdfSalt,
     $core.String? contentType,
     $core.String? folder,
+    $core.bool? opaque,
   }) {
     final result = create();
     if (uploadId != null) result.uploadId = uploadId;
@@ -32,6 +33,7 @@ class UploadConfirm_Request extends $pb.GeneratedMessage {
     if (hkdfSalt != null) result.hkdfSalt = hkdfSalt;
     if (contentType != null) result.contentType = contentType;
     if (folder != null) result.folder = folder;
+    if (opaque != null) result.opaque = opaque;
     return result;
   }
 
@@ -49,6 +51,7 @@ class UploadConfirm_Request extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'hkdfSalt', $pb.PbFieldType.OY, protoName: 'hkdfSalt')
     ..aOS(5, _omitFieldNames ? '' : 'contentType', protoName: 'contentType')
     ..aOS(6, _omitFieldNames ? '' : 'folder')
+    ..aOB(7, _omitFieldNames ? '' : 'opaque')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -112,6 +115,21 @@ class UploadConfirm_Request extends $pb.GeneratedMessage {
   $core.bool hasFolder() => $_has(4);
   @$pb.TagNumber(6)
   void clearFolder() => $_clearField(6);
+
+  /// Непрозрачная загрузка (секретные чаты, docs/plans/secret-chats-e2ee.md
+  /// в репозитории клиента): ключа у сервера нет — encryptionKey / hkdfSalt
+  /// пустые, folder игнорируется (сервер кладёт в «secret»). Ключ, соль и хеш
+  /// уходят собеседнику внутри зашифрованного SecretPayload. Такой файл
+  /// нельзя прикрепить к обычному сообщению или аватару; ссылку выдаёт только
+  /// SecretChats.GetFiles участнику чата, к которому файл прикреплён (Send).
+  @$pb.TagNumber(7)
+  $core.bool get opaque => $_getBF(5);
+  @$pb.TagNumber(7)
+  set opaque($core.bool value) => $_setBool(5, value);
+  @$pb.TagNumber(7)
+  $core.bool hasOpaque() => $_has(5);
+  @$pb.TagNumber(7)
+  void clearOpaque() => $_clearField(7);
 }
 
 class UploadConfirm_Response extends $pb.GeneratedMessage {

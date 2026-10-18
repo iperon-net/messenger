@@ -169,6 +169,9 @@ class _SecretChatCupertinoState extends State<SecretChatCupertino> {
             tail: secretBubbleTail(messages, index),
             showSender: false,
             onLongPress: () {},
+            onMediaTap: (index) => openSecretMedia(context, state, message, index),
+            // Крестик на кольце загрузки — не отправлять.
+            onCancelUpload: () => context.read<SecretChatCubit>().deleteMessage(message),
             menuWrapper: (bubble, preview) =>
                 MessageContextMenuCupertino(actions: _actions(context, message), bubble: bubble, preview: (maxWidth) => preview(maxWidth)),
           ),
@@ -181,14 +184,15 @@ class _SecretChatCupertinoState extends State<SecretChatCupertino> {
     final t = context.t.secretChat;
     void close() => Navigator.of(context, rootNavigator: true).pop();
     return [
-      CupertinoContextMenuAction(
-        trailingIcon: CupertinoIcons.doc_on_doc,
-        onPressed: () {
-          close();
-          Clipboard.setData(ClipboardData(text: message.text));
-        },
-        child: Text(t.copy),
-      ),
+      if (message.text.isNotEmpty)
+        CupertinoContextMenuAction(
+          trailingIcon: CupertinoIcons.doc_on_doc,
+          onPressed: () {
+            close();
+            Clipboard.setData(ClipboardData(text: message.text));
+          },
+          child: Text(t.copy),
+        ),
       CupertinoContextMenuAction(
         trailingIcon: CupertinoIcons.delete,
         isDestructiveAction: true,
@@ -216,10 +220,16 @@ class _SecretChatCupertinoState extends State<SecretChatCupertino> {
     }
     final primary = CupertinoTheme.of(context).primaryColor;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 6, 4, 6),
+      padding: const EdgeInsets.fromLTRB(0, 6, 4, 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          CupertinoButton(
+            padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+            minimumSize: Size.zero,
+            onPressed: () => pickSecretAttachments(context, input: _input),
+            child: FaIcon(FontAwesomeIcons.paperclip, size: 22, color: secondary),
+          ),
           Expanded(
             child: CupertinoTextField(
               controller: _input,

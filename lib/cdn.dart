@@ -75,6 +75,11 @@ class DownloadException implements Exception {
 /// ключ) — привязку к конкретной сущности (аватарка, вложение в чат и т.п.)
 /// делает вызывающий код, когда такая сущность появится (см. "Заметки на
 /// будущее" в `shimmying-tumbling-owl.md`).
+/// Папка непрозрачных загрузок (файлы секретных чатов): [CDNManager.uploadFile]
+/// с этой папкой не отдаёт ключ серверу (`UploadConfirm.opaque`), а
+/// возвращённый [models.CDN] несёт ключ и соль локально.
+const secretMediaFolder = 'secret';
+
 class CDNManager {
   final logger = getIt.get<Logger>();
   final api = getIt.get<API>();
@@ -406,20 +411,26 @@ class CDNManager {
       throw const UploadException('upload: confirm called before InitAck ever succeeded');
     }
 
-    final request = UploadConfirm_Request(
-      uploadId: uploadID,
-      encryptionKey: state.fileKey,
-      hkdfSalt: state.hkdfSalt,
-      contentType: state.contentType,
-      folder: state.folder,
-    );
+    // Непрозрачная загрузка (секретные чаты): ключ серверу не отдаём — он
+    // уйдёт собеседнику внутри зашифрованного сообщения.
+    final opaque = state.folder == secretMediaFolder;
+    final request = opaque
+        ? UploadConfirm_Request(uploadId: uploadID, contentType: state.contentType, opaque: true)
+        : UploadConfirm_Request(
+            uploadId: uploadID,
+            encryptionKey: state.fileKey,
+            hkdfSalt: state.hkdfSalt,
+            contentType: state.contentType,
+            folder: state.folder,
+          );
     final payload = request.writeToBuffer();
 
     for (var attempt = 1; ; attempt++) {
       final (status, response) = await api.unaryEncodedWithResponse(MessageType.UPLOAD_CONFIRM, payload);
 
       if (status.status == APIStatus.success && response != null) {
-        final cdn = models.CDN.fromProto(UploadConfirm_Response.fromBuffer(response).cdn);
+        var cdn = models.CDN.fromProto(UploadConfirm_Response.fromBuffer(response).cdn);
+        if (opaque) cdn = cdn.copyWith(encryptionKey: state.fileKey, hkdfSalt: state.hkdfSalt);
         await repositories.uploads.delete(state.localID);
         return cdn;
       }

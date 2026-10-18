@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -8,6 +9,7 @@ import 'package:messenger/chats/secret/secret_chats_sync.dart';
 import 'package:messenger/crypto.dart';
 import 'package:messenger/logger.dart';
 import 'package:messenger/protobuf/protos/secret_chats_v1.pb.dart' as sc;
+import 'package:messenger/protobuf/protos/secret_payload_v1.pb.dart' as sp;
 import 'package:messenger/repositories/repositories.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
@@ -34,6 +36,10 @@ class _FakeServer {
   final queues = <String, List<sc.SecretUpdate>>{};
   final qts = <String, int>{};
   final sentRandomIDs = <String>{};
+
+  /// Прикреплённые файлы: fileID (hex) → чат (hex); освобождённые.
+  final attached = <String, String>{};
+  final released = <String>{};
   final pushes = <(_Device, sc.SecretUpdate)>[];
   var _nextID = 1;
 
@@ -132,6 +138,11 @@ class _FakeServer {
       case sc.SecretChats_Request_Request.send:
         final chat = chats[_hex(request.send.secretChatID)]!;
         if (chat.state != sc.SecretChat_State.READY) _fail('secretChat.badState');
+        for (final file in request.send.fileIDs) {
+          final owner = attached[_hex(file)];
+          if (owner != null && owner != _hex(chat.id)) _fail('secretChat.fileForbidden');
+          attached[_hex(file)] = _hex(chat.id);
+        }
         if (sentRandomIDs.add('${_hex(device.sessionID)}:${request.send.randomID}')) {
           final recipient = chat.initiator == device ? chat.peer! : chat.initiator;
           _enqueue(
@@ -170,6 +181,21 @@ class _FakeServer {
         queues[_hex(device.sessionID)]?.removeWhere((u) => u.qts <= request.ack.maxQts);
         return sc.SecretChats_Response(ack: sc.SecretChats_AckResult());
 
+      case sc.SecretChats_Request_Request.getFiles:
+        return sc.SecretChats_Response(
+          getFiles: sc.SecretChats_GetFilesResult(
+            files: [
+              for (final file in request.getFiles.fileIDs)
+                if (attached[_hex(file)] == _hex(request.getFiles.secretChatID))
+                  sc.SecretFile(fileID: file, url: 'https://cdn.test/${_hex(file)}'),
+            ],
+          ),
+        );
+
+      case sc.SecretChats_Request_Request.releaseFiles:
+        released.addAll([for (final file in request.releaseFiles.fileIDs) _hex(file)]);
+        return sc.SecretChats_Response(releaseFiles: sc.SecretChats_ReleaseFilesResult());
+
       case sc.SecretChats_Request_Request.notSet:
         throw StateError('empty request');
     }
@@ -190,6 +216,41 @@ class _Transport implements SecretChatsTransport {
   }
 }
 
+/// Загрузка «на CDN» в памяти: случайные fileID / ключ; [gate] — придержать
+/// загрузку до команды.
+class _Uploader implements SecretMediaUploader {
+  late _Device device;
+  Completer<void>? gate;
+  final uploaded = <String, Uint8List>{};
+  var _next = 1;
+
+  @override
+  Future<SecretUploadedFile> upload(
+    File file, {
+    required String contentType,
+    void Function(int sent, int total)? onProgress,
+    bool Function()? isCancelled,
+  }) async {
+    if (device.offline) throw const SocketException('offline');
+    final pending = gate;
+    if (pending != null) await pending.future;
+    if (isCancelled?.call() ?? false) throw StateError('cancelled');
+    final bytes = await file.readAsBytes();
+    onProgress?.call(bytes.length, bytes.length);
+    final id = Uint8List(12)
+      ..[0] = 0xF1
+      ..[1] = device.sessionID[1]
+      ..[11] = _next++;
+    uploaded[_hex(id)] = bytes;
+    return SecretUploadedFile(
+      fileID: id,
+      key: Uint8List.fromList(List.filled(32, _next)),
+      hkdfSalt: Uint8List.fromList(List.filled(32, 7)),
+      sha256: Uint8List.fromList(List.filled(32, 9)),
+    );
+  }
+}
+
 class _Device {
   final List<int> userID;
   final List<int> sessionID;
@@ -197,9 +258,14 @@ class _Device {
   final SqliteDatabase db;
   late final SecretChatsRepository store;
   late final SecretChatsSync sync;
+  final uploader = _Uploader();
+  final Directory mediaDir;
+
+  /// Файлы, убранные с устройства (скачанные вложения удалённых сообщений).
+  final evicted = <String>[];
   bool offline = false;
 
-  _Device(this.userID, this.sessionID, this.db, _FakeServer server, Logger logger, {this.capable = true}) {
+  _Device(this.userID, this.sessionID, this.db, this.mediaDir, _FakeServer server, Logger logger, {this.capable = true}) {
     store = SecretChatsRepository(logger: logger, db: db);
     final transport = _Transport(server);
     sync = SecretChatsSync(
@@ -209,8 +275,12 @@ class _Device {
       sessionID: () => sessionID,
       userID: () => userID,
       hasNetwork: () async => !offline,
+      uploader: uploader,
+      mediaDir: () async => mediaDir,
+      releaseLocal: (ids) => evicted.addAll([for (final id in ids) _hex(id)]),
     );
     transport.device = this;
+    uploader.device = this;
     server.devices.add(this);
   }
 
@@ -244,13 +314,15 @@ void main() {
     counter++;
     final db = SqliteDatabase(path: '${dir.path}/device$counter.db');
     databases.add(db);
-    for (final statement in SecretChatsRepository.schema) {
+    for (final statement in [...SecretChatsRepository.schema, ...SecretChatsRepository.schemaMedia]) {
       await db.execute(statement);
     }
+    final media = await Directory('${dir.path}/media$counter').create();
     return _Device(
       userID ?? (List<int>.filled(12, 0)..[0] = counter),
       List<int>.filled(12, 0)..[1] = counter,
       db,
+      media,
       server,
       logger,
       capable: capable,
@@ -415,6 +487,158 @@ void main() {
     expect([for (final m in await a.messages(id)) m.text], ['оставить']);
     expect([for (final m in await b.messages(id)) m.text], ['оставить']);
     expect((await b.chat(id)).unreadCount, 1);
+  });
+
+  /// Файл-«фото» во временном каталоге.
+  Future<String> photo(String name, {int size = 1000}) async {
+    final file = File('${dir.path}/$name');
+    await file.writeAsBytes(List.filled(size, 42));
+    return file.path;
+  }
+
+  test('вложение: загрузка, конверт с ключом, получение', () async {
+    final a = await device();
+    final b = await device();
+    final id = await handshake(a, b);
+
+    final thumb = await photo('thumb.jpg', size: 300);
+    await a.sync.sendMedia(
+      id,
+      SecretMediaDraft(
+        kind: SecretMessageKind.video,
+        path: await photo('clip.mp4', size: 5000),
+        mimeType: 'video/mp4',
+        width: 640,
+        height: 360,
+        duration: 12,
+        thumbhash: 'th',
+        thumbPath: thumb,
+      ),
+      caption: 'смотри',
+    );
+    await server.deliver();
+
+    final sent = (await a.messages(id)).single;
+    expect(sent.status, SecretMessageStatus.sent);
+    expect(sent.kind, SecretMessageKind.video);
+    expect(sent.localPath, isEmpty, reason: 'копия файла после загрузки не нужна');
+    expect(a.mediaDir.listSync(), isEmpty);
+    final sentMedia = sp.SecretMedia.fromBuffer(sent.media!);
+    expect(sentMedia.fileID, isNotEmpty);
+    expect(server.attached[_hex(sentMedia.fileID)], _hex(id));
+
+    final received = (await b.messages(id)).single;
+    expect(received.kind, SecretMessageKind.video);
+    expect(received.text, 'смотри');
+    expect(received.status, SecretMessageStatus.unread);
+    final media = sp.SecretMedia.fromBuffer(received.media!);
+    expect(media.fileID, sentMedia.fileID);
+    expect(media.key, sentMedia.key);
+    expect(media.hkdfSalt, sentMedia.hkdfSalt);
+    expect(media.sha256, sentMedia.sha256);
+    expect(media.size.toInt(), 5000);
+    expect(media.mimeType, 'video/mp4');
+    expect([media.width, media.height, media.duration], [640, 360, 12]);
+    expect(media.thumb, hasLength(300), reason: 'маленькая обложка — прямо в конверте');
+    expect(media.thumbhash, 'th');
+    expect(media.caption, 'смотри');
+
+    // Ссылку получателю выдают только на файлы этого чата.
+    final urls = await b.sync.fileUrls(id, [media.fileID, Uint8List(12)]);
+    expect(urls.keys, [_hex(media.fileID)]);
+  });
+
+  test('вложение держит очередь чата: текст после фото приходит после него', () async {
+    final a = await device();
+    final b = await device();
+    final id = await handshake(a, b);
+
+    a.uploader.gate = Completer<void>();
+    await a.sync.sendMedia(id, SecretMediaDraft(kind: SecretMessageKind.photo, path: await photo('a.jpg'), mimeType: 'image/jpeg'));
+    await a.sync.sendText(id, 'подпись следом');
+    // Фото грузится — текст ждёт (deliver не дожидается flush: он висит на загрузке).
+    for (var i = 0; i < 5; i++) {
+      await Future<void>.delayed(Duration.zero);
+    }
+    expect(await b.messages(id), isEmpty);
+
+    a.uploader.gate!.complete();
+    a.uploader.gate = null;
+    await server.deliver();
+    expect([for (final m in await b.messages(id)) m.kind], [SecretMessageKind.photo, SecretMessageKind.text]);
+  });
+
+  test('вложение без сети ждёт, при подключении уходит', () async {
+    final a = await device();
+    final b = await device();
+    final id = await handshake(a, b);
+
+    a.offline = true;
+    await a.sync.sendMedia(id, SecretMediaDraft(kind: SecretMessageKind.file, path: await photo('doc.pdf'), fileName: 'Договор.pdf'));
+    await a.sync.flush();
+    final pending = (await a.messages(id)).single;
+    expect(pending.status, SecretMessageStatus.pending);
+    expect(pending.localPath, isNotEmpty);
+    expect(await a.store.uploads(sessionID: a.sessionID), hasLength(1));
+
+    a.offline = false;
+    await a.sync.onConnected();
+    await server.deliver();
+    expect(await a.store.uploads(sessionID: a.sessionID), isEmpty);
+    final received = (await b.messages(id)).single;
+    expect(received.kind, SecretMessageKind.file);
+    expect(sp.SecretMedia.fromBuffer(received.media!).fileName, 'Договор.pdf');
+  });
+
+  test('файл пропал до загрузки — «не отправлено»', () async {
+    final a = await device();
+    final b = await device();
+    final id = await handshake(a, b);
+
+    a.offline = true;
+    await a.sync.sendMedia(id, SecretMediaDraft(kind: SecretMessageKind.photo, path: await photo('gone.jpg')));
+    for (final file in a.mediaDir.listSync()) {
+      file.deleteSync();
+    }
+    a.offline = false;
+    await a.sync.onConnected();
+    await server.deliver();
+    expect((await a.messages(id)).single.status, SecretMessageStatus.failed);
+    expect(await a.store.uploads(sessionID: a.sessionID), isEmpty);
+    expect(await b.messages(id), isEmpty);
+  });
+
+  test('удаление вложения у обоих убирает файлы и освобождает их на сервере', () async {
+    final a = await device();
+    final b = await device();
+    final id = await handshake(a, b);
+    await a.sync.sendMedia(id, SecretMediaDraft(kind: SecretMessageKind.photo, path: await photo('p.jpg')));
+    await server.deliver();
+    final fileID = _hex(sp.SecretMedia.fromBuffer((await b.messages(id)).single.media!).fileID);
+
+    await b.sync.deleteMessages(id, [(await b.messages(id)).single.randomID]);
+    await server.deliver();
+    expect(await a.messages(id), isEmpty);
+    expect(await b.messages(id), isEmpty);
+    expect(a.evicted, [fileID]);
+    expect(b.evicted, [fileID]);
+    expect(server.released, {fileID});
+  });
+
+  test('удалили вложение, пока оно ждало загрузки — не уходит', () async {
+    final a = await device();
+    final b = await device();
+    final id = await handshake(a, b);
+
+    a.offline = true;
+    await a.sync.sendMedia(id, SecretMediaDraft(kind: SecretMessageKind.photo, path: await photo('x.jpg')));
+    await a.sync.deleteMessages(id, [(await a.messages(id)).single.randomID]);
+    expect(a.mediaDir.listSync(), isEmpty);
+    expect(await a.store.uploads(sessionID: a.sessionID), isEmpty);
+    a.offline = false;
+    await a.sync.onConnected();
+    await server.deliver();
+    expect(await b.messages(id), isEmpty);
   });
 
   test('у собеседника нет поддерживающих устройств', () async {
