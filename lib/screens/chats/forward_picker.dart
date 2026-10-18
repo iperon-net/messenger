@@ -1,49 +1,107 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:cupertino_ui/cupertino_ui.dart' as c;
 import 'package:flutter/widgets.dart';
 import 'package:material_ui/material_ui.dart' as m;
 
 import '../../components.dart';
+import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
+import '../../utils.dart';
 
 /// «Переслать в…»: лист со списком чатов и поиском по названию. Возвращает
 /// выбранный чат или `null` (закрыли).
-Future<models.Chat?> showForwardPicker(BuildContext context, List<models.Chat> chats) {
-  if (Platform.isIOS) {
-    return c.showCupertinoModalPopup<models.Chat>(
-      context: context,
-      builder: (_) => _ForwardPicker(chats: chats, cupertino: true),
+Future<models.Chat?> showForwardPicker(BuildContext context, List<models.Chat> chats) => _showPicker(
+  context,
+  _Picker<models.Chat>(
+    items: chats,
+    title: (t) => t.screenChat.forwardTo,
+    label: ChatTileContent.title,
+    avatar: (context, chat, cupertino) => cupertino
+        ? ChatAvatar(
+            chat: chat,
+            accentColor: c.CupertinoTheme.of(context).primaryColor,
+            accentForeground: ThemesCupertino.onAccent(context),
+            size: 42,
+          )
+        : ChatAvatar(
+            chat: chat,
+            accentColor: m.Theme.of(context).colorScheme.primary,
+            accentForeground: m.Theme.of(context).colorScheme.onPrimary,
+            size: 42,
+          ),
+    cupertino: Platform.isIOS,
+  ),
+);
+
+/// Человек в [showUserPicker]: userID и имя по общему правилу.
+typedef PickerUser = ({Uint8List userID, String name});
+
+/// Выбор человека (тот же лист, что «Переслать в…»): [title] — заголовок,
+/// возвращает выбранного или `null` (закрыли). [emptyText] — вместо «ничего не
+/// найдено», когда выбирать не из кого.
+Future<PickerUser?> showUserPicker(BuildContext context, {required String title, required List<PickerUser> users, String? emptyText}) =>
+    _showPicker(
+      context,
+      _Picker<PickerUser>(
+        items: users,
+        title: (_) => title,
+        emptyText: emptyText,
+        label: (_, user) => user.name,
+        avatar: (context, user, _) =>
+            UserAvatar(userID: user.userID, placeholderName: getIt.get<Utils>().bytesToHex(user.userID), size: 42),
+        cupertino: Platform.isIOS,
+      ),
     );
+
+Future<T?> _showPicker<T>(BuildContext context, _Picker<T> picker) {
+  if (picker.cupertino) {
+    return c.showCupertinoModalPopup<T>(context: context, builder: (_) => picker);
   }
-  return m.showModalBottomSheet<models.Chat>(
+  return m.showModalBottomSheet<T>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
-    builder: (_) => _ForwardPicker(chats: chats, cupertino: false),
+    builder: (_) => picker,
   );
 }
 
-class _ForwardPicker extends StatefulWidget {
-  final List<models.Chat> chats;
+class _Picker<T> extends StatefulWidget {
+  final List<T> items;
+  final String Function(Translations t) title;
+  final String Function(Translations t, T item) label;
+  final Widget Function(BuildContext context, T item, bool cupertino) avatar;
   final bool cupertino;
+  final String? emptyText;
 
-  const _ForwardPicker({required this.chats, required this.cupertino});
+  const _Picker({
+    required this.items,
+    required this.title,
+    required this.label,
+    required this.avatar,
+    required this.cupertino,
+    this.emptyText,
+  });
 
   @override
-  State<_ForwardPicker> createState() => _ForwardPickerState();
+  State<_Picker<T>> createState() => _PickerState<T>();
 }
 
-class _ForwardPickerState extends State<_ForwardPicker> {
+class _PickerState<T> extends State<_Picker<T>> {
   String _query = '';
 
-  List<models.Chat> _filtered(Translations t) {
+  /// Пусто: выбирать не из кого ([_Picker.emptyText]) или поиск ничего не нашёл.
+  String _emptyText(Translations t) =>
+      widget.items.isEmpty ? (widget.emptyText ?? t.screenChat.searchNoResults) : t.screenChat.searchNoResults;
+
+  List<T> _filtered(Translations t) {
     final query = _query.trim().toLowerCase();
-    if (query.isEmpty) return widget.chats;
-    return widget.chats.where((chat) => ChatTileContent.title(t, chat).toLowerCase().contains(query)).toList();
+    if (query.isEmpty) return widget.items;
+    return widget.items.where((item) => widget.label(t, item).toLowerCase().contains(query)).toList();
   }
 
   @override
@@ -53,8 +111,7 @@ class _ForwardPickerState extends State<_ForwardPicker> {
 
   Widget _buildCupertino(BuildContext context) {
     final t = context.t;
-    final chats = _filtered(t);
-    final primary = c.CupertinoTheme.of(context).primaryColor;
+    final items = _filtered(t);
     final label = c.CupertinoColors.label.resolveFrom(context);
     return Container(
       height: MediaQuery.sizeOf(context).height * 0.85,
@@ -73,7 +130,7 @@ class _ForwardPickerState extends State<_ForwardPicker> {
                 alignment: Alignment.center,
                 children: [
                   Text(
-                    t.screenChat.forwardTo,
+                    widget.title(t),
                     style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: label),
                   ),
                   Row(
@@ -92,29 +149,28 @@ class _ForwardPickerState extends State<_ForwardPicker> {
               child: c.CupertinoSearchTextField(placeholder: t.screenChat.search, onChanged: (value) => setState(() => _query = value)),
             ),
             Expanded(
-              child: chats.isEmpty
+              child: items.isEmpty
                   ? Center(
-                      child: Text(
-                        t.screenChat.searchNoResults,
-                        style: TextStyle(color: c.CupertinoColors.secondaryLabel.resolveFrom(context)),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          _emptyText(t),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: c.CupertinoColors.secondaryLabel.resolveFrom(context)),
+                        ),
                       ),
                     )
                   : ListView.builder(
                       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                      itemCount: chats.length,
+                      itemCount: items.length,
                       itemBuilder: (context, index) {
-                        final chat = chats[index];
+                        final item = items[index];
                         return c.CupertinoListTile(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                           leadingSize: 42,
-                          leading: ChatAvatar(
-                            chat: chat,
-                            accentColor: primary,
-                            accentForeground: ThemesCupertino.onAccent(context),
-                            size: 42,
-                          ),
-                          title: Text(ChatTileContent.title(t, chat)),
-                          onTap: () => Navigator.of(context).pop(chat),
+                          leading: widget.avatar(context, item, true),
+                          title: Text(widget.label(t, item)),
+                          onTap: () => Navigator.of(context).pop(item),
                         );
                       },
                     ),
@@ -127,8 +183,7 @@ class _ForwardPickerState extends State<_ForwardPicker> {
 
   Widget _buildMaterial(BuildContext context) {
     final t = context.t;
-    final chats = _filtered(t);
-    final scheme = m.Theme.of(context).colorScheme;
+    final items = _filtered(t);
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SizedBox(
@@ -138,7 +193,7 @@ class _ForwardPickerState extends State<_ForwardPicker> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text(t.screenChat.forwardTo, style: m.Theme.of(context).textTheme.titleMedium),
+              child: Text(widget.title(t), style: m.Theme.of(context).textTheme.titleMedium),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
@@ -150,17 +205,22 @@ class _ForwardPickerState extends State<_ForwardPicker> {
               ),
             ),
             Expanded(
-              child: chats.isEmpty
-                  ? Center(child: Text(t.screenChat.searchNoResults))
+              child: items.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(_emptyText(t), textAlign: TextAlign.center),
+                      ),
+                    )
                   : ListView.builder(
                       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-                      itemCount: chats.length,
+                      itemCount: items.length,
                       itemBuilder: (context, index) {
-                        final chat = chats[index];
+                        final item = items[index];
                         return m.ListTile(
-                          leading: ChatAvatar(chat: chat, accentColor: scheme.primary, accentForeground: scheme.onPrimary, size: 42),
-                          title: Text(ChatTileContent.title(t, chat)),
-                          onTap: () => Navigator.of(context).pop(chat),
+                          leading: widget.avatar(context, item, false),
+                          title: Text(widget.label(t, item)),
+                          onTap: () => Navigator.of(context).pop(item),
                         );
                       },
                     ),

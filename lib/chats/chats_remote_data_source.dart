@@ -96,6 +96,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     StreamSubscription<void>? changes;
     StreamSubscription<void>? presence;
     StreamSubscription<void>? typing;
+    StreamSubscription<void>? connection;
     List<models.Chat>? loaded;
     var pending = Future<void>.value();
     void reload() {
@@ -112,6 +113,13 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         _listShown = true;
         changes = _repositories.db.onChange(_chatTables).listen((_) => reload());
         presence = ChatsPresence.instance.changed.listen((_) => reload());
+        // Подключились — перечитать: профили собеседников запрашиваются только
+        // при подключённом стриме (см. _requestProfiles).
+        connection = getIt
+            .get<API>()
+            .connectionStatusStream
+            .where((status) => status == ApiConnectionStatus.connected)
+            .listen((_) => reload());
         typing = ChatsTyping.instance.changed.listen((_) {
           final chats = loaded;
           if (chats != null && !out.isClosed) out.add(_withTyping(chats));
@@ -123,6 +131,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         await changes?.cancel();
         await presence?.cancel();
         await typing?.cancel();
+        await connection?.cancel();
       },
     );
     return out.stream;
@@ -144,8 +153,17 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   /// собеседников свежим (загрузка, закончившаяся после отписки, не включит).
   var _listShown = false;
 
-  /// Уже запрошенные профили собеседников (hex userID) — по разу за запуск.
-  final _profilesRequested = <String>{};
+  /// Когда последний раз запрашивали профиль собеседника (hex userID).
+  final _profilesRequested = <String, DateTime>{};
+
+  /// Профиль из кэша освежаем не чаще раза в этот интервал: иначе смена
+  /// аватара/имени собеседника (и скрытие аватара, если он меня заблокировал,
+  /// пока я был без сети) не дошла бы до списка, пока профиль не открыли.
+  static const _profileRefreshInterval = Duration(hours: 1);
+
+  /// Сколько верхних чатов списка освежать за раз (дальние — при прокрутке не
+  /// видны; нехватающие профили запрашиваются все).
+  static const _profileRefreshLimit = 100;
 
   /// Номера профилей в международном формате (libphonenumber не на каждое
   /// перечитывание списка).
@@ -245,7 +263,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     }
     _requestProfiles([
       for (final row in rows)
-        if (row.peerUserID case final peer? when !sameID(peer, me) && (peers.of(peer).profile?.fistName ?? '').isEmpty) peer,
+        if (row.peerUserID case final peer? when !sameID(peer, me))
+          (userID: peer, cached: (peers.of(peer).profile?.fistName ?? '').isNotEmpty),
     ]);
     return chats;
   }
@@ -305,14 +324,21 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     };
   }
 
-  /// Профили, которых нет в кэше, — запросом `PROFILE` по стриму: ответ
-  /// пишет `API._handleMessage` в `profiles`, список перечитается сам. Пока
+  /// Профили собеседников запросом `PROFILE` по стриму: ответ пишет
+  /// `API._handleMessage` в `profiles`, список перечитается сам. Нет в кэше
+  /// ([cached] false) — один раз за запуск; есть — освежаем раз в
+  /// [_profileRefreshInterval] для верхних [_profileRefreshLimit] чатов. Пока
   /// стрим не подключён, не помечаем — запросим при следующем чтении.
-  void _requestProfiles(List<Uint8List> userIDs) {
+  void _requestProfiles(List<({Uint8List userID, bool cached})> peers) {
     final api = getIt.get<API>();
     if (api.connectionStatus != ApiConnectionStatus.connected) return;
-    for (final userID in userIDs) {
-      if (!_profilesRequested.add(idHex(userID))) continue;
+    final now = DateTime.now();
+    for (final (index, (:userID, :cached)) in peers.indexed) {
+      final key = idHex(userID);
+      final last = _profilesRequested[key];
+      final due = cached ? index < _profileRefreshLimit && (last == null || now.difference(last) >= _profileRefreshInterval) : last == null;
+      if (!due) continue;
+      _profilesRequested[key] = now;
       unawaited(
         api
             .sendEncoded(MessageType.PROFILE, Profile_Request(userID: userID).writeToBuffer())

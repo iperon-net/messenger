@@ -4,16 +4,21 @@ import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../api.dart';
+import '../../auth.dart';
 import '../../constants.dart';
 import '../../di.dart';
 import '../../protobuf.dart';
+import '../../protobuf/protos/chats_v1.pb.dart' as pb;
 import '../../peer_names.dart';
 import '../../privacy_blocks.dart';
+import '../../repositories.dart';
+import '../../utils.dart';
 import 'settings_blocked_state.dart';
 
 /// «Заблокированные»: список из кэша настроек приватности (виден и без сети),
 /// следит за его изменениями (блокировки с другого устройства, из профиля) и
-/// при открытии запрашивает свежий снимок. Блокируют из профиля пользователя.
+/// при открытии запрашивает свежий снимок. Блокируют из профиля пользователя
+/// или здесь — «Заблокировать пользователя» с выбором из чатов и контактов.
 class SettingsBlockedCubit extends Cubit<SettingsBlockedState> {
   SettingsBlockedCubit() : super(const SettingsBlockedState());
 
@@ -53,6 +58,46 @@ class SettingsBlockedCubit extends Cubit<SettingsBlockedState> {
     for (final user in users) {
       if (user.name.isNotEmpty || !_requested.add(user.userID.join(','))) continue;
       unawaited(api.sendEncoded(MessageType.PROFILE, Profile_Request(userID: user.userID).writeToBuffer()));
+    }
+  }
+
+  /// Кого можно заблокировать: собеседники личных чатов (сначала свежие, как в
+  /// списке чатов), затем остальные контакты в Iperon по имени — без меня,
+  /// уже заблокированных и локально скрытых профилей. Всё из кэша (без сети).
+  Future<List<BlockedUser>> candidates() async {
+    final repositories = getIt.get<Repositories>();
+    final utils = getIt.get<Utils>();
+    final me = getIt.get<Auth>().session.userID;
+    final skip = {
+      utils.bytesToHex(Uint8List.fromList(me)),
+      ...await PrivacyBlocks.hexes(),
+      ...(await repositories.hiddenProfiles.hashByHex()).keys,
+    };
+
+    final dialogs = (await repositories.chats.dialogs(userID: me)).where((d) => d.type == pb.ChatType.CHAT_TYPE_PRIVATE.value).toList()
+      ..sort((a, b) => b.topMessageDate.compareTo(a.topMessageDate));
+    final fromChats = <BlockedUser>[];
+    for (final dialog in dialogs) {
+      final peer = dialog.peerUserID;
+      if (peer == null || !skip.add(utils.bytesToHex(peer))) continue;
+      fromChats.add(BlockedUser(userID: peer, name: await peerDisplayName(peer)));
+    }
+
+    final fromContacts = <BlockedUser>[];
+    for (final contact in await repositories.contacts.getAll()) {
+      final userID = contact.userID;
+      if (userID == null || userID.isEmpty || !skip.add(utils.bytesToHex(Uint8List.fromList(userID)))) continue;
+      fromContacts.add(BlockedUser(userID: Uint8List.fromList(userID), name: await peerDisplayName(userID)));
+    }
+    fromContacts.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
+    return [...fromChats, ...fromContacts].where((u) => u.name.isNotEmpty).toList(growable: false);
+  }
+
+  /// Заблокировать (выбранного в [candidates]); не вышло — «Нет соединения».
+  Future<void> block(List<int> userID) async {
+    if (!await PrivacyBlocks.setBlocked(userID, true) && !isClosed) {
+      emit(state.copyWith(offlineNotice: state.offlineNotice + 1));
     }
   }
 

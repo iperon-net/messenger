@@ -1170,9 +1170,12 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get forwardsNote => 'Остальные увидят в «Переслано от …» только ваше имя — без перехода в ваш профиль.';
 	@override String get blocked => 'Заблокированные';
 	@override String get blockedEmpty => 'Вы никого не заблокировали';
-	@override String get blockedNote => 'Заблокированные не могут писать вам и звонить, не видят ваше время захода, фото, «О себе» и день рождения. Заблокировать можно в профиле пользователя.';
+	@override String get blockedNote => 'Заблокированные не могут писать вам и звонить, не видят ваше время захода, фото, «О себе» и день рождения. Заблокировать можно и в профиле пользователя.';
 	@override String get unblock => 'Разблокировать';
 	@override String get unknownUser => 'Пользователь';
+	@override String get blockUser => 'Заблокировать пользователя';
+	@override String get blockUserPick => 'Выберите пользователя';
+	@override String get blockUserEmpty => 'Пока некого заблокировать: начните чат или добавьте контакт';
 }
 
 // Path: cloudPassword
@@ -2556,9 +2559,12 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.forwardsNote' => 'Остальные увидят в «Переслано от …» только ваше имя — без перехода в ваш профиль.',
 			'sessionsPrivacyAndSecurity.blocked' => 'Заблокированные',
 			'sessionsPrivacyAndSecurity.blockedEmpty' => 'Вы никого не заблокировали',
-			'sessionsPrivacyAndSecurity.blockedNote' => 'Заблокированные не могут писать вам и звонить, не видят ваше время захода, фото, «О себе» и день рождения. Заблокировать можно в профиле пользователя.',
+			'sessionsPrivacyAndSecurity.blockedNote' => 'Заблокированные не могут писать вам и звонить, не видят ваше время захода, фото, «О себе» и день рождения. Заблокировать можно и в профиле пользователя.',
 			'sessionsPrivacyAndSecurity.unblock' => 'Разблокировать',
 			'sessionsPrivacyAndSecurity.unknownUser' => 'Пользователь',
+			'sessionsPrivacyAndSecurity.blockUser' => 'Заблокировать пользователя',
+			'sessionsPrivacyAndSecurity.blockUserPick' => 'Выберите пользователя',
+			'sessionsPrivacyAndSecurity.blockUserEmpty' => 'Пока некого заблокировать: начните чат или добавьте контакт',
 			'cloudPassword.title' => 'Облачный пароль',
 			'cloudPassword.description' => 'Дополнительный пароль, будет запрашивается при входе с нового устройства. Укажите email чтобы восстановить доступ, если забудете пароль.',
 			'cloudPassword.enterPasswordHint' => 'Введите облачный пароль',
@@ -2762,11 +2768,11 @@ extension on TranslationsRu {
 			'screenCall.bannerRinging' => 'Вызов',
 			'screenCall.bannerActive' => 'Идёт разговор',
 			'screenCall.bannerOnHold' => 'Собеседник на другой линии',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.bannerReconnecting' => 'Переподключение…',
 			'screenCall.incomingAudio' => 'Входящий звонок',
 			'screenCall.incomingVideo' => 'Входящий видеозвонок',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.calling' => 'Вызов…',
 			'screenCall.connecting' => 'Соединение…',
 			'screenCall.talking' => 'Идёт разговор',

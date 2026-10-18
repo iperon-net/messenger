@@ -1,5 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../components.dart';
@@ -9,9 +10,11 @@ import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
 import '../../utils.dart';
+import '../chats/forward_picker.dart';
 
-/// «Конфиденциальность» → «Заблокированные» (iOS): тап — профиль, справа —
-/// «Разблокировать». Блокируют из профиля пользователя.
+/// «Конфиденциальность» → «Заблокированные» (iOS): сверху «Заблокировать
+/// пользователя» (выбор из чатов и контактов), тап по строке — профиль, справа —
+/// «Разблокировать». Блокировать можно и из профиля пользователя.
 class SettingsBlockedCupertino extends StatelessWidget {
   const SettingsBlockedCupertino({super.key});
 
@@ -38,6 +41,20 @@ class SettingsBlockedCupertino extends StatelessWidget {
               ? const Center(child: CupertinoActivityIndicator())
               : ListView(
                   children: [
+                    CupertinoListSection.insetGrouped(
+                      backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                      decoration: BoxDecoration(
+                        color: ThemesCupertino.groupedCard.resolveFrom(context),
+                        borderRadius: const BorderRadius.all(Radius.circular(10)),
+                      ),
+                      children: [
+                        CupertinoListTile(
+                          leading: FaIcon(FontAwesomeIcons.userSlash, size: 20, color: ThemesCupertino.actionColor(context)),
+                          title: Text(t.blockUser, style: TextStyle(color: ThemesCupertino.actionColor(context))),
+                          onTap: () => _blockUser(context),
+                        ),
+                      ],
+                    ),
                     CupertinoListSection.insetGrouped(
                       backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
                       decoration: BoxDecoration(
@@ -72,5 +89,37 @@ class SettingsBlockedCupertino extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// «Заблокировать пользователя»: выбор из чатов и контактов → подтверждение
+  /// (как в профиле) → блок; без сети — «Нет соединения» (через offlineNotice).
+  Future<void> _blockUser(BuildContext context) async {
+    final cubit = context.read<SettingsBlockedCubit>();
+    final t = context.t;
+    final candidates = await cubit.candidates();
+    if (!context.mounted) return;
+    final user = await showUserPicker(
+      context,
+      title: t.sessionsPrivacyAndSecurity.blockUserPick,
+      emptyText: t.sessionsPrivacyAndSecurity.blockUserEmpty,
+      users: [for (final c in candidates) (userID: c.userID, name: c.name)],
+    );
+    if (user == null || !context.mounted) return;
+    final confirmed = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (dialogContext) => CupertinoAlertDialog(
+        title: Text(t.screenProfile.blockTitle(name: user.name)),
+        content: Text(t.screenProfile.blockMessage),
+        actions: [
+          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(t.common.cancel)),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(t.screenProfile.block),
+          ),
+        ],
+      ),
+    );
+    if (confirmed ?? false) await cubit.block(user.userID);
   }
 }

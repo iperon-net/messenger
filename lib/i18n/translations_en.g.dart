@@ -2779,14 +2779,23 @@ class Translations$sessionsPrivacyAndSecurity$en {
 	/// en: 'You haven't blocked anyone'
 	String get blockedEmpty => 'You haven\'t blocked anyone';
 
-	/// en: 'Blocked users can't message or call you and can't see your last seen, photo, bio or birthday. You can block someone from their profile.'
-	String get blockedNote => 'Blocked users can\'t message or call you and can\'t see your last seen, photo, bio or birthday. You can block someone from their profile.';
+	/// en: 'Blocked users can't message or call you and can't see your last seen, photo, bio or birthday. You can also block someone from their profile.'
+	String get blockedNote => 'Blocked users can\'t message or call you and can\'t see your last seen, photo, bio or birthday. You can also block someone from their profile.';
 
 	/// en: 'Unblock'
 	String get unblock => 'Unblock';
 
 	/// en: 'User'
 	String get unknownUser => 'User';
+
+	/// en: 'Block user'
+	String get blockUser => 'Block user';
+
+	/// en: 'Select user'
+	String get blockUserPick => 'Select user';
+
+	/// en: 'No one to block yet: start a chat or add a contact'
+	String get blockUserEmpty => 'No one to block yet: start a chat or add a contact';
 }
 
 // Path: cloudPassword
@@ -4847,9 +4856,12 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.forwardsNote' => 'Everyone else will see only your name in "Forwarded from…", without a link to your profile.',
 			'sessionsPrivacyAndSecurity.blocked' => 'Blocked Users',
 			'sessionsPrivacyAndSecurity.blockedEmpty' => 'You haven\'t blocked anyone',
-			'sessionsPrivacyAndSecurity.blockedNote' => 'Blocked users can\'t message or call you and can\'t see your last seen, photo, bio or birthday. You can block someone from their profile.',
+			'sessionsPrivacyAndSecurity.blockedNote' => 'Blocked users can\'t message or call you and can\'t see your last seen, photo, bio or birthday. You can also block someone from their profile.',
 			'sessionsPrivacyAndSecurity.unblock' => 'Unblock',
 			'sessionsPrivacyAndSecurity.unknownUser' => 'User',
+			'sessionsPrivacyAndSecurity.blockUser' => 'Block user',
+			'sessionsPrivacyAndSecurity.blockUserPick' => 'Select user',
+			'sessionsPrivacyAndSecurity.blockUserEmpty' => 'No one to block yet: start a chat or add a contact',
 			'cloudPassword.title' => 'Cloud password',
 			'cloudPassword.description' => 'An additional password asked when signing in on a new device. Add an email so you can recover access if you forget it.',
 			'cloudPassword.enterPasswordHint' => 'Enter your cloud password',
@@ -5053,11 +5065,11 @@ extension on Translations {
 			'screenCall.bannerRinging' => 'Call',
 			'screenCall.bannerActive' => 'In call',
 			'screenCall.bannerOnHold' => 'On another call',
+			_ => null,
+		} ?? switch (path) {
 			'screenCall.bannerReconnecting' => 'Reconnecting…',
 			'screenCall.incomingAudio' => 'Incoming call',
 			'screenCall.incomingVideo' => 'Incoming video call',
-			_ => null,
-		} ?? switch (path) {
 			'screenCall.calling' => 'Calling…',
 			'screenCall.connecting' => 'Connecting…',
 			'screenCall.talking' => 'In call',

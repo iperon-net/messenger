@@ -8,9 +8,11 @@ import '../../cubit.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../utils.dart';
+import '../chats/forward_picker.dart';
 
-/// «Конфиденциальность» → «Заблокированные» (Android): тап — профиль, справа —
-/// «Разблокировать». Блокируют из профиля пользователя.
+/// «Конфиденциальность» → «Заблокированные» (Android): сверху «Заблокировать
+/// пользователя» (выбор из чатов и контактов), тап по строке — профиль, справа —
+/// «Разблокировать». Блокировать можно и из профиля пользователя.
 class SettingsBlockedMaterial extends StatelessWidget {
   const SettingsBlockedMaterial({super.key});
 
@@ -30,6 +32,15 @@ class SettingsBlockedMaterial extends StatelessWidget {
               : ListView(
                   padding: const EdgeInsets.all(10),
                   children: [
+                    Card(
+                      clipBehavior: Clip.antiAlias,
+                      child: ListTile(
+                        leading: Icon(Icons.block, color: Theme.of(context).colorScheme.primary),
+                        title: Text(t.blockUser, style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+                        onTap: () => _blockUser(context),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
                     Card(
                       clipBehavior: Clip.antiAlias,
                       child: Column(
@@ -61,5 +72,37 @@ class SettingsBlockedMaterial extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// «Заблокировать пользователя»: выбор из чатов и контактов → подтверждение
+  /// (как в профиле) → блок; без сети — «Нет соединения» (через offlineNotice).
+  Future<void> _blockUser(BuildContext context) async {
+    final cubit = context.read<SettingsBlockedCubit>();
+    final t = context.t;
+    final candidates = await cubit.candidates();
+    if (!context.mounted) return;
+    final user = await showUserPicker(
+      context,
+      title: t.sessionsPrivacyAndSecurity.blockUserPick,
+      emptyText: t.sessionsPrivacyAndSecurity.blockUserEmpty,
+      users: [for (final c in candidates) (userID: c.userID, name: c.name)],
+    );
+    if (user == null || !context.mounted) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.screenProfile.blockTitle(name: user.name)),
+        content: Text(t.screenProfile.blockMessage),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(t.common.cancel)),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Theme.of(dialogContext).colorScheme.error),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(t.screenProfile.block),
+          ),
+        ],
+      ),
+    );
+    if (confirmed ?? false) await cubit.block(user.userID);
   }
 }

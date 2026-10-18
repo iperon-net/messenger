@@ -889,9 +889,12 @@
   "forwardsNote": "Everyone else will see only your name in \"Forwarded from…\", without a link to your profile."
   "blocked": "Blocked Users"
   "blockedEmpty": "You haven't blocked anyone"
-  "blockedNote": "Blocked users can't message or call you and can't see your last seen, photo, bio or birthday. You can block someone from their profile."
+  "blockedNote": "Blocked users can't message or call you and can't see your last seen, photo, bio or birthday. You can also block someone from their profile."
   "unblock": "Unblock"
   "unknownUser": "User"
+  "blockUser": "Block user"
+  "blockUserPick": "Select user"
+  "blockUserEmpty": "No one to block yet: start a chat or add a contact"
 
 "cloudPassword":
   "title": "Cloud password"
