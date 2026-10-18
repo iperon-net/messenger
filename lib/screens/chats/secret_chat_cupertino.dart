@@ -136,11 +136,17 @@ class _SecretChatCupertinoState extends State<SecretChatCupertino> {
             child: Stack(
               children: [
                 Positioned.fill(child: SecretChatWallpaper(dark: dark)),
+                // Панель снизу — до самого края экрана (под полосой «домой» тот же
+                // фон), как поле ввода в обычных чатах.
                 SafeArea(
+                  bottom: false,
                   child: Column(
                     children: [
                       Expanded(child: state.messages.isEmpty ? _intro(context) : _list(context, state)),
-                      ColoredBox(color: barColor, child: _composer(context, state)),
+                      ColoredBox(
+                        color: barColor,
+                        child: SafeArea(top: false, child: _composer(context, state)),
+                      ),
                     ],
                   ),
                 ),
@@ -250,7 +256,7 @@ class _SecretChatCupertinoState extends State<SecretChatCupertino> {
         border: Border(top: BorderSide(color: CupertinoColors.separator.resolveFrom(context), width: 0.5)),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 2),
         child: closed
             ? Column(
                 mainAxisSize: MainAxisSize.min,

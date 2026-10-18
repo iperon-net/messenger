@@ -9,6 +9,7 @@ import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import '../../themes.dart';
 import 'chat_material.dart';
 import 'chat_no_forwards.dart';
 import 'secret_chat_common.dart';
@@ -152,6 +153,7 @@ class _SecretChatMaterialState extends State<SecretChatMaterial> {
               ],
             ),
             body: SafeArea(
+              bottom: false,
               child: Column(
                 children: [
                   Expanded(
@@ -162,7 +164,12 @@ class _SecretChatMaterialState extends State<SecretChatMaterial> {
                       ],
                     ),
                   ),
-                  _composer(context, state),
+                  // Панель снизу — до самого края экрана, как поле ввода в обычных чатах.
+                  ColoredBox(
+                    // Цвет поля ввода обычных чатов.
+                    color: dark ? ThemesCupertino.groupedCard.darkColor : ThemesCupertino.groupedCard.color,
+                    child: SafeArea(top: false, child: _composer(context, state)),
+                  ),
                 ],
               ),
             ),
@@ -253,35 +260,31 @@ class _SecretChatMaterialState extends State<SecretChatMaterial> {
         ),
       );
     }
-    return Card(
-      margin: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-      color: scheme.surfaceContainerHigh,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                HugeIcon(icon: HugeIcons.strokeRoundedSquareLock02, size: 18, color: scheme.onSurfaceVariant),
-                const SizedBox(width: 6),
-                Text(t.secretChat.closed, style: theme.textTheme.titleSmall),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              t.secretChat.closedHint,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
-            ),
-            TextButton(
-              style: TextButton.styleFrom(foregroundColor: scheme.error),
-              onPressed: () => _confirmDelete(context),
-              child: Text(t.secretChat.deleteChatShort),
-            ),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              HugeIcon(icon: HugeIcons.strokeRoundedSquareLock02, size: 18, color: scheme.onSurfaceVariant),
+              const SizedBox(width: 6),
+              Text(t.secretChat.closed, style: theme.textTheme.titleSmall),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            t.secretChat.closedHint,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: scheme.error),
+            onPressed: () => _confirmDelete(context),
+            child: Text(t.secretChat.deleteChatShort),
+          ),
+        ],
       ),
     );
   }
