@@ -5,6 +5,7 @@ import 'dart:math';
 
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart';
+import 'package:grpc/grpc.dart' show StatusCode;
 import 'package:path/path.dart' as p;
 
 import '../api.dart';
@@ -45,10 +46,11 @@ import 'read_receipts.dart';
 /// Группы — срез 3.1 (флаг «Группы», docs/plans/chats-groups.md): создать,
 /// переписка, служебные, «Изменить» (название, описание, фото), участники,
 /// выйти / удалить; 3.2 — роли и права админа, исключение и блокировка,
-/// передача владения, роль по умолчанию, закреп у всех. Ссылки, заявки,
-/// реакции групп, каналы, сообщества, опросы — следующие срезы: их действия бросают
-/// [UnsupportedError], а то, что экраны читают при открытии любого чата
-/// (ссылки, заявки), отдаёт пустое.
+/// передача владения, роль по умолчанию, закреп у всех; 3.3 — способы
+/// вступления, публичное имя, ссылки-приглашения, заявки, «Скрыть историю»,
+/// предпросмотр чужой группы по ссылке и «Вступить». Реакции групп, каналы,
+/// сообщества, опросы — следующие срезы: их действия бросают
+/// [UnsupportedError].
 class ChatsRemoteDataSource implements ChatsDataSource {
   ChatsRemoteDataSource._();
 
@@ -91,11 +93,22 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   static Never _unsupported(String what) => throw UnsupportedError('$what — пока только в демо (личные чаты — первый срез)');
 
   /// Закреплённые, реакции, пересылка и отложенные — есть; группы — по флагу
-  /// «Группы», с ролями и правами (3.2), без расширенного (ссылки, реакции,
-  /// опросы … — 3.3–3.4).
+  /// «Группы», с ролями и правами (3.2) и вступлением (3.3), без расширенного
+  /// (реакции, опросы … — 3.4).
   @override
-  ChatsFeatures get features =>
-      ChatsFeatures(reactions: true, pinnedMessages: true, forward: true, scheduled: true, groups: _sync.groups, groupRoles: true);
+  ChatsFeatures get features => ChatsFeatures(
+    reactions: true,
+    pinnedMessages: true,
+    forward: true,
+    scheduled: true,
+    groups: _sync.groups,
+    groupRoles: true,
+    groupJoining: true,
+  );
+
+  /// Сервер удаляет отозванные ссылки только все сразу.
+  @override
+  bool get deletesRevokedLinkSingly => false;
 
   /// Передачу владения сервер подтверждает облачным паролем.
   @override
@@ -116,6 +129,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     StreamSubscription<void>? connection;
     StreamSubscription<void>? groups;
     StreamSubscription<void>? avatars;
+    StreamSubscription<void>? previews;
     List<models.Chat>? loaded;
     var pending = Future<void>.value();
     void reload() {
@@ -146,8 +160,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           if (_typingNamesMissing(chats)) return reload();
           out.add(_withTyping(chats));
         });
-        // Флаг «Группы» и скачанные аватары групп.
+        // Флаг «Группы», скачанные аватары групп и предпросмотры по ссылкам.
         groups = _sync.groupsChanged.listen((_) => reload());
+        previews = _previewsChanged.stream.listen((_) => reload());
         avatars = _avatarsChanged.stream.listen((_) => reload());
       },
       onCancel: () async {
@@ -159,6 +174,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         await connection?.cancel();
         await groups?.cancel();
         await avatars?.cancel();
+        await previews?.cancel();
       },
     );
     return out.stream;
@@ -316,8 +332,13 @@ class ChatsRemoteDataSource implements ChatsDataSource {
             myRights: rightsFromPb(group.rights),
             myRank: group.rank,
             defaultRole: roleFromPb(group.info.defaultRole),
-            // Ссылок-приглашений в 3.1 нет — добавляют участники.
-            joinMode: models.ChatJoinMode.admins,
+            // Вступление (3.3): основная ссылка и заявки — только у тех, кто
+            // может приглашать (иначе пусто / 0).
+            joinMode: joinModeFromPb(group.info.joinMode),
+            username: group.info.username,
+            historyHidden: group.info.historyHidden,
+            inviteLink: invitePath(group.inviteCode),
+            pendingRequests: group.pendingRequests,
             lastMessage: lastMessage,
             unreadCount: row.unreadCount,
             unreadReactions: row.unreadReactions,
@@ -363,6 +384,22 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           createdAt: row.createdAt > 0 ? DateTime.fromMillisecondsSinceEpoch(row.createdAt) : null,
         ),
       );
+    }
+    // Чужие группы, открытые по ссылке (предпросмотр): в списке не видны
+    // (`isMember == false`), но окно чата берёт их отсюда. Вступили —
+    // диалог уже в списке, предпросмотр больше не нужен.
+    if (groupsShown) {
+      final ids = {for (final c in chats) c.id};
+      final owner = idHex(me);
+      for (final MapEntry(key: id, value: preview) in _previews.entries.toList()) {
+        if (preview.owner != owner) continue;
+        // Вступили (в т.ч. одобрили заявку — пришёл dialogNew).
+        if (ids.contains(id)) {
+          _previews.remove(id);
+          continue;
+        }
+        chats.add(await _previewChat(id, preview));
+      }
     }
     // «В сети» у аватаров списка — собеседники личных чатов.
     if (_listShown) {
@@ -752,9 +789,27 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     return local == null ? '' : idHex(local.chatID);
   }
 
+  /// Общее пространство имён с пользователями (`Chats.CheckUsername`): своё
+  /// текущее имя группы [exceptChatID] — свободно. Без сети —
+  /// [ChatsOfflineException] (форма покажет «не удалось проверить», а не
+  /// «свободно»); не по правилам сервера — `ChatsRequestException`
+  /// «usernameInvalid».
   @override
-  Future<bool> isUsernameAvailable(String username, {String exceptChatID = ''}) async => _unsupported('Публичные имена чатов');
+  Future<bool> isUsernameAvailable(String username, {String exceptChatID = ''}) async {
+    await _requireNetwork();
+    final response = await _sync.chats(
+      pb.Chats_Request(
+        checkUsername: pb.Chats_CheckUsername(username: username, exceptChatID: idBytes(exceptChatID)),
+      ),
+    );
+    final result = response.checkUsername;
+    if (result.invalid) throw const ChatsRequestException(usernameInvalidError, StatusCode.invalidArgument);
+    return result.available;
+  }
 
+  /// Группа: способ вступления [joinMode] и публичное имя [username] (только
+  /// у [models.ChatJoinMode.open]); код ссылки-приглашения частной выдаёт
+  /// сервер (`Dialog.inviteCode`), [inviteLink] формы не отправляется.
   @override
   Future<String> createChat({
     required models.ChatType type,
@@ -768,6 +823,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     models.ChatJoinMode joinMode = models.ChatJoinMode.open,
   }) async {
     if (type != models.ChatType.group || communityID.isNotEmpty || !_sync.groups) _unsupported('Каналы и сообщества');
+    // Публичная — только с именем; без имени — частная по ссылке.
+    final open = joinMode == models.ChatJoinMode.open && username.isNotEmpty;
+    final mode = open ? models.ChatJoinMode.open : (joinMode == models.ChatJoinMode.open ? models.ChatJoinMode.link : joinMode);
     await _requireNetwork();
     final avatar = avatarPath.isEmpty ? null : await _uploadChatAvatar(avatarPath);
     final response = await _sync.chats(
@@ -781,6 +839,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           ],
           avatarCdnID: avatar,
           randomID: Int64(_randomID()),
+          username: open ? username : null,
+          joinMode: joinModeToPb(mode),
         ),
       ),
     );
@@ -828,12 +888,13 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     int newcomerMediaDelay = 0,
     bool signMessages = false,
     bool membersHidden = false,
+    bool historyHidden = false,
   }) async {
     final chat = idBytes(chatID);
     final group = await _store.group(userID: _sync.me, chatID: chat);
     if (group == null) _unsupported('Каналы и сообщества');
-    // Меняются название, описание, фото и роль вступающих (3.2); остальное —
-    // следующие срезы.
+    // Название, описание, фото, роль вступающих (3.2), способ вступления,
+    // публичное имя и «Скрыть историю» (3.3); остальное — следующие срезы.
     final info = group.info;
     final currentAvatar = await _avatarPath(info.avatarCdnID);
     final avatarChanged = avatarPath != currentAvatar && !(avatarPath.isEmpty && info.avatarCdnID.isEmpty);
@@ -841,7 +902,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final aboutChanged = about != info.about;
     final roleChanged =
         (defaultRole == models.ChatRole.reader || defaultRole == models.ChatRole.writer) && defaultRole != roleFromPb(info.defaultRole);
-    if (!titleChanged && !aboutChanged && !avatarChanged && !roleChanged) return;
+    final join = editJoinChanges(info, joinMode: joinMode, username: username, historyHidden: historyHidden);
+    if (!titleChanged && !aboutChanged && !avatarChanged && !roleChanged && join.isEmpty) return;
     await _requireNetwork();
     final avatar = !avatarChanged ? null : (avatarPath.isEmpty ? Uint8List(0) : await _uploadChatAvatar(avatarPath));
     final response = await _sync.chats(
@@ -852,6 +914,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           about: aboutChanged ? about : null,
           avatarCdnID: avatar,
           defaultRole: roleChanged ? roleToPb(defaultRole) : null,
+          joinMode: join.joinMode,
+          username: join.username,
+          historyHidden: join.historyHidden,
         ),
       ),
     );
@@ -861,39 +926,170 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   /// Имя пользователя (как на сервере, без учёта регистра).
   static final _usernamePattern = RegExp(r'^[A-Za-z0-9_]{5,24}$');
 
-  /// `iperon.net/<username>` — личный чат с пользователем: знакомый (своё имя
-  /// — «Избранное», собеседник с чатом в кэше) — без сети, иначе — сервер.
-  /// Приглашения (`+код`) и публичные имена групп / каналов — следующие
-  /// срезы: «не найдено».
+  /// Код приглашения после `+` (сервер выдаёт 12 символов base62).
+  static final _invitePattern = RegExp(r'^\+[A-Za-z0-9]{4,64}$');
+
+  /// Чужие группы, открытые по ссылке (hex chatID → предпросмотр): только в
+  /// памяти — до вступления или перезапуска.
+  final _previews = <String, _Preview>{};
+  final _previewsChanged = StreamController<void>.broadcast();
+
+  /// `iperon.net/<username>` или `iperon.net/+код` (`Chats.ResolveLink`).
+  /// Знакомое — без сети: своё имя («Избранное»), собеседник с чатом в кэше,
+  /// своя группа (по имени или основной ссылке). Иначе сервер: диалог (личный
+  /// чат, группа, где я участник) — в кэш; чужая группа — предпросмотр
+  /// (`Chat.isMember == false`). Нет такого / ссылка недействительна — пусто.
   @override
   Future<String> resolveLink(String path) async {
     final name = path.trim().replaceFirst(RegExp(r'^/+'), '').split('/').first.replaceFirst('@', '');
-    if (!_usernamePattern.hasMatch(name) || !_auth.isAuthorized) return '';
-    final username = name.toLowerCase();
+    if (!_auth.isAuthorized) return '';
+    final invite = name.startsWith('+');
+    if (invite ? !_invitePattern.hasMatch(name) : !_usernamePattern.hasMatch(name)) return '';
     final me = _sync.me;
+    final local = await _localLink(name, invite: invite);
+    if (local.isNotEmpty) return local;
 
+    await _requireNetwork();
+    try {
+      final response = await _sync.chats(pb.Chats_Request(resolveLink: pb.Chats_ResolveLink(path: invite ? name : name.toLowerCase())));
+      if (!response.hasResolveLink()) return '';
+      final result = response.resolveLink;
+      if (result.hasDialog() && result.dialog.chatID.isNotEmpty) {
+        await _sync.saveDialog(result.dialog);
+        return idHex(result.dialog.chatID);
+      }
+      if (!result.hasPreview() || result.preview.chat.chatID.isEmpty) return '';
+      // Группы выключены (флаг) — в списке их не показываем, и предпросмотр
+      // открыть некуда.
+      if (!_sync.groups) throw const ChatsRequestException('groupsDisabled', StatusCode.failedPrecondition);
+      final preview = result.preview;
+      final api = getIt.get<API>();
+      for (final profile in preview.members) {
+        await api.cacheProfile(profile, waitAvatar: false);
+      }
+      final id = idHex(preview.chat.chatID);
+      _previews[id] = _Preview(owner: idHex(me), path: invite ? name : name.toLowerCase(), preview: preview);
+      _previewsChanged.add(null);
+      return id;
+    } on ChatsRequestException catch (error) {
+      if (!error.isNotFound) {
+        if (error.isGroupsDisabled) rethrow;
+        _logger.warning('chats: resolve link failed: $error');
+      }
+      return '';
+    }
+  }
+
+  /// Ссылка на знакомое — из кэша, без сети (пусто — спросить сервер).
+  Future<String> _localLink(String name, {required bool invite}) async {
+    final me = _sync.me;
+    if (invite) {
+      final code = inviteCodeOf(name);
+      for (final g in await _store.groups(userID: me)) {
+        if (g.inviteCode == code) return idHex(g.chatID);
+      }
+      return '';
+    }
+    final username = name.toLowerCase();
     final mine = await _repositories.myProfile.getByUserID(userID: me);
     final peer = mine.username.toLowerCase() == username ? me : await _repositories.profiles.userIDByUsername(username);
     if (peer != null) {
       final local = await _store.dialogByPeer(userID: me, peerUserID: peer);
       if (local != null) return idHex(local.chatID);
     }
+    if (_sync.groups) {
+      for (final g in await _store.groups(userID: me)) {
+        if (g.info.username.isNotEmpty && g.info.username.toLowerCase() == username) return idHex(g.chatID);
+      }
+    }
+    return '';
+  }
 
+  /// Предпросмотр → модель чата: не участник, «Заявка отправлена» —
+  /// `joinRequested`.
+  Future<models.Chat> _previewChat(String id, _Preview preview) async {
+    final info = preview.preview.chat;
+    return models.Chat(
+      id: id,
+      type: models.ChatType.group,
+      title: info.title,
+      about: info.about,
+      avatarPath: await _groupAvatar(info),
+      membersCount: info.membersCount,
+      myRole: roleFromPb(info.defaultRole),
+      defaultRole: roleFromPb(info.defaultRole),
+      joinMode: previewJoinMode(preview.preview),
+      username: info.username,
+      historyHidden: info.historyHidden,
+      isMember: false,
+      joinRequested: preview.requested,
+      createdAt: info.createdAt > 0 ? DateTime.fromMillisecondsSinceEpoch(info.createdAt.toInt()) : null,
+    );
+  }
+
+  /// «Вступить» / «Подать заявку» в группу из предпросмотра (`Chats.JoinChat`
+  /// по той же ссылке): вступили — диалог в кэш, история — с сервера; нужна
+  /// заявка — «Заявка отправлена» (вступим, когда одобрят: придёт dialogNew).
+  @override
+  Future<void> joinChat(String chatID) async {
+    final preview = _previews[chatID];
+    if (preview == null || preview.requested) return;
     await _requireNetwork();
-    try {
-      final response = await _sync.chats(pb.Chats_Request(resolveUsername: pb.Chats_ResolveUsername(username: username)));
-      if (!response.hasResolveUsername() || !response.resolveUsername.hasDialog()) return '';
-      final dialog = response.resolveUsername.dialog;
-      await _sync.saveDialog(dialog);
-      return idHex(dialog.chatID);
-    } on ChatsRequestException catch (error) {
-      if (!error.isNotFound) _logger.warning('chats: resolve username failed: $error');
-      return '';
+    final response = await _sync.chats(pb.Chats_Request(joinChat: pb.Chats_JoinChat(path: preview.path)));
+    final result = response.joinChat;
+    await _sync.applyUpdates(result.updates);
+    if (result.hasDialog() && result.dialog.chatID.isNotEmpty) {
+      await _sync.saveDialog(result.dialog);
+      _previews.remove(chatID);
+      _previewsChanged.add(null);
+      final chat = idBytes(chatID);
+      unawaited(
+        _sync.loadHistory(chat).catchError((Object error, StackTrace stackTrace) {
+          if (error is! ChatsOfflineException) _logger.handle(error, stackTrace);
+        }),
+      );
+      return;
+    }
+    if (result.requested) {
+      preview.requested = true;
+      _previewsChanged.add(null);
     }
   }
 
-  @override
-  Future<void> joinChat(String chatID) async => _unsupported('Группы и каналы');
+  /// История чужой публичной группы (`ChatPreview.canViewHistory`) — только
+  /// чтение, без журнала и кэша: страница за страницей в память
+  /// предпросмотра. [older] — следующая страница старше загруженной.
+  /// Возвращает, есть ли ещё старше.
+  Future<bool> _loadPreviewHistory(String chatID, {bool older = false}) async {
+    final preview = _previews[chatID];
+    if (preview == null || !preview.preview.canViewHistory) return false;
+    if (older && !preview.hasMore) return false;
+    if (!await _sync.hasNetwork()) return true;
+    final offset = older && preview.history.isNotEmpty ? preview.history.first.messageID : Int64.ZERO;
+    try {
+      final response = await _sync.messages(
+        pb.Messages_Request(
+          history: pb.Messages_History(chatID: idBytes(chatID), offsetID: offset, limit: _windowStep),
+        ),
+      );
+      final page = response.history;
+      final known = {for (final m in preview.history) m.messageID};
+      // История — от новых к старым; в памяти — от старых к новым.
+      final fresh = [
+        for (final m in page.messages.reversed)
+          if (!known.contains(m.messageID)) m,
+      ];
+      preview.history = older ? [...fresh, ...preview.history] : mergePreviewHistory(preview.history, fresh);
+      if (older || preview.history.length == fresh.length) preview.hasMore = page.hasMore;
+      _windowChanged.add(chatID);
+      return preview.hasMore;
+    } on ChatsOfflineException {
+      return true;
+    } on ChatsRequestException catch (error) {
+      _logger.warning('chats: preview history failed: $error');
+      return false;
+    }
+  }
 
   @override
   Future<String> openComments(String channelID, String postID) async => _unsupported('Комментарии каналов');
@@ -901,8 +1097,44 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   @override
   Future<void> setCommentsClosed(String channelID, String postID, bool closed) async => _unsupported('Комментарии каналов');
 
+  // --- ссылки-приглашения и заявки (владелец / админ с правом приглашать) ---
+
+  /// Из кэша (`chatInviteLinks`, видно без сети); при подписке — свежий
+  /// список с сервера (нет сети / нет права — остаётся кэш).
   @override
-  Stream<List<models.ChatInviteLink>> watchInviteLinks(String chatID) => Stream.value(const []);
+  Stream<List<models.ChatInviteLink>> watchInviteLinks(String chatID) {
+    final chat = idBytes(chatID);
+    if (chat.isEmpty || !_auth.isAuthorized) return Stream.value(const []);
+    unawaited(_refreshInviteLinks(chat));
+    return _repositories.db
+        .onChange(const [ChatsRepository.inviteLinksTable])
+        .asyncMap(
+          (_) async => sortInviteLinks([for (final l in await _store.inviteLinks(userID: _sync.me, chatID: chat)) inviteLinkFromPb(l)]),
+        )
+        .distinct(listEquals);
+  }
+
+  Future<void> _refreshInviteLinks(Uint8List chat) async {
+    try {
+      if (!await _sync.hasNetwork()) return;
+      final response = await _sync.chats(pb.Chats_Request(inviteLinks: pb.Chats_InviteLinks(chatID: chat)));
+      final user = _sync.me;
+      await _store.transaction((tx) => tx.replaceInviteLinks(userID: user, chatID: chat, links: response.inviteLinks.links));
+    } on ChatsOfflineException {
+      // Покажем кэш; освежим при следующем открытии.
+    } on ChatsRequestException catch (error) {
+      _logger.warning('chats: invite links failed: $error');
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace);
+    }
+  }
+
+  /// Ссылка из ответа сервера — в кэш.
+  Future<void> _saveInviteLink(Uint8List chat, pb.ChatInviteLink link) async {
+    if (link.code.isEmpty) return;
+    final user = _sync.me;
+    await _store.transaction((tx) => tx.upsertInviteLink(userID: user, chatID: chat, link: link));
+  }
 
   @override
   Future<void> createInviteLink(
@@ -911,7 +1143,23 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     DateTime? expireDate,
     int usageLimit = 0,
     bool requestApproval = false,
-  }) async => _unsupported('Ссылки-приглашения');
+  }) async {
+    await _requireNetwork();
+    final chat = idBytes(chatID);
+    final response = await _sync.chats(
+      pb.Chats_Request(
+        createInviteLink: pb.Chats_CreateInviteLink(
+          chatID: chat,
+          title: title,
+          expireDate: Int64(expireDate?.millisecondsSinceEpoch ?? 0),
+          // С одобрением заявок лимит вступлений не нужен (как в Telegram).
+          usageLimit: requestApproval ? 0 : usageLimit,
+          requestApproval: requestApproval,
+        ),
+      ),
+    );
+    await _saveInviteLink(chat, response.createInviteLink.link);
+  }
 
   @override
   Future<void> editInviteLink(
@@ -921,19 +1169,139 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     DateTime? expireDate,
     required int usageLimit,
     required bool requestApproval,
-  }) async => _unsupported('Ссылки-приглашения');
+  }) async {
+    await _requireNetwork();
+    final chat = idBytes(chatID);
+    final response = await _sync.chats(
+      pb.Chats_Request(
+        editInviteLink: pb.Chats_EditInviteLink(
+          chatID: chat,
+          code: inviteCodeOf(linkID),
+          title: title,
+          expireDate: Int64(expireDate?.millisecondsSinceEpoch ?? 0),
+          usageLimit: requestApproval ? 0 : usageLimit,
+          requestApproval: requestApproval,
+        ),
+      ),
+    );
+    await _saveInviteLink(chat, response.editInviteLink.link);
+  }
+
+  /// Основная заменяется новой: её код — и в группу (`Chat.inviteLink`).
+  @override
+  Future<void> revokeInviteLink(String chatID, String linkID) async {
+    await _requireNetwork();
+    final chat = idBytes(chatID);
+    final response = await _sync.chats(
+      pb.Chats_Request(
+        revokeInviteLink: pb.Chats_RevokeInviteLink(chatID: chat, code: inviteCodeOf(linkID)),
+      ),
+    );
+    final result = response.revokeInviteLink;
+    await _saveInviteLink(chat, result.revoked);
+    if (result.hasPrimary() && result.primary.code.isNotEmpty) {
+      await _saveInviteLink(chat, result.primary);
+      final user = _sync.me;
+      await _store.transaction((tx) => tx.setGroupInviteCode(userID: user, chatID: chat, code: result.primary.code));
+    }
+    await _sync.applyUpdates(result.updates);
+  }
+
+  /// Сервер удаляет все отозванные сразу ([deletesRevokedLinkSingly]).
+  @override
+  Future<void> deleteRevokedLinks(String chatID, {String linkID = ''}) async {
+    await _requireNetwork();
+    final chat = idBytes(chatID);
+    await _sync.chats(pb.Chats_Request(deleteRevokedInviteLinks: pb.Chats_DeleteRevokedInviteLinks(chatID: chat)));
+    final user = _sync.me;
+    await _store.transaction((tx) => tx.deleteRevokedInviteLinks(userID: user, chatID: chat));
+  }
+
+  /// Сколько заявок читать за раз и сколько страниц максимум.
+  static const _requestsPage = 100;
+  static const _requestsPages = 20;
+
+  /// Заявки — только с сервера, при подписке и при каждом их изменении
+  /// (`Update.joinRequests`, ответ на заявку). Не загрузились — ошибка в
+  /// потоке: экран пишет «не загрузилось», а не «заявок нет».
+  @override
+  Stream<List<models.ChatJoinRequest>> watchJoinRequests(String chatID) {
+    late final StreamController<List<models.ChatJoinRequest>> out;
+    StreamSubscription<String>? changes;
+    var pending = Future<void>.value();
+    void reload() {
+      pending = pending.then((_) async {
+        try {
+          final requests = await _loadJoinRequests(chatID);
+          if (!out.isClosed) out.add(requests);
+        } on ChatsOfflineException catch (error) {
+          if (!out.isClosed) out.addError(error);
+        } on ChatsRequestException catch (error) {
+          _logger.warning('chats: join requests failed: $error');
+          if (!out.isClosed) out.addError(error);
+        } catch (error, stackTrace) {
+          _logger.handle(error, stackTrace);
+          if (!out.isClosed) out.addError(error, stackTrace);
+        }
+      });
+    }
+
+    out = StreamController<List<models.ChatJoinRequest>>(
+      onListen: () {
+        changes = _sync.joinRequestsChanged.where((id) => id == chatID).listen((_) => reload());
+        reload();
+      },
+      onCancel: () async => changes?.cancel(),
+    );
+    return out.stream;
+  }
+
+  Future<List<models.ChatJoinRequest>> _loadJoinRequests(String chatID) async {
+    if (!_auth.isAuthorized) return const [];
+    await _requireNetwork();
+    final chat = idBytes(chatID);
+    final api = getIt.get<API>();
+    final rows = <pb.ChatJoinRequest>[];
+    var offset = <int>[];
+    var total = 0;
+    for (var page = 0; page < _requestsPages; page++) {
+      final response = await _sync.chats(
+        pb.Chats_Request(
+          joinRequests: pb.Chats_JoinRequests(chatID: chat, offset: offset.isEmpty ? null : offset, limit: _requestsPage),
+        ),
+      );
+      final result = response.joinRequests;
+      for (final profile in result.profiles) {
+        await api.cacheProfile(profile, waitAvatar: false);
+      }
+      rows.addAll(result.requests);
+      if (page == 0) total = result.total;
+      if (result.nextOffset.isEmpty) break;
+      offset = result.nextOffset;
+    }
+    // Счётчик на плашке — как сейчас на сервере.
+    final user = _sync.me;
+    await _store.transaction((tx) => tx.setGroupPendingRequests(userID: user, chatID: chat, pending: total));
+    if (rows.isEmpty) return const [];
+    final peers = _Peers(await _loadPeers([for (final r in rows) Uint8List.fromList(r.userID)]));
+    return [for (final r in rows) joinRequestFromPb(r, name: peers.of(r.userID).title, about: peers.of(r.userID).profile?.aboutMe ?? '')];
+  }
 
   @override
-  Future<void> revokeInviteLink(String chatID, String linkID) async => _unsupported('Ссылки-приглашения');
-
-  @override
-  Future<void> deleteRevokedLinks(String chatID, {String linkID = ''}) async => _unsupported('Ссылки-приглашения');
-
-  @override
-  Stream<List<models.ChatJoinRequest>> watchJoinRequests(String chatID) => Stream.value(const []);
-
-  @override
-  Future<void> answerJoinRequest(String chatID, {String userID = '', required bool approve}) async => _unsupported('Заявки на вступление');
+  Future<void> answerJoinRequest(String chatID, {String userID = '', required bool approve}) async {
+    await _requireNetwork();
+    try {
+      final response = await _sync.chats(
+        pb.Chats_Request(
+          answerJoinRequest: pb.Chats_AnswerJoinRequest(chatID: idBytes(chatID), userID: idBytes(userID), approve: approve),
+        ),
+      );
+      await _sync.applyUpdates(response.answerJoinRequest.updates);
+    } finally {
+      // Список мог измениться и при отказе (заявку уже разобрали).
+      _sync.notifyJoinRequestsChanged(chatID);
+    }
+  }
 
   /// Известные участники группы — из кэша (`chatGroupMembers`: страницы
   /// `Chats.Members` и `Update.chatMembers`), видны и без сети. Профиль
@@ -1108,7 +1476,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     _sync.notifyMembersChanged(chatID);
   }
 
-  /// Любой участник (способы вступления — 3.3). Кому нельзя по приватности
+  /// Любой участник; в режиме «Только админы» — с правом приглашать (иначе
+  /// отказ сервера). Кому нельзя по приватности
   /// (и заблокированных в группе — без права блокировать) сервер пропускает,
   /// а мы сообщаем ([ChatsMembersRestrictedException]); группа заполнена —
   /// `ChatsRequestException` «membersLimit».
@@ -1176,7 +1545,11 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   @override
   Stream<List<models.Message>> watchMessages(String chatID) {
     final chat = idBytes(chatID);
-    if (chat.isNotEmpty) {
+    if (_previews.containsKey(chatID)) {
+      // Чужая группа по ссылке: публичную читаем без вступления — в память,
+      // без журнала и кэша.
+      unawaited(_loadPreviewHistory(chatID));
+    } else if (chat.isNotEmpty) {
       unawaited(
         _sync.loadHistory(chat).catchError((Object error, StackTrace stackTrace) {
           if (error is! ChatsOfflineException) _logger.handle(error, stackTrace);
@@ -1260,6 +1633,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   Future<bool> loadOlderMessages(String chatID) async {
     final chat = idBytes(chatID);
     if (chat.isEmpty || !_auth.isAuthorized) return false;
+    if (_previews.containsKey(chatID) && await _store.dialog(userID: _sync.me, chatID: chat) == null) {
+      return _loadPreviewHistory(chatID, older: true);
+    }
     final me = _sync.me;
     final shown = _windows[chatID] ?? _initialWindow;
     // В кэше есть старше показанного — просто расширяем окно.
@@ -1283,16 +1659,19 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     // Диалога в кэше нет (удалён / ещё не пришёл), а окно открыто — всё равно
     // показываем, что есть: историю и неотправленное, иначе отправленное
     // «пропадает» из ленты.
-    if (row == null) _logger.warning('chats: open chat ${idHex(chat)} has no local dialog');
+    // Чужая группа по ссылке (не вступили) — то, что прочитали без
+    // вступления.
+    final preview = row == null ? _previews[chatID] : null;
+    if (row == null && preview == null) _logger.warning('chats: open chat ${idHex(chat)} has no local dialog');
     final peer = row?.peerUserID;
     final isSelf = peer != null && sameID(peer, me);
     final peerName = peer == null || isSelf ? '' : _Peers(await _loadPeers([peer])).of(peer).title;
-    final history = await _store.messages(userID: me, chatID: chat, limit: _windows[chatID] ?? _initialWindow);
+    final history = preview?.history ?? await _store.messages(userID: me, chatID: chat, limit: _windows[chatID] ?? _initialWindow);
     final byID = {for (final m in history) m.messageID.toInt(): m};
     final pinnedIDs = {for (final m in await _store.pinned(userID: me, chatID: chat)) m.messageID.toInt()};
     final sharedPinnedIDs = await _store.sharedPinnedIDs(userID: me, chatID: chat);
     final pendingReactions = {for (final r in await _store.pendingReactions(userID: me, chatID: chat)) r.messageID: r.emojis};
-    final group = row != null && row.type == pb.ChatType.CHAT_TYPE_GROUP.value ? await _groupPeople(history) : null;
+    final group = preview != null || (row != null && row.type == pb.ChatType.CHAT_TYPE_GROUP.value) ? await _groupPeople(history) : null;
 
     models.Message map(pb.ChatMessage m) {
       final message = messageFromPb(
@@ -1615,7 +1994,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   Stream<List<models.Message>> watchScheduled(String chatID) {
     final chat = idBytes(chatID);
     if (chat.isEmpty || !_auth.isAuthorized) return Stream.value(const []);
-    unawaited(_sync.loadScheduled(chat));
+    // Чужая группа по ссылке — отложенных у нас там нет.
+    if (!_previews.containsKey(chatID)) unawaited(_sync.loadScheduled(chat));
     return _repositories.db
         .onChange(const [ChatsRepository.scheduledTable, ChatsRepository.outboxTable])
         .asyncMap((_) => _loadScheduled(chatID, chat))
@@ -1807,7 +2187,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   @override
   Stream<List<models.Message>> watchPinnedMessages(String chatID) {
     final chat = idBytes(chatID);
-    if (chat.isNotEmpty) {
+    // Чужая группа по ссылке — закреплённых не спрашиваем (не участник).
+    if (chat.isNotEmpty && !_previews.containsKey(chatID)) {
       unawaited(
         _sync.loadPinned(chat).catchError((Object error, StackTrace stackTrace) {
           if (error is! ChatsOfflineException) _logger.handle(error, stackTrace);
@@ -2071,6 +2452,21 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     if (chat.isEmpty || !_auth.isAuthorized) return;
     if (await _store.setDraft(userID: _sync.me, chatID: chat, draft: draft)) unawaited(_sync.flushDrafts());
   }
+}
+
+/// Чужая группа, открытая по ссылке ([ChatsRemoteDataSource.resolveLink]):
+/// [path] — та же ссылка для `JoinChat`; [history] — прочитанное без
+/// вступления (публичная), от старых к новым.
+class _Preview {
+  /// Чей предпросмотр (hex userID) — после смены аккаунта не показываем.
+  final String owner;
+  final String path;
+  final pb.ChatPreview preview;
+  bool requested;
+  List<pb.ChatMessage> history = const [];
+  bool hasMore = true;
+
+  _Preview({required this.owner, required this.path, required this.preview}) : requested = preview.requested;
 }
 
 class _PeerInfo {

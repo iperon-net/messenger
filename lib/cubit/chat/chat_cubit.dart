@@ -972,7 +972,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   }
 
   /// Ключи отказов сервера, у которых есть свой текст (`showChatsFailed`).
-  static const _knownErrors = {'rightsTooWide', 'rankInvalid', 'chatWriteForbidden', 'passwordInvalid', 'privacyRestricted'};
+  static const _knownErrors = {'rightsTooWide', 'rankInvalid', 'chatWriteForbidden', 'passwordInvalid', 'privacyRestricted', 'banned'};
 
   /// Назначить админом / изменить права и «звание». false — не сохранено.
   Future<bool> setAdmin(models.ChatMember member, models.ChatAdminRights rights, String rank) =>
@@ -1015,8 +1015,23 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
 
   Future<void> closePoll(models.Message message) async => _source?.closePoll(_chatID, message.id);
 
-  /// «Подписаться» / «Вступить» / «Подать заявку».
-  Future<void> join() async => _source?.joinChat(_chatID);
+  /// «Подписаться» / «Вступить» / «Подать заявку». Сервер: без сети — «Нет
+  /// соединения», отказ (заблокирован, группа заполнена, ссылка устарела …)
+  /// — объяснение ([ChatState.failNotice]); лимит частоты — тоже.
+  Future<void> join() async {
+    if (state.joining) return;
+    emit(state.copyWith(joining: true));
+    await _online(() async {
+      try {
+        await _source?.joinChat(_chatID);
+      } on ChatsFloodException {
+        _failed(const ChatsRequestException('', StatusCode.resourceExhausted));
+      } on ChatsRequestException catch (error) {
+        _failed(error.isNotFound ? const ChatsRequestException('linkInvalid', StatusCode.notFound) : error);
+      }
+    });
+    if (!isClosed) emit(state.copyWith(joining: false));
+  }
 
   /// Сообщество: вступить в его группу / канал одним нажатием (закрытая тема —
   /// заявка).

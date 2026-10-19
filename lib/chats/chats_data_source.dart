@@ -36,11 +36,16 @@ class ChatsFeatures {
   /// умолчанию в «Изменить», закреп у всех и удаление чужих — по праву.
   final bool groupRoles;
 
-  /// Расширенное в группах: реакции, опросы, упоминания, ссылки-приглашения,
-  /// заявки, медленный режим, «новички», «скрыть участников», username (демо;
-  /// на сервере — подэтапы 3.3–3.4). `false` — в группе это скрыто, а
-  /// «Изменить» — только название, описание, фото (и роль по умолчанию — с
-  /// [groupRoles]).
+  /// Вступление в группы (подэтап 3.3): способы вступления, публичное имя,
+  /// ссылки-приглашения, заявки, «Скрыть историю», предпросмотр и
+  /// «Вступить» по ссылке.
+  final bool groupJoining;
+
+  /// Расширенное в группах: реакции, опросы, упоминания, медленный режим,
+  /// «новички», «скрыть участников» (демо; на сервере — подэтап 3.4).
+  /// `false` — в группе это скрыто, а «Изменить» — только название,
+  /// описание, фото (роль по умолчанию — с [groupRoles], вступление — с
+  /// [groupJoining]).
   final bool groupExtras;
 
   const ChatsFeatures({
@@ -50,6 +55,7 @@ class ChatsFeatures {
     required this.scheduled,
     this.groups = false,
     this.groupRoles = false,
+    this.groupJoining = false,
     this.groupExtras = false,
   });
 
@@ -60,6 +66,7 @@ class ChatsFeatures {
       scheduled = true,
       groups = true,
       groupRoles = true,
+      groupJoining = true,
       groupExtras = true;
 
   const ChatsFeatures.none()
@@ -69,6 +76,7 @@ class ChatsFeatures {
       scheduled = false,
       groups = false,
       groupRoles = false,
+      groupJoining = false,
       groupExtras = false;
 
   /// Доступное в чате [chat]: в группе без [groupExtras] — без реакций, а
@@ -82,6 +90,7 @@ class ChatsFeatures {
       scheduled: scheduled,
       groups: groups,
       groupRoles: groupRoles,
+      groupJoining: groupJoining,
       groupExtras: groupExtras,
     );
   }
@@ -163,7 +172,8 @@ abstract class ChatsDataSource {
 
   /// Создать группу / канал / сообщество, мы — владелец. [memberIDs] — кого
   /// добавить сразу (группа); [username] — публичное имя (пусто — частный чат со
-  /// ссылкой-приглашением [inviteLink]); [avatarPath] — локальный файл фото.
+  /// ссылкой-приглашением [inviteLink]; на сервере код выдаёт он сам, а
+  /// [inviteLink] не отправляется); [avatarPath] — локальный файл фото.
   /// Сообщество создаётся сразу с каналом объявлений. [communityID] — группа /
   /// канал внутри сообщества (своих ссылок нет, [joinMode] — одним нажатием
   /// ([models.ChatJoinMode.open]) или по заявке; настройки по умолчанию — от
@@ -188,7 +198,9 @@ abstract class ChatsDataSource {
   /// 0 — без ограничения), действует только на новые посты; [commentsWho] и
   /// [commentsMinSubscription] — кто может комментировать (только подписчики —
   /// подписанные не меньше стольких секунд); [newcomerMediaDelay] —
-  /// «Новичкам — без ссылок и медиа» (секунд, 0 — выключено).
+  /// «Новичкам — без ссылок и медиа» (секунд, 0 — выключено). [historyHidden]
+  /// — «Скрыть историю» группы (только частной): новые участники видят
+  /// сообщения с момента вступления.
   Future<void> updateChat(
     String chatID, {
     required String title,
@@ -210,6 +222,7 @@ abstract class ChatsDataSource {
     int newcomerMediaDelay = 0,
     bool signMessages = false,
     bool membersHidden = false,
+    bool historyHidden = false,
   });
 
   /// Ссылка `iperon.net/<path>` (публичное имя или `+код` приглашения) → id
@@ -222,7 +235,9 @@ abstract class ChatsDataSource {
   /// «Подписаться» / «Вступить»: стать участником; у чата «По заявке» —
   /// подать заявку (`Chat.joinRequested`), вступление — после одобрения. В
   /// сообщество — вместе с его каналом объявлений (в остальные чаты вступают
-  /// по отдельности).
+  /// по отдельности). Сервер: без сети — [ChatsOfflineException]; отказ
+  /// («banned», «membersLimit», «groupsLimit», ссылка уже недействительна —
+  /// NOT_FOUND) — `ChatsRequestException`.
   Future<void> joinChat(String chatID);
 
   /// Комментарии к посту [postID] канала [channelID]: id чата-ветки (создаётся
@@ -251,6 +266,10 @@ abstract class ChatsDataSource {
     required bool requestApproval,
   });
 
+  /// Отозванную ссылку можно удалить одну ([deleteRevokedLinks] с `linkID`);
+  /// `false` — только все отозванные сразу (сервер).
+  bool get deletesRevokedLinkSingly;
+
   /// Отозвать ссылку. Основная не отзывается, а заменяется новой (старая
   /// уходит в отозванные) — меняется и `Chat.inviteLink`.
   Future<void> revokeInviteLink(String chatID, String linkID);
@@ -258,7 +277,10 @@ abstract class ChatsDataSource {
   /// Удалить отозванную ссылку ([linkID] пусто — все отозванные).
   Future<void> deleteRevokedLinks(String chatID, {String linkID = ''});
 
-  /// Заявки на вступление — от новых к старым.
+  /// Заявки на вступление — от новых к старым. Сервер: список только по
+  /// запросу (при подписке и при изменении заявок) — не загрузился (нет
+  /// сети, отказ) — ошибка в потоке ([ChatsOfflineException] /
+  /// `ChatsRequestException`), а не пустой список.
   Stream<List<models.ChatJoinRequest>> watchJoinRequests(String chatID);
 
   /// Принять / отклонить заявку ([userID] пусто — все).

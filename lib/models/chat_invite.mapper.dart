@@ -74,6 +74,13 @@ class ChatInviteLinkMapper extends ClassMapperBase<ChatInviteLink> {
     opt: true,
     def: false,
   );
+  static int _$pendingCount(ChatInviteLink v) => v.pendingCount;
+  static const Field<ChatInviteLink, int> _f$pendingCount = Field(
+    'pendingCount',
+    _$pendingCount,
+    opt: true,
+    def: 0,
+  );
   static DateTime _$createdAt(ChatInviteLink v) => v.createdAt;
   static const Field<ChatInviteLink, DateTime> _f$createdAt = Field(
     'createdAt',
@@ -91,6 +98,7 @@ class ChatInviteLinkMapper extends ClassMapperBase<ChatInviteLink> {
     #usageLimit: _f$usageLimit,
     #usage: _f$usage,
     #requestApproval: _f$requestApproval,
+    #pendingCount: _f$pendingCount,
     #createdAt: _f$createdAt,
   };
 
@@ -105,6 +113,7 @@ class ChatInviteLinkMapper extends ClassMapperBase<ChatInviteLink> {
       usageLimit: data.dec(_f$usageLimit),
       usage: data.dec(_f$usage),
       requestApproval: data.dec(_f$requestApproval),
+      pendingCount: data.dec(_f$pendingCount),
       createdAt: data.dec(_f$createdAt),
     );
   }
@@ -181,6 +190,7 @@ abstract class ChatInviteLinkCopyWith<$R, $In extends ChatInviteLink, $Out>
     int? usageLimit,
     int? usage,
     bool? requestApproval,
+    int? pendingCount,
     DateTime? createdAt,
   });
   ChatInviteLinkCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
@@ -207,6 +217,7 @@ class _ChatInviteLinkCopyWithImpl<$R, $Out>
     int? usageLimit,
     int? usage,
     bool? requestApproval,
+    int? pendingCount,
     DateTime? createdAt,
   }) => $apply(
     FieldCopyWithData({
@@ -219,6 +230,7 @@ class _ChatInviteLinkCopyWithImpl<$R, $Out>
       if (usageLimit != null) #usageLimit: usageLimit,
       if (usage != null) #usage: usage,
       if (requestApproval != null) #requestApproval: requestApproval,
+      if (pendingCount != null) #pendingCount: pendingCount,
       if (createdAt != null) #createdAt: createdAt,
     }),
   );
@@ -233,6 +245,7 @@ class _ChatInviteLinkCopyWithImpl<$R, $Out>
     usageLimit: data.get(#usageLimit, or: $value.usageLimit),
     usage: data.get(#usage, or: $value.usage),
     requestApproval: data.get(#requestApproval, or: $value.requestApproval),
+    pendingCount: data.get(#pendingCount, or: $value.pendingCount),
     createdAt: data.get(#createdAt, or: $value.createdAt),
   );
 

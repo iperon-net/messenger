@@ -45,6 +45,49 @@ class ChatInvitesStateMapper extends ClassMapperBase<ChatInvitesState> {
       v.requests;
   static const Field<ChatInvitesState, List<models.ChatJoinRequest>>
   _f$requests = Field('requests', _$requests, opt: true, def: const []);
+  static bool _$requestsLoading(ChatInvitesState v) => v.requestsLoading;
+  static const Field<ChatInvitesState, bool> _f$requestsLoading = Field(
+    'requestsLoading',
+    _$requestsLoading,
+    opt: true,
+    def: false,
+  );
+  static bool _$requestsFailed(ChatInvitesState v) => v.requestsFailed;
+  static const Field<ChatInvitesState, bool> _f$requestsFailed = Field(
+    'requestsFailed',
+    _$requestsFailed,
+    opt: true,
+    def: false,
+  );
+  static bool _$deletesRevokedSingly(ChatInvitesState v) =>
+      v.deletesRevokedSingly;
+  static const Field<ChatInvitesState, bool> _f$deletesRevokedSingly = Field(
+    'deletesRevokedSingly',
+    _$deletesRevokedSingly,
+    opt: true,
+    def: true,
+  );
+  static int _$offlineNotice(ChatInvitesState v) => v.offlineNotice;
+  static const Field<ChatInvitesState, int> _f$offlineNotice = Field(
+    'offlineNotice',
+    _$offlineNotice,
+    opt: true,
+    def: 0,
+  );
+  static int _$failNotice(ChatInvitesState v) => v.failNotice;
+  static const Field<ChatInvitesState, int> _f$failNotice = Field(
+    'failNotice',
+    _$failNotice,
+    opt: true,
+    def: 0,
+  );
+  static String _$failError(ChatInvitesState v) => v.failError;
+  static const Field<ChatInvitesState, String> _f$failError = Field(
+    'failError',
+    _$failError,
+    opt: true,
+    def: '',
+  );
 
   @override
   final MappableFields<ChatInvitesState> fields = const {
@@ -52,6 +95,12 @@ class ChatInvitesStateMapper extends ClassMapperBase<ChatInvitesState> {
     #chat: _f$chat,
     #links: _f$links,
     #requests: _f$requests,
+    #requestsLoading: _f$requestsLoading,
+    #requestsFailed: _f$requestsFailed,
+    #deletesRevokedSingly: _f$deletesRevokedSingly,
+    #offlineNotice: _f$offlineNotice,
+    #failNotice: _f$failNotice,
+    #failError: _f$failError,
   };
 
   static ChatInvitesState _instantiate(DecodingData data) {
@@ -60,6 +109,12 @@ class ChatInvitesStateMapper extends ClassMapperBase<ChatInvitesState> {
       chat: data.dec(_f$chat),
       links: data.dec(_f$links),
       requests: data.dec(_f$requests),
+      requestsLoading: data.dec(_f$requestsLoading),
+      requestsFailed: data.dec(_f$requestsFailed),
+      deletesRevokedSingly: data.dec(_f$deletesRevokedSingly),
+      offlineNotice: data.dec(_f$offlineNotice),
+      failNotice: data.dec(_f$failNotice),
+      failError: data.dec(_f$failError),
     );
   }
 
@@ -151,6 +206,12 @@ abstract class ChatInvitesStateCopyWith<$R, $In extends ChatInvitesState, $Out>
     models.Chat? chat,
     List<models.ChatInviteLink>? links,
     List<models.ChatJoinRequest>? requests,
+    bool? requestsLoading,
+    bool? requestsFailed,
+    bool? deletesRevokedSingly,
+    int? offlineNotice,
+    int? failNotice,
+    String? failError,
   });
   ChatInvitesStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -204,12 +265,25 @@ class _ChatInvitesStateCopyWithImpl<$R, $Out>
     Object? chat = $none,
     List<models.ChatInviteLink>? links,
     List<models.ChatJoinRequest>? requests,
+    bool? requestsLoading,
+    bool? requestsFailed,
+    bool? deletesRevokedSingly,
+    int? offlineNotice,
+    int? failNotice,
+    String? failError,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
       if (chat != $none) #chat: chat,
       if (links != null) #links: links,
       if (requests != null) #requests: requests,
+      if (requestsLoading != null) #requestsLoading: requestsLoading,
+      if (requestsFailed != null) #requestsFailed: requestsFailed,
+      if (deletesRevokedSingly != null)
+        #deletesRevokedSingly: deletesRevokedSingly,
+      if (offlineNotice != null) #offlineNotice: offlineNotice,
+      if (failNotice != null) #failNotice: failNotice,
+      if (failError != null) #failError: failError,
     }),
   );
   @override
@@ -218,6 +292,15 @@ class _ChatInvitesStateCopyWithImpl<$R, $Out>
     chat: data.get(#chat, or: $value.chat),
     links: data.get(#links, or: $value.links),
     requests: data.get(#requests, or: $value.requests),
+    requestsLoading: data.get(#requestsLoading, or: $value.requestsLoading),
+    requestsFailed: data.get(#requestsFailed, or: $value.requestsFailed),
+    deletesRevokedSingly: data.get(
+      #deletesRevokedSingly,
+      or: $value.deletesRevokedSingly,
+    ),
+    offlineNotice: data.get(#offlineNotice, or: $value.offlineNotice),
+    failNotice: data.get(#failNotice, or: $value.failNotice),
+    failError: data.get(#failError, or: $value.failError),
   );
 
   @override

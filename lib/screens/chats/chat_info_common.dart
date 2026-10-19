@@ -61,10 +61,18 @@ bool chatInfoDeletes(models.Chat chat) =>
     chat.myRole == models.ChatRole.owner &&
         (chat.type == models.ChatType.community || chat.type == models.ChatType.group || chat.inCommunity);
 
-/// «Добавить участников»: админ; в группе на сервере (срез 3.1, без ролей)
-/// — любой участник.
-bool canAddMembers(models.Chat chat, ChatsFeatures features) =>
-    chat.canManage || (!features.groupExtras && chat.type == models.ChatType.group && chat.isMember);
+/// «Добавить участников»: админ; в группе на сервере — любой участник, а в
+/// режиме «Только админы» — с правом приглашать ([canAddGroupMembers]).
+bool canAddMembers(models.Chat chat, ChatsFeatures features, List<models.ChatMember> members) {
+  if (features.groupExtras || chat.type != models.ChatType.group) return chat.canManage;
+  return canAddGroupMembers(chat, members);
+}
+
+/// «Ссылки-приглашения» и «Заявки на вступление» в профиле: вступление есть
+/// в источнике ([ChatsFeatures.groupJoining]), у чата свои ссылки (не чат
+/// сообщества) и право приглашать.
+bool chatInfoShowsInvites(models.Chat chat, ChatsFeatures features, List<models.ChatMember> members) =>
+    features.groupJoining && !chat.inCommunity && chat.type != models.ChatType.private && canInviteUsers(chat, members);
 
 /// «Изменить» в профиле чата: админ / владелец; в группе с известными правами
 /// (сервер) — право менять сведения (changeInfo).

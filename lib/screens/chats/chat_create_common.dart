@@ -148,6 +148,8 @@ String createDescriptionFooter(Translations t, models.ChatType type) => switch (
 String createTypeFooter(Translations t, models.ChatType type, bool isPublic) => switch ((type, isPublic)) {
   (models.ChatType.community, true) => t.screenNewChat.communityPublicFooter,
   (models.ChatType.community, false) => t.screenNewChat.communityPrivateFooter,
+  (models.ChatType.group, true) => t.screenNewChat.groupPublicFooter,
+  (models.ChatType.group, false) => t.screenNewChat.groupPrivateFooter,
   (_, true) => t.screenNewChat.channelPublicFooter,
   (_, false) => t.screenNewChat.channelPrivateFooter,
 };
@@ -159,6 +161,7 @@ String createTypeFooter(Translations t, models.ChatType type, bool isPublic) => 
   ChatUsernameStatus.checking => (text: t.screenNewChat.usernameChecking, error: false, ok: false),
   ChatUsernameStatus.available => (text: t.screenNewChat.usernameAvailable, error: false, ok: true),
   ChatUsernameStatus.taken => (text: t.screenNewChat.usernameTaken, error: true, ok: false),
+  ChatUsernameStatus.failed => (text: t.screenNewChat.usernameCheckFailed, error: true, ok: false),
 };
 
 /// Выбранное фото в форме: круг (у сообщества — скруглённый квадрат), как

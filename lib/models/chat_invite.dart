@@ -33,6 +33,9 @@ class ChatInviteLink with ChatInviteLinkMappable {
   /// Вступление по ссылке — через заявку, которую одобряет админ.
   final bool requestApproval;
 
+  /// Ждут одобрения заявок, пришедших по этой ссылке (сервер; в демо — 0).
+  final int pendingCount;
+
   final DateTime createdAt;
 
   const ChatInviteLink({
@@ -45,6 +48,7 @@ class ChatInviteLink with ChatInviteLinkMappable {
     this.usageLimit = 0,
     this.usage = 0,
     this.requestApproval = false,
+    this.pendingCount = 0,
     required this.createdAt,
   });
 

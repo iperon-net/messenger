@@ -255,6 +255,15 @@ class ChatsSync {
   /// Состав группы перечитан с сервера ([ChatsRemoteDataSource]).
   void notifyMembersChanged(String chatID) => _membersChanged.add(chatID);
 
+  final _joinRequestsChanged = StreamController<String>.broadcast();
+
+  /// Изменились заявки на вступление в группу (hex chatID):
+  /// `Update.joinRequests` — открытый экран «Заявки» перечитывает список.
+  Stream<String> get joinRequestsChanged => _joinRequestsChanged.stream;
+
+  /// Ответили на заявку ([ChatsRemoteDataSource]) — перечитать список.
+  void notifyJoinRequestsChanged(String chatID) => _joinRequestsChanged.add(chatID);
+
   /// Переключили «Группы» — список чатов перечитывается (группы появляются /
   /// скрываются).
   Stream<void> get groupsChanged => _groupsChanged.stream;
@@ -641,6 +650,9 @@ class ChatsSync {
     for (final chatID in followUps.membersChanged) {
       _membersChanged.add(chatID);
     }
+    for (final chatID in followUps.joinRequestsChanged) {
+      _joinRequestsChanged.add(chatID);
+    }
     if (followUps.reloadDialogs || followUps.refreshTop.isNotEmpty || followUps.refreshPinned.isNotEmpty) {
       unawaited(_runFollowUps(followUps));
     }
@@ -750,7 +762,15 @@ class ChatsSync {
           if (dialog.hasChat()) {
             await tx.upsertGroup(userID: user, dialog: dialog);
           } else if (await tx.group(userID: user, chatID: dialog.chatID) != null) {
-            await tx.setGroupRole(userID: user, chatID: dialog.chatID, role: dialog.role, rights: dialog.rights, rank: dialog.rank);
+            await tx.setGroupRole(
+              userID: user,
+              chatID: dialog.chatID,
+              role: dialog.role,
+              rights: dialog.rights,
+              rank: dialog.rank,
+              inviteCode: dialog.inviteCode,
+              pendingRequests: dialog.pendingRequests,
+            );
           }
           followUps.membersChanged.add(idHex(dialog.chatID));
         }
@@ -833,6 +853,14 @@ class ChatsSync {
           await tx.setGroupInfo(userID: user, info: group.info.deepCopy()..membersCount = changed.membersCount);
         }
         followUps.membersChanged.add(idHex(chatID));
+
+      case pb.Update_Update.joinRequests:
+        // Заявки на вступление (журнал пользователя — только владельцу и
+        // админам с правом приглашать): число — в плашку «Заявки на
+        // вступление», открытый список перечитается.
+        final requests = update.joinRequests;
+        await tx.setGroupPendingRequests(userID: user, chatID: requests.chatID, pending: requests.pendingCount);
+        followUps.joinRequestsChanged.add(idHex(requests.chatID));
 
       case pb.Update_Update.notSet:
         // Пустое обновление (например, новое сообщение, которое потом удалили):
@@ -1591,4 +1619,7 @@ class _FollowUps {
 
   /// Группы, у которых изменился состав (hex chatID).
   final membersChanged = <String>{};
+
+  /// Группы, у которых изменились заявки на вступление (hex chatID).
+  final joinRequestsChanged = <String>{};
 }

@@ -447,3 +447,111 @@ pb.ChatAdminRights rightsToPb(models.ChatAdminRights r) => pb.ChatAdminRights(
   anonymous: r.anonymous,
   addAdmins: r.addAdmins,
 );
+
+/// Способ вступления в группу (подэтап 3.3) — сервер → модель и обратно.
+models.ChatJoinMode joinModeFromPb(pb.ChatJoinMode mode) => switch (mode) {
+  pb.ChatJoinMode.CHAT_JOIN_OPEN => models.ChatJoinMode.open,
+  pb.ChatJoinMode.CHAT_JOIN_REQUEST => models.ChatJoinMode.request,
+  pb.ChatJoinMode.CHAT_JOIN_ADMINS => models.ChatJoinMode.admins,
+  _ => models.ChatJoinMode.link,
+};
+
+pb.ChatJoinMode joinModeToPb(models.ChatJoinMode mode) => switch (mode) {
+  models.ChatJoinMode.open => pb.ChatJoinMode.CHAT_JOIN_OPEN,
+  models.ChatJoinMode.link => pb.ChatJoinMode.CHAT_JOIN_LINK,
+  models.ChatJoinMode.request => pb.ChatJoinMode.CHAT_JOIN_REQUEST,
+  models.ChatJoinMode.admins => pb.ChatJoinMode.CHAT_JOIN_ADMINS,
+};
+
+/// Путь ссылки-приглашения после `iperon.net/`: `+код` (код выдаёт сервер,
+/// без плюса); пустой код — пусто.
+String invitePath(String code) => code.isEmpty ? '' : '+$code';
+
+/// Код приглашения из пути `+код` (или самого кода).
+String inviteCodeOf(String path) => path.startsWith('+') ? path.substring(1) : path;
+
+/// unix millis → дата; 0 — нет.
+DateTime? _millis(Int64 value) => value == 0 ? null : DateTime.fromMillisecondsSinceEpoch(value.toInt());
+
+/// Ссылка-приглашение с сервера → модель: id — код (как его ждут Edit /
+/// Revoke), путь — `+код`.
+models.ChatInviteLink inviteLinkFromPb(pb.ChatInviteLink link) => models.ChatInviteLink(
+  id: link.code,
+  link: invitePath(link.code),
+  title: link.title,
+  primary: link.primary,
+  revoked: link.revoked,
+  expireDate: _millis(link.expireDate),
+  usageLimit: link.usageLimit,
+  usage: link.usage,
+  requestApproval: link.requestApproval,
+  pendingCount: link.pendingCount,
+  createdAt: _millis(link.createdAt) ?? DateTime.fromMillisecondsSinceEpoch(0),
+);
+
+/// Порядок ссылок, как на сервере (`InviteLinks`): основная первой, затем
+/// действующие и отозванные — каждые от новых к старым.
+List<models.ChatInviteLink> sortInviteLinks(Iterable<models.ChatInviteLink> links) {
+  int rank(models.ChatInviteLink l) => l.primary && !l.revoked ? 0 : (l.revoked ? 2 : 1);
+  return links.toList()..sort((a, b) {
+    final byRank = rank(a).compareTo(rank(b));
+    return byRank != 0 ? byRank : b.createdAt.compareTo(a.createdAt);
+  });
+}
+
+/// Ключ отказа «имя не по правилам» (CheckUsername `invalid`, CreateGroup /
+/// EditChat INVALID_ARGUMENT).
+const usernameInvalidError = 'usernameInvalid';
+
+/// Как вступать в чужую группу из предпросмотра: нужна заявка (ссылка с
+/// одобрением или режим REQUEST) — «Подать заявку», иначе — по режиму.
+models.ChatJoinMode previewJoinMode(pb.ChatPreview preview) =>
+    preview.requestNeeded ? models.ChatJoinMode.request : joinModeFromPb(preview.chat.joinMode);
+
+/// Свежая страница истории предпросмотра ([fresh], от старых к новым) поверх
+/// уже загруженной [loaded]: без повторов, по возрастанию messageID.
+List<pb.ChatMessage> mergePreviewHistory(List<pb.ChatMessage> loaded, List<pb.ChatMessage> fresh) {
+  final byID = {for (final m in loaded) m.messageID: m, for (final m in fresh) m.messageID: m};
+  return byID.values.toList()..sort((a, b) => a.messageID.compareTo(b.messageID));
+}
+
+/// Заявка с сервера → модель ([name] / [about] — по общему правилу имени и из
+/// профиля); ссылка — её код и название.
+models.ChatJoinRequest joinRequestFromPb(pb.ChatJoinRequest request, {required String name, String about = ''}) => models.ChatJoinRequest(
+  userID: idHex(request.userID),
+  name: name,
+  about: about,
+  date: DateTime.fromMillisecondsSinceEpoch(request.date.toInt()),
+  linkID: request.inviteCode,
+  linkTitle: request.inviteTitle,
+);
+
+/// Что из вступления менять в `EditChat` (`null` — не трогать): способ
+/// [joinMode], имя [username] (только у публичной; уход из публичной
+/// освобождает его на сервере сам) и «Скрыть историю» [historyHidden]
+/// (только у частной).
+class EditJoinChanges {
+  final pb.ChatJoinMode? joinMode;
+  final String? username;
+  final bool? historyHidden;
+
+  const EditJoinChanges({this.joinMode, this.username, this.historyHidden});
+
+  bool get isEmpty => joinMode == null && username == null && historyHidden == null;
+}
+
+EditJoinChanges editJoinChanges(
+  pb.ChatInfo info, {
+  required models.ChatJoinMode joinMode,
+  required String username,
+  required bool historyHidden,
+}) {
+  final mode = joinModeToPb(joinMode);
+  final open = joinMode == models.ChatJoinMode.open;
+  final name = username.trim().toLowerCase();
+  return EditJoinChanges(
+    joinMode: mode != info.joinMode ? mode : null,
+    username: open && name.isNotEmpty && name != info.username.toLowerCase() ? name : null,
+    historyHidden: !open && historyHidden != info.historyHidden ? historyHidden : null,
+  );
+}

@@ -728,6 +728,12 @@ class Translations$screenNewChat$en {
 	/// en: 'Private channels can only be joined via an invite link.'
 	String get channelPrivateFooter => 'Private channels can only be joined via an invite link.';
 
+	/// en: 'Anyone can find a public group by its link and join it.'
+	String get groupPublicFooter => 'Anyone can find a public group by its link and join it.';
+
+	/// en: 'Private groups can only be joined via an invite link.'
+	String get groupPrivateFooter => 'Private groups can only be joined via an invite link.';
+
 	/// en: 'Anyone can find a public community in search and join it.'
 	String get communityPublicFooter => 'Anyone can find a public community in search and join it.';
 
@@ -749,6 +755,9 @@ class Translations$screenNewChat$en {
 	/// en: 'This link is already taken.'
 	String get usernameTaken => 'This link is already taken.';
 
+	/// en: 'Couldn't check the link — no connection.'
+	String get usernameCheckFailed => 'Couldn\'t check the link — no connection.';
+
 	/// en: '5–24 characters: Latin letters a–z, digits and _.'
 	String get usernameInvalid => '5–24 characters: Latin letters a–z, digits and _.';
 
@@ -760,6 +769,9 @@ class Translations$screenNewChat$en {
 
 	/// en: 'Anyone with this link can join. Tap to copy.'
 	String get inviteLinkFooter => 'Anyone with this link can join. Tap to copy.';
+
+	/// en: 'The invite link will appear once you save.'
+	String get inviteLinkLater => 'The invite link will appear once you save.';
 
 	/// en: 'Link copied'
 	String get copied => 'Link copied';
@@ -841,6 +853,15 @@ class Translations$screenNewChat$en {
 
 	/// en: 'Only admins will see the list.'
 	String get hideMembersFooter => 'Only admins will see the list.';
+
+	/// en: 'Hide History'
+	String get historyHidden => 'Hide History';
+
+	/// en: 'New members won't see messages sent before they joined.'
+	String get historyHiddenFooter => 'New members won\'t see messages sent before they joined.';
+
+	/// en: 'New members will see the whole message history.'
+	String get historyShownFooter => 'New members will see the whole message history.';
 
 	/// en: 'Joining'
 	String get joinHeader => 'Joining';
@@ -1060,6 +1081,18 @@ class Translations$screenChatInvites$en {
 
 	/// en: 'When someone asks to join, the request will appear here.'
 	String get requestsEmptyHint => 'When someone asks to join, the request will appear here.';
+
+	/// en: 'Couldn't load requests'
+	String get requestsFailed => 'Couldn\'t load requests';
+
+	/// en: 'Check your connection and try again.'
+	String get requestsFailedHint => 'Check your connection and try again.';
+
+	/// en: 'Retry'
+	String get retry => 'Retry';
+
+	/// en: 'All revoked links are deleted at once.'
+	String get deleteAllRevokedHint => 'All revoked links are deleted at once.';
 
 	/// en: 'Accept'
 	String get approve => 'Accept';
@@ -3943,6 +3976,24 @@ class Translations$chatAction$en {
 
 	/// en: 'You don't have permission for this action.'
 	String get permissionDenied => 'You don\'t have permission for this action.';
+
+	/// en: 'You are banned from this group.'
+	String get banned => 'You are banned from this group.';
+
+	/// en: 'You are already in the maximum number of groups.'
+	String get groupsLimit => 'You are already in the maximum number of groups.';
+
+	/// en: 'This link is invalid or has expired.'
+	String get linkInvalid => 'This link is invalid or has expired.';
+
+	/// en: 'The invite link limit has been reached.'
+	String get linksLimit => 'The invite link limit has been reached.';
+
+	/// en: 'This link is already taken.'
+	String get usernameTaken => 'This link is already taken.';
+
+	/// en: 'The link must be 5–24 characters: Latin letters, digits and «_».'
+	String get usernameInvalid => 'The link must be 5–24 characters: Latin letters, digits and «_».';
 }
 
 // Path: chatTtl
@@ -4423,6 +4474,8 @@ extension on Translations {
 			'screenNewChat.typePrivate' => 'Private',
 			'screenNewChat.channelPublicFooter' => 'Anyone can find a public channel in search and subscribe.',
 			'screenNewChat.channelPrivateFooter' => 'Private channels can only be joined via an invite link.',
+			'screenNewChat.groupPublicFooter' => 'Anyone can find a public group by its link and join it.',
+			'screenNewChat.groupPrivateFooter' => 'Private groups can only be joined via an invite link.',
 			'screenNewChat.communityPublicFooter' => 'Anyone can find a public community in search and join it.',
 			'screenNewChat.communityPrivateFooter' => 'Private communities can only be joined via an invite link.',
 			'screenNewChat.link' => 'Link',
@@ -4430,10 +4483,12 @@ extension on Translations {
 			'screenNewChat.usernameChecking' => 'Checking…',
 			'screenNewChat.usernameAvailable' => 'This link is available.',
 			'screenNewChat.usernameTaken' => 'This link is already taken.',
+			'screenNewChat.usernameCheckFailed' => 'Couldn\'t check the link — no connection.',
 			'screenNewChat.usernameInvalid' => '5–24 characters: Latin letters a–z, digits and _.',
 			'screenNewChat.usernameEmpty' => 'Pick a link people will use to find it.',
 			'screenNewChat.inviteLink' => 'Invite Link',
 			'screenNewChat.inviteLinkFooter' => 'Anyone with this link can join. Tap to copy.',
+			'screenNewChat.inviteLinkLater' => 'The invite link will appear once you save.',
 			'screenNewChat.copied' => 'Link copied',
 			'screenNewChat.commentsSwitch' => 'Comments',
 			'screenNewChat.commentsFooter' => 'Subscribers can discuss each post in its comments.',
@@ -4459,6 +4514,9 @@ extension on Translations {
 			'screenNewChat.hideMembers' => 'Hide Members',
 			'screenNewChat.hideSubscribers' => 'Hide Subscribers',
 			'screenNewChat.hideMembersFooter' => 'Only admins will see the list.',
+			'screenNewChat.historyHidden' => 'Hide History',
+			'screenNewChat.historyHiddenFooter' => 'New members won\'t see messages sent before they joined.',
+			'screenNewChat.historyShownFooter' => 'New members will see the whole message history.',
 			'screenNewChat.joinHeader' => 'Joining',
 			'screenNewChat.joinOpen' => 'Open',
 			'screenNewChat.joinLink' => 'By Invite Link',
@@ -4529,6 +4587,10 @@ extension on Translations {
 			'screenChatInvites.limitFooter' => 'How many people can join via this link.',
 			'screenChatInvites.requestsEmpty' => 'No join requests',
 			'screenChatInvites.requestsEmptyHint' => 'When someone asks to join, the request will appear here.',
+			'screenChatInvites.requestsFailed' => 'Couldn\'t load requests',
+			'screenChatInvites.requestsFailedHint' => 'Check your connection and try again.',
+			'screenChatInvites.retry' => 'Retry',
+			'screenChatInvites.deleteAllRevokedHint' => 'All revoked links are deleted at once.',
 			'screenChatInvites.approve' => 'Accept',
 			'screenChatInvites.decline' => 'Decline',
 			'screenChatInvites.approveAll' => 'Accept All',
@@ -4733,6 +4795,8 @@ extension on Translations {
 			'screenChat.sendNow' => 'Send now',
 			'screenChat.reschedule' => 'Reschedule',
 			'screenChat.deleteScheduledTitle' => 'Delete scheduled message?',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.scheduledHint' => 'Scheduled messages',
 			'screenChat.linkPreview' => 'Link preview',
 			'screenChat.forward' => 'Forward',
@@ -4744,8 +4808,6 @@ extension on Translations {
 			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Forward ${n} message', other: 'Forward ${n} messages', ), 
 			'screenChat.deleteSelectedTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Delete ${n} message?', other: 'Delete ${n} messages?', ), 
 			'screenChat.deleteSelectedMessage' => 'Messages will be deleted for everyone in the chat.',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.deleteMessageSelf' => 'The message will be deleted from Saved Messages.',
 			'screenChat.deleteSelectedMessageSelf' => 'The messages will be deleted from Saved Messages.',
 			'screenChat.voiceSlideToCancel' => 'Slide to cancel',
@@ -5247,6 +5309,8 @@ extension on Translations {
 			'screenCalls.missed' => 'Missed',
 			'screenCalls.cancelled' => 'Cancelled',
 			'screenCalls.durationSec' => ({required Object s}) => '${s} sec',
+			_ => null,
+		} ?? switch (path) {
 			'screenCalls.durationMin' => ({required Object m}) => '${m} min',
 			'screenCalls.durationHour' => ({required Object h}) => '${h} h',
 			'screenCalls.durationHourMin' => ({required Object h, required Object m}) => '${h} h ${m} min',
@@ -5258,8 +5322,6 @@ extension on Translations {
 			'screenAuth.enterYourMobilePhoneNumber' => 'Enter your mobile phone number',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Currently, we only support phone numbers from Russian mobile operators',
 			'screenAuth.insertDebugPhone' => 'Insert debug phone',
-			_ => null,
-		} ?? switch (path) {
 			'screenAuth.callForFree' => 'Call for free',
 			'screenAuth.weAreExpectingYourCallWithin' => ({required Object duration}) => 'We are expecting your call within ${duration}',
 			'screenAuth.signInWith' => 'Sign in with',
@@ -5391,6 +5453,12 @@ extension on Translations {
 			'chatAction.chatWriteForbidden' => 'You can only read this group.',
 			'chatAction.passwordInvalid' => 'Wrong cloud password.',
 			'chatAction.permissionDenied' => 'You don\'t have permission for this action.',
+			'chatAction.banned' => 'You are banned from this group.',
+			'chatAction.groupsLimit' => 'You are already in the maximum number of groups.',
+			'chatAction.linkInvalid' => 'This link is invalid or has expired.',
+			'chatAction.linksLimit' => 'The invite link limit has been reached.',
+			'chatAction.usernameTaken' => 'This link is already taken.',
+			'chatAction.usernameInvalid' => 'The link must be 5–24 characters: Latin letters, digits and «_».',
 			'chatTtl.title' => 'Auto-delete',
 			'chatTtl.titleLong' => 'Auto-delete messages',
 			'chatTtl.off' => 'Off',

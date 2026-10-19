@@ -1,10 +1,14 @@
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../cubit.dart';
 import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import 'chat_common.dart';
 
 /// Общее для «Ссылок-приглашений» и «Заявок на вступление» (Cupertino +
 /// Material).
@@ -75,3 +79,21 @@ String inviteDurationLabel(Translations t, Duration? duration) => switch (durati
 
 /// Пресеты лимита вступлений (0 — без ограничений).
 const inviteLimits = [0, 1, 10, 50, 100];
+
+/// «Нет соединения» и отказы сервера для экранов ссылок и заявок (действия
+/// с ними — серверные записи).
+class ChatInvitesNoticeListener extends StatelessWidget {
+  final Widget child;
+
+  const ChatInvitesNoticeListener({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) => ChatsOfflineListener<ChatInvitesCubit, ChatInvitesState>(
+    notice: (state) => state.offlineNotice,
+    child: BlocListener<ChatInvitesCubit, ChatInvitesState>(
+      listenWhen: (previous, current) => current.failNotice > previous.failNotice,
+      listener: (context, state) => showChatsFailed(context, state.failError),
+      child: child,
+    ),
+  );
+}

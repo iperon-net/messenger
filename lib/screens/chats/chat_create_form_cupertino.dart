@@ -157,12 +157,18 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
             builder: (context, state) {
               final type = state.type;
               // Описание и вступление — у канала и сообщества, а в «Изменить» и
-              // внутри сообщества — и у группы.
-              final withLink = type == models.ChatType.channel || type == models.ChatType.community || state.isEdit || state.inCommunity;
-              // Сервер (группы среза 3.1): только описание — без вступления, ролей
-              // и настроек.
+              // внутри сообщества — и у группы (с вступлением 3.3 — и при её
+              // создании: публичная / частная).
+              final withLink =
+                  type == models.ChatType.channel ||
+                  type == models.ChatType.community ||
+                  state.isEdit ||
+                  state.inCommunity ||
+                  (type == models.ChatType.group && state.joining);
+              // Сервер: описание и вступление (3.3) — без реакций, «новичков» и
+              // прочих настроек 3.4.
               final showAbout = withLink || state.basic;
-              final showJoin = withLink && !state.basic;
+              final showJoin = withLink && (!state.basic || state.joining);
               final joinModes = joinModesFor(state);
               final canCreate = _nameController.text.trim().isNotEmpty && state.linkReady && state.coordinatesValid && !state.creating;
               final hint = usernameHint(t, state);
@@ -361,7 +367,12 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                           ],
                         ),
                       // Сервер (3.2): в «Изменить» группы — и роль вступающих.
-                      if (state.basic && state.basicDefaultRole && state.isEdit && type == models.ChatType.group && !state.inCommunity)
+                      if (!showJoin &&
+                          state.basic &&
+                          state.basicDefaultRole &&
+                          state.isEdit &&
+                          type == models.ChatType.group &&
+                          !state.inCommunity)
                         section(
                           header: createHeaderCupertino(t.screenNewChat.defaultRoleHeader),
                           footer: createNoteCupertino(defaultRoleFooter(t, state.defaultRole)),
@@ -423,19 +434,49 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                         else if (state.joinMode != models.ChatJoinMode.admins && !state.inCommunity)
                           section(
                             header: createHeaderCupertino(t.screenNewChat.inviteLink),
-                            footer: createNoteCupertino(t.screenNewChat.inviteLinkFooter),
+                            // Код выдаёт сервер — до сохранения его ещё нет.
+                            footer: createNoteCupertino(
+                              state.inviteLink.isEmpty ? t.screenNewChat.inviteLinkLater : t.screenNewChat.inviteLinkFooter,
+                            ),
+                            children: [
+                              if (state.inviteLink.isNotEmpty)
+                                CupertinoListTile(
+                                  title: Text(
+                                    'iperon.net/${state.inviteLink}',
+                                    style: TextStyle(fontSize: AppFontSizes.body, color: action),
+                                  ),
+                                  trailing: HugeIcon(icon: HugeIcons.strokeRoundedCopy01, color: action, size: 20),
+                                  onTap: () => _copyLink(context, state.inviteLink),
+                                )
+                              else
+                                CupertinoListTile(
+                                  title: Text(
+                                    'iperon.net/+…',
+                                    style: TextStyle(fontSize: AppFontSizes.body, color: secondary),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        // «Скрыть историю» — у частной группы.
+                        if (state.isEdit &&
+                            type == models.ChatType.group &&
+                            !state.inCommunity &&
+                            state.joinMode != models.ChatJoinMode.open)
+                          section(
+                            footer: createNoteCupertino(
+                              state.historyHidden ? t.screenNewChat.historyHiddenFooter : t.screenNewChat.historyShownFooter,
+                            ),
                             children: [
                               CupertinoListTile(
-                                title: Text(
-                                  'iperon.net/${state.inviteLink}',
-                                  style: TextStyle(fontSize: AppFontSizes.body, color: action),
+                                title: Text(t.screenNewChat.historyHidden, style: const TextStyle(fontSize: AppFontSizes.body)),
+                                trailing: CupertinoSwitch(
+                                  value: state.historyHidden,
+                                  onChanged: context.read<ChatCreateCubit>().setHistoryHidden,
                                 ),
-                                trailing: HugeIcon(icon: HugeIcons.strokeRoundedCopy01, color: action, size: 20),
-                                onTap: () => _copyLink(context, state.inviteLink),
                               ),
                             ],
                           ),
-                        if (state.isEdit && type == models.ChatType.channel)
+                        if (state.isEdit && type == models.ChatType.channel && !state.basic)
                           section(
                             footer: createNoteCupertino(
                               [
@@ -496,7 +537,7 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                               ),
                             ],
                           ),
-                        if (state.isEdit && type != models.ChatType.channel)
+                        if (state.isEdit && type != models.ChatType.channel && (!state.basic || state.basicDefaultRole))
                           section(
                             header: createHeaderCupertino(t.screenNewChat.defaultRoleHeader),
                             footer: createNoteCupertino(defaultRoleFooter(t, state.defaultRole)),
@@ -509,7 +550,8 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                                 ),
                             ],
                           ),
-                        if (state.isEdit && type != models.ChatType.channel)
+                        // «Новичкам — без ссылок и медиа» — на сервере в 3.4.
+                        if (state.isEdit && type != models.ChatType.channel && !state.basic)
                           section(
                             footer: createNoteCupertino(t.screenNewChat.newcomerMediaFooterGroup),
                             children: [

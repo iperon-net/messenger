@@ -642,6 +642,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     int newcomerMediaDelay = 0,
     bool signMessages = false,
     bool membersHidden = false,
+    bool historyHidden = false,
   }) async {
     final chat = _chat(chatID);
     if (chat == null) return;
@@ -685,6 +686,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
         newcomerMediaDelay: newcomerMediaDelay,
         signMessages: chat.type == models.ChatType.channel && signMessages,
         membersHidden: membersHidden,
+        // «Скрыть историю» — только у частной группы.
+        historyHidden: chat.type == models.ChatType.group && !open && historyHidden,
       ),
     );
     // Основная ссылка — та же, что в чате (форма могла выдать новую).
@@ -823,6 +826,9 @@ class ChatsDemoDataSource implements ChatsDataSource {
             : l,
     ]);
   }
+
+  @override
+  bool get deletesRevokedLinkSingly => true;
 
   @override
   Future<void> revokeInviteLink(String chatID, String linkID) async {

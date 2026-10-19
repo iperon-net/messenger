@@ -167,12 +167,18 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
             builder: (context, state) {
               final type = state.type;
               // Описание и вступление — у канала и сообщества, а в «Изменить» и
-              // внутри сообщества — и у группы.
-              final withLink = type == models.ChatType.channel || type == models.ChatType.community || state.isEdit || state.inCommunity;
-              // Сервер (группы среза 3.1): только описание — без вступления, ролей
-              // и настроек.
+              // внутри сообщества — и у группы (с вступлением 3.3 — и при её
+              // создании: публичная / частная).
+              final withLink =
+                  type == models.ChatType.channel ||
+                  type == models.ChatType.community ||
+                  state.isEdit ||
+                  state.inCommunity ||
+                  (type == models.ChatType.group && state.joining);
+              // Сервер: описание и вступление (3.3) — без реакций, «новичков» и
+              // прочих настроек 3.4.
               final showAbout = withLink || state.basic;
-              final showJoin = withLink && !state.basic;
+              final showJoin = withLink && (!state.basic || state.joining);
               // Способы вступления — списком (в сообществе — одним нажатием / по
               // заявке), «Публичный / Частный» — переключателем.
               final joinList = (state.isEdit && type != models.ChatType.channel) || state.inCommunity;
@@ -363,7 +369,12 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                         if (!state.isEdit) createNoteMaterial(context, createDescriptionFooter(t, type)),
                       ],
                       // Сервер (3.2): в «Изменить» группы — и роль вступающих.
-                      if (state.basic && state.basicDefaultRole && state.isEdit && type == models.ChatType.group && !state.inCommunity) ...[
+                      if (!showJoin &&
+                          state.basic &&
+                          state.basicDefaultRole &&
+                          state.isEdit &&
+                          type == models.ChatType.group &&
+                          !state.inCommunity) ...[
                         createHeaderMaterial(context, t.screenNewChat.defaultRoleHeader),
                         card([
                           Padding(
@@ -442,16 +453,44 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                         ] else if (state.joinMode != models.ChatJoinMode.admins && !state.inCommunity) ...[
                           createHeaderMaterial(context, t.screenNewChat.inviteLink),
                           card([
-                            ListTile(
-                              leading: HugeIcon(icon: HugeIcons.strokeRoundedLink01, color: scheme.onSurfaceVariant),
-                              title: Text('iperon.net/${state.inviteLink}'),
-                              trailing: HugeIcon(icon: HugeIcons.strokeRoundedCopy01, color: scheme.primary, size: 20),
-                              onTap: () => _copyLink(context, state.inviteLink),
+                            // Код выдаёт сервер — до сохранения его ещё нет.
+                            if (state.inviteLink.isNotEmpty)
+                              ListTile(
+                                leading: HugeIcon(icon: HugeIcons.strokeRoundedLink01, color: scheme.onSurfaceVariant),
+                                title: Text('iperon.net/${state.inviteLink}'),
+                                trailing: HugeIcon(icon: HugeIcons.strokeRoundedCopy01, color: scheme.primary, size: 20),
+                                onTap: () => _copyLink(context, state.inviteLink),
+                              )
+                            else
+                              ListTile(
+                                leading: HugeIcon(icon: HugeIcons.strokeRoundedLink01, color: scheme.onSurfaceVariant),
+                                title: Text('iperon.net/+…', style: TextStyle(color: scheme.onSurfaceVariant)),
+                              ),
+                          ]),
+                          createNoteMaterial(
+                            context,
+                            state.inviteLink.isEmpty ? t.screenNewChat.inviteLinkLater : t.screenNewChat.inviteLinkFooter,
+                          ),
+                        ],
+                        // «Скрыть историю» — у частной группы.
+                        if (state.isEdit &&
+                            type == models.ChatType.group &&
+                            !state.inCommunity &&
+                            state.joinMode != models.ChatJoinMode.open) ...[
+                          const SizedBox(height: 8),
+                          card([
+                            SwitchListTile(
+                              title: Text(t.screenNewChat.historyHidden),
+                              value: state.historyHidden,
+                              onChanged: context.read<ChatCreateCubit>().setHistoryHidden,
                             ),
                           ]),
-                          createNoteMaterial(context, t.screenNewChat.inviteLinkFooter),
+                          createNoteMaterial(
+                            context,
+                            state.historyHidden ? t.screenNewChat.historyHiddenFooter : t.screenNewChat.historyShownFooter,
+                          ),
                         ],
-                        if (state.isEdit && type == models.ChatType.channel) ...[
+                        if (state.isEdit && type == models.ChatType.channel && !state.basic) ...[
                           const SizedBox(height: 8),
                           card([
                             SwitchListTile(
@@ -519,7 +558,7 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                             ].join(' '),
                           ),
                         ],
-                        if (state.isEdit && type != models.ChatType.channel) ...[
+                        if (state.isEdit && type != models.ChatType.channel && (!state.basic || state.basicDefaultRole)) ...[
                           createHeaderMaterial(context, t.screenNewChat.defaultRoleHeader),
                           card([
                             Padding(
@@ -539,9 +578,12 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                             ),
                           ]),
                           createNoteMaterial(context, defaultRoleFooter(t, state.defaultRole)),
-                          const SizedBox(height: 8),
-                          card([newcomerTile()]),
-                          createNoteMaterial(context, t.screenNewChat.newcomerMediaFooterGroup),
+                          // «Новичкам — без ссылок и медиа» — на сервере в 3.4.
+                          if (!state.basic) ...[
+                            const SizedBox(height: 8),
+                            card([newcomerTile()]),
+                            createNoteMaterial(context, t.screenNewChat.newcomerMediaFooterGroup),
+                          ],
                         ],
                       ],
 

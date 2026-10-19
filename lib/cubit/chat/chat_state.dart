@@ -146,6 +146,9 @@ class ChatState with ChatStateMappable {
   final int failNotice;
   final String failError;
 
+  /// «Вступить» / «Подать заявку» отправлено и ждёт ответа сервера.
+  final bool joining;
+
   const ChatState({
     this.status = Status.initialization,
     this.offlineNotice = 0,
@@ -153,6 +156,7 @@ class ChatState with ChatStateMappable {
     this.restrictedCount = 0,
     this.failNotice = 0,
     this.failError = '',
+    this.joining = false,
     this.chat,
     this.messages = const [],
     this.communityChats = const [],

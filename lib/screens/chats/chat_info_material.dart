@@ -379,8 +379,16 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
         // «Изменить» — «стёкла» поверх обложки, пока она видна.
         final onCover = community && _overCover;
         final canEdit = chat != null && chatInfoCanEdit(chat, state.members);
-        // Ссылки, заявки, реакции, медленный режим — демо (на сервере — 3.3–3.4).
-        final extras = context.read<ChatCubit>().features.groupExtras;
+        // Реакции, медленный режим — демо (на сервере — 3.4); ссылки и заявки
+        // — с вступлением (3.3) и правом приглашать.
+        final features = context.read<ChatCubit>().features;
+        final extras = features.groupExtras;
+        final invites = chat != null && (extras ? !chat.inCommunity : chatInfoShowsInvites(chat, features, state.members));
+        final requests =
+            chat != null &&
+            (extras
+                ? (!chat.inCommunity || chat.joinMode == models.ChatJoinMode.request)
+                : chatInfoShowsInvites(chat, features, state.members));
         return Scaffold(
           backgroundColor: scheme.surfaceContainerLow,
           extendBodyBehindAppBar: community,
@@ -563,7 +571,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                             ),
                           ),
                         if (community && chat.isMember) CommunityChatsMaterial(community: chat, chats: state.communityChats, card: card),
-                        if (chat.canManage && chat.type != models.ChatType.private && chatRolesEnabled(context.read<ChatCubit>().features))
+                        if (chat.canManage && chat.type != models.ChatType.private && chatRolesEnabled(features))
                           Card(
                             margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
                             color: card,
@@ -572,14 +580,14 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                               children: [
                                 // У чатов сообщества своих ссылок и блокировок нет —
                                 // вступают и блокируются через сообщество.
-                                // Ссылки, заявки, реакции и медленный режим — на сервере в 3.3–3.4.
-                                if (extras && !chat.inCommunity)
+                                // Реакции и медленный режим — на сервере в 3.4.
+                                if (invites)
                                   ListTile(
                                     leading: HugeIcon(icon: HugeIcons.strokeRoundedLink01, color: scheme.onSurfaceVariant),
                                     title: Text(t.screenChatInvites.inviteLinks),
                                     onTap: () => showChatInviteLinksMaterial(context, chat.id),
                                   ),
-                                if (extras && (!chat.inCommunity || chat.joinMode == models.ChatJoinMode.request))
+                                if (requests)
                                   ListTile(
                                     leading: HugeIcon(icon: HugeIcons.strokeRoundedUserAdd01, color: scheme.onSurfaceVariant),
                                     title: Text(t.screenChatInvites.joinRequests),
@@ -685,7 +693,9 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                         margin: EdgeInsets.fromLTRB(12, tabs.length > 1 ? 0 : 16, 12, 0),
                         onMemberTap: (member) => _memberTap(context, chat, member),
                         memberWrapper: _memberLongPress(context, chat),
-                        onAddMembers: canAddMembers(chat, context.read<ChatCubit>().features) ? () => _addMembers(context) : null,
+                        onAddMembers: canAddMembers(chat, context.read<ChatCubit>().features, state.members)
+                            ? () => _addMembers(context)
+                            : null,
                       )
                     else if (tabs.isNotEmpty)
                       SliverToBoxAdapter(
@@ -711,7 +721,9 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                                 onOpenMessage: (id) => Navigator.of(context).pop(ChatInfoResult.goTo(id)),
                                 onMemberTap: (member) => _memberTap(context, chat, member),
                                 memberWrapper: _memberLongPress(context, chat),
-                                onAddMembers: canAddMembers(chat, context.read<ChatCubit>().features) ? () => _addMembers(context) : null,
+                                onAddMembers: canAddMembers(chat, context.read<ChatCubit>().features, state.members)
+                                    ? () => _addMembers(context)
+                                    : null,
                               ),
                             ],
                           ),

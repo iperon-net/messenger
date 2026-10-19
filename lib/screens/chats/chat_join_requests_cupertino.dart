@@ -36,82 +36,111 @@ class ChatJoinRequestsCupertino extends StatelessWidget {
     final background = ThemesCupertino.groupedBackground.resolveFrom(context);
     final card = ThemesCupertino.groupedCard.resolveFrom(context);
 
-    return BlocBuilder<ChatInvitesCubit, ChatInvitesState>(
-      builder: (context, state) {
-        final chat = state.chat;
-        final requests = state.requests;
-        return CupertinoPageScaffold(
-          backgroundColor: ThemesCupertino.groupedBackground,
-          navigationBar: AppCupertinoNavigationBar(
-            child: CupertinoNavigationBar(
-              previousPageTitle: '',
-              automaticBackgroundVisibility: false,
-              backgroundColor: ThemesCupertino.groupedBackground,
-              middle: Text(tc.joinRequests),
-              // «Все» — выпадающее меню: принять / отклонить все.
-              trailing: requests.length > 1
-                  ? CupertinoMenuAnchor(
-                      menuChildren: [
-                        CupertinoMenuItem(
-                          trailing: const Icon(CupertinoIcons.checkmark_circle),
-                          onPressed: () => context.read<ChatInvitesCubit>().answer(approve: true),
-                          child: Text(tc.approveAll),
-                        ),
-                        CupertinoMenuItem(
-                          isDestructiveAction: true,
-                          trailing: const Icon(CupertinoIcons.xmark_circle),
-                          onPressed: () => context.read<ChatInvitesCubit>().answer(approve: false),
-                          child: Text(tc.declineAll),
-                        ),
-                      ],
-                      builder: (context, controller, child) => CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () => controller.isOpen ? controller.close() : controller.open(),
-                        child: Text(tc.all),
-                      ),
-                    )
-                  : null,
-            ),
-          ),
-          child: SafeArea(
-            child: requests.isEmpty
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            tc.requestsEmpty,
-                            style: TextStyle(
-                              fontSize: AppFontSizes.value,
-                              fontWeight: FontWeight.w600,
-                              color: CupertinoColors.label.resolveFrom(context),
-                            ),
+    return ChatInvitesNoticeListener(
+      child: BlocBuilder<ChatInvitesCubit, ChatInvitesState>(
+        builder: (context, state) {
+          final chat = state.chat;
+          final requests = state.requests;
+          return CupertinoPageScaffold(
+            backgroundColor: ThemesCupertino.groupedBackground,
+            navigationBar: AppCupertinoNavigationBar(
+              child: CupertinoNavigationBar(
+                previousPageTitle: '',
+                automaticBackgroundVisibility: false,
+                backgroundColor: ThemesCupertino.groupedBackground,
+                middle: Text(tc.joinRequests),
+                // «Все» — выпадающее меню: принять / отклонить все.
+                trailing: requests.length > 1
+                    ? CupertinoMenuAnchor(
+                        menuChildren: [
+                          CupertinoMenuItem(
+                            trailing: const Icon(CupertinoIcons.checkmark_circle),
+                            onPressed: () => context.read<ChatInvitesCubit>().answer(approve: true),
+                            child: Text(tc.approveAll),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            chat != null && chat.joinMode != models.ChatJoinMode.request ? tc.requestsOffHint : tc.requestsEmptyHint,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: AppFontSizes.caption, color: secondary),
+                          CupertinoMenuItem(
+                            isDestructiveAction: true,
+                            trailing: const Icon(CupertinoIcons.xmark_circle),
+                            onPressed: () => context.read<ChatInvitesCubit>().answer(approve: false),
+                            child: Text(tc.declineAll),
                           ),
                         ],
+                        builder: (context, controller, child) => CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: () => controller.isOpen ? controller.close() : controller.open(),
+                          child: Text(tc.all),
+                        ),
+                      )
+                    : null,
+              ),
+            ),
+            child: SafeArea(
+              child: requests.isEmpty && state.requestsLoading && !state.requestsFailed
+                  ? const Center(child: CupertinoActivityIndicator())
+                  : requests.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Не загрузились — так и говорим (а не «заявок нет»).
+                            Text(
+                              state.requestsFailed ? tc.requestsFailed : tc.requestsEmpty,
+                              style: TextStyle(
+                                fontSize: AppFontSizes.value,
+                                fontWeight: FontWeight.w600,
+                                color: CupertinoColors.label.resolveFrom(context),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              state.requestsFailed
+                                  ? tc.requestsFailedHint
+                                  : (chat != null && chat.joinMode != models.ChatJoinMode.request
+                                        ? tc.requestsOffHint
+                                        : tc.requestsEmptyHint),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: AppFontSizes.caption, color: secondary),
+                            ),
+                            if (state.requestsFailed) ...[
+                              const SizedBox(height: 16),
+                              CupertinoButton.tinted(onPressed: context.read<ChatInvitesCubit>().retryRequests, child: Text(tc.retry)),
+                            ],
+                          ],
+                        ),
                       ),
+                    )
+                  : ListView(
+                      padding: const EdgeInsets.only(bottom: 24),
+                      children: [
+                        // Список мог устареть — обновить не удалось.
+                        if (state.requestsFailed)
+                          CupertinoListSection.insetGrouped(
+                            backgroundColor: background,
+                            decoration: BoxDecoration(color: card, borderRadius: const BorderRadius.all(Radius.circular(10))),
+                            children: [
+                              CupertinoListTile(
+                                title: Text(
+                                  tc.requestsFailed,
+                                  style: TextStyle(color: CupertinoColors.destructiveRed.resolveFrom(context)),
+                                ),
+                                trailing: Text(tc.retry, style: TextStyle(color: ThemesCupertino.actionColor(context))),
+                                onTap: context.read<ChatInvitesCubit>().retryRequests,
+                              ),
+                            ],
+                          ),
+                        CupertinoListSection.insetGrouped(
+                          backgroundColor: background,
+                          decoration: BoxDecoration(color: card, borderRadius: const BorderRadius.all(Radius.circular(10))),
+                          children: [for (final request in requests) _RequestTile(request: request)],
+                        ),
+                      ],
                     ),
-                  )
-                : ListView(
-                    padding: const EdgeInsets.only(bottom: 24),
-                    children: [
-                      CupertinoListSection.insetGrouped(
-                        backgroundColor: background,
-                        decoration: BoxDecoration(color: card, borderRadius: const BorderRadius.all(Radius.circular(10))),
-                        children: [for (final request in requests) _RequestTile(request: request)],
-                      ),
-                    ],
-                  ),
-          ),
-        );
-      },
+            ),
+          );
+        },
+      ),
     );
   }
 }

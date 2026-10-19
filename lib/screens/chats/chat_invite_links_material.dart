@@ -119,110 +119,114 @@ class ChatInviteLinksMaterial extends StatelessWidget {
       child: const HugeIcon(icon: HugeIcons.strokeRoundedLink01, color: Colors.white, size: 15),
     );
 
-    Widget linkTile(models.ChatInviteLink link, DateTime now) {
+    // [actions] — у отозванной, если её одну удалить нельзя (сервер), — нет.
+    Widget linkTile(models.ChatInviteLink link, DateTime now, {bool actions = true}) {
       final subtitle = inviteSubtitle(t, link, now);
       return ListTile(
         leading: linkIcon(link.isActive(now)),
         title: Text(inviteTitle(link)),
         subtitle: Text(subtitle.text, style: TextStyle(color: subtitle.warning ? scheme.error : scheme.onSurfaceVariant)),
-        onTap: () => _linkActions(context, link),
+        onTap: actions ? () => _linkActions(context, link) : null,
       );
     }
 
-    return BlocBuilder<ChatInvitesCubit, ChatInvitesState>(
-      builder: (context, state) {
-        final chat = state.chat;
-        final now = DateTime.now();
-        final primaryLink = state.primary;
-        final public = chat != null && chat.username.isNotEmpty;
-        final path = public ? chat.username : primaryLink?.link;
+    return ChatInvitesNoticeListener(
+      child: BlocBuilder<ChatInvitesCubit, ChatInvitesState>(
+        builder: (context, state) {
+          final chat = state.chat;
+          final now = DateTime.now();
+          final primaryLink = state.primary;
+          final public = chat != null && chat.username.isNotEmpty;
+          final path = public ? chat.username : primaryLink?.link;
 
-        return Scaffold(
-          backgroundColor: scheme.surfaceContainerLow,
-          appBar: AppBar(backgroundColor: scheme.surfaceContainerLow, title: Text(t.screenChatInvites.inviteLinks)),
-          body: chat == null
-              ? const SizedBox.shrink()
-              : SafeArea(
-                  child: ListView(
-                    padding: const EdgeInsets.only(bottom: 24),
-                    children: [
-                      if (chat.joinMode == models.ChatJoinMode.admins) createNoteMaterial(context, t.screenChatInvites.adminsOnlyNote),
-                      if (path != null) ...[
-                        createHeaderMaterial(context, public ? t.screenChatInvites.publicLink : t.screenChatInvites.primaryLink),
-                        card([
-                          // Ссылка в поле, справа — «Копировать» и «Поделиться» значками.
-                          Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Container(
-                              padding: const EdgeInsets.only(left: 12),
-                              decoration: BoxDecoration(color: scheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(12)),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: InkWell(
-                                      onTap: () => _copy(context, path),
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(vertical: 12),
-                                        child: Text(
-                                          inviteShort(path),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: Theme.of(context).textTheme.bodyLarge,
+          return Scaffold(
+            backgroundColor: scheme.surfaceContainerLow,
+            appBar: AppBar(backgroundColor: scheme.surfaceContainerLow, title: Text(t.screenChatInvites.inviteLinks)),
+            body: chat == null
+                ? const SizedBox.shrink()
+                : SafeArea(
+                    child: ListView(
+                      padding: const EdgeInsets.only(bottom: 24),
+                      children: [
+                        if (chat.joinMode == models.ChatJoinMode.admins) createNoteMaterial(context, t.screenChatInvites.adminsOnlyNote),
+                        if (path != null) ...[
+                          createHeaderMaterial(context, public ? t.screenChatInvites.publicLink : t.screenChatInvites.primaryLink),
+                          card([
+                            // Ссылка в поле, справа — «Копировать» и «Поделиться» значками.
+                            Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Container(
+                                padding: const EdgeInsets.only(left: 12),
+                                decoration: BoxDecoration(color: scheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(12)),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: InkWell(
+                                        onTap: () => _copy(context, path),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 12),
+                                          child: Text(
+                                            inviteShort(path),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: Theme.of(context).textTheme.bodyLarge,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  IconButton(
-                                    tooltip: t.screenChatInvites.copy,
-                                    onPressed: () => _copy(context, path),
-                                    icon: HugeIcon(icon: HugeIcons.strokeRoundedCopy01, color: scheme.primary, size: 21),
-                                  ),
-                                  IconButton(
-                                    tooltip: t.screenChatInvites.share,
-                                    onPressed: () => shareInvite(path),
-                                    icon: HugeIcon(icon: HugeIcons.strokeRoundedShare08, color: scheme.primary, size: 21),
-                                  ),
-                                ],
+                                    IconButton(
+                                      tooltip: t.screenChatInvites.copy,
+                                      onPressed: () => _copy(context, path),
+                                      icon: HugeIcon(icon: HugeIcons.strokeRoundedCopy01, color: scheme.primary, size: 21),
+                                    ),
+                                    IconButton(
+                                      tooltip: t.screenChatInvites.share,
+                                      onPressed: () => shareInvite(path),
+                                      icon: HugeIcon(icon: HugeIcons.strokeRoundedShare08, color: scheme.primary, size: 21),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                          if (!public && primaryLink != null)
-                            ListTile(
-                              title: Text(t.screenChatInvites.replace, style: TextStyle(color: scheme.error)),
-                              onTap: () => _replace(context, primaryLink),
-                            ),
-                        ]),
-                        createNoteMaterial(context, public ? t.screenChatInvites.publicLinkFooter : invitePrimaryFooter(t, chat)),
-                      ],
-                      createHeaderMaterial(context, t.screenChatInvites.additionalHeader),
-                      card([
-                        ListTile(
-                          leading: CircleAvatar(
-                            radius: 15,
-                            backgroundColor: scheme.primaryContainer,
-                            child: Icon(Icons.add, size: 18, color: scheme.onPrimaryContainer),
-                          ),
-                          title: Text(t.screenChatInvites.createLink, style: TextStyle(color: scheme.primary)),
-                          onTap: () => showChatInviteLinkEditMaterial(context, context.read<ChatInvitesCubit>()),
-                        ),
-                        for (final link in state.additional) linkTile(link, now),
-                      ]),
-                      createNoteMaterial(context, t.screenChatInvites.additionalFooter),
-                      if (state.revoked.isNotEmpty) ...[
-                        createHeaderMaterial(context, t.screenChatInvites.revokedHeader),
+                            if (!public && primaryLink != null)
+                              ListTile(
+                                title: Text(t.screenChatInvites.replace, style: TextStyle(color: scheme.error)),
+                                onTap: () => _replace(context, primaryLink),
+                              ),
+                          ]),
+                          createNoteMaterial(context, public ? t.screenChatInvites.publicLinkFooter : invitePrimaryFooter(t, chat)),
+                        ],
+                        createHeaderMaterial(context, t.screenChatInvites.additionalHeader),
                         card([
                           ListTile(
-                            title: Text(t.screenChatInvites.deleteAllRevoked, style: TextStyle(color: scheme.error)),
-                            onTap: () => context.read<ChatInvitesCubit>().deleteRevoked(),
+                            leading: CircleAvatar(
+                              radius: 15,
+                              backgroundColor: scheme.primaryContainer,
+                              child: Icon(Icons.add, size: 18, color: scheme.onPrimaryContainer),
+                            ),
+                            title: Text(t.screenChatInvites.createLink, style: TextStyle(color: scheme.primary)),
+                            onTap: () => showChatInviteLinkEditMaterial(context, context.read<ChatInvitesCubit>()),
                           ),
-                          for (final link in state.revoked) linkTile(link, now),
+                          for (final link in state.additional) linkTile(link, now),
                         ]),
+                        createNoteMaterial(context, t.screenChatInvites.additionalFooter),
+                        if (state.revoked.isNotEmpty) ...[
+                          createHeaderMaterial(context, t.screenChatInvites.revokedHeader),
+                          card([
+                            ListTile(
+                              title: Text(t.screenChatInvites.deleteAllRevoked, style: TextStyle(color: scheme.error)),
+                              onTap: () => context.read<ChatInvitesCubit>().deleteRevoked(),
+                            ),
+                            for (final link in state.revoked) linkTile(link, now, actions: state.deletesRevokedSingly),
+                          ]),
+                          if (!state.deletesRevokedSingly) createNoteMaterial(context, t.screenChatInvites.deleteAllRevokedHint),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

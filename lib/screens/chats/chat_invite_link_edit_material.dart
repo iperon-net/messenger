@@ -55,12 +55,17 @@ class _ChatInviteLinkEditMaterial extends State<ChatInviteLinkEditMaterial> {
     final duration = _preset < 0 ? null : invitePresetDurations[_preset];
     final expireDate = _preset < 0 ? widget.link?.expireDate : (duration == null ? null : DateTime.now().add(duration));
     final link = widget.link;
-    if (link == null) {
-      await cubit.createLink(title: _titleController.text, expireDate: expireDate, usageLimit: _limit, requestApproval: _approval);
+    final done = link == null
+        ? await cubit.createLink(title: _titleController.text, expireDate: expireDate, usageLimit: _limit, requestApproval: _approval)
+        : await cubit.editLink(link, title: _titleController.text, expireDate: expireDate, usageLimit: _limit, requestApproval: _approval);
+    if (!mounted) return;
+    // Не сохранилось (нет сети, отказ — пояснение покажет экран ссылок) —
+    // форма остаётся.
+    if (done) {
+      Navigator.of(context).pop();
     } else {
-      await cubit.editLink(link, title: _titleController.text, expireDate: expireDate, usageLimit: _limit, requestApproval: _approval);
+      setState(() => _saving = false);
     }
-    if (mounted) Navigator.of(context).pop();
   }
 
   Future<void> _revoke() async {
@@ -84,8 +89,7 @@ class _ChatInviteLinkEditMaterial extends State<ChatInviteLinkEditMaterial> {
       ),
     );
     if (!(confirmed ?? false)) return;
-    await cubit.revokeLink(link);
-    if (mounted) Navigator.of(context).pop();
+    if (await cubit.revokeLink(link) && mounted) Navigator.of(context).pop();
   }
 
   @override

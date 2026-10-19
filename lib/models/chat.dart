@@ -444,6 +444,10 @@ class Chat with ChatMappable {
   /// остальные не видят).
   final bool membersHidden;
 
+  /// Группа (частная, не [ChatJoinMode.open]): «Скрыть историю» — вступившие
+  /// после включения видят сообщения только с момента вступления.
+  final bool historyHidden;
+
   /// Мы участник / подписчик. `false` — открыли по ссылке и смотрим: в списке
   /// чата нет, внизу — «Подписаться» / «Вступить».
   final bool isMember;
@@ -544,6 +548,7 @@ class Chat with ChatMappable {
     this.newcomerMediaDelay = 0,
     this.signMessages = false,
     this.membersHidden = false,
+    this.historyHidden = false,
     this.isMember = true,
     this.joinRequested = false,
     this.threadOf = '',

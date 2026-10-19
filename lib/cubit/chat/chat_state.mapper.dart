@@ -135,6 +135,13 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: '',
   );
+  static bool _$joining(ChatState v) => v.joining;
+  static const Field<ChatState, bool> _f$joining = Field(
+    'joining',
+    _$joining,
+    opt: true,
+    def: false,
+  );
   static models.Chat? _$chat(ChatState v) => v.chat;
   static const Field<ChatState, models.Chat> _f$chat = Field(
     'chat',
@@ -374,6 +381,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #restrictedCount: _f$restrictedCount,
     #failNotice: _f$failNotice,
     #failError: _f$failError,
+    #joining: _f$joining,
     #chat: _f$chat,
     #messages: _f$messages,
     #communityChats: _f$communityChats,
@@ -418,6 +426,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       restrictedCount: data.dec(_f$restrictedCount),
       failNotice: data.dec(_f$failNotice),
       failError: data.dec(_f$failError),
+      joining: data.dec(_f$joining),
       chat: data.dec(_f$chat),
       messages: data.dec(_f$messages),
       communityChats: data.dec(_f$communityChats),
@@ -581,6 +590,7 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     int? restrictedCount,
     int? failNotice,
     String? failError,
+    bool? joining,
     models.Chat? chat,
     List<models.Message>? messages,
     List<models.Chat>? communityChats,
@@ -767,6 +777,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     int? restrictedCount,
     int? failNotice,
     String? failError,
+    bool? joining,
     Object? chat = $none,
     List<models.Message>? messages,
     List<models.Chat>? communityChats,
@@ -809,6 +820,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (restrictedCount != null) #restrictedCount: restrictedCount,
       if (failNotice != null) #failNotice: failNotice,
       if (failError != null) #failError: failError,
+      if (joining != null) #joining: joining,
       if (chat != $none) #chat: chat,
       if (messages != null) #messages: messages,
       if (communityChats != null) #communityChats: communityChats,
@@ -854,6 +866,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     restrictedCount: data.get(#restrictedCount, or: $value.restrictedCount),
     failNotice: data.get(#failNotice, or: $value.failNotice),
     failError: data.get(#failError, or: $value.failError),
+    joining: data.get(#joining, or: $value.joining),
     chat: data.get(#chat, or: $value.chat),
     messages: data.get(#messages, or: $value.messages),
     communityChats: data.get(#communityChats, or: $value.communityChats),

@@ -57,7 +57,8 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- Ссылки https://iperon.net/<имя> (App Links): открывают личный чат
+            <!-- Ссылки https://iperon.net/<имя> и /+<код> (App Links): личный
+                 чат / публичная группа и приглашение в группу
                  (lib/deep_links.dart). Проверка домена — assetlinks.json на
                  iperon.net (handle_all_urls). pathAdvancedPattern — с Android 12;
                  на старых он не действует и в приложение идут все пути сайта —
@@ -70,6 +71,16 @@
                 <data android:scheme="https" />
                 <data android:host="iperon.net" />
                 <data android:pathAdvancedPattern="/[a-zA-Z0-9_]{5,24}" />
+            </intent-filter>
+            <!-- Отдельным фильтром: в общем pathPrefix сузил бы его на Android
+                 до 12 (там pathAdvancedPattern не действует). -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="iperon.net" />
+                <data android:pathPrefix="/+" />
             </intent-filter>
         </activity>
         <!-- Файлы чата для других приложений (открыть, буфер обмена): ссылки

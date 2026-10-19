@@ -427,6 +427,12 @@ void showChatsFailed(BuildContext context, String error) {
       'chatWriteForbidden' => t.chatWriteForbidden,
       'passwordInvalid' => t.passwordInvalid,
       'permissionDenied' => t.permissionDenied,
+      'banned' => t.banned,
+      'groupsLimit' => t.groupsLimit,
+      'linkInvalid' || 'inviteInvalid' => t.linkInvalid,
+      'linksLimit' => t.linksLimit,
+      'usernameTaken' => t.usernameTaken,
+      'usernameInvalid' => t.usernameInvalid,
       _ => t.failed,
     }),
   );
@@ -505,7 +511,8 @@ Future<void> openPrivateChatWith(BuildContext context, String userID) async {
   final label = chat.type == models.ChatType.channel
       ? t.subscribe
       : (chat.joinMode == models.ChatJoinMode.request ? t.requestJoin : t.joinGroup);
-  return (label, cubit.join);
+  // Ждём ответа сервера — второй раз не нажать.
+  return (label, cubit.state.joining ? null : cubit.join);
 }
 
 /// Имя пользователя в ссылке `iperon.net/<имя>` (как на сервере).
@@ -536,6 +543,10 @@ Future<bool> openIperonLink(BuildContext context, Uri uri) async {
     return true;
   } on ChatsFloodException catch (error) {
     if (context.mounted) showChatsFlood(context, error.seconds);
+    return true;
+  } on ChatsRequestException catch (error) {
+    // Группы выключены (флаг) и т. п. — пояснение, а не «ссылка недействительна».
+    if (context.mounted) showChatsFailed(context, error.error);
     return true;
   }
   if (!context.mounted) return true;

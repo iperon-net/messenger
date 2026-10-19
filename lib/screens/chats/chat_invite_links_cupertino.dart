@@ -103,7 +103,8 @@ class ChatInviteLinksCupertino extends StatelessWidget {
       child: const HugeIcon(icon: HugeIcons.strokeRoundedLink01, color: Color(0xFFFFFFFF), size: 15),
     );
 
-    Widget linkTile(models.ChatInviteLink link, DateTime now) {
+    // [actions] — у отозванной, если её одну удалить нельзя (сервер), — нет.
+    Widget linkTile(models.ChatInviteLink link, DateTime now, {bool actions = true}) {
       final subtitle = inviteSubtitle(t, link, now);
       CupertinoMenuItem item(String action, String label, IconData icon, {bool destructive = false}) => CupertinoMenuItem(
         isDestructiveAction: destructive,
@@ -112,6 +113,14 @@ class ChatInviteLinksCupertino extends StatelessWidget {
         child: Text(label),
       );
       final tl = t.screenChatInvites;
+      if (!actions) {
+        return CupertinoListTile(
+          leadingSize: 28,
+          leading: linkIcon(link.isActive(now)),
+          title: Text(inviteTitle(link)),
+          subtitle: Text(subtitle.text, style: TextStyle(color: subtitle.warning ? destructive : secondary)),
+        );
+      }
       // Тап по строке — выпадающее меню действий со ссылкой.
       return CupertinoMenuAnchor(
         menuChildren: link.revoked
@@ -132,127 +141,130 @@ class ChatInviteLinksCupertino extends StatelessWidget {
       );
     }
 
-    return BlocBuilder<ChatInvitesCubit, ChatInvitesState>(
-      builder: (context, state) {
-        final chat = state.chat;
-        final now = DateTime.now();
-        final primaryLink = state.primary;
-        final public = chat != null && chat.username.isNotEmpty;
-        final path = public ? chat.username : primaryLink?.link;
+    return ChatInvitesNoticeListener(
+      child: BlocBuilder<ChatInvitesCubit, ChatInvitesState>(
+        builder: (context, state) {
+          final chat = state.chat;
+          final now = DateTime.now();
+          final primaryLink = state.primary;
+          final public = chat != null && chat.username.isNotEmpty;
+          final path = public ? chat.username : primaryLink?.link;
 
-        return CupertinoPageScaffold(
-          backgroundColor: ThemesCupertino.groupedBackground,
-          navigationBar: AppCupertinoNavigationBar(
-            child: CupertinoNavigationBar(
-              previousPageTitle: '',
-              automaticBackgroundVisibility: false,
-              backgroundColor: ThemesCupertino.groupedBackground,
-              middle: Text(t.screenChatInvites.inviteLinks),
+          return CupertinoPageScaffold(
+            backgroundColor: ThemesCupertino.groupedBackground,
+            navigationBar: AppCupertinoNavigationBar(
+              child: CupertinoNavigationBar(
+                previousPageTitle: '',
+                automaticBackgroundVisibility: false,
+                backgroundColor: ThemesCupertino.groupedBackground,
+                middle: Text(t.screenChatInvites.inviteLinks),
+              ),
             ),
-          ),
-          child: chat == null
-              ? const SizedBox.shrink()
-              : SafeArea(
-                  child: ListView(
-                    padding: const EdgeInsets.only(bottom: 24),
-                    children: [
-                      if (chat.joinMode == models.ChatJoinMode.admins)
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                          child: createNoteCupertino(t.screenChatInvites.adminsOnlyNote),
-                        ),
-                      if (path != null)
-                        section(
-                          header: public ? t.screenChatInvites.publicLink : t.screenChatInvites.primaryLink,
-                          footer: public ? t.screenChatInvites.publicLinkFooter : invitePrimaryFooter(t, chat),
-                          children: [
-                            // Ссылка в поле, справа — «Копировать» и «Поделиться» значками.
-                            Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Container(
-                                padding: const EdgeInsets.only(left: 12),
-                                decoration: BoxDecoration(
-                                  color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: GestureDetector(
-                                        behavior: HitTestBehavior.opaque,
-                                        onTap: () => _copy(path),
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(vertical: 12),
-                                          child: Text(
-                                            inviteShort(path),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontSize: AppFontSizes.body,
-                                              color: CupertinoColors.label.resolveFrom(context),
+            child: chat == null
+                ? const SizedBox.shrink()
+                : SafeArea(
+                    child: ListView(
+                      padding: const EdgeInsets.only(bottom: 24),
+                      children: [
+                        if (chat.joinMode == models.ChatJoinMode.admins)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                            child: createNoteCupertino(t.screenChatInvites.adminsOnlyNote),
+                          ),
+                        if (path != null)
+                          section(
+                            header: public ? t.screenChatInvites.publicLink : t.screenChatInvites.primaryLink,
+                            footer: public ? t.screenChatInvites.publicLinkFooter : invitePrimaryFooter(t, chat),
+                            children: [
+                              // Ссылка в поле, справа — «Копировать» и «Поделиться» значками.
+                              Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Container(
+                                  padding: const EdgeInsets.only(left: 12),
+                                  decoration: BoxDecoration(
+                                    color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
+                                          onTap: () => _copy(path),
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(vertical: 12),
+                                            child: Text(
+                                              inviteShort(path),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: AppFontSizes.body,
+                                                color: CupertinoColors.label.resolveFrom(context),
+                                              ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                    CupertinoButton(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                                      minimumSize: const Size(40, 44),
-                                      onPressed: () => _copy(path),
-                                      child: HugeIcon(icon: HugeIcons.strokeRoundedCopy01, color: action, size: 21),
-                                    ),
-                                    CupertinoButton(
-                                      padding: const EdgeInsets.only(left: 4, right: 10),
-                                      minimumSize: const Size(40, 44),
-                                      onPressed: () => shareInvite(path),
-                                      child: HugeIcon(icon: HugeIcons.strokeRoundedShare08, color: action, size: 21),
-                                    ),
-                                  ],
+                                      CupertinoButton(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                                        minimumSize: const Size(40, 44),
+                                        onPressed: () => _copy(path),
+                                        child: HugeIcon(icon: HugeIcons.strokeRoundedCopy01, color: action, size: 21),
+                                      ),
+                                      CupertinoButton(
+                                        padding: const EdgeInsets.only(left: 4, right: 10),
+                                        minimumSize: const Size(40, 44),
+                                        onPressed: () => shareInvite(path),
+                                        child: HugeIcon(icon: HugeIcons.strokeRoundedShare08, color: action, size: 21),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                            if (!public && primaryLink != null)
-                              CupertinoListTile(
-                                title: Text(t.screenChatInvites.replace, style: TextStyle(color: destructive)),
-                                onTap: () => _replace(context, primaryLink),
-                              ),
-                          ],
-                        ),
-                      section(
-                        header: t.screenChatInvites.additionalHeader,
-                        footer: t.screenChatInvites.additionalFooter,
-                        children: [
-                          CupertinoListTile(
-                            leadingSize: 28,
-                            leading: Container(
-                              width: 28,
-                              height: 28,
-                              decoration: BoxDecoration(color: action.withValues(alpha: 0.12), shape: BoxShape.circle),
-                              alignment: Alignment.center,
-                              child: Icon(CupertinoIcons.add, color: action, size: 17),
-                            ),
-                            title: Text(t.screenChatInvites.createLink, style: TextStyle(color: action)),
-                            onTap: () => showChatInviteLinkEditCupertino(context, context.read<ChatInvitesCubit>()),
+                              if (!public && primaryLink != null)
+                                CupertinoListTile(
+                                  title: Text(t.screenChatInvites.replace, style: TextStyle(color: destructive)),
+                                  onTap: () => _replace(context, primaryLink),
+                                ),
+                            ],
                           ),
-                          for (final link in state.additional) linkTile(link, now),
-                        ],
-                      ),
-                      if (state.revoked.isNotEmpty)
                         section(
-                          header: t.screenChatInvites.revokedHeader,
+                          header: t.screenChatInvites.additionalHeader,
+                          footer: t.screenChatInvites.additionalFooter,
                           children: [
                             CupertinoListTile(
-                              title: Text(t.screenChatInvites.deleteAllRevoked, style: TextStyle(color: destructive)),
-                              onTap: () => context.read<ChatInvitesCubit>().deleteRevoked(),
+                              leadingSize: 28,
+                              leading: Container(
+                                width: 28,
+                                height: 28,
+                                decoration: BoxDecoration(color: action.withValues(alpha: 0.12), shape: BoxShape.circle),
+                                alignment: Alignment.center,
+                                child: Icon(CupertinoIcons.add, color: action, size: 17),
+                              ),
+                              title: Text(t.screenChatInvites.createLink, style: TextStyle(color: action)),
+                              onTap: () => showChatInviteLinkEditCupertino(context, context.read<ChatInvitesCubit>()),
                             ),
-                            for (final link in state.revoked) linkTile(link, now),
+                            for (final link in state.additional) linkTile(link, now),
                           ],
                         ),
-                    ],
+                        if (state.revoked.isNotEmpty)
+                          section(
+                            header: t.screenChatInvites.revokedHeader,
+                            footer: state.deletesRevokedSingly ? null : t.screenChatInvites.deleteAllRevokedHint,
+                            children: [
+                              CupertinoListTile(
+                                title: Text(t.screenChatInvites.deleteAllRevoked, style: TextStyle(color: destructive)),
+                                onTap: () => context.read<ChatInvitesCubit>().deleteRevoked(),
+                              ),
+                              for (final link in state.revoked) linkTile(link, now, actions: state.deletesRevokedSingly),
+                            ],
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

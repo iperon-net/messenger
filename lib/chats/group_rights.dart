@@ -68,3 +68,13 @@ bool canTransferOwnership(models.Chat chat, models.ChatMember target) => chat.my
 
 /// Можно писать в группу: роль не ниже «Запись» (READER только читает).
 bool canSendInGroup(models.ChatRole role) => role != models.ChatRole.reader;
+
+/// Ссылки-приглашения и заявки на вступление (подэтап 3.3): право
+/// приглашать (inviteUsers; владелец — всегда).
+bool canInviteUsers(models.Chat chat, List<models.ChatMember> members) => myChatRights(chat, members).inviteUsers;
+
+/// «Добавить участников» в группу: в режиме «Только админы»
+/// ([models.ChatJoinMode.admins]) — с правом приглашать, в остальных — любой
+/// участник.
+bool canAddGroupMembers(models.Chat chat, List<models.ChatMember> members) =>
+    chat.isMember && (chat.joinMode != models.ChatJoinMode.admins || canInviteUsers(chat, members));

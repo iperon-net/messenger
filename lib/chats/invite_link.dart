@@ -1,7 +1,7 @@
 import 'dart:math';
 
 /// Код новой ссылки-приглашения: `+` и 12 символов base62 (ссылка —
-/// `iperon.net/+код`). Настоящие выдаст сервер; пока — клиент (демо).
+/// `iperon.net/+код`) — только демо: настоящие выдаёт сервер (подэтап 3.3).
 String newInviteCode() {
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   final random = Random.secure();

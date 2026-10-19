@@ -7,9 +7,10 @@ import '../../models.dart' as models;
 
 part 'chat_create_state.mapper.dart';
 
-/// Проверка публичного имени (ссылки) в форме создания канала/сообщества.
+/// Проверка публичного имени (ссылки) в форме создания / «Изменить»;
+/// [failed] — проверить не удалось (нет сети): не «свободно».
 @MappableEnum()
-enum ChatUsernameStatus { empty, invalid, checking, available, taken }
+enum ChatUsernameStatus { empty, invalid, checking, available, taken, failed }
 
 /// Состояние экранов «Новое»: «Новое сообщение» (контакты), выбор участников
 /// группы и форма создания группы/канала/сообщества — она же форма «Изменить»
@@ -126,12 +127,27 @@ class ChatCreateState with ChatCreateStateMappable {
   /// В [basic]-форме «Изменить» группы есть и роль вступающих (подэтап 3.2).
   final bool basicDefaultRole;
 
+  /// Вступление в группы (подэтап 3.3): способ вступления, публичное имя,
+  /// ссылка-приглашение и «Скрыть историю» — и в [basic]-форме.
+  final bool joining;
+
+  /// Ссылку-приглашение выдаёт сервер: в форме — только уже выданная
+  /// ([inviteLink] пуст — появится после сохранения).
+  final bool serverLinks;
+
+  /// «Скрыть историю» группы (частной): новые участники видят сообщения с
+  /// момента вступления.
+  final bool historyHidden;
+
   const ChatCreateState({
     this.restrictedCount = 0,
     this.failNotice = 0,
     this.failError = '',
     this.basic = false,
     this.basicDefaultRole = false,
+    this.joining = false,
+    this.serverLinks = false,
+    this.historyHidden = false,
     this.status = Status.initialization,
     this.offlineNotice = 0,
     this.floodNotice = 0,

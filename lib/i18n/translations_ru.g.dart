@@ -347,6 +347,8 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get typePrivate => 'Частный';
 	@override String get channelPublicFooter => 'Публичный канал можно найти в поиске, подписаться на него может любой.';
 	@override String get channelPrivateFooter => 'На частный канал можно подписаться только по ссылке-приглашению.';
+	@override String get groupPublicFooter => 'Публичную группу можно найти по ссылке, и в неё может вступить любой.';
+	@override String get groupPrivateFooter => 'В частную группу можно вступить только по ссылке-приглашению.';
 	@override String get communityPublicFooter => 'Публичное сообщество можно найти в поиске, вступить в него может любой.';
 	@override String get communityPrivateFooter => 'В частное сообщество можно вступить только по ссылке-приглашению.';
 	@override String get link => 'Ссылка';
@@ -354,10 +356,12 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get usernameChecking => 'Проверка…';
 	@override String get usernameAvailable => 'Ссылка свободна.';
 	@override String get usernameTaken => 'Эта ссылка уже занята.';
+	@override String get usernameCheckFailed => 'Не удалось проверить ссылку — нет соединения.';
 	@override String get usernameInvalid => 'От 5 до 24 символов: латинские буквы a–z, цифры и _.';
 	@override String get usernameEmpty => 'Придумайте ссылку, по которой его будут находить.';
 	@override String get inviteLink => 'Ссылка-приглашение';
 	@override String get inviteLinkFooter => 'По этой ссылке можно присоединиться. Нажмите, чтобы скопировать.';
+	@override String get inviteLinkLater => 'Ссылка-приглашение появится после сохранения.';
 	@override String get copied => 'Ссылка скопирована';
 	@override String get commentsSwitch => 'Комментарии';
 	@override String get commentsFooter => 'Подписчики смогут обсуждать каждый пост в комментариях.';
@@ -393,6 +397,9 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get hideMembers => 'Скрыть участников';
 	@override String get hideSubscribers => 'Скрыть подписчиков';
 	@override String get hideMembersFooter => 'Список будут видеть только админы.';
+	@override String get historyHidden => 'Скрыть историю';
+	@override String get historyHiddenFooter => 'Новые участники не увидят сообщения, отправленные до их вступления.';
+	@override String get historyShownFooter => 'Новые участники увидят всю историю сообщений.';
 	@override String get joinHeader => 'Вступление';
 	@override String get joinOpen => 'Открытое';
 	@override String get joinLink => 'По ссылке';
@@ -472,6 +479,10 @@ class _Translations$screenChatInvites$ru extends Translations$screenChatInvites$
 	@override String get limitFooter => 'Сколько человек может вступить по этой ссылке.';
 	@override String get requestsEmpty => 'Заявок нет';
 	@override String get requestsEmptyHint => 'Когда кто-то попросится вступить, заявка появится здесь.';
+	@override String get requestsFailed => 'Не удалось загрузить заявки';
+	@override String get requestsFailedHint => 'Проверьте соединение и попробуйте ещё раз.';
+	@override String get retry => 'Повторить';
+	@override String get deleteAllRevokedHint => 'Удаляются все отозванные ссылки сразу.';
 	@override String get approve => 'Принять';
 	@override String get decline => 'Отклонить';
 	@override String get approveAll => 'Принять все';
@@ -1660,6 +1671,12 @@ class _Translations$chatAction$ru extends Translations$chatAction$en {
 	@override String get chatWriteForbidden => 'В этой группе вы можете только читать.';
 	@override String get passwordInvalid => 'Неверный облачный пароль.';
 	@override String get permissionDenied => 'Недостаточно прав для этого действия.';
+	@override String get banned => 'Вы заблокированы в этой группе.';
+	@override String get groupsLimit => 'Вы уже состоите в максимальном числе групп.';
+	@override String get linkInvalid => 'Ссылка недействительна или устарела.';
+	@override String get linksLimit => 'Достигнут предел ссылок-приглашений.';
+	@override String get usernameTaken => 'Эта ссылка уже занята.';
+	@override String get usernameInvalid => 'Ссылка — от 5 до 24 символов: латиница, цифры и «_».';
 }
 
 // Path: chatTtl
@@ -2008,6 +2025,8 @@ extension on TranslationsRu {
 			'screenNewChat.typePrivate' => 'Частный',
 			'screenNewChat.channelPublicFooter' => 'Публичный канал можно найти в поиске, подписаться на него может любой.',
 			'screenNewChat.channelPrivateFooter' => 'На частный канал можно подписаться только по ссылке-приглашению.',
+			'screenNewChat.groupPublicFooter' => 'Публичную группу можно найти по ссылке, и в неё может вступить любой.',
+			'screenNewChat.groupPrivateFooter' => 'В частную группу можно вступить только по ссылке-приглашению.',
 			'screenNewChat.communityPublicFooter' => 'Публичное сообщество можно найти в поиске, вступить в него может любой.',
 			'screenNewChat.communityPrivateFooter' => 'В частное сообщество можно вступить только по ссылке-приглашению.',
 			'screenNewChat.link' => 'Ссылка',
@@ -2015,10 +2034,12 @@ extension on TranslationsRu {
 			'screenNewChat.usernameChecking' => 'Проверка…',
 			'screenNewChat.usernameAvailable' => 'Ссылка свободна.',
 			'screenNewChat.usernameTaken' => 'Эта ссылка уже занята.',
+			'screenNewChat.usernameCheckFailed' => 'Не удалось проверить ссылку — нет соединения.',
 			'screenNewChat.usernameInvalid' => 'От 5 до 24 символов: латинские буквы a–z, цифры и _.',
 			'screenNewChat.usernameEmpty' => 'Придумайте ссылку, по которой его будут находить.',
 			'screenNewChat.inviteLink' => 'Ссылка-приглашение',
 			'screenNewChat.inviteLinkFooter' => 'По этой ссылке можно присоединиться. Нажмите, чтобы скопировать.',
+			'screenNewChat.inviteLinkLater' => 'Ссылка-приглашение появится после сохранения.',
 			'screenNewChat.copied' => 'Ссылка скопирована',
 			'screenNewChat.commentsSwitch' => 'Комментарии',
 			'screenNewChat.commentsFooter' => 'Подписчики смогут обсуждать каждый пост в комментариях.',
@@ -2044,6 +2065,9 @@ extension on TranslationsRu {
 			'screenNewChat.hideMembers' => 'Скрыть участников',
 			'screenNewChat.hideSubscribers' => 'Скрыть подписчиков',
 			'screenNewChat.hideMembersFooter' => 'Список будут видеть только админы.',
+			'screenNewChat.historyHidden' => 'Скрыть историю',
+			'screenNewChat.historyHiddenFooter' => 'Новые участники не увидят сообщения, отправленные до их вступления.',
+			'screenNewChat.historyShownFooter' => 'Новые участники увидят всю историю сообщений.',
 			'screenNewChat.joinHeader' => 'Вступление',
 			'screenNewChat.joinOpen' => 'Открытое',
 			'screenNewChat.joinLink' => 'По ссылке',
@@ -2114,6 +2138,10 @@ extension on TranslationsRu {
 			'screenChatInvites.limitFooter' => 'Сколько человек может вступить по этой ссылке.',
 			'screenChatInvites.requestsEmpty' => 'Заявок нет',
 			'screenChatInvites.requestsEmptyHint' => 'Когда кто-то попросится вступить, заявка появится здесь.',
+			'screenChatInvites.requestsFailed' => 'Не удалось загрузить заявки',
+			'screenChatInvites.requestsFailedHint' => 'Проверьте соединение и попробуйте ещё раз.',
+			'screenChatInvites.retry' => 'Повторить',
+			'screenChatInvites.deleteAllRevokedHint' => 'Удаляются все отозванные ссылки сразу.',
 			'screenChatInvites.approve' => 'Принять',
 			'screenChatInvites.decline' => 'Отклонить',
 			'screenChatInvites.approveAll' => 'Принять все',
@@ -2318,6 +2346,8 @@ extension on TranslationsRu {
 			'screenChat.sendNow' => 'Отправить сейчас',
 			'screenChat.reschedule' => 'Изменить время',
 			'screenChat.deleteScheduledTitle' => 'Удалить отложенное сообщение?',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.scheduledHint' => 'Отложенные сообщения',
 			'screenChat.linkPreview' => 'Предпросмотр ссылки',
 			'screenChat.forward' => 'Переслать',
@@ -2329,8 +2359,6 @@ extension on TranslationsRu {
 			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Переслать ${n} сообщение', few: 'Переслать ${n} сообщения', many: 'Переслать ${n} сообщений', other: 'Переслать ${n} сообщения', ), 
 			'screenChat.deleteSelectedTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Удалить ${n} сообщение?', few: 'Удалить ${n} сообщения?', many: 'Удалить ${n} сообщений?', other: 'Удалить ${n} сообщения?', ), 
 			'screenChat.deleteSelectedMessage' => 'Сообщения будут удалены у всех участников чата.',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.deleteMessageSelf' => 'Сообщение будет удалено из «Избранного».',
 			'screenChat.deleteSelectedMessageSelf' => 'Сообщения будут удалены из «Избранного».',
 			'screenChat.voiceSlideToCancel' => 'Влево — отмена',
@@ -2832,6 +2860,8 @@ extension on TranslationsRu {
 			'screenCalls.missed' => 'Пропущенный',
 			'screenCalls.cancelled' => 'Отменённый',
 			'screenCalls.durationSec' => ({required Object s}) => '${s} сек',
+			_ => null,
+		} ?? switch (path) {
 			'screenCalls.durationMin' => ({required Object m}) => '${m} мин',
 			'screenCalls.durationHour' => ({required Object h}) => '${h} час',
 			'screenCalls.durationHourMin' => ({required Object h, required Object m}) => '${h} час ${m} мин',
@@ -2843,8 +2873,6 @@ extension on TranslationsRu {
 			'screenAuth.enterYourMobilePhoneNumber' => 'Введите номер мобильного телефона',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Сейчас мы поддерживаем только номера российских мобильных операторов',
 			'screenAuth.insertDebugPhone' => 'Вставить тестовый номер',
-			_ => null,
-		} ?? switch (path) {
 			'screenAuth.callForFree' => 'Позвонить бесплатно',
 			'screenAuth.weAreExpectingYourCallWithin' => ({required Object duration}) => 'Мы ждём вашего звонка в течение ${duration}',
 			'screenAuth.signInWith' => 'Войти через',
@@ -2976,6 +3004,12 @@ extension on TranslationsRu {
 			'chatAction.chatWriteForbidden' => 'В этой группе вы можете только читать.',
 			'chatAction.passwordInvalid' => 'Неверный облачный пароль.',
 			'chatAction.permissionDenied' => 'Недостаточно прав для этого действия.',
+			'chatAction.banned' => 'Вы заблокированы в этой группе.',
+			'chatAction.groupsLimit' => 'Вы уже состоите в максимальном числе групп.',
+			'chatAction.linkInvalid' => 'Ссылка недействительна или устарела.',
+			'chatAction.linksLimit' => 'Достигнут предел ссылок-приглашений.',
+			'chatAction.usernameTaken' => 'Эта ссылка уже занята.',
+			'chatAction.usernameInvalid' => 'Ссылка — от 5 до 24 символов: латиница, цифры и «_».',
 			'chatTtl.title' => 'Автоудаление',
 			'chatTtl.titleLong' => 'Автоудаление сообщений',
 			'chatTtl.off' => 'Выкл',

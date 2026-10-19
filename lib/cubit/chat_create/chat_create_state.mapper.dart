@@ -37,6 +37,8 @@ class ChatUsernameStatusMapper extends EnumMapper<ChatUsernameStatus> {
         return ChatUsernameStatus.available;
       case r'taken':
         return ChatUsernameStatus.taken;
+      case r'failed':
+        return ChatUsernameStatus.failed;
       default:
         throw MapperException.unknownEnumValue(value);
     }
@@ -55,6 +57,8 @@ class ChatUsernameStatusMapper extends EnumMapper<ChatUsernameStatus> {
         return r'available';
       case ChatUsernameStatus.taken:
         return r'taken';
+      case ChatUsernameStatus.failed:
+        return r'failed';
     }
   }
 }
@@ -118,6 +122,27 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
   static const Field<ChatCreateState, bool> _f$basicDefaultRole = Field(
     'basicDefaultRole',
     _$basicDefaultRole,
+    opt: true,
+    def: false,
+  );
+  static bool _$joining(ChatCreateState v) => v.joining;
+  static const Field<ChatCreateState, bool> _f$joining = Field(
+    'joining',
+    _$joining,
+    opt: true,
+    def: false,
+  );
+  static bool _$serverLinks(ChatCreateState v) => v.serverLinks;
+  static const Field<ChatCreateState, bool> _f$serverLinks = Field(
+    'serverLinks',
+    _$serverLinks,
+    opt: true,
+    def: false,
+  );
+  static bool _$historyHidden(ChatCreateState v) => v.historyHidden;
+  static const Field<ChatCreateState, bool> _f$historyHidden = Field(
+    'historyHidden',
+    _$historyHidden,
     opt: true,
     def: false,
   );
@@ -381,6 +406,9 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     #failError: _f$failError,
     #basic: _f$basic,
     #basicDefaultRole: _f$basicDefaultRole,
+    #joining: _f$joining,
+    #serverLinks: _f$serverLinks,
+    #historyHidden: _f$historyHidden,
     #status: _f$status,
     #offlineNotice: _f$offlineNotice,
     #floodNotice: _f$floodNotice,
@@ -426,6 +454,9 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
       failError: data.dec(_f$failError),
       basic: data.dec(_f$basic),
       basicDefaultRole: data.dec(_f$basicDefaultRole),
+      joining: data.dec(_f$joining),
+      serverLinks: data.dec(_f$serverLinks),
+      historyHidden: data.dec(_f$historyHidden),
       status: data.dec(_f$status),
       offlineNotice: data.dec(_f$offlineNotice),
       floodNotice: data.dec(_f$floodNotice),
@@ -551,6 +582,9 @@ abstract class ChatCreateStateCopyWith<$R, $In extends ChatCreateState, $Out>
     String? failError,
     bool? basic,
     bool? basicDefaultRole,
+    bool? joining,
+    bool? serverLinks,
+    bool? historyHidden,
     Status? status,
     int? offlineNotice,
     int? floodNotice,
@@ -641,6 +675,9 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     String? failError,
     bool? basic,
     bool? basicDefaultRole,
+    bool? joining,
+    bool? serverLinks,
+    bool? historyHidden,
     Status? status,
     int? offlineNotice,
     int? floodNotice,
@@ -684,6 +721,9 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
       if (failError != null) #failError: failError,
       if (basic != null) #basic: basic,
       if (basicDefaultRole != null) #basicDefaultRole: basicDefaultRole,
+      if (joining != null) #joining: joining,
+      if (serverLinks != null) #serverLinks: serverLinks,
+      if (historyHidden != null) #historyHidden: historyHidden,
       if (status != null) #status: status,
       if (offlineNotice != null) #offlineNotice: offlineNotice,
       if (floodNotice != null) #floodNotice: floodNotice,
@@ -730,6 +770,9 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     failError: data.get(#failError, or: $value.failError),
     basic: data.get(#basic, or: $value.basic),
     basicDefaultRole: data.get(#basicDefaultRole, or: $value.basicDefaultRole),
+    joining: data.get(#joining, or: $value.joining),
+    serverLinks: data.get(#serverLinks, or: $value.serverLinks),
+    historyHidden: data.get(#historyHidden, or: $value.historyHidden),
     status: data.get(#status, or: $value.status),
     offlineNotice: data.get(#offlineNotice, or: $value.offlineNotice),
     floodNotice: data.get(#floodNotice, or: $value.floodNotice),

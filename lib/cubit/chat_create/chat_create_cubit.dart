@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 
 import '../../constants.dart';
 import '../../chats/chats_data_source.dart';
+import '../../chats/chats_mapping.dart' show usernameInvalidError;
 import '../../chats/invite_link.dart';
 import '../../chats/chats_remote_data_source.dart';
 import '../../chats/chats_sync.dart';
@@ -12,10 +13,10 @@ import '../../models.dart' as models;
 
 import 'chat_create_state.dart';
 
-/// «Новое»: личный чат с контактом, новая группа (участники → название),
-/// канал и сообщество (название, описание, фото, публичный/частный). Пока
-/// работает только в UX-демо (см. docs/plans/chats-groups-channels.md); на
-/// сервере создание потребует сети — тогда сюда добавится гард `hasNetwork()`.
+/// «Новое»: личный чат с контактом, новая группа (участники → название,
+/// публичная / частная), канал и сообщество (название, описание, фото,
+/// публичный/частный). На сервере (группы) создание и «Изменить» требуют сети
+/// — без неё «Нет соединения» (см. [ChatCreateState.offlineNotice]).
 class ChatCreateCubit extends Cubit<ChatCreateState> {
   ChatCreateCubit() : super(const ChatCreateState());
 
@@ -55,13 +56,17 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
     String communityID = '',
   }) async {
     _source = chatsDataSource(demo: demo);
+    final serverLinks = _source is ChatsRemoteDataSource;
     emit(
       state.copyWith(
         status: Status.loading,
         basic: !(_source?.features.groupExtras ?? true),
+        joining: _source?.features.groupJoining ?? false,
+        serverLinks: serverLinks,
         type: type,
         selected: selected,
-        inviteLink: newInviteCode(),
+        // Код настоящей ссылки выдаёт сервер при создании.
+        inviteLink: serverLinks ? '' : newInviteCode(),
         communityID: communityID,
         joinMode: communityID.isNotEmpty ? models.ChatJoinMode.open : state.joinMode,
       ),
@@ -78,11 +83,15 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
   /// Форма «Изменить» для [chat] (профиль чата, админ): поля — из чата.
   void edit({required bool demo, required models.Chat chat}) {
     _source = chatsDataSource(demo: demo);
+    final serverLinks = _source is ChatsRemoteDataSource;
     emit(
       state.copyWith(
         status: Status.success,
         basic: !(_source?.features.groupExtras ?? true),
         basicDefaultRole: _source?.features.groupRoles ?? false,
+        joining: _source?.features.groupJoining ?? false,
+        serverLinks: serverLinks,
+        historyHidden: chat.historyHidden,
         type: chat.type,
         chatID: chat.id,
         communityID: chat.communityID,
@@ -98,7 +107,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
         username: chat.username,
         originalUsername: chat.username,
         usernameStatus: chat.username.isEmpty ? ChatUsernameStatus.empty : ChatUsernameStatus.available,
-        inviteLink: chat.inviteLink.isNotEmpty ? chat.inviteLink : newInviteCode(),
+        inviteLink: chat.inviteLink.isNotEmpty || serverLinks ? chat.inviteLink : newInviteCode(),
         defaultRole: chat.defaultRole,
         commentsEnabled: chat.commentsEnabled,
         commentsTimeLimit: chat.commentsTimeLimit,
@@ -158,6 +167,8 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
 
   void setMembersHidden(bool hidden) => emit(state.copyWith(membersHidden: hidden));
 
+  void setHistoryHidden(bool hidden) => emit(state.copyWith(historyHidden: hidden));
+
   /// Ввод публичного имени: формат сразу, занятость — с паузой (как запрос к
   /// серверу на каждую букву не шлём).
   void setUsername(String value) {
@@ -177,10 +188,21 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
     }
     emit(state.copyWith(username: username, usernameStatus: ChatUsernameStatus.checking));
     _usernameTimer = Timer(const Duration(milliseconds: 400), () async {
-      final available = await _source?.isUsernameAvailable(username, exceptChatID: state.chatID) ?? false;
+      ChatUsernameStatus status;
+      try {
+        final available = await _source?.isUsernameAvailable(username, exceptChatID: state.chatID) ?? false;
+        status = available ? ChatUsernameStatus.available : ChatUsernameStatus.taken;
+      } on ChatsOfflineException {
+        // Без сети — «не удалось проверить», а не «свободно».
+        status = ChatUsernameStatus.failed;
+      } on ChatsFloodException {
+        status = ChatUsernameStatus.failed;
+      } on ChatsRequestException catch (error) {
+        status = error.error == usernameInvalidError ? ChatUsernameStatus.invalid : ChatUsernameStatus.failed;
+      }
       // Пока проверяли, имя могли поменять — ответ уже не про него.
       if (isClosed || state.username != username) return;
-      emit(state.copyWith(usernameStatus: available ? ChatUsernameStatus.available : ChatUsernameStatus.taken));
+      emit(state.copyWith(usernameStatus: status));
     });
   }
 
@@ -270,6 +292,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
           newcomerMediaDelay: state.newcomerMediaDelay,
           signMessages: state.signMessages,
           membersHidden: state.membersHidden,
+          historyHidden: state.historyHidden,
         );
         saved = true;
       } on ChatsRequestException catch (error) {

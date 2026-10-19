@@ -350,8 +350,16 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
         // ней, и раскладка не прыгает.
         final onCover = community && _overCover;
         final canEdit = chat != null && chatInfoCanEdit(chat, state.members);
-        // Ссылки, заявки, реакции, медленный режим — демо (на сервере — 3.3–3.4).
-        final extras = context.read<ChatCubit>().features.groupExtras;
+        // Реакции, медленный режим — демо (на сервере — 3.4); ссылки и заявки
+        // — с вступлением (3.3) и правом приглашать.
+        final features = context.read<ChatCubit>().features;
+        final extras = features.groupExtras;
+        final invites = chat != null && (extras ? !chat.inCommunity : chatInfoShowsInvites(chat, features, state.members));
+        final requests =
+            chat != null &&
+            (extras
+                ? (!chat.inCommunity || chat.joinMode == models.ChatJoinMode.request)
+                : chatInfoShowsInvites(chat, features, state.members));
         final navBar = CupertinoNavigationBar(
           previousPageTitle: '',
           automaticBackgroundVisibility: false,
@@ -525,14 +533,12 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                   ),
                                 ),
                               if (community && chat.isMember) CommunityChatsCupertino(community: chat, chats: state.communityChats),
-                              if (chat.canManage &&
-                                  chat.type != models.ChatType.private &&
-                                  chatRolesEnabled(context.read<ChatCubit>().features))
+                              if (chat.canManage && chat.type != models.ChatType.private && chatRolesEnabled(features))
                                 _section(context, [
                                   // У чатов сообщества своих ссылок и блокировок нет —
                                   // вступают и блокируются через сообщество.
-                                  // Ссылки, заявки, реакции и медленный режим — на сервере в 3.3–3.4.
-                                  if (extras && !chat.inCommunity)
+                                  // Реакции и медленный режим — на сервере в 3.4.
+                                  if (invites)
                                     CupertinoListTileIcon(
                                       color: const Color(0xFF049A40),
                                       hugeIcon: HugeIcons.strokeRoundedLink01,
@@ -540,7 +546,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                       isTrailing: true,
                                       onTab: () => showChatInviteLinksCupertino(context, chat.id),
                                     ),
-                                  if (extras && (!chat.inCommunity || chat.joinMode == models.ChatJoinMode.request))
+                                  if (requests)
                                     CupertinoListTileIcon(
                                       color: const Color(0xFF1368E6),
                                       hugeIcon: HugeIcons.strokeRoundedUserAdd01,
@@ -668,7 +674,9 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                               onMemberTap: (member) => _openMember(context, member),
                               memberWrapper: (member, row) =>
                                   RowContextMenuCupertino(background: card, actions: _memberMenuActions(context, chat, member), child: row),
-                              onAddMembers: canAddMembers(chat, context.read<ChatCubit>().features) ? () => _addMembers(context) : null,
+                              onAddMembers: canAddMembers(chat, context.read<ChatCubit>().features, state.members)
+                                  ? () => _addMembers(context)
+                                  : null,
                             )
                           else if (tabs.isNotEmpty)
                             SliverToBoxAdapter(
@@ -705,7 +713,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                           actions: _memberMenuActions(context, chat, member),
                                           child: row,
                                         ),
-                                        onAddMembers: canAddMembers(chat, context.read<ChatCubit>().features)
+                                        onAddMembers: canAddMembers(chat, context.read<ChatCubit>().features, state.members)
                                             ? () => _addMembers(context)
                                             : null,
                                       ),

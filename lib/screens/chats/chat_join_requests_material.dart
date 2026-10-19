@@ -33,68 +33,90 @@ class ChatJoinRequestsMaterial extends StatelessWidget {
     final tc = t.screenChatInvites;
     final scheme = Theme.of(context).colorScheme;
 
-    return BlocBuilder<ChatInvitesCubit, ChatInvitesState>(
-      builder: (context, state) {
-        final chat = state.chat;
-        final requests = state.requests;
-        return Scaffold(
-          backgroundColor: scheme.surfaceContainerLow,
-          appBar: AppBar(
+    return ChatInvitesNoticeListener(
+      child: BlocBuilder<ChatInvitesCubit, ChatInvitesState>(
+        builder: (context, state) {
+          final chat = state.chat;
+          final requests = state.requests;
+          return Scaffold(
             backgroundColor: scheme.surfaceContainerLow,
-            title: Text(tc.joinRequests),
-            actions: [
-              if (requests.length > 1)
-                PopupMenuButton<bool>(
-                  onSelected: (approve) => context.read<ChatInvitesCubit>().answer(approve: approve),
-                  itemBuilder: (_) => [
-                    PopupMenuItem(value: true, child: Text(tc.approveAll)),
-                    PopupMenuItem(
-                      value: false,
-                      child: Text(tc.declineAll, style: TextStyle(color: scheme.error)),
-                    ),
-                  ],
-                ),
-            ],
-          ),
-          body: SafeArea(
-            child: requests.isEmpty
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(tc.requestsEmpty, style: Theme.of(context).textTheme.titleMedium),
-                          const SizedBox(height: 8),
-                          Text(
-                            chat != null && chat.joinMode != models.ChatJoinMode.request ? tc.requestsOffHint : tc.requestsEmptyHint,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: scheme.onSurfaceVariant),
-                          ),
-                        ],
+            appBar: AppBar(
+              backgroundColor: scheme.surfaceContainerLow,
+              title: Text(tc.joinRequests),
+              actions: [
+                if (requests.length > 1)
+                  PopupMenuButton<bool>(
+                    onSelected: (approve) => context.read<ChatInvitesCubit>().answer(approve: approve),
+                    itemBuilder: (_) => [
+                      PopupMenuItem(value: true, child: Text(tc.approveAll)),
+                      PopupMenuItem(
+                        value: false,
+                        child: Text(tc.declineAll, style: TextStyle(color: scheme.error)),
                       ),
-                    ),
-                  )
-                : ListView(
-                    padding: const EdgeInsets.fromLTRB(0, 8, 0, 24),
-                    children: [
-                      Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 12),
-                        clipBehavior: Clip.antiAlias,
+                    ],
+                  ),
+              ],
+            ),
+            body: SafeArea(
+              child: requests.isEmpty && state.requestsLoading && !state.requestsFailed
+                  ? const Center(child: CircularProgressIndicator())
+                  : requests.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32),
                         child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            for (final (i, request) in requests.indexed) ...[
-                              if (i > 0) const Divider(height: 1, indent: 72),
-                              _RequestTile(request: request),
+                            // Не загрузились — так и говорим (а не «заявок нет»).
+                            Text(
+                              state.requestsFailed ? tc.requestsFailed : tc.requestsEmpty,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              state.requestsFailed
+                                  ? tc.requestsFailedHint
+                                  : (chat != null && chat.joinMode != models.ChatJoinMode.request
+                                        ? tc.requestsOffHint
+                                        : tc.requestsEmptyHint),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: scheme.onSurfaceVariant),
+                            ),
+                            if (state.requestsFailed) ...[
+                              const SizedBox(height: 16),
+                              FilledButton.tonal(onPressed: context.read<ChatInvitesCubit>().retryRequests, child: Text(tc.retry)),
                             ],
                           ],
                         ),
                       ),
-                    ],
-                  ),
-          ),
-        );
-      },
+                    )
+                  : ListView(
+                      padding: const EdgeInsets.fromLTRB(0, 8, 0, 24),
+                      children: [
+                        // Список мог устареть — обновить не удалось.
+                        if (state.requestsFailed)
+                          ListTile(
+                            title: Text(tc.requestsFailed, style: TextStyle(color: scheme.error)),
+                            trailing: TextButton(onPressed: context.read<ChatInvitesCubit>().retryRequests, child: Text(tc.retry)),
+                          ),
+                        Card(
+                          margin: const EdgeInsets.symmetric(horizontal: 12),
+                          clipBehavior: Clip.antiAlias,
+                          child: Column(
+                            children: [
+                              for (final (i, request) in requests.indexed) ...[
+                                if (i > 0) const Divider(height: 1, indent: 72),
+                                _RequestTile(request: request),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

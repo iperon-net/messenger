@@ -798,6 +798,26 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(37, (tx) async {
+        // Вступление в группы (подэтап 3.3): владельцу и админам с правом
+        // приглашать — основная ссылка-приглашение (Dialog.inviteCode) и число
+        // ждущих заявок (Dialog.pendingRequests / Update.joinRequests); кэш
+        // ссылок-приглашений группы (ChatInviteLink BLOB) — видны и без сети.
+        await tx.execute("ALTER TABLE chatGroups ADD COLUMN inviteCode TEXT NOT NULL DEFAULT '';");
+        await tx.execute('ALTER TABLE chatGroups ADD COLUMN pendingRequests INTEGER NOT NULL DEFAULT 0;');
+        await tx.execute('''
+          CREATE TABLE chatInviteLinks (
+            userID BLOB NOT NULL,
+            chatID BLOB NOT NULL,
+            code TEXT NOT NULL,
+            link BLOB NOT NULL,
+            PRIMARY KEY (userID, chatID, code)
+          );
+        ''');
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

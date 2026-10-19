@@ -83,6 +83,11 @@ class ChatGroupRow {
   final pb.ChatAdminRights rights;
   final String rank;
 
+  /// Владельцу и админам с правом приглашать: код основной ссылки (без `+`)
+  /// и сколько заявок ждёт; остальным — пусто / 0.
+  final String inviteCode;
+  final int pendingRequests;
+
   ChatGroupRow({
     required this.chatID,
     required this.info,
@@ -90,6 +95,8 @@ class ChatGroupRow {
     required this.pts,
     pb.ChatAdminRights? rights,
     this.rank = '',
+    this.inviteCode = '',
+    this.pendingRequests = 0,
   }) : rights = rights ?? pb.ChatAdminRights();
 
   factory ChatGroupRow._fromRow(Map<String, dynamic> row) => ChatGroupRow(
@@ -99,6 +106,8 @@ class ChatGroupRow {
     pts: row['pts'] as int,
     rights: row['rights'] == null ? null : pb.ChatAdminRights.fromBuffer(row['rights'] as List<int>),
     rank: row['rank'] as String? ?? '',
+    inviteCode: row['inviteCode'] as String? ?? '',
+    pendingRequests: row['pendingRequests'] as int? ?? 0,
   );
 }
 
@@ -267,6 +276,7 @@ class ChatsRepository {
   static const scheduledTable = 'chatScheduled';
   static const groupsTable = 'chatGroups';
   static const groupMembersTable = 'chatGroupMembers';
+  static const inviteLinksTable = 'chatInviteLinks';
 
   static const _dialogColumns =
       'chatID, type, peerUserID, topMessageID, topMessageDate, topMessage, readInboxMaxID, readOutboxMaxID, unreadCount, '
@@ -475,6 +485,7 @@ class ChatsRepository {
     await ctx.execute('DELETE FROM chatDialogs WHERE userID = ? AND chatID = ?;', [userID, chatID]);
     await ctx.execute('DELETE FROM chatGroups WHERE userID = ? AND chatID = ?;', [userID, chatID]);
     await ctx.execute('DELETE FROM chatGroupMembers WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+    await ctx.execute('DELETE FROM chatInviteLinks WHERE userID = ? AND chatID = ?;', [userID, chatID]);
   }
 
   /// Полный список с сервера заменяет локальный: исчезнувшие диалоги удаляются
@@ -1054,7 +1065,7 @@ class ChatsRepository {
 
   // --- группы ---
 
-  static const _groupColumns = 'chatID, info, role, pts, rights, rank';
+  static const _groupColumns = 'chatID, info, role, pts, rights, rank, inviteCode, pendingRequests';
 
   Future<List<ChatGroupRow>> groups({required List<int> userID}) async {
     final rows = await ctx.getAll('SELECT $_groupColumns FROM chatGroups WHERE userID = ?;', [userID]);
@@ -1074,33 +1085,90 @@ class ChatsRepository {
     final info = dialog.chat;
     await ctx.execute(
       '''
-      INSERT INTO chatGroups (userID, chatID, info, role, pts, rights, rank) VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO chatGroups (userID, chatID, info, role, pts, rights, rank, inviteCode, pendingRequests) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(userID, chatID) DO UPDATE SET
         info = excluded.info,
         role = excluded.role,
         rights = excluded.rights,
         rank = excluded.rank,
+        inviteCode = excluded.inviteCode,
+        pendingRequests = excluded.pendingRequests,
         pts = ${resetPts ? 'excluded.pts' : 'MAX(chatGroups.pts, excluded.pts)'};
       ''',
-      [userID, info.chatID, info.writeToBuffer(), dialog.role.value, info.pts.toInt(), _rightsColumn(dialog.rights), dialog.rank],
+      [
+        userID,
+        info.chatID,
+        info.writeToBuffer(),
+        dialog.role.value,
+        info.pts.toInt(),
+        _rightsColumn(dialog.rights),
+        dialog.rank,
+        dialog.inviteCode,
+        dialog.pendingRequests,
+      ],
     );
   }
 
-  /// Моя роль / права / звание изменились (Update.dialogSettings группы).
+  /// Моя роль / права / звание изменились (Update.dialogSettings группы);
+  /// с ними — основная ссылка и число заявок (видны только с правом
+  /// приглашать: сняли админа — пусто).
   Future<void> setGroupRole({
     required List<int> userID,
     required List<int> chatID,
     required pb.ChatRole role,
     required pb.ChatAdminRights rights,
     required String rank,
+    String inviteCode = '',
+    int pendingRequests = 0,
   }) async {
-    await ctx.execute('UPDATE chatGroups SET role = ?, rights = ?, rank = ? WHERE userID = ? AND chatID = ?;', [
-      role.value,
-      _rightsColumn(rights),
-      rank,
+    await ctx.execute(
+      'UPDATE chatGroups SET role = ?, rights = ?, rank = ?, inviteCode = ?, pendingRequests = ? WHERE userID = ? AND chatID = ?;',
+      [role.value, _rightsColumn(rights), rank, inviteCode, pendingRequests, userID, chatID],
+    );
+  }
+
+  /// Изменилось число ждущих заявок (Update.joinRequests).
+  Future<void> setGroupPendingRequests({required List<int> userID, required List<int> chatID, required int pending}) async {
+    await ctx.execute('UPDATE chatGroups SET pendingRequests = ? WHERE userID = ? AND chatID = ?;', [pending, userID, chatID]);
+  }
+
+  /// Основная ссылка заменена (RevokeInviteLink основной) — код новой.
+  Future<void> setGroupInviteCode({required List<int> userID, required List<int> chatID, required String code}) async {
+    await ctx.execute('UPDATE chatGroups SET inviteCode = ? WHERE userID = ? AND chatID = ?;', [code, userID, chatID]);
+  }
+
+  // --- ссылки-приглашения ---
+
+  /// Кэш ссылок группы (последний ответ `InviteLinks` и правки после него).
+  Future<List<pb.ChatInviteLink>> inviteLinks({required List<int> userID, required List<int> chatID}) async {
+    final rows = await ctx.getAll('SELECT link FROM chatInviteLinks WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+    return [for (final row in rows) pb.ChatInviteLink.fromBuffer(row['link'] as List<int>)];
+  }
+
+  /// Полный список с сервера заменяет кэш группы.
+  Future<void> replaceInviteLinks({required List<int> userID, required List<int> chatID, required List<pb.ChatInviteLink> links}) async {
+    await ctx.execute('DELETE FROM chatInviteLinks WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+    for (final link in links) {
+      await upsertInviteLink(userID: userID, chatID: chatID, link: link);
+    }
+  }
+
+  /// Ссылка создана / изменена / отозвана (ответ сервера).
+  Future<void> upsertInviteLink({required List<int> userID, required List<int> chatID, required pb.ChatInviteLink link}) async {
+    await ctx.execute('INSERT OR REPLACE INTO chatInviteLinks (userID, chatID, code, link) VALUES (?, ?, ?, ?);', [
       userID,
       chatID,
+      link.code,
+      link.writeToBuffer(),
     ]);
+  }
+
+  /// Отозванные удалены (DeleteRevokedInviteLinks).
+  Future<void> deleteRevokedInviteLinks({required List<int> userID, required List<int> chatID}) async {
+    for (final link in await inviteLinks(userID: userID, chatID: chatID)) {
+      if (!link.revoked) continue;
+      await ctx.execute('DELETE FROM chatInviteLinks WHERE userID = ? AND chatID = ? AND code = ?;', [userID, chatID, link.code]);
+    }
   }
 
   /// Права админа → колонка: без единого права — NULL.
