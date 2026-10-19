@@ -1,7 +1,7 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../../components.dart';
 import '../../constants.dart';
@@ -17,6 +17,10 @@ import '../chats/forward_picker.dart';
 /// «Разблокировать». Блокировать можно и из профиля пользователя.
 class SettingsBlockedCupertino extends StatelessWidget {
   const SettingsBlockedCupertino({super.key});
+
+  /// Поля уже стандартных (20 / 20+14): список людей во всю ширину экрана.
+  static const _sectionMargin = EdgeInsets.fromLTRB(12, 0, 12, 10);
+  static const _tilePadding = EdgeInsetsDirectional.only(start: 14, end: 12, top: 8, bottom: 8);
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +46,7 @@ class SettingsBlockedCupertino extends StatelessWidget {
               : ListView(
                   children: [
                     CupertinoListSection.insetGrouped(
+                      margin: _sectionMargin,
                       backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
                       decoration: BoxDecoration(
                         color: ThemesCupertino.groupedCard.resolveFrom(context),
@@ -49,13 +54,19 @@ class SettingsBlockedCupertino extends StatelessWidget {
                       ),
                       children: [
                         CupertinoListTile(
-                          leading: FaIcon(FontAwesomeIcons.userSlash, size: 20, color: ThemesCupertino.actionColor(context)),
+                          padding: _tilePadding,
+                          leading: HugeIcon(
+                            icon: HugeIcons.strokeRoundedUserBlock01,
+                            size: 22,
+                            color: ThemesCupertino.actionColor(context),
+                          ),
                           title: Text(t.blockUser, style: TextStyle(color: ThemesCupertino.actionColor(context))),
                           onTap: () => _blockUser(context),
                         ),
                       ],
                     ),
                     CupertinoListSection.insetGrouped(
+                      margin: _sectionMargin,
                       backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
                       decoration: BoxDecoration(
                         color: ThemesCupertino.groupedCard.resolveFrom(context),
@@ -68,17 +79,27 @@ class SettingsBlockedCupertino extends StatelessWidget {
                       children: [
                         if (state.users.isEmpty)
                           CupertinoListTile(
+                            padding: _tilePadding,
                             title: Text(t.blockedEmpty, style: TextStyle(color: secondary)),
                           )
                         else
                           for (final user in state.users)
                             CupertinoListTile(
+                              padding: _tilePadding,
                               leading: UserAvatar(userID: user.userID, placeholderName: utils.bytesToHex(user.userID)),
                               title: Text(user.name.isEmpty ? t.unknownUser : user.name),
-                              trailing: CupertinoButton(
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
-                                onPressed: () => context.read<SettingsBlockedCubit>().unblock(user),
-                                child: Text(t.unblock),
+                              trailing: Semantics(
+                                label: t.unblock,
+                                button: true,
+                                child: CupertinoButton(
+                                  padding: const EdgeInsets.only(left: 8),
+                                  onPressed: () => context.read<SettingsBlockedCubit>().unblock(user),
+                                  child: HugeIcon(
+                                    icon: HugeIcons.strokeRoundedDelete02,
+                                    size: 22,
+                                    color: ThemesCupertino.actionColor(context),
+                                  ),
+                                ),
                               ),
                               onTap: () => context.push('/profile/${utils.bytesToHex(user.userID)}'),
                             ),

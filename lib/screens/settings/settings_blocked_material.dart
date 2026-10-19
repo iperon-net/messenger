@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../components.dart';
@@ -30,12 +31,13 @@ class SettingsBlockedMaterial extends StatelessWidget {
           child: state.status != Status.success
               ? const Center(child: CircularProgressIndicator())
               : ListView(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
                   children: [
                     Card(
                       clipBehavior: Clip.antiAlias,
                       child: ListTile(
-                        leading: Icon(Icons.block, color: Theme.of(context).colorScheme.primary),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                        leading: HugeIcon(icon: HugeIcons.strokeRoundedUserBlock01, color: Theme.of(context).colorScheme.primary),
                         title: Text(t.blockUser, style: TextStyle(color: Theme.of(context).colorScheme.primary)),
                         onTap: () => _blockUser(context),
                       ),
@@ -47,16 +49,19 @@ class SettingsBlockedMaterial extends StatelessWidget {
                         children: [
                           if (state.users.isEmpty)
                             ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                               title: Text(t.blockedEmpty, style: TextStyle(color: secondary)),
                             )
                           else
                             for (final user in state.users)
                               ListTile(
+                                contentPadding: const EdgeInsets.only(left: 12, right: 4),
                                 leading: UserAvatar(userID: user.userID, placeholderName: utils.bytesToHex(user.userID)),
                                 title: Text(user.name.isEmpty ? t.unknownUser : user.name),
-                                trailing: TextButton(
+                                trailing: IconButton(
+                                  tooltip: t.unblock,
                                   onPressed: () => context.read<SettingsBlockedCubit>().unblock(user),
-                                  child: Text(t.unblock),
+                                  icon: HugeIcon(icon: HugeIcons.strokeRoundedDelete02, color: Theme.of(context).colorScheme.primary),
                                 ),
                                 onTap: () => context.push('/profile/${utils.bytesToHex(user.userID)}'),
                               ),
@@ -64,7 +69,7 @@ class SettingsBlockedMaterial extends StatelessWidget {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
                       child: Text(t.blockedNote, style: TextStyle(fontSize: 13, color: secondary)),
                     ),
                   ],

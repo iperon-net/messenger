@@ -117,7 +117,8 @@ class _PickerState<T> extends State<_Picker<T>> {
       height: MediaQuery.sizeOf(context).height * 0.85,
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       decoration: BoxDecoration(
-        color: c.CupertinoColors.systemBackground.resolveFrom(context),
+        // Фон приложения (в тёмной теме — синий), а не системный чёрный.
+        color: ThemesCupertino.appBackground.resolveFrom(context),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
       ),
       child: SafeArea(
@@ -197,10 +198,16 @@ class _PickerState<T> extends State<_Picker<T>> {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              child: m.SearchBar(
-                hintText: t.screenChat.search,
-                elevation: const WidgetStatePropertyAll(0),
-                leading: const m.Icon(m.Icons.search),
+              // Обычное поле с тонкой рамкой из темы: SearchBar рисовал свою
+              // «таблетку», а внутри — ещё и рамку TextField (двойной контур).
+              child: m.TextField(
+                textAlignVertical: TextAlignVertical.center,
+                decoration: m.InputDecoration(
+                  hintText: t.screenChat.search,
+                  prefixIcon: const m.Icon(m.Icons.search, size: 20),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                ),
                 onChanged: (value) => setState(() => _query = value),
               ),
             ),
