@@ -1377,8 +1377,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   }
 
   /// Страница с сервера (`Chats.Members`, курсор — непрозрачный, base64) —
-  /// в кэш; без сети — весь кэш одной страницей. Поиск ([query]) — по
-  /// загруженным (на сервере его в 3.1 нет).
+  /// в кэш; без сети — весь кэш одной страницей. Поиск ([query]) — на
+  /// сервере ([_searchMembers]), без сети — по кэшу.
   @override
   Future<ChatMembersPage> membersPage(String chatID, {String cursor = '', int limit = 50, String query = ''}) async {
     final chat = idBytes(chatID);
@@ -1394,7 +1394,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       return ChatMembersPage(members: found, nextCursor: '', total: q.isEmpty ? group.info.membersCount : found.length);
     }
 
-    if (query.trim().isNotEmpty || !await _sync.hasNetwork()) return cached();
+    if (!await _sync.hasNetwork()) return cached();
+    if (query.trim().isNotEmpty) return _searchMembers(chatID, query.trim(), cursor: cursor, limit: limit, cached: cached);
     try {
       final before = {for (final r in await _store.groupMembers(userID: me, chatID: chat)) _memberKey(r)};
       final response = await _sync.chats(
@@ -1427,6 +1428,49 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       return cached();
     } on ChatsRequestException catch (error) {
       _logger.warning('chats: members page failed: $error');
+      return cached();
+    }
+  }
+
+  /// Поиск участников на сервере (`Members.query`: по началам слов имени в
+  /// профиле или `@username`) — находит и тех, кого нет в кэше «известных».
+  /// Первая страница дополняется найденными в кэше (имя из книги контактов
+  /// сервер не знает); без сети или при отказе — только кэш.
+  Future<ChatMembersPage> _searchMembers(
+    String chatID,
+    String query, {
+    required String cursor,
+    required int limit,
+    required Future<ChatMembersPage> Function() cached,
+  }) async {
+    final chat = idBytes(chatID);
+    final me = _sync.me;
+    try {
+      final response = await _sync.chats(
+        pb.Chats_Request(
+          members: pb.Chats_Members(chatID: chat, offset: cursor.isEmpty ? null : base64Decode(cursor), limit: limit, query: query),
+        ),
+      );
+      final page = response.members;
+      final api = getIt.get<API>();
+      for (final profile in page.profiles) {
+        await api.cacheProfile(profile, waitAvatar: false);
+      }
+      if (page.members.isNotEmpty) {
+        await _store.transaction((tx) => tx.upsertGroupMembers(userID: me, chatID: chat, members: page.members));
+      }
+      final found = [
+        ...await _membersFrom([for (final m in page.members) ChatGroupMemberRow.fromPb(m)]),
+      ];
+      if (cursor.isEmpty) {
+        final ids = {for (final m in found) m.id};
+        found.addAll((await cached()).members.where((m) => !ids.contains(m.id)));
+      }
+      return ChatMembersPage(members: found, nextCursor: page.nextOffset.isEmpty ? '' : base64Encode(page.nextOffset), total: found.length);
+    } on ChatsOfflineException {
+      return cached();
+    } on ChatsRequestException catch (error) {
+      _logger.warning('chats: members search failed: $error');
       return cached();
     }
   }
