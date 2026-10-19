@@ -2077,8 +2077,8 @@ class Translations$screenSettingsAppearance$en {
 	/// en: 'Color theme'
 	String get colorTheme => 'Color theme';
 
-	/// en: 'Default'
-	String get colorThemeDefault => 'Default';
+	/// en: 'Blue'
+	String get colorThemeDefault => 'Blue';
 
 	/// en: 'Green'
 	String get colorThemeGreen => 'Green';
@@ -2784,6 +2784,9 @@ class Translations$sessionsPrivacyAndSecurity$en {
 
 	/// en: 'Everyone else will see only your name in "Forwarded from…", without a link to your profile.'
 	String get forwardsNote => 'Everyone else will see only your name in "Forwarded from…", without a link to your profile.';
+
+	/// en: 'Remind me, what time are we meeting tomorrow?'
+	String get forwardsPreviewText => 'Remind me, what time are we meeting tomorrow?';
 
 	/// en: 'Phone number'
 	String get phoneNumber => 'Phone number';
@@ -4675,7 +4678,7 @@ extension on Translations {
 			'screenDeveloper.remoteConfigError' => ({required Object error}) => 'Failed to fetch: ${error}',
 			'screenSettingsAppearance.appearance' => 'Appearance',
 			'screenSettingsAppearance.colorTheme' => 'Color theme',
-			'screenSettingsAppearance.colorThemeDefault' => 'Default',
+			'screenSettingsAppearance.colorThemeDefault' => 'Blue',
 			'screenSettingsAppearance.colorThemeGreen' => 'Green',
 			'screenSettingsAppearance.colorThemePurple' => 'Purple',
 			'screenSettingsAppearance.colorThemeOrange' => 'Orange',
@@ -4885,6 +4888,7 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.forwards' => 'Forwarded messages',
 			'sessionsPrivacyAndSecurity.whoCanLinkForwards' => 'Who can add a link to my account when forwarding my messages',
 			'sessionsPrivacyAndSecurity.forwardsNote' => 'Everyone else will see only your name in "Forwarded from…", without a link to your profile.',
+			'sessionsPrivacyAndSecurity.forwardsPreviewText' => 'Remind me, what time are we meeting tomorrow?',
 			'sessionsPrivacyAndSecurity.phoneNumber' => 'Phone number',
 			'sessionsPrivacyAndSecurity.whoCanSeePhoneNumber' => 'Who can see my phone number',
 			'sessionsPrivacyAndSecurity.phoneNumberNote' => 'People who already have your number saved in their contacts will always see it.',
@@ -5091,9 +5095,9 @@ extension on Translations {
 			'grpcError.errorConnectingServer' => 'Error connecting to the server',
 			'grpcError.unauthenticated' => 'Unauthenticated',
 			'grpcError.unableConnectServer' => 'Unable to connect to the server',
-			'grpcError.internalServerError' => 'Internal server error',
 			_ => null,
 		} ?? switch (path) {
+			'grpcError.internalServerError' => 'Internal server error',
 			'grpcError.unknownError' => 'Unknown error',
 			'dateTime.relativeDateTimeToday' => ({required Object time}) => 'today at ${time}',
 			'dateTime.relativeDateTimeYesterday' => ({required Object time}) => 'yesterday at ${time}',

@@ -884,7 +884,7 @@ class _Translations$screenSettingsAppearance$ru extends Translations$screenSetti
 	// Translations
 	@override String get appearance => 'Оформление';
 	@override String get colorTheme => 'Цветовая тема';
-	@override String get colorThemeDefault => 'По умолчанию';
+	@override String get colorThemeDefault => 'Синяя';
 	@override String get colorThemeGreen => 'Зелёная';
 	@override String get colorThemePurple => 'Фиолетовая';
 	@override String get colorThemeOrange => 'Оранжевая';
@@ -1172,6 +1172,7 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get forwards => 'Пересылка сообщений';
 	@override String get whoCanLinkForwards => 'Кто может добавлять ссылку на мой аккаунт при пересылке моих сообщений';
 	@override String get forwardsNote => 'Остальные увидят в «Переслано от …» только ваше имя — без перехода в ваш профиль.';
+	@override String get forwardsPreviewText => 'Напомни, во сколько завтра встречаемся?';
 	@override String get phoneNumber => 'Номер телефона';
 	@override String get whoCanSeePhoneNumber => 'Кто видит мой номер телефона';
 	@override String get phoneNumberNote => 'Тот, у кого ваш номер уже записан в контактах, видит его всегда.';
@@ -2360,7 +2361,7 @@ extension on TranslationsRu {
 			'screenDeveloper.remoteConfigError' => ({required Object error}) => 'Не удалось загрузить: ${error}',
 			'screenSettingsAppearance.appearance' => 'Оформление',
 			'screenSettingsAppearance.colorTheme' => 'Цветовая тема',
-			'screenSettingsAppearance.colorThemeDefault' => 'По умолчанию',
+			'screenSettingsAppearance.colorThemeDefault' => 'Синяя',
 			'screenSettingsAppearance.colorThemeGreen' => 'Зелёная',
 			'screenSettingsAppearance.colorThemePurple' => 'Фиолетовая',
 			'screenSettingsAppearance.colorThemeOrange' => 'Оранжевая',
@@ -2570,6 +2571,7 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.forwards' => 'Пересылка сообщений',
 			'sessionsPrivacyAndSecurity.whoCanLinkForwards' => 'Кто может добавлять ссылку на мой аккаунт при пересылке моих сообщений',
 			'sessionsPrivacyAndSecurity.forwardsNote' => 'Остальные увидят в «Переслано от …» только ваше имя — без перехода в ваш профиль.',
+			'sessionsPrivacyAndSecurity.forwardsPreviewText' => 'Напомни, во сколько завтра встречаемся?',
 			'sessionsPrivacyAndSecurity.phoneNumber' => 'Номер телефона',
 			'sessionsPrivacyAndSecurity.whoCanSeePhoneNumber' => 'Кто видит мой номер телефона',
 			'sessionsPrivacyAndSecurity.phoneNumberNote' => 'Тот, у кого ваш номер уже записан в контактах, видит его всегда.',
@@ -2776,9 +2778,9 @@ extension on TranslationsRu {
 			'grpcError.errorConnectingServer' => 'Ошибка подключения к серверу',
 			'grpcError.unauthenticated' => 'Неавторизован',
 			'grpcError.unableConnectServer' => 'Не удалось подключиться к серверу',
-			'grpcError.internalServerError' => 'Внутренняя ошибка сервера',
 			_ => null,
 		} ?? switch (path) {
+			'grpcError.internalServerError' => 'Внутренняя ошибка сервера',
 			'grpcError.unknownError' => 'Unknown error',
 			'dateTime.relativeDateTimeToday' => ({required Object time}) => 'сегодня в ${time}',
 			'dateTime.relativeDateTimeYesterday' => ({required Object time}) => 'вчера в ${time}',

@@ -2,6 +2,8 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 
+import '../models/constants.dart';
+
 class ThemesCupertino {
   static const CupertinoDynamicColor appBackground = CupertinoDynamicColor.withBrightness(
     color: Color(0xFFFFFFFF),
@@ -55,6 +57,18 @@ class ThemesCupertino {
     highContrastColor: Color.fromARGB(255, 180, 80, 0), // Еще темнее для контраста
     darkHighContrastColor: Color.fromARGB(255, 255, 170, 60), // Яркий для темной + контраст
   );
+
+  /// Базовый цвет оформления [colorTheme] (из него [accent] строит
+  /// `primaryColor` приложения; им же красятся превью «Цветовой темы»).
+  static CupertinoDynamicColor base(ColorThemeModel colorTheme) {
+    final themes = ThemesCupertino();
+    return switch (colorTheme) {
+      ColorThemeModel.blue => themes.blueScheme,
+      ColorThemeModel.green => themes.green,
+      ColorThemeModel.purple => CupertinoColors.systemPurple,
+      ColorThemeModel.orange => themes.orange,
+    };
+  }
 
   /// Фон экрана блокировки (`ScreenLock`): в светлой теме — системный
   /// `systemGroupedBackground`, в тёмной — фирменный `scaffoldBackgroundColor`.

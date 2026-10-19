@@ -661,7 +661,7 @@
 "screenSettingsAppearance":
   "appearance": "Appearance"
   "colorTheme": "Color theme"
-  "colorThemeDefault": "Default"
+  "colorThemeDefault": "Blue"
   "colorThemeGreen": "Green"
   "colorThemePurple": "Purple"
   "colorThemeOrange": "Orange"
@@ -891,6 +891,7 @@
   "forwards": "Forwarded messages"
   "whoCanLinkForwards": "Who can add a link to my account when forwarding my messages"
   "forwardsNote": "Everyone else will see only your name in \"Forwarded from…\", without a link to your profile."
+  "forwardsPreviewText": "Remind me, what time are we meeting tomorrow?"
   "phoneNumber": "Phone number"
   "whoCanSeePhoneNumber": "Who can see my phone number"
   "phoneNumberNote": "People who already have your number saved in their contacts will always see it."

@@ -685,7 +685,7 @@
 "screenSettingsAppearance":
   "appearance": "Оформление"
   "colorTheme": "Цветовая тема"
-  "colorThemeDefault": "По умолчанию"
+  "colorThemeDefault": "Синяя"
   "colorThemeGreen": "Зелёная"
   "colorThemePurple": "Фиолетовая"
   "colorThemeOrange": "Оранжевая"
@@ -915,6 +915,7 @@
   "forwards": "Пересылка сообщений"
   "whoCanLinkForwards": "Кто может добавлять ссылку на мой аккаунт при пересылке моих сообщений"
   "forwardsNote": "Остальные увидят в «Переслано от …» только ваше имя — без перехода в ваш профиль."
+  "forwardsPreviewText": "Напомни, во сколько завтра встречаемся?"
   "phoneNumber": "Номер телефона"
   "whoCanSeePhoneNumber": "Кто видит мой номер телефона"
   "phoneNumberNote": "Тот, у кого ваш номер уже записан в контактах, видит его всегда."

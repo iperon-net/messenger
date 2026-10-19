@@ -7,6 +7,8 @@ import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
+import '../chats/chat_cupertino.dart';
+import 'settings_privacy_forwards_common.dart';
 
 /// Детейл-экран «Пересылка сообщений» — кто может добавить ссылку на мой
 /// аккаунт при пересылке моих сообщений (drill-down с «Конфиденциальности»):
@@ -114,6 +116,17 @@ class SettingsPrivacyForwardsCupertino extends StatelessWidget {
           child: SafeArea(
             child: ListView(
               children: [
+                // Как получатель увидит моё пересланное сообщение. Пока
+                // настройка не загружена — без превью (не показываем дефолт).
+                if (!state.callsLoadError)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: ForwardsPrivacyPreview(
+                      hidden: state.forwardsAudience == CallsPrivacyAudience.nobody,
+                      dark: CupertinoTheme.brightnessOf(context) == Brightness.dark,
+                      style: ChatCupertino.bubbleStyle(context),
+                    ),
+                  ),
                 CupertinoListSection.insetGrouped(
                   header: Text(
                     context.t.sessionsPrivacyAndSecurity.whoCanLinkForwards,

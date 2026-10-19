@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
+import '../chats/chat_material.dart';
+import 'settings_privacy_forwards_common.dart';
 
 /// Детейл-экран «Пересылка сообщений» — кто может добавить ссылку на мой
 /// аккаунт при пересылке моих сообщений (drill-down с «Конфиденциальности»):
@@ -96,6 +98,17 @@ class SettingsPrivacyForwardsMaterial extends StatelessWidget {
           body: SafeArea(
             child: ListView(
               children: [
+                // Как получатель увидит моё пересланное сообщение. Пока
+                // настройка не загружена — без превью (не показываем дефолт).
+                if (!state.callsLoadError)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: ForwardsPrivacyPreview(
+                      hidden: state.forwardsAudience == CallsPrivacyAudience.nobody,
+                      dark: Theme.of(context).brightness == Brightness.dark,
+                      style: ChatMaterial.bubbleStyle(context),
+                    ),
+                  ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                   child: Text(

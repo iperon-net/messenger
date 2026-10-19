@@ -7,6 +7,10 @@ import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models/constants.dart';
 import '../../themes.dart';
+import '../../components.dart';
+import '../chats/chat_material.dart';
+import 'settings_chat_themes_common.dart';
+import 'settings_color_theme_common.dart';
 
 class SettingsAppearanceMaterial extends StatefulWidget {
   const SettingsAppearanceMaterial({super.key});
@@ -59,6 +63,18 @@ class _SettingsAppearanceMaterial extends State<SettingsAppearanceMaterial> {
     if (emoji != null && emoji != current) await cubit.setQuickReaction(emoji);
   }
 
+  static final _schemes = <(ColorThemeModel, Brightness), ColorScheme>{};
+
+  /// Цвета миниатюры темы — как у пузырей окна чата (`ChatMaterial.bubbleStyle`):
+  /// исходящие — `primaryContainer` seed-схемы темы.
+  static ColorThemeSwatch _swatch(ColorThemeModel colorTheme, {required Brightness brightness, required Color incoming}) {
+    final scheme = _schemes.putIfAbsent((
+      colorTheme,
+      brightness,
+    ), () => ColorScheme.fromSeed(seedColor: ThemesMaterial.seed(colorTheme), brightness: brightness));
+    return ColorThemeSwatch(accent: scheme.primary, outgoing: scheme.primaryContainer, incoming: incoming);
+  }
+
   Widget _sectionHeader(BuildContext context, String text) => Padding(
     padding: const EdgeInsets.fromLTRB(24, 16, 24, 4),
     child: Text(
@@ -83,12 +99,6 @@ class _SettingsAppearanceMaterial extends State<SettingsAppearanceMaterial> {
         await commonCubit.setIsBlurOnInactive(isBlurOnInactive: state.isBlurOnInactive);
       },
       builder: (context, state) {
-        Widget colorTile(String title, ColorThemeModel value) => ListTile(
-          title: Text(title),
-          onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(colorTheme: value),
-          trailing: state.colorTheme == value ? check : null,
-        );
-
         Widget darkModeTile(String title, String subtitle, DarkModeModel value) => ListTile(
           title: Text(title),
           subtitle: Text(subtitle),
@@ -102,16 +112,46 @@ class _SettingsAppearanceMaterial extends State<SettingsAppearanceMaterial> {
             child: ListView(
               children: [
                 _sectionHeader(context, context.t.screenSettingsAppearance.colorTheme),
-                Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Column(
-                    children: [
-                      colorTile(context.t.screenSettingsAppearance.colorThemeDefault, ColorThemeModel.blue),
-                      colorTile(context.t.screenSettingsAppearance.colorThemeGreen, ColorThemeModel.green),
-                      colorTile(context.t.screenSettingsAppearance.colorThemePurple, ColorThemeModel.purple),
-                      colorTile(context.t.screenSettingsAppearance.colorThemeOrange, ColorThemeModel.orange),
-                    ],
-                  ),
+                // Цветовая тема — как «Темы для чатов»: живое превью и лента
+                // миниатюр. Применяется сразу, превью перерисуется с новой темой.
+                BlocBuilder<CommonCubit, CommonState>(
+                  buildWhen: (previous, current) =>
+                      previous.settingsDevice.chatWallpaper != current.settingsDevice.chatWallpaper ||
+                      previous.settingsDevice.chatWallpaperColor != current.settingsDevice.chatWallpaperColor ||
+                      previous.settingsDevice.chatWallpaperIntensity != current.settingsDevice.chatWallpaperIntensity,
+                  builder: (context, common) {
+                    final pattern = chatWallpaperPatternOf(common.settingsDevice.chatWallpaper);
+                    final color = common.settingsDevice.chatWallpaperColor;
+                    final intensity = common.settingsDevice.chatWallpaperIntensity;
+                    final theme = Theme.of(context);
+                    final dark = theme.brightness == Brightness.dark;
+                    final incoming = dark ? theme.colorScheme.surfaceContainerHigh : const Color(0xFFFFFFFF);
+                    return Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                          child: ChatThemePreview(
+                            pattern: pattern,
+                            colorIndex: color,
+                            intensity: intensity,
+                            dark: dark,
+                            style: ChatMaterial.bubbleStyle(context),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        ColorThemeStrip(
+                          selected: state.colorTheme,
+                          swatchOf: (colorTheme) => _swatch(colorTheme, brightness: theme.brightness, incoming: incoming),
+                          pattern: pattern,
+                          colorIndex: color,
+                          intensity: intensity,
+                          dark: dark,
+                          labelStyle: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
+                          onSelected: (value) => context.read<SettingsAppearanceCubit>().setColorTheme(colorTheme: value),
+                        ),
+                      ],
+                    );
+                  },
                 ),
                 _sectionHeader(context, context.t.screenSettingsAppearance.darkMode),
                 Card(

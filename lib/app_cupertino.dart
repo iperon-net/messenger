@@ -200,15 +200,7 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
       listenWhen: (previous, current) => !previous.callOverlayDismissed && current.callOverlayDismissed,
       listener: (context, state) => _onCallOverlayDismissed(),
       builder: (context, state) {
-        CupertinoDynamicColor colorSchemeSystem = themes.blueScheme;
-
-        if (state.settingsDevice.colorTheme == ColorThemeModel.green) {
-          colorSchemeSystem = themes.green;
-        } else if (state.settingsDevice.colorTheme == ColorThemeModel.purple) {
-          colorSchemeSystem = CupertinoColors.systemPurple;
-        } else if (state.settingsDevice.colorTheme == ColorThemeModel.orange) {
-          colorSchemeSystem = themes.orange;
-        }
+        CupertinoDynamicColor colorSchemeSystem = ThemesCupertino.base(state.settingsDevice.colorTheme);
 
         Brightness? brightness;
         if (state.settingsDevice.darkMode == DarkModeModel.alwaysOn) {

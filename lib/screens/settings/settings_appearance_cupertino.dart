@@ -10,6 +10,9 @@ import '../../chats/reactions.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models/constants.dart';
+import '../chats/chat_cupertino.dart';
+import 'settings_chat_themes_common.dart';
+import 'settings_color_theme_common.dart';
 
 class SettingsAppearanceCupertino extends StatefulWidget {
   const SettingsAppearanceCupertino({super.key});
@@ -61,6 +64,15 @@ class _SettingsAppearanceCupertino extends State<SettingsAppearanceCupertino> {
     if (emoji != null && emoji != current) await cubit.setQuickReaction(emoji);
   }
 
+  /// Цвета миниатюры темы — как у пузырей окна чата (`ChatCupertino.bubbleStyle`):
+  /// в светлой теме исходящие — акцент, в тёмной — `primaryContainer` seed-схемы.
+  static ColorThemeSwatch _swatch(ColorThemeModel colorTheme, {required bool dark}) {
+    final base = ThemesCupertino.base(colorTheme).color;
+    if (!dark) return ColorThemeSwatch(accent: base, outgoing: base, incoming: const Color(0xFFFFFFFF));
+    final scheme = ThemesCupertino.darkScheme(base);
+    return ColorThemeSwatch(accent: scheme.primary, outgoing: scheme.primaryContainer, incoming: const Color(0xFF262628));
+  }
+
   @override
   void initState() {
     super.initState();
@@ -110,38 +122,51 @@ class _SettingsAppearanceCupertino extends State<SettingsAppearanceCupertino> {
           child: SafeArea(
             child: ListView(
               children: [
-                CupertinoListSection.insetGrouped(
-                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-                  decoration: BoxDecoration(
-                    color: ThemesCupertino.groupedCard.resolveFrom(context),
-                    borderRadius: const BorderRadius.all(Radius.circular(10)),
-                  ),
-                  header: Text(
+                // Цветовая тема — как «Темы для чатов»: живое превью и лента
+                // миниатюр. Применяется сразу, превью перерисуется с новой темой.
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                  child: Text(
                     context.t.screenSettingsAppearance.colorTheme.toUpperCase(),
-                    style: TextStyle(fontSize: AppFontSizes.caption, fontWeight: FontWeight.normal),
+                    style: TextStyle(fontSize: AppFontSizes.caption, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
                   ),
-                  children: [
-                    CupertinoListTile(
-                      title: Text(context.t.screenSettingsAppearance.colorThemeDefault),
-                      onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(colorTheme: ColorThemeModel.blue),
-                      additionalInfo: state.colorTheme == ColorThemeModel.blue ? additionalInfo : null,
-                    ),
-                    CupertinoListTile(
-                      title: Text(context.t.screenSettingsAppearance.colorThemeGreen),
-                      onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(colorTheme: ColorThemeModel.green),
-                      additionalInfo: state.colorTheme == ColorThemeModel.green ? additionalInfo : null,
-                    ),
-                    CupertinoListTile(
-                      title: Text(context.t.screenSettingsAppearance.colorThemePurple),
-                      onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(colorTheme: ColorThemeModel.purple),
-                      additionalInfo: state.colorTheme == ColorThemeModel.purple ? additionalInfo : null,
-                    ),
-                    CupertinoListTile(
-                      title: Text(context.t.screenSettingsAppearance.colorThemeOrange),
-                      onTap: () async => await context.read<SettingsAppearanceCubit>().setColorTheme(colorTheme: ColorThemeModel.orange),
-                      additionalInfo: state.colorTheme == ColorThemeModel.orange ? additionalInfo : null,
-                    ),
-                  ],
+                ),
+                BlocBuilder<CommonCubit, CommonState>(
+                  buildWhen: (previous, current) =>
+                      previous.settingsDevice.chatWallpaper != current.settingsDevice.chatWallpaper ||
+                      previous.settingsDevice.chatWallpaperColor != current.settingsDevice.chatWallpaperColor ||
+                      previous.settingsDevice.chatWallpaperIntensity != current.settingsDevice.chatWallpaperIntensity,
+                  builder: (context, common) {
+                    final pattern = chatWallpaperPatternOf(common.settingsDevice.chatWallpaper);
+                    final color = common.settingsDevice.chatWallpaperColor;
+                    final intensity = common.settingsDevice.chatWallpaperIntensity;
+                    final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
+                    return Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: ChatThemePreview(
+                            pattern: pattern,
+                            colorIndex: color,
+                            intensity: intensity,
+                            dark: dark,
+                            style: ChatCupertino.bubbleStyle(context),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        ColorThemeStrip(
+                          selected: state.colorTheme,
+                          swatchOf: (colorTheme) => _swatch(colorTheme, dark: dark),
+                          pattern: pattern,
+                          colorIndex: color,
+                          intensity: intensity,
+                          dark: dark,
+                          labelStyle: TextStyle(fontSize: 12, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                          onSelected: (value) => context.read<SettingsAppearanceCubit>().setColorTheme(colorTheme: value),
+                        ),
+                      ],
+                    );
+                  },
                 ),
 
                 CupertinoListSection.insetGrouped(
