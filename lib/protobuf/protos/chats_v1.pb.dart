@@ -40,6 +40,9 @@ class ChatInfo extends $pb.GeneratedMessage {
     $fixnum.Int64? pts,
     $fixnum.Int64? createdAt,
     ChatRole? defaultRole,
+    $core.String? username,
+    ChatJoinMode? joinMode,
+    $core.bool? historyHidden,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -53,6 +56,9 @@ class ChatInfo extends $pb.GeneratedMessage {
     if (pts != null) result.pts = pts;
     if (createdAt != null) result.createdAt = createdAt;
     if (defaultRole != null) result.defaultRole = defaultRole;
+    if (username != null) result.username = username;
+    if (joinMode != null) result.joinMode = joinMode;
+    if (historyHidden != null) result.historyHidden = historyHidden;
     return result;
   }
 
@@ -76,6 +82,9 @@ class ChatInfo extends $pb.GeneratedMessage {
     ..aInt64(9, _omitFieldNames ? '' : 'pts')
     ..aInt64(10, _omitFieldNames ? '' : 'createdAt', protoName: 'createdAt')
     ..aE<ChatRole>(11, _omitFieldNames ? '' : 'defaultRole', protoName: 'defaultRole', enumValues: ChatRole.values)
+    ..aOS(12, _omitFieldNames ? '' : 'username')
+    ..aE<ChatJoinMode>(13, _omitFieldNames ? '' : 'joinMode', protoName: 'joinMode', enumValues: ChatJoinMode.values)
+    ..aOB(14, _omitFieldNames ? '' : 'historyHidden', protoName: 'historyHidden')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -198,6 +207,397 @@ class ChatInfo extends $pb.GeneratedMessage {
   $core.bool hasDefaultRole() => $_has(10);
   @$pb.TagNumber(11)
   void clearDefaultRole() => $_clearField(11);
+
+  /// Публичное имя (ссылка iperon.net/<username>) — только у OPEN, иначе пусто.
+  @$pb.TagNumber(12)
+  $core.String get username => $_getSZ(11);
+  @$pb.TagNumber(12)
+  set username($core.String value) => $_setString(11, value);
+  @$pb.TagNumber(12)
+  $core.bool hasUsername() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearUsername() => $_clearField(12);
+
+  @$pb.TagNumber(13)
+  ChatJoinMode get joinMode => $_getN(12);
+  @$pb.TagNumber(13)
+  set joinMode(ChatJoinMode value) => $_setField(13, value);
+  @$pb.TagNumber(13)
+  $core.bool hasJoinMode() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearJoinMode() => $_clearField(13);
+
+  /// «Скрыть историю» (только частные — не OPEN): вступившие после включения
+  /// видят сообщения только с момента вступления.
+  @$pb.TagNumber(14)
+  $core.bool get historyHidden => $_getBF(13);
+  @$pb.TagNumber(14)
+  set historyHidden($core.bool value) => $_setBool(13, value);
+  @$pb.TagNumber(14)
+  $core.bool hasHistoryHidden() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearHistoryHidden() => $_clearField(14);
+}
+
+/// Ссылка-приглашение (как chatInviteExported в Telegram). Путь ссылки —
+/// iperon.net/+<code>; код выдаёт сервер (12 символов base62). primary —
+/// основная: создаётся с группой, её можно только заменить (Revoke выдаёт
+/// новую основную), не удалить. Видят и правят владелец и админы с inviteUsers.
+class ChatInviteLink extends $pb.GeneratedMessage {
+  factory ChatInviteLink({
+    $core.String? code,
+    $core.String? title,
+    $core.bool? primary,
+    $core.bool? revoked,
+    $fixnum.Int64? expireDate,
+    $core.int? usageLimit,
+    $core.int? usage,
+    $core.bool? requestApproval,
+    $fixnum.Int64? createdAt,
+    $core.List<$core.int>? creatorUserID,
+    $core.int? pendingCount,
+  }) {
+    final result = create();
+    if (code != null) result.code = code;
+    if (title != null) result.title = title;
+    if (primary != null) result.primary = primary;
+    if (revoked != null) result.revoked = revoked;
+    if (expireDate != null) result.expireDate = expireDate;
+    if (usageLimit != null) result.usageLimit = usageLimit;
+    if (usage != null) result.usage = usage;
+    if (requestApproval != null) result.requestApproval = requestApproval;
+    if (createdAt != null) result.createdAt = createdAt;
+    if (creatorUserID != null) result.creatorUserID = creatorUserID;
+    if (pendingCount != null) result.pendingCount = pendingCount;
+    return result;
+  }
+
+  ChatInviteLink._();
+
+  factory ChatInviteLink.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ChatInviteLink.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ChatInviteLink',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'code')
+    ..aOS(2, _omitFieldNames ? '' : 'title')
+    ..aOB(3, _omitFieldNames ? '' : 'primary')
+    ..aOB(4, _omitFieldNames ? '' : 'revoked')
+    ..aInt64(5, _omitFieldNames ? '' : 'expireDate', protoName: 'expireDate')
+    ..aI(6, _omitFieldNames ? '' : 'usageLimit', protoName: 'usageLimit')
+    ..aI(7, _omitFieldNames ? '' : 'usage')
+    ..aOB(8, _omitFieldNames ? '' : 'requestApproval', protoName: 'requestApproval')
+    ..aInt64(9, _omitFieldNames ? '' : 'createdAt', protoName: 'createdAt')
+    ..a<$core.List<$core.int>>(10, _omitFieldNames ? '' : 'creatorUserID', $pb.PbFieldType.OY, protoName: 'creatorUserID')
+    ..aI(11, _omitFieldNames ? '' : 'pendingCount', protoName: 'pendingCount')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ChatInviteLink clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ChatInviteLink copyWith(void Function(ChatInviteLink) updates) =>
+      super.copyWith((message) => updates(message as ChatInviteLink)) as ChatInviteLink;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ChatInviteLink create() => ChatInviteLink._();
+  @$core.override
+  ChatInviteLink createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ChatInviteLink getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ChatInviteLink>(create);
+  static ChatInviteLink? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get code => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set code($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasCode() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearCode() => $_clearField(1);
+
+  /// Название для админов; пусто — показывается сама ссылка.
+  @$pb.TagNumber(2)
+  $core.String get title => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set title($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasTitle() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearTitle() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get primary => $_getBF(2);
+  @$pb.TagNumber(3)
+  set primary($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasPrimary() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearPrimary() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.bool get revoked => $_getBF(3);
+  @$pb.TagNumber(4)
+  set revoked($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasRevoked() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearRevoked() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $fixnum.Int64 get expireDate => $_getI64(4);
+  @$pb.TagNumber(5)
+  set expireDate($fixnum.Int64 value) => $_setInt64(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasExpireDate() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearExpireDate() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.int get usageLimit => $_getIZ(5);
+  @$pb.TagNumber(6)
+  set usageLimit($core.int value) => $_setSignedInt32(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasUsageLimit() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearUsageLimit() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.int get usage => $_getIZ(6);
+  @$pb.TagNumber(7)
+  set usage($core.int value) => $_setSignedInt32(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasUsage() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearUsage() => $_clearField(7);
+
+  /// Вступление по ссылке — заявкой (у REQUEST — всегда).
+  @$pb.TagNumber(8)
+  $core.bool get requestApproval => $_getBF(7);
+  @$pb.TagNumber(8)
+  set requestApproval($core.bool value) => $_setBool(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasRequestApproval() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearRequestApproval() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $fixnum.Int64 get createdAt => $_getI64(8);
+  @$pb.TagNumber(9)
+  set createdAt($fixnum.Int64 value) => $_setInt64(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasCreatedAt() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearCreatedAt() => $_clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.List<$core.int> get creatorUserID => $_getN(9);
+  @$pb.TagNumber(10)
+  set creatorUserID($core.List<$core.int> value) => $_setBytes(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasCreatorUserID() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearCreatorUserID() => $_clearField(10);
+
+  /// Ждущих заявок по этой ссылке.
+  @$pb.TagNumber(11)
+  $core.int get pendingCount => $_getIZ(10);
+  @$pb.TagNumber(11)
+  set pendingCount($core.int value) => $_setSignedInt32(10, value);
+  @$pb.TagNumber(11)
+  $core.bool hasPendingCount() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearPendingCount() => $_clearField(11);
+}
+
+/// Заявка на вступление.
+class ChatJoinRequest extends $pb.GeneratedMessage {
+  factory ChatJoinRequest({
+    $core.List<$core.int>? userID,
+    $fixnum.Int64? date,
+    $core.String? inviteCode,
+    $core.String? inviteTitle,
+  }) {
+    final result = create();
+    if (userID != null) result.userID = userID;
+    if (date != null) result.date = date;
+    if (inviteCode != null) result.inviteCode = inviteCode;
+    if (inviteTitle != null) result.inviteTitle = inviteTitle;
+    return result;
+  }
+
+  ChatJoinRequest._();
+
+  factory ChatJoinRequest.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ChatJoinRequest.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ChatJoinRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY, protoName: 'userID')
+    ..aInt64(2, _omitFieldNames ? '' : 'date')
+    ..aOS(3, _omitFieldNames ? '' : 'inviteCode', protoName: 'inviteCode')
+    ..aOS(4, _omitFieldNames ? '' : 'inviteTitle', protoName: 'inviteTitle')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ChatJoinRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ChatJoinRequest copyWith(void Function(ChatJoinRequest) updates) =>
+      super.copyWith((message) => updates(message as ChatJoinRequest)) as ChatJoinRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ChatJoinRequest create() => ChatJoinRequest._();
+  @$core.override
+  ChatJoinRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ChatJoinRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ChatJoinRequest>(create);
+  static ChatJoinRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get userID => $_getN(0);
+  @$pb.TagNumber(1)
+  set userID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUserID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUserID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get date => $_getI64(1);
+  @$pb.TagNumber(2)
+  set date($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasDate() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearDate() => $_clearField(2);
+
+  /// Ссылка, по которой пришла (пусто — по username у OPEN не бывает; основная
+  /// — её код), и её название.
+  @$pb.TagNumber(3)
+  $core.String get inviteCode => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set inviteCode($core.String value) => $_setString(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasInviteCode() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearInviteCode() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get inviteTitle => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set inviteTitle($core.String value) => $_setString(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasInviteTitle() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearInviteTitle() => $_clearField(4);
+}
+
+/// Предпросмотр группы до вступления (по ссылке-приглашению или username).
+class ChatPreview extends $pb.GeneratedMessage {
+  factory ChatPreview({
+    ChatInfo? chat,
+    $core.bool? requestNeeded,
+    $core.bool? requested,
+    $core.bool? canViewHistory,
+    $core.Iterable<$1.Profile_Response>? members,
+  }) {
+    final result = create();
+    if (chat != null) result.chat = chat;
+    if (requestNeeded != null) result.requestNeeded = requestNeeded;
+    if (requested != null) result.requested = requested;
+    if (canViewHistory != null) result.canViewHistory = canViewHistory;
+    if (members != null) result.members.addAll(members);
+    return result;
+  }
+
+  ChatPreview._();
+
+  factory ChatPreview.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ChatPreview.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ChatPreview',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<ChatInfo>(1, _omitFieldNames ? '' : 'chat', subBuilder: ChatInfo.create)
+    ..aOB(2, _omitFieldNames ? '' : 'requestNeeded', protoName: 'requestNeeded')
+    ..aOB(3, _omitFieldNames ? '' : 'requested')
+    ..aOB(4, _omitFieldNames ? '' : 'canViewHistory', protoName: 'canViewHistory')
+    ..pPM<$1.Profile_Response>(5, _omitFieldNames ? '' : 'members', subBuilder: $1.Profile_Response.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ChatPreview clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ChatPreview copyWith(void Function(ChatPreview) updates) => super.copyWith((message) => updates(message as ChatPreview)) as ChatPreview;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ChatPreview create() => ChatPreview._();
+  @$core.override
+  ChatPreview createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ChatPreview getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ChatPreview>(create);
+  static ChatPreview? _defaultInstance;
+
+  /// Без pts; avatar — со ссылкой на скачивание.
+  @$pb.TagNumber(1)
+  ChatInfo get chat => $_getN(0);
+  @$pb.TagNumber(1)
+  set chat(ChatInfo value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChat() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChat() => $_clearField(1);
+  @$pb.TagNumber(1)
+  ChatInfo ensureChat() => $_ensure(0);
+
+  /// Вступление — заявкой (ссылка с одобрением или режим REQUEST).
+  @$pb.TagNumber(2)
+  $core.bool get requestNeeded => $_getBF(1);
+  @$pb.TagNumber(2)
+  set requestNeeded($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasRequestNeeded() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRequestNeeded() => $_clearField(2);
+
+  /// Моя заявка уже ждёт.
+  @$pb.TagNumber(3)
+  $core.bool get requested => $_getBF(2);
+  @$pb.TagNumber(3)
+  set requested($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasRequested() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearRequested() => $_clearField(3);
+
+  /// Можно читать историю без вступления (публичная, OPEN) — Messages.History /
+  /// Get по chatID без журнала и без отметок о прочтении.
+  @$pb.TagNumber(4)
+  $core.bool get canViewHistory => $_getBF(3);
+  @$pb.TagNumber(4)
+  set canViewHistory($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasCanViewHistory() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearCanViewHistory() => $_clearField(4);
+
+  /// Несколько участников для «Анна, Олег и ещё 12» (профили — глазами
+  /// смотрящего).
+  @$pb.TagNumber(5)
+  $pb.PbList<$1.Profile_Response> get members => $_getList(4);
 }
 
 /// Права админа (как chatAdminRights в Telegram) — раздельные галочки при
@@ -2076,6 +2476,8 @@ class Dialog extends $pb.GeneratedMessage {
     ChatRole? role,
     ChatAdminRights? rights,
     $core.String? rank,
+    $core.String? inviteCode,
+    $core.int? pendingRequests,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -2100,6 +2502,8 @@ class Dialog extends $pb.GeneratedMessage {
     if (role != null) result.role = role;
     if (rights != null) result.rights = rights;
     if (rank != null) result.rank = rank;
+    if (inviteCode != null) result.inviteCode = inviteCode;
+    if (pendingRequests != null) result.pendingRequests = pendingRequests;
     return result;
   }
 
@@ -2134,6 +2538,8 @@ class Dialog extends $pb.GeneratedMessage {
     ..aE<ChatRole>(20, _omitFieldNames ? '' : 'role', enumValues: ChatRole.values)
     ..aOM<ChatAdminRights>(21, _omitFieldNames ? '' : 'rights', subBuilder: ChatAdminRights.create)
     ..aOS(22, _omitFieldNames ? '' : 'rank')
+    ..aOS(23, _omitFieldNames ? '' : 'inviteCode', protoName: 'inviteCode')
+    ..aI(24, _omitFieldNames ? '' : 'pendingRequests', protoName: 'pendingRequests')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2374,6 +2780,26 @@ class Dialog extends $pb.GeneratedMessage {
   $core.bool hasRank() => $_has(21);
   @$pb.TagNumber(22)
   void clearRank() => $_clearField(22);
+
+  /// Владельцу и админам с inviteUsers: основная ссылка-приглашение (код) и
+  /// число ждущих заявок; остальным — пусто / 0.
+  @$pb.TagNumber(23)
+  $core.String get inviteCode => $_getSZ(22);
+  @$pb.TagNumber(23)
+  set inviteCode($core.String value) => $_setString(22, value);
+  @$pb.TagNumber(23)
+  $core.bool hasInviteCode() => $_has(22);
+  @$pb.TagNumber(23)
+  void clearInviteCode() => $_clearField(23);
+
+  @$pb.TagNumber(24)
+  $core.int get pendingRequests => $_getIZ(23);
+  @$pb.TagNumber(24)
+  set pendingRequests($core.int value) => $_setSignedInt32(23, value);
+  @$pb.TagNumber(24)
+  $core.bool hasPendingRequests() => $_has(23);
+  @$pb.TagNumber(24)
+  void clearPendingRequests() => $_clearField(24);
 }
 
 /// Отложенное сообщение — моё, ещё не отправленное (как scheduled messages в
@@ -3737,6 +4163,77 @@ class Update_ChatMembersChanged extends $pb.GeneratedMessage {
   $pb.PbList<ChatMember> get updated => $_getList(4);
 }
 
+/// Изменились заявки на вступление в группу (журнал пользователя — только
+/// владельцу и админам с inviteUsers): pendingCount — сколько ждёт,
+/// recentUserIDs — последние (до 3) для плашки «Заявки на вступление».
+class Update_JoinRequestsChanged extends $pb.GeneratedMessage {
+  factory Update_JoinRequestsChanged({
+    $core.List<$core.int>? chatID,
+    $core.int? pendingCount,
+    $core.Iterable<$core.List<$core.int>>? recentUserIDs,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (pendingCount != null) result.pendingCount = pendingCount;
+    if (recentUserIDs != null) result.recentUserIDs.addAll(recentUserIDs);
+    return result;
+  }
+
+  Update_JoinRequestsChanged._();
+
+  factory Update_JoinRequestsChanged.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Update_JoinRequestsChanged.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Update.JoinRequestsChanged',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..aI(2, _omitFieldNames ? '' : 'pendingCount', protoName: 'pendingCount')
+    ..p<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'recentUserIDs', $pb.PbFieldType.PY, protoName: 'recentUserIDs')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Update_JoinRequestsChanged clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Update_JoinRequestsChanged copyWith(void Function(Update_JoinRequestsChanged) updates) =>
+      super.copyWith((message) => updates(message as Update_JoinRequestsChanged)) as Update_JoinRequestsChanged;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Update_JoinRequestsChanged create() => Update_JoinRequestsChanged._();
+  @$core.override
+  Update_JoinRequestsChanged createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Update_JoinRequestsChanged getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Update_JoinRequestsChanged>(create);
+  static Update_JoinRequestsChanged? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get pendingCount => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set pendingCount($core.int value) => $_setSignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasPendingCount() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearPendingCount() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $pb.PbList<$core.List<$core.int>> get recentUserIDs => $_getList(2);
+}
+
 /// У меня появился диалог группы (создал, добавили, вступил) — журнал
 /// пользователя. После него клиент подписан на журнал чата с dialog.chat.pts.
 /// Вышел / исключили / группу удалили — Update.dialogDeleted.
@@ -3808,6 +4305,7 @@ enum Update_Update {
   chatInfo,
   chatMembers,
   dialogNew,
+  joinRequests,
   notSet
 }
 
@@ -3842,6 +4340,7 @@ class Update extends $pb.GeneratedMessage {
     Update_ChatInfoChanged? chatInfo,
     Update_ChatMembersChanged? chatMembers,
     Update_DialogNew? dialogNew,
+    Update_JoinRequestsChanged? joinRequests,
     $fixnum.Int64? chatPts,
     $core.List<$core.int>? chatID,
   }) {
@@ -3865,6 +4364,7 @@ class Update extends $pb.GeneratedMessage {
     if (chatInfo != null) result.chatInfo = chatInfo;
     if (chatMembers != null) result.chatMembers = chatMembers;
     if (dialogNew != null) result.dialogNew = dialogNew;
+    if (joinRequests != null) result.joinRequests = joinRequests;
     if (chatPts != null) result.chatPts = chatPts;
     if (chatID != null) result.chatID = chatID;
     return result;
@@ -3895,11 +4395,12 @@ class Update extends $pb.GeneratedMessage {
     17: Update_Update.chatInfo,
     18: Update_Update.chatMembers,
     19: Update_Update.dialogNew,
+    20: Update_Update.joinRequests,
     0: Update_Update.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Update',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19])
+    ..oo(0, [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
     ..aInt64(1, _omitFieldNames ? '' : 'pts')
     ..aInt64(2, _omitFieldNames ? '' : 'date')
     ..aOM<Update_NewMessage>(3, _omitFieldNames ? '' : 'newMessage', protoName: 'newMessage', subBuilder: Update_NewMessage.create)
@@ -3928,6 +4429,8 @@ class Update extends $pb.GeneratedMessage {
     ..aOM<Update_ChatMembersChanged>(18, _omitFieldNames ? '' : 'chatMembers',
         protoName: 'chatMembers', subBuilder: Update_ChatMembersChanged.create)
     ..aOM<Update_DialogNew>(19, _omitFieldNames ? '' : 'dialogNew', protoName: 'dialogNew', subBuilder: Update_DialogNew.create)
+    ..aOM<Update_JoinRequestsChanged>(20, _omitFieldNames ? '' : 'joinRequests',
+        protoName: 'joinRequests', subBuilder: Update_JoinRequestsChanged.create)
     ..aInt64(50, _omitFieldNames ? '' : 'chatPts', protoName: 'chatPts')
     ..a<$core.List<$core.int>>(51, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
     ..hasRequiredFields = false;
@@ -3965,6 +4468,7 @@ class Update extends $pb.GeneratedMessage {
   @$pb.TagNumber(17)
   @$pb.TagNumber(18)
   @$pb.TagNumber(19)
+  @$pb.TagNumber(20)
   Update_Update whichUpdate() => _Update_UpdateByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(3)
   @$pb.TagNumber(4)
@@ -3983,6 +4487,7 @@ class Update extends $pb.GeneratedMessage {
   @$pb.TagNumber(17)
   @$pb.TagNumber(18)
   @$pb.TagNumber(19)
+  @$pb.TagNumber(20)
   void clearUpdate() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -4192,21 +4697,32 @@ class Update extends $pb.GeneratedMessage {
   @$pb.TagNumber(19)
   Update_DialogNew ensureDialogNew() => $_ensure(18);
 
+  @$pb.TagNumber(20)
+  Update_JoinRequestsChanged get joinRequests => $_getN(19);
+  @$pb.TagNumber(20)
+  set joinRequests(Update_JoinRequestsChanged value) => $_setField(20, value);
+  @$pb.TagNumber(20)
+  $core.bool hasJoinRequests() => $_has(19);
+  @$pb.TagNumber(20)
+  void clearJoinRequests() => $_clearField(20);
+  @$pb.TagNumber(20)
+  Update_JoinRequestsChanged ensureJoinRequests() => $_ensure(19);
+
   @$pb.TagNumber(50)
-  $fixnum.Int64 get chatPts => $_getI64(19);
+  $fixnum.Int64 get chatPts => $_getI64(20);
   @$pb.TagNumber(50)
-  set chatPts($fixnum.Int64 value) => $_setInt64(19, value);
+  set chatPts($fixnum.Int64 value) => $_setInt64(20, value);
   @$pb.TagNumber(50)
-  $core.bool hasChatPts() => $_has(19);
+  $core.bool hasChatPts() => $_has(20);
   @$pb.TagNumber(50)
   void clearChatPts() => $_clearField(50);
 
   @$pb.TagNumber(51)
-  $core.List<$core.int> get chatID => $_getN(20);
+  $core.List<$core.int> get chatID => $_getN(21);
   @$pb.TagNumber(51)
-  set chatID($core.List<$core.int> value) => $_setBytes(20, value);
+  set chatID($core.List<$core.int> value) => $_setBytes(21, value);
   @$pb.TagNumber(51)
-  $core.bool hasChatID() => $_has(20);
+  $core.bool hasChatID() => $_has(21);
   @$pb.TagNumber(51)
   void clearChatID() => $_clearField(51);
 }
@@ -6087,6 +6603,11 @@ class Chats_SearchUsersResult extends $pb.GeneratedMessage {
 /// идемпотентность: повтор (обрыв связи) вернёт уже созданную. В ленте —
 /// служебные CREATED и ADDED; участникам — Update.dialogNew. Лимит частоты
 /// «создать чат».
+///
+/// joinMode (по умолчанию LINK) и username (только при OPEN, обязателен;
+/// занят — FAILED_PRECONDITION «usernameTaken», не по правилам —
+/// INVALID_ARGUMENT «usernameInvalid»); у не-OPEN сервер сразу выдаёт
+/// основную ссылку-приглашение (Dialog.inviteCode).
 class Chats_CreateGroup extends $pb.GeneratedMessage {
   factory Chats_CreateGroup({
     $core.String? title,
@@ -6094,6 +6615,8 @@ class Chats_CreateGroup extends $pb.GeneratedMessage {
     $core.Iterable<$core.List<$core.int>>? memberUserIDs,
     $core.List<$core.int>? avatarCdnID,
     $fixnum.Int64? randomID,
+    $core.String? username,
+    ChatJoinMode? joinMode,
   }) {
     final result = create();
     if (title != null) result.title = title;
@@ -6101,6 +6624,8 @@ class Chats_CreateGroup extends $pb.GeneratedMessage {
     if (memberUserIDs != null) result.memberUserIDs.addAll(memberUserIDs);
     if (avatarCdnID != null) result.avatarCdnID = avatarCdnID;
     if (randomID != null) result.randomID = randomID;
+    if (username != null) result.username = username;
+    if (joinMode != null) result.joinMode = joinMode;
     return result;
   }
 
@@ -6118,6 +6643,8 @@ class Chats_CreateGroup extends $pb.GeneratedMessage {
     ..p<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'memberUserIDs', $pb.PbFieldType.PY, protoName: 'memberUserIDs')
     ..a<$core.List<$core.int>>(4, _omitFieldNames ? '' : 'avatarCdnID', $pb.PbFieldType.OY, protoName: 'avatarCdnID')
     ..aInt64(5, _omitFieldNames ? '' : 'randomID', protoName: 'randomID')
+    ..aOS(6, _omitFieldNames ? '' : 'username')
+    ..aE<ChatJoinMode>(7, _omitFieldNames ? '' : 'joinMode', protoName: 'joinMode', enumValues: ChatJoinMode.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -6175,6 +6702,24 @@ class Chats_CreateGroup extends $pb.GeneratedMessage {
   $core.bool hasRandomID() => $_has(4);
   @$pb.TagNumber(5)
   void clearRandomID() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.String get username => $_getSZ(5);
+  @$pb.TagNumber(6)
+  set username($core.String value) => $_setString(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasUsername() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearUsername() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  ChatJoinMode get joinMode => $_getN(6);
+  @$pb.TagNumber(7)
+  set joinMode(ChatJoinMode value) => $_setField(7, value);
+  @$pb.TagNumber(7)
+  $core.bool hasJoinMode() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearJoinMode() => $_clearField(7);
 }
 
 class Chats_CreateGroupResult extends $pb.GeneratedMessage {
@@ -6252,6 +6797,12 @@ class Chats_CreateGroupResult extends $pb.GeneratedMessage {
 /// удалить фото; defaultRole — READER или WRITER (иначе INVALID_ARGUMENT),
 /// касается вступающих после. Смена названия / фото — служебное в ленту;
 /// всем — Update.chatInfo. Без изменений — без обновлений.
+///
+/// joinMode / username / historyHidden — право changeInfo. OPEN требует
+/// username (вместе или уже заданный), уход из OPEN освобождает его (и
+/// убирает из поиска публичных); username при не-OPEN — INVALID_ARGUMENT.
+/// historyHidden при OPEN — INVALID_ARGUMENT. Переход в не-OPEN без основной
+/// ссылки — сервер её выдаёт. Ошибки имени — как в CreateGroup.
 class Chats_EditChat extends $pb.GeneratedMessage {
   factory Chats_EditChat({
     $core.List<$core.int>? chatID,
@@ -6259,6 +6810,9 @@ class Chats_EditChat extends $pb.GeneratedMessage {
     $core.String? about,
     $core.List<$core.int>? avatarCdnID,
     ChatRole? defaultRole,
+    $core.String? username,
+    ChatJoinMode? joinMode,
+    $core.bool? historyHidden,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -6266,6 +6820,9 @@ class Chats_EditChat extends $pb.GeneratedMessage {
     if (about != null) result.about = about;
     if (avatarCdnID != null) result.avatarCdnID = avatarCdnID;
     if (defaultRole != null) result.defaultRole = defaultRole;
+    if (username != null) result.username = username;
+    if (joinMode != null) result.joinMode = joinMode;
+    if (historyHidden != null) result.historyHidden = historyHidden;
     return result;
   }
 
@@ -6283,6 +6840,9 @@ class Chats_EditChat extends $pb.GeneratedMessage {
     ..aOS(3, _omitFieldNames ? '' : 'about')
     ..a<$core.List<$core.int>>(4, _omitFieldNames ? '' : 'avatarCdnID', $pb.PbFieldType.OY, protoName: 'avatarCdnID')
     ..aE<ChatRole>(5, _omitFieldNames ? '' : 'defaultRole', protoName: 'defaultRole', enumValues: ChatRole.values)
+    ..aOS(6, _omitFieldNames ? '' : 'username')
+    ..aE<ChatJoinMode>(7, _omitFieldNames ? '' : 'joinMode', protoName: 'joinMode', enumValues: ChatJoinMode.values)
+    ..aOB(8, _omitFieldNames ? '' : 'historyHidden', protoName: 'historyHidden')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -6346,6 +6906,33 @@ class Chats_EditChat extends $pb.GeneratedMessage {
   $core.bool hasDefaultRole() => $_has(4);
   @$pb.TagNumber(5)
   void clearDefaultRole() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.String get username => $_getSZ(5);
+  @$pb.TagNumber(6)
+  set username($core.String value) => $_setString(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasUsername() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearUsername() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  ChatJoinMode get joinMode => $_getN(6);
+  @$pb.TagNumber(7)
+  set joinMode(ChatJoinMode value) => $_setField(7, value);
+  @$pb.TagNumber(7)
+  $core.bool hasJoinMode() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearJoinMode() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.bool get historyHidden => $_getBF(7);
+  @$pb.TagNumber(8)
+  set historyHidden($core.bool value) => $_setBool(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasHistoryHidden() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearHistoryHidden() => $_clearField(8);
 }
 
 class Chats_EditChatResult extends $pb.GeneratedMessage {
@@ -6398,8 +6985,8 @@ class Chats_EditChatResult extends $pb.GeneratedMessage {
   Updates ensureUpdates() => $_ensure(0);
 }
 
-/// Добавить участников (≤ 200 за раз) с ролью по умолчанию: любой участник
-/// (способы вступления — 3.3). Уже состоящие пропускаются; кому нельзя по
+/// Добавить участников (≤ 200 за раз) с ролью по умолчанию: любой участник,
+/// а в режиме ADMINS — только владелец / админ с inviteUsers. Уже состоящие пропускаются; кому нельзя по
 /// приватности — restrictedUserIDs. Заблокированных в группе может добавить
 /// только админ с banUsers (они разблокируются), остальным — restricted.
 /// Группа заполнена (200 000) — FAILED_PRECONDITION «membersLimit».
@@ -8062,6 +8649,1285 @@ class Chats_TransferOwnershipResult extends $pb.GeneratedMessage {
   Updates ensureUpdates() => $_ensure(0);
 }
 
+/// Свободно ли публичное имя (форма создания / «Изменить»): общее
+/// пространство с именами пользователей. exceptChatID — своя группа (её
+/// текущее имя — свободно).
+class Chats_CheckUsername extends $pb.GeneratedMessage {
+  factory Chats_CheckUsername({
+    $core.String? username,
+    $core.List<$core.int>? exceptChatID,
+  }) {
+    final result = create();
+    if (username != null) result.username = username;
+    if (exceptChatID != null) result.exceptChatID = exceptChatID;
+    return result;
+  }
+
+  Chats_CheckUsername._();
+
+  factory Chats_CheckUsername.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_CheckUsername.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.CheckUsername',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'username')
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'exceptChatID', $pb.PbFieldType.OY, protoName: 'exceptChatID')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_CheckUsername clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_CheckUsername copyWith(void Function(Chats_CheckUsername) updates) =>
+      super.copyWith((message) => updates(message as Chats_CheckUsername)) as Chats_CheckUsername;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_CheckUsername create() => Chats_CheckUsername._();
+  @$core.override
+  Chats_CheckUsername createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_CheckUsername getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_CheckUsername>(create);
+  static Chats_CheckUsername? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get username => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set username($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUsername() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUsername() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get exceptChatID => $_getN(1);
+  @$pb.TagNumber(2)
+  set exceptChatID($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasExceptChatID() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearExceptChatID() => $_clearField(2);
+}
+
+class Chats_CheckUsernameResult extends $pb.GeneratedMessage {
+  factory Chats_CheckUsernameResult({
+    $core.bool? available,
+    $core.bool? invalid,
+  }) {
+    final result = create();
+    if (available != null) result.available = available;
+    if (invalid != null) result.invalid = invalid;
+    return result;
+  }
+
+  Chats_CheckUsernameResult._();
+
+  factory Chats_CheckUsernameResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_CheckUsernameResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.CheckUsernameResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'available')
+    ..aOB(2, _omitFieldNames ? '' : 'invalid')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_CheckUsernameResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_CheckUsernameResult copyWith(void Function(Chats_CheckUsernameResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_CheckUsernameResult)) as Chats_CheckUsernameResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_CheckUsernameResult create() => Chats_CheckUsernameResult._();
+  @$core.override
+  Chats_CheckUsernameResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_CheckUsernameResult getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_CheckUsernameResult>(create);
+  static Chats_CheckUsernameResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get available => $_getBF(0);
+  @$pb.TagNumber(1)
+  set available($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasAvailable() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearAvailable() => $_clearField(1);
+
+  /// Не по правилам (длина, символы).
+  @$pb.TagNumber(2)
+  $core.bool get invalid => $_getBF(1);
+  @$pb.TagNumber(2)
+  set invalid($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasInvalid() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearInvalid() => $_clearField(2);
+}
+
+/// Ссылка iperon.net/<path>: path — username (пользователя или группы) или
+/// «+код» приглашения. Пользователь — его личный чат со мной (как
+/// ResolveUsername, в dialog); группа, где я участник, — dialog; чужая —
+/// preview. Нет такого / ссылка отозвана, истекла, исчерпана —
+/// NOT_FOUND. Лимит частоты — как ResolveUsername.
+class Chats_ResolveLink extends $pb.GeneratedMessage {
+  factory Chats_ResolveLink({
+    $core.String? path,
+  }) {
+    final result = create();
+    if (path != null) result.path = path;
+    return result;
+  }
+
+  Chats_ResolveLink._();
+
+  factory Chats_ResolveLink.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_ResolveLink.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.ResolveLink',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'path')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_ResolveLink clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_ResolveLink copyWith(void Function(Chats_ResolveLink) updates) =>
+      super.copyWith((message) => updates(message as Chats_ResolveLink)) as Chats_ResolveLink;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_ResolveLink create() => Chats_ResolveLink._();
+  @$core.override
+  Chats_ResolveLink createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_ResolveLink getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_ResolveLink>(create);
+  static Chats_ResolveLink? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get path => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set path($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPath() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPath() => $_clearField(1);
+}
+
+class Chats_ResolveLinkResult extends $pb.GeneratedMessage {
+  factory Chats_ResolveLinkResult({
+    Dialog? dialog,
+    ChatPreview? preview,
+  }) {
+    final result = create();
+    if (dialog != null) result.dialog = dialog;
+    if (preview != null) result.preview = preview;
+    return result;
+  }
+
+  Chats_ResolveLinkResult._();
+
+  factory Chats_ResolveLinkResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_ResolveLinkResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.ResolveLinkResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Dialog>(1, _omitFieldNames ? '' : 'dialog', subBuilder: Dialog.create)
+    ..aOM<ChatPreview>(2, _omitFieldNames ? '' : 'preview', subBuilder: ChatPreview.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_ResolveLinkResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_ResolveLinkResult copyWith(void Function(Chats_ResolveLinkResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_ResolveLinkResult)) as Chats_ResolveLinkResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_ResolveLinkResult create() => Chats_ResolveLinkResult._();
+  @$core.override
+  Chats_ResolveLinkResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_ResolveLinkResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_ResolveLinkResult>(create);
+  static Chats_ResolveLinkResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Dialog get dialog => $_getN(0);
+  @$pb.TagNumber(1)
+  set dialog(Dialog value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasDialog() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearDialog() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Dialog ensureDialog() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  ChatPreview get preview => $_getN(1);
+  @$pb.TagNumber(2)
+  set preview(ChatPreview value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasPreview() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearPreview() => $_clearField(2);
+  @$pb.TagNumber(2)
+  ChatPreview ensurePreview() => $_ensure(1);
+}
+
+/// Вступить (path — как в ResolveLink: username OPEN-группы или «+код»).
+/// Сразу — dialogNew (у меня) + служебное JOINED и chatMembers (всем);
+/// нужна заявка — requested = true (админам — joinRequests), повтор —
+/// то же без дублей. Заблокирован в группе — PERMISSION_DENIED «banned»;
+/// ссылка недействительна — NOT_FOUND; полна — «membersLimit»; моих групп
+/// уже 500 — «groupsLimit». Уже участник — dialog без изменений.
+class Chats_JoinChat extends $pb.GeneratedMessage {
+  factory Chats_JoinChat({
+    $core.String? path,
+  }) {
+    final result = create();
+    if (path != null) result.path = path;
+    return result;
+  }
+
+  Chats_JoinChat._();
+
+  factory Chats_JoinChat.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_JoinChat.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.JoinChat',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'path')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_JoinChat clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_JoinChat copyWith(void Function(Chats_JoinChat) updates) =>
+      super.copyWith((message) => updates(message as Chats_JoinChat)) as Chats_JoinChat;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_JoinChat create() => Chats_JoinChat._();
+  @$core.override
+  Chats_JoinChat createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_JoinChat getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_JoinChat>(create);
+  static Chats_JoinChat? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get path => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set path($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPath() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPath() => $_clearField(1);
+}
+
+class Chats_JoinChatResult extends $pb.GeneratedMessage {
+  factory Chats_JoinChatResult({
+    Dialog? dialog,
+    $core.bool? requested,
+    Updates? updates,
+  }) {
+    final result = create();
+    if (dialog != null) result.dialog = dialog;
+    if (requested != null) result.requested = requested;
+    if (updates != null) result.updates = updates;
+    return result;
+  }
+
+  Chats_JoinChatResult._();
+
+  factory Chats_JoinChatResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_JoinChatResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.JoinChatResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Dialog>(1, _omitFieldNames ? '' : 'dialog', subBuilder: Dialog.create)
+    ..aOB(2, _omitFieldNames ? '' : 'requested')
+    ..aOM<Updates>(3, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_JoinChatResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_JoinChatResult copyWith(void Function(Chats_JoinChatResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_JoinChatResult)) as Chats_JoinChatResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_JoinChatResult create() => Chats_JoinChatResult._();
+  @$core.override
+  Chats_JoinChatResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_JoinChatResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_JoinChatResult>(create);
+  static Chats_JoinChatResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Dialog get dialog => $_getN(0);
+  @$pb.TagNumber(1)
+  set dialog(Dialog value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasDialog() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearDialog() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Dialog ensureDialog() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  $core.bool get requested => $_getBF(1);
+  @$pb.TagNumber(2)
+  set requested($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasRequested() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRequested() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  Updates get updates => $_getN(2);
+  @$pb.TagNumber(3)
+  set updates(Updates value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasUpdates() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearUpdates() => $_clearField(3);
+  @$pb.TagNumber(3)
+  Updates ensureUpdates() => $_ensure(2);
+}
+
+/// Ссылки-приглашения группы (владелец / админ с inviteUsers): все, основная
+/// первой, затем по дате создания (новые сверху), отозванные — в конце.
+class Chats_InviteLinks extends $pb.GeneratedMessage {
+  factory Chats_InviteLinks({
+    $core.List<$core.int>? chatID,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    return result;
+  }
+
+  Chats_InviteLinks._();
+
+  factory Chats_InviteLinks.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_InviteLinks.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.InviteLinks',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_InviteLinks clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_InviteLinks copyWith(void Function(Chats_InviteLinks) updates) =>
+      super.copyWith((message) => updates(message as Chats_InviteLinks)) as Chats_InviteLinks;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_InviteLinks create() => Chats_InviteLinks._();
+  @$core.override
+  Chats_InviteLinks createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_InviteLinks getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_InviteLinks>(create);
+  static Chats_InviteLinks? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+}
+
+class Chats_InviteLinksResult extends $pb.GeneratedMessage {
+  factory Chats_InviteLinksResult({
+    $core.Iterable<ChatInviteLink>? links,
+  }) {
+    final result = create();
+    if (links != null) result.links.addAll(links);
+    return result;
+  }
+
+  Chats_InviteLinksResult._();
+
+  factory Chats_InviteLinksResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_InviteLinksResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.InviteLinksResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..pPM<ChatInviteLink>(1, _omitFieldNames ? '' : 'links', subBuilder: ChatInviteLink.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_InviteLinksResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_InviteLinksResult copyWith(void Function(Chats_InviteLinksResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_InviteLinksResult)) as Chats_InviteLinksResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_InviteLinksResult create() => Chats_InviteLinksResult._();
+  @$core.override
+  Chats_InviteLinksResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_InviteLinksResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_InviteLinksResult>(create);
+  static Chats_InviteLinksResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<ChatInviteLink> get links => $_getList(0);
+}
+
+/// Новая дополнительная ссылка (≤ 100 активных на группу — FAILED_PRECONDITION
+/// «linksLimit»). title ≤ 32, usageLimit 0..99999, expireDate в будущем или 0.
+class Chats_CreateInviteLink extends $pb.GeneratedMessage {
+  factory Chats_CreateInviteLink({
+    $core.List<$core.int>? chatID,
+    $core.String? title,
+    $fixnum.Int64? expireDate,
+    $core.int? usageLimit,
+    $core.bool? requestApproval,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (title != null) result.title = title;
+    if (expireDate != null) result.expireDate = expireDate;
+    if (usageLimit != null) result.usageLimit = usageLimit;
+    if (requestApproval != null) result.requestApproval = requestApproval;
+    return result;
+  }
+
+  Chats_CreateInviteLink._();
+
+  factory Chats_CreateInviteLink.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_CreateInviteLink.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.CreateInviteLink',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..aOS(2, _omitFieldNames ? '' : 'title')
+    ..aInt64(3, _omitFieldNames ? '' : 'expireDate', protoName: 'expireDate')
+    ..aI(4, _omitFieldNames ? '' : 'usageLimit', protoName: 'usageLimit')
+    ..aOB(5, _omitFieldNames ? '' : 'requestApproval', protoName: 'requestApproval')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_CreateInviteLink clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_CreateInviteLink copyWith(void Function(Chats_CreateInviteLink) updates) =>
+      super.copyWith((message) => updates(message as Chats_CreateInviteLink)) as Chats_CreateInviteLink;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_CreateInviteLink create() => Chats_CreateInviteLink._();
+  @$core.override
+  Chats_CreateInviteLink createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_CreateInviteLink getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_CreateInviteLink>(create);
+  static Chats_CreateInviteLink? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get title => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set title($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasTitle() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearTitle() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get expireDate => $_getI64(2);
+  @$pb.TagNumber(3)
+  set expireDate($fixnum.Int64 value) => $_setInt64(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasExpireDate() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearExpireDate() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get usageLimit => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set usageLimit($core.int value) => $_setSignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasUsageLimit() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearUsageLimit() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.bool get requestApproval => $_getBF(4);
+  @$pb.TagNumber(5)
+  set requestApproval($core.bool value) => $_setBool(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasRequestApproval() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearRequestApproval() => $_clearField(5);
+}
+
+class Chats_CreateInviteLinkResult extends $pb.GeneratedMessage {
+  factory Chats_CreateInviteLinkResult({
+    ChatInviteLink? link,
+  }) {
+    final result = create();
+    if (link != null) result.link = link;
+    return result;
+  }
+
+  Chats_CreateInviteLinkResult._();
+
+  factory Chats_CreateInviteLinkResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_CreateInviteLinkResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.CreateInviteLinkResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<ChatInviteLink>(1, _omitFieldNames ? '' : 'link', subBuilder: ChatInviteLink.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_CreateInviteLinkResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_CreateInviteLinkResult copyWith(void Function(Chats_CreateInviteLinkResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_CreateInviteLinkResult)) as Chats_CreateInviteLinkResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_CreateInviteLinkResult create() => Chats_CreateInviteLinkResult._();
+  @$core.override
+  Chats_CreateInviteLinkResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_CreateInviteLinkResult getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_CreateInviteLinkResult>(create);
+  static Chats_CreateInviteLinkResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  ChatInviteLink get link => $_getN(0);
+  @$pb.TagNumber(1)
+  set link(ChatInviteLink value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasLink() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearLink() => $_clearField(1);
+  @$pb.TagNumber(1)
+  ChatInviteLink ensureLink() => $_ensure(0);
+}
+
+/// Изменить ссылку (не отозванную; у основной — только requestApproval).
+class Chats_EditInviteLink extends $pb.GeneratedMessage {
+  factory Chats_EditInviteLink({
+    $core.List<$core.int>? chatID,
+    $core.String? code,
+    $core.String? title,
+    $fixnum.Int64? expireDate,
+    $core.int? usageLimit,
+    $core.bool? requestApproval,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (code != null) result.code = code;
+    if (title != null) result.title = title;
+    if (expireDate != null) result.expireDate = expireDate;
+    if (usageLimit != null) result.usageLimit = usageLimit;
+    if (requestApproval != null) result.requestApproval = requestApproval;
+    return result;
+  }
+
+  Chats_EditInviteLink._();
+
+  factory Chats_EditInviteLink.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_EditInviteLink.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.EditInviteLink',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..aOS(2, _omitFieldNames ? '' : 'code')
+    ..aOS(3, _omitFieldNames ? '' : 'title')
+    ..aInt64(4, _omitFieldNames ? '' : 'expireDate', protoName: 'expireDate')
+    ..aI(5, _omitFieldNames ? '' : 'usageLimit', protoName: 'usageLimit')
+    ..aOB(6, _omitFieldNames ? '' : 'requestApproval', protoName: 'requestApproval')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_EditInviteLink clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_EditInviteLink copyWith(void Function(Chats_EditInviteLink) updates) =>
+      super.copyWith((message) => updates(message as Chats_EditInviteLink)) as Chats_EditInviteLink;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_EditInviteLink create() => Chats_EditInviteLink._();
+  @$core.override
+  Chats_EditInviteLink createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_EditInviteLink getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_EditInviteLink>(create);
+  static Chats_EditInviteLink? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get code => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set code($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasCode() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearCode() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get title => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set title($core.String value) => $_setString(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasTitle() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearTitle() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $fixnum.Int64 get expireDate => $_getI64(3);
+  @$pb.TagNumber(4)
+  set expireDate($fixnum.Int64 value) => $_setInt64(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasExpireDate() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearExpireDate() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get usageLimit => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set usageLimit($core.int value) => $_setSignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasUsageLimit() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearUsageLimit() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.bool get requestApproval => $_getBF(5);
+  @$pb.TagNumber(6)
+  set requestApproval($core.bool value) => $_setBool(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasRequestApproval() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearRequestApproval() => $_clearField(6);
+}
+
+class Chats_EditInviteLinkResult extends $pb.GeneratedMessage {
+  factory Chats_EditInviteLinkResult({
+    ChatInviteLink? link,
+  }) {
+    final result = create();
+    if (link != null) result.link = link;
+    return result;
+  }
+
+  Chats_EditInviteLinkResult._();
+
+  factory Chats_EditInviteLinkResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_EditInviteLinkResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.EditInviteLinkResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<ChatInviteLink>(1, _omitFieldNames ? '' : 'link', subBuilder: ChatInviteLink.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_EditInviteLinkResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_EditInviteLinkResult copyWith(void Function(Chats_EditInviteLinkResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_EditInviteLinkResult)) as Chats_EditInviteLinkResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_EditInviteLinkResult create() => Chats_EditInviteLinkResult._();
+  @$core.override
+  Chats_EditInviteLinkResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_EditInviteLinkResult getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_EditInviteLinkResult>(create);
+  static Chats_EditInviteLinkResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  ChatInviteLink get link => $_getN(0);
+  @$pb.TagNumber(1)
+  set link(ChatInviteLink value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasLink() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearLink() => $_clearField(1);
+  @$pb.TagNumber(1)
+  ChatInviteLink ensureLink() => $_ensure(0);
+}
+
+/// Отозвать: по ссылке больше не вступить, её ждущие заявки остаются.
+/// Основная — заменяется новой (primary в ответе), Dialog.inviteCode у
+/// админов — через dialogSettings.
+class Chats_RevokeInviteLink extends $pb.GeneratedMessage {
+  factory Chats_RevokeInviteLink({
+    $core.List<$core.int>? chatID,
+    $core.String? code,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (code != null) result.code = code;
+    return result;
+  }
+
+  Chats_RevokeInviteLink._();
+
+  factory Chats_RevokeInviteLink.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_RevokeInviteLink.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.RevokeInviteLink',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..aOS(2, _omitFieldNames ? '' : 'code')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_RevokeInviteLink clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_RevokeInviteLink copyWith(void Function(Chats_RevokeInviteLink) updates) =>
+      super.copyWith((message) => updates(message as Chats_RevokeInviteLink)) as Chats_RevokeInviteLink;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_RevokeInviteLink create() => Chats_RevokeInviteLink._();
+  @$core.override
+  Chats_RevokeInviteLink createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_RevokeInviteLink getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_RevokeInviteLink>(create);
+  static Chats_RevokeInviteLink? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get code => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set code($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasCode() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearCode() => $_clearField(2);
+}
+
+class Chats_RevokeInviteLinkResult extends $pb.GeneratedMessage {
+  factory Chats_RevokeInviteLinkResult({
+    ChatInviteLink? revoked,
+    ChatInviteLink? primary,
+    Updates? updates,
+  }) {
+    final result = create();
+    if (revoked != null) result.revoked = revoked;
+    if (primary != null) result.primary = primary;
+    if (updates != null) result.updates = updates;
+    return result;
+  }
+
+  Chats_RevokeInviteLinkResult._();
+
+  factory Chats_RevokeInviteLinkResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_RevokeInviteLinkResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.RevokeInviteLinkResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<ChatInviteLink>(1, _omitFieldNames ? '' : 'revoked', subBuilder: ChatInviteLink.create)
+    ..aOM<ChatInviteLink>(2, _omitFieldNames ? '' : 'primary', subBuilder: ChatInviteLink.create)
+    ..aOM<Updates>(3, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_RevokeInviteLinkResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_RevokeInviteLinkResult copyWith(void Function(Chats_RevokeInviteLinkResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_RevokeInviteLinkResult)) as Chats_RevokeInviteLinkResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_RevokeInviteLinkResult create() => Chats_RevokeInviteLinkResult._();
+  @$core.override
+  Chats_RevokeInviteLinkResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_RevokeInviteLinkResult getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_RevokeInviteLinkResult>(create);
+  static Chats_RevokeInviteLinkResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  ChatInviteLink get revoked => $_getN(0);
+  @$pb.TagNumber(1)
+  set revoked(ChatInviteLink value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasRevoked() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearRevoked() => $_clearField(1);
+  @$pb.TagNumber(1)
+  ChatInviteLink ensureRevoked() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  ChatInviteLink get primary => $_getN(1);
+  @$pb.TagNumber(2)
+  set primary(ChatInviteLink value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasPrimary() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearPrimary() => $_clearField(2);
+  @$pb.TagNumber(2)
+  ChatInviteLink ensurePrimary() => $_ensure(1);
+
+  @$pb.TagNumber(3)
+  Updates get updates => $_getN(2);
+  @$pb.TagNumber(3)
+  set updates(Updates value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasUpdates() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearUpdates() => $_clearField(3);
+  @$pb.TagNumber(3)
+  Updates ensureUpdates() => $_ensure(2);
+}
+
+/// Удалить все отозванные ссылки (основную не трогает).
+class Chats_DeleteRevokedInviteLinks extends $pb.GeneratedMessage {
+  factory Chats_DeleteRevokedInviteLinks({
+    $core.List<$core.int>? chatID,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    return result;
+  }
+
+  Chats_DeleteRevokedInviteLinks._();
+
+  factory Chats_DeleteRevokedInviteLinks.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_DeleteRevokedInviteLinks.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.DeleteRevokedInviteLinks',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_DeleteRevokedInviteLinks clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_DeleteRevokedInviteLinks copyWith(void Function(Chats_DeleteRevokedInviteLinks) updates) =>
+      super.copyWith((message) => updates(message as Chats_DeleteRevokedInviteLinks)) as Chats_DeleteRevokedInviteLinks;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_DeleteRevokedInviteLinks create() => Chats_DeleteRevokedInviteLinks._();
+  @$core.override
+  Chats_DeleteRevokedInviteLinks createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_DeleteRevokedInviteLinks getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_DeleteRevokedInviteLinks>(create);
+  static Chats_DeleteRevokedInviteLinks? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+}
+
+class Chats_DeleteRevokedInviteLinksResult extends $pb.GeneratedMessage {
+  factory Chats_DeleteRevokedInviteLinksResult() => create();
+
+  Chats_DeleteRevokedInviteLinksResult._();
+
+  factory Chats_DeleteRevokedInviteLinksResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_DeleteRevokedInviteLinksResult.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.DeleteRevokedInviteLinksResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_DeleteRevokedInviteLinksResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_DeleteRevokedInviteLinksResult copyWith(void Function(Chats_DeleteRevokedInviteLinksResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_DeleteRevokedInviteLinksResult)) as Chats_DeleteRevokedInviteLinksResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_DeleteRevokedInviteLinksResult create() => Chats_DeleteRevokedInviteLinksResult._();
+  @$core.override
+  Chats_DeleteRevokedInviteLinksResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_DeleteRevokedInviteLinksResult getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_DeleteRevokedInviteLinksResult>(create);
+  static Chats_DeleteRevokedInviteLinksResult? _defaultInstance;
+}
+
+/// Заявки на вступление — страница (новые сверху); владелец / админ с
+/// inviteUsers. profiles — как в Members.
+class Chats_JoinRequests extends $pb.GeneratedMessage {
+  factory Chats_JoinRequests({
+    $core.List<$core.int>? chatID,
+    $core.List<$core.int>? offset,
+    $core.int? limit,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (offset != null) result.offset = offset;
+    if (limit != null) result.limit = limit;
+    return result;
+  }
+
+  Chats_JoinRequests._();
+
+  factory Chats_JoinRequests.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_JoinRequests.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.JoinRequests',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'offset', $pb.PbFieldType.OY)
+    ..aI(3, _omitFieldNames ? '' : 'limit')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_JoinRequests clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_JoinRequests copyWith(void Function(Chats_JoinRequests) updates) =>
+      super.copyWith((message) => updates(message as Chats_JoinRequests)) as Chats_JoinRequests;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_JoinRequests create() => Chats_JoinRequests._();
+  @$core.override
+  Chats_JoinRequests createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_JoinRequests getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_JoinRequests>(create);
+  static Chats_JoinRequests? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get offset => $_getN(1);
+  @$pb.TagNumber(2)
+  set offset($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasOffset() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearOffset() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get limit => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set limit($core.int value) => $_setSignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasLimit() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearLimit() => $_clearField(3);
+}
+
+class Chats_JoinRequestsResult extends $pb.GeneratedMessage {
+  factory Chats_JoinRequestsResult({
+    $core.Iterable<ChatJoinRequest>? requests,
+    $core.Iterable<$1.Profile_Response>? profiles,
+    $core.List<$core.int>? nextOffset,
+    $core.int? total,
+  }) {
+    final result = create();
+    if (requests != null) result.requests.addAll(requests);
+    if (profiles != null) result.profiles.addAll(profiles);
+    if (nextOffset != null) result.nextOffset = nextOffset;
+    if (total != null) result.total = total;
+    return result;
+  }
+
+  Chats_JoinRequestsResult._();
+
+  factory Chats_JoinRequestsResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_JoinRequestsResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.JoinRequestsResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..pPM<ChatJoinRequest>(1, _omitFieldNames ? '' : 'requests', subBuilder: ChatJoinRequest.create)
+    ..pPM<$1.Profile_Response>(2, _omitFieldNames ? '' : 'profiles', subBuilder: $1.Profile_Response.create)
+    ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'nextOffset', $pb.PbFieldType.OY, protoName: 'nextOffset')
+    ..aI(4, _omitFieldNames ? '' : 'total')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_JoinRequestsResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_JoinRequestsResult copyWith(void Function(Chats_JoinRequestsResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_JoinRequestsResult)) as Chats_JoinRequestsResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_JoinRequestsResult create() => Chats_JoinRequestsResult._();
+  @$core.override
+  Chats_JoinRequestsResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_JoinRequestsResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_JoinRequestsResult>(create);
+  static Chats_JoinRequestsResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<ChatJoinRequest> get requests => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<$1.Profile_Response> get profiles => $_getList(1);
+
+  @$pb.TagNumber(3)
+  $core.List<$core.int> get nextOffset => $_getN(2);
+  @$pb.TagNumber(3)
+  set nextOffset($core.List<$core.int> value) => $_setBytes(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasNextOffset() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearNextOffset() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get total => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set total($core.int value) => $_setSignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasTotal() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearTotal() => $_clearField(4);
+}
+
+/// Одобрить / отклонить заявку (userID пусто — все ждущие). Одобренный
+/// вступает с ролью по умолчанию: ему dialogNew, всем — JOINED и
+/// chatMembers; отклонённому ничего не приходит (как в Telegram). Админам —
+/// joinRequests с новым счётчиком.
+class Chats_AnswerJoinRequest extends $pb.GeneratedMessage {
+  factory Chats_AnswerJoinRequest({
+    $core.List<$core.int>? chatID,
+    $core.List<$core.int>? userID,
+    $core.bool? approve,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (userID != null) result.userID = userID;
+    if (approve != null) result.approve = approve;
+    return result;
+  }
+
+  Chats_AnswerJoinRequest._();
+
+  factory Chats_AnswerJoinRequest.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_AnswerJoinRequest.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.AnswerJoinRequest',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY, protoName: 'userID')
+    ..aOB(3, _omitFieldNames ? '' : 'approve')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_AnswerJoinRequest clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_AnswerJoinRequest copyWith(void Function(Chats_AnswerJoinRequest) updates) =>
+      super.copyWith((message) => updates(message as Chats_AnswerJoinRequest)) as Chats_AnswerJoinRequest;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_AnswerJoinRequest create() => Chats_AnswerJoinRequest._();
+  @$core.override
+  Chats_AnswerJoinRequest createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_AnswerJoinRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_AnswerJoinRequest>(create);
+  static Chats_AnswerJoinRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get userID => $_getN(1);
+  @$pb.TagNumber(2)
+  set userID($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasUserID() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearUserID() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get approve => $_getBF(2);
+  @$pb.TagNumber(3)
+  set approve($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasApprove() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearApprove() => $_clearField(3);
+}
+
+class Chats_AnswerJoinRequestResult extends $pb.GeneratedMessage {
+  factory Chats_AnswerJoinRequestResult({
+    Updates? updates,
+  }) {
+    final result = create();
+    if (updates != null) result.updates = updates;
+    return result;
+  }
+
+  Chats_AnswerJoinRequestResult._();
+
+  factory Chats_AnswerJoinRequestResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_AnswerJoinRequestResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.AnswerJoinRequestResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Updates>(1, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_AnswerJoinRequestResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_AnswerJoinRequestResult copyWith(void Function(Chats_AnswerJoinRequestResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_AnswerJoinRequestResult)) as Chats_AnswerJoinRequestResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_AnswerJoinRequestResult create() => Chats_AnswerJoinRequestResult._();
+  @$core.override
+  Chats_AnswerJoinRequestResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_AnswerJoinRequestResult getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_AnswerJoinRequestResult>(create);
+  static Chats_AnswerJoinRequestResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Updates get updates => $_getN(0);
+  @$pb.TagNumber(1)
+  set updates(Updates value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUpdates() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUpdates() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Updates ensureUpdates() => $_ensure(0);
+}
+
 enum Chats_Request_Request {
   list,
   openPrivate,
@@ -8094,6 +9960,16 @@ enum Chats_Request_Request {
   setAdmin,
   removeAdmin,
   transferOwnership,
+  checkUsername,
+  resolveLink,
+  joinChat,
+  inviteLinks,
+  createInviteLink,
+  editInviteLink,
+  revokeInviteLink,
+  deleteRevokedInviteLinks,
+  joinRequests,
+  answerJoinRequest,
   notSet
 }
 
@@ -8130,6 +10006,16 @@ class Chats_Request extends $pb.GeneratedMessage {
     Chats_SetAdmin? setAdmin,
     Chats_RemoveAdmin? removeAdmin,
     Chats_TransferOwnership? transferOwnership,
+    Chats_CheckUsername? checkUsername,
+    Chats_ResolveLink? resolveLink,
+    Chats_JoinChat? joinChat,
+    Chats_InviteLinks? inviteLinks,
+    Chats_CreateInviteLink? createInviteLink,
+    Chats_EditInviteLink? editInviteLink,
+    Chats_RevokeInviteLink? revokeInviteLink,
+    Chats_DeleteRevokedInviteLinks? deleteRevokedInviteLinks,
+    Chats_JoinRequests? joinRequests,
+    Chats_AnswerJoinRequest? answerJoinRequest,
   }) {
     final result = create();
     if (list != null) result.list = list;
@@ -8163,6 +10049,16 @@ class Chats_Request extends $pb.GeneratedMessage {
     if (setAdmin != null) result.setAdmin = setAdmin;
     if (removeAdmin != null) result.removeAdmin = removeAdmin;
     if (transferOwnership != null) result.transferOwnership = transferOwnership;
+    if (checkUsername != null) result.checkUsername = checkUsername;
+    if (resolveLink != null) result.resolveLink = resolveLink;
+    if (joinChat != null) result.joinChat = joinChat;
+    if (inviteLinks != null) result.inviteLinks = inviteLinks;
+    if (createInviteLink != null) result.createInviteLink = createInviteLink;
+    if (editInviteLink != null) result.editInviteLink = editInviteLink;
+    if (revokeInviteLink != null) result.revokeInviteLink = revokeInviteLink;
+    if (deleteRevokedInviteLinks != null) result.deleteRevokedInviteLinks = deleteRevokedInviteLinks;
+    if (joinRequests != null) result.joinRequests = joinRequests;
+    if (answerJoinRequest != null) result.answerJoinRequest = answerJoinRequest;
     return result;
   }
 
@@ -8205,11 +10101,63 @@ class Chats_Request extends $pb.GeneratedMessage {
     29: Chats_Request_Request.setAdmin,
     30: Chats_Request_Request.removeAdmin,
     31: Chats_Request_Request.transferOwnership,
+    32: Chats_Request_Request.checkUsername,
+    33: Chats_Request_Request.resolveLink,
+    34: Chats_Request_Request.joinChat,
+    35: Chats_Request_Request.inviteLinks,
+    36: Chats_Request_Request.createInviteLink,
+    37: Chats_Request_Request.editInviteLink,
+    38: Chats_Request_Request.revokeInviteLink,
+    39: Chats_Request_Request.deleteRevokedInviteLinks,
+    40: Chats_Request_Request.joinRequests,
+    41: Chats_Request_Request.answerJoinRequest,
     0: Chats_Request_Request.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31])
+    ..oo(0, [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41
+    ])
     ..aOM<Chats_List>(1, _omitFieldNames ? '' : 'list', subBuilder: Chats_List.create)
     ..aOM<Chats_OpenPrivate>(2, _omitFieldNames ? '' : 'openPrivate', protoName: 'openPrivate', subBuilder: Chats_OpenPrivate.create)
     ..aOM<Chats_ReadHistory>(3, _omitFieldNames ? '' : 'readHistory', protoName: 'readHistory', subBuilder: Chats_ReadHistory.create)
@@ -8248,6 +10196,22 @@ class Chats_Request extends $pb.GeneratedMessage {
     ..aOM<Chats_RemoveAdmin>(30, _omitFieldNames ? '' : 'removeAdmin', protoName: 'removeAdmin', subBuilder: Chats_RemoveAdmin.create)
     ..aOM<Chats_TransferOwnership>(31, _omitFieldNames ? '' : 'transferOwnership',
         protoName: 'transferOwnership', subBuilder: Chats_TransferOwnership.create)
+    ..aOM<Chats_CheckUsername>(32, _omitFieldNames ? '' : 'checkUsername',
+        protoName: 'checkUsername', subBuilder: Chats_CheckUsername.create)
+    ..aOM<Chats_ResolveLink>(33, _omitFieldNames ? '' : 'resolveLink', protoName: 'resolveLink', subBuilder: Chats_ResolveLink.create)
+    ..aOM<Chats_JoinChat>(34, _omitFieldNames ? '' : 'joinChat', protoName: 'joinChat', subBuilder: Chats_JoinChat.create)
+    ..aOM<Chats_InviteLinks>(35, _omitFieldNames ? '' : 'inviteLinks', protoName: 'inviteLinks', subBuilder: Chats_InviteLinks.create)
+    ..aOM<Chats_CreateInviteLink>(36, _omitFieldNames ? '' : 'createInviteLink',
+        protoName: 'createInviteLink', subBuilder: Chats_CreateInviteLink.create)
+    ..aOM<Chats_EditInviteLink>(37, _omitFieldNames ? '' : 'editInviteLink',
+        protoName: 'editInviteLink', subBuilder: Chats_EditInviteLink.create)
+    ..aOM<Chats_RevokeInviteLink>(38, _omitFieldNames ? '' : 'revokeInviteLink',
+        protoName: 'revokeInviteLink', subBuilder: Chats_RevokeInviteLink.create)
+    ..aOM<Chats_DeleteRevokedInviteLinks>(39, _omitFieldNames ? '' : 'deleteRevokedInviteLinks',
+        protoName: 'deleteRevokedInviteLinks', subBuilder: Chats_DeleteRevokedInviteLinks.create)
+    ..aOM<Chats_JoinRequests>(40, _omitFieldNames ? '' : 'joinRequests', protoName: 'joinRequests', subBuilder: Chats_JoinRequests.create)
+    ..aOM<Chats_AnswerJoinRequest>(41, _omitFieldNames ? '' : 'answerJoinRequest',
+        protoName: 'answerJoinRequest', subBuilder: Chats_AnswerJoinRequest.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -8298,6 +10262,16 @@ class Chats_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(29)
   @$pb.TagNumber(30)
   @$pb.TagNumber(31)
+  @$pb.TagNumber(32)
+  @$pb.TagNumber(33)
+  @$pb.TagNumber(34)
+  @$pb.TagNumber(35)
+  @$pb.TagNumber(36)
+  @$pb.TagNumber(37)
+  @$pb.TagNumber(38)
+  @$pb.TagNumber(39)
+  @$pb.TagNumber(40)
+  @$pb.TagNumber(41)
   Chats_Request_Request whichRequest() => _Chats_Request_RequestByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -8330,6 +10304,16 @@ class Chats_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(29)
   @$pb.TagNumber(30)
   @$pb.TagNumber(31)
+  @$pb.TagNumber(32)
+  @$pb.TagNumber(33)
+  @$pb.TagNumber(34)
+  @$pb.TagNumber(35)
+  @$pb.TagNumber(36)
+  @$pb.TagNumber(37)
+  @$pb.TagNumber(38)
+  @$pb.TagNumber(39)
+  @$pb.TagNumber(40)
+  @$pb.TagNumber(41)
   void clearRequest() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -8672,6 +10656,116 @@ class Chats_Request extends $pb.GeneratedMessage {
   void clearTransferOwnership() => $_clearField(31);
   @$pb.TagNumber(31)
   Chats_TransferOwnership ensureTransferOwnership() => $_ensure(30);
+
+  @$pb.TagNumber(32)
+  Chats_CheckUsername get checkUsername => $_getN(31);
+  @$pb.TagNumber(32)
+  set checkUsername(Chats_CheckUsername value) => $_setField(32, value);
+  @$pb.TagNumber(32)
+  $core.bool hasCheckUsername() => $_has(31);
+  @$pb.TagNumber(32)
+  void clearCheckUsername() => $_clearField(32);
+  @$pb.TagNumber(32)
+  Chats_CheckUsername ensureCheckUsername() => $_ensure(31);
+
+  @$pb.TagNumber(33)
+  Chats_ResolveLink get resolveLink => $_getN(32);
+  @$pb.TagNumber(33)
+  set resolveLink(Chats_ResolveLink value) => $_setField(33, value);
+  @$pb.TagNumber(33)
+  $core.bool hasResolveLink() => $_has(32);
+  @$pb.TagNumber(33)
+  void clearResolveLink() => $_clearField(33);
+  @$pb.TagNumber(33)
+  Chats_ResolveLink ensureResolveLink() => $_ensure(32);
+
+  @$pb.TagNumber(34)
+  Chats_JoinChat get joinChat => $_getN(33);
+  @$pb.TagNumber(34)
+  set joinChat(Chats_JoinChat value) => $_setField(34, value);
+  @$pb.TagNumber(34)
+  $core.bool hasJoinChat() => $_has(33);
+  @$pb.TagNumber(34)
+  void clearJoinChat() => $_clearField(34);
+  @$pb.TagNumber(34)
+  Chats_JoinChat ensureJoinChat() => $_ensure(33);
+
+  @$pb.TagNumber(35)
+  Chats_InviteLinks get inviteLinks => $_getN(34);
+  @$pb.TagNumber(35)
+  set inviteLinks(Chats_InviteLinks value) => $_setField(35, value);
+  @$pb.TagNumber(35)
+  $core.bool hasInviteLinks() => $_has(34);
+  @$pb.TagNumber(35)
+  void clearInviteLinks() => $_clearField(35);
+  @$pb.TagNumber(35)
+  Chats_InviteLinks ensureInviteLinks() => $_ensure(34);
+
+  @$pb.TagNumber(36)
+  Chats_CreateInviteLink get createInviteLink => $_getN(35);
+  @$pb.TagNumber(36)
+  set createInviteLink(Chats_CreateInviteLink value) => $_setField(36, value);
+  @$pb.TagNumber(36)
+  $core.bool hasCreateInviteLink() => $_has(35);
+  @$pb.TagNumber(36)
+  void clearCreateInviteLink() => $_clearField(36);
+  @$pb.TagNumber(36)
+  Chats_CreateInviteLink ensureCreateInviteLink() => $_ensure(35);
+
+  @$pb.TagNumber(37)
+  Chats_EditInviteLink get editInviteLink => $_getN(36);
+  @$pb.TagNumber(37)
+  set editInviteLink(Chats_EditInviteLink value) => $_setField(37, value);
+  @$pb.TagNumber(37)
+  $core.bool hasEditInviteLink() => $_has(36);
+  @$pb.TagNumber(37)
+  void clearEditInviteLink() => $_clearField(37);
+  @$pb.TagNumber(37)
+  Chats_EditInviteLink ensureEditInviteLink() => $_ensure(36);
+
+  @$pb.TagNumber(38)
+  Chats_RevokeInviteLink get revokeInviteLink => $_getN(37);
+  @$pb.TagNumber(38)
+  set revokeInviteLink(Chats_RevokeInviteLink value) => $_setField(38, value);
+  @$pb.TagNumber(38)
+  $core.bool hasRevokeInviteLink() => $_has(37);
+  @$pb.TagNumber(38)
+  void clearRevokeInviteLink() => $_clearField(38);
+  @$pb.TagNumber(38)
+  Chats_RevokeInviteLink ensureRevokeInviteLink() => $_ensure(37);
+
+  @$pb.TagNumber(39)
+  Chats_DeleteRevokedInviteLinks get deleteRevokedInviteLinks => $_getN(38);
+  @$pb.TagNumber(39)
+  set deleteRevokedInviteLinks(Chats_DeleteRevokedInviteLinks value) => $_setField(39, value);
+  @$pb.TagNumber(39)
+  $core.bool hasDeleteRevokedInviteLinks() => $_has(38);
+  @$pb.TagNumber(39)
+  void clearDeleteRevokedInviteLinks() => $_clearField(39);
+  @$pb.TagNumber(39)
+  Chats_DeleteRevokedInviteLinks ensureDeleteRevokedInviteLinks() => $_ensure(38);
+
+  @$pb.TagNumber(40)
+  Chats_JoinRequests get joinRequests => $_getN(39);
+  @$pb.TagNumber(40)
+  set joinRequests(Chats_JoinRequests value) => $_setField(40, value);
+  @$pb.TagNumber(40)
+  $core.bool hasJoinRequests() => $_has(39);
+  @$pb.TagNumber(40)
+  void clearJoinRequests() => $_clearField(40);
+  @$pb.TagNumber(40)
+  Chats_JoinRequests ensureJoinRequests() => $_ensure(39);
+
+  @$pb.TagNumber(41)
+  Chats_AnswerJoinRequest get answerJoinRequest => $_getN(40);
+  @$pb.TagNumber(41)
+  set answerJoinRequest(Chats_AnswerJoinRequest value) => $_setField(41, value);
+  @$pb.TagNumber(41)
+  $core.bool hasAnswerJoinRequest() => $_has(40);
+  @$pb.TagNumber(41)
+  void clearAnswerJoinRequest() => $_clearField(41);
+  @$pb.TagNumber(41)
+  Chats_AnswerJoinRequest ensureAnswerJoinRequest() => $_ensure(40);
 }
 
 enum Chats_Response_Response {
@@ -8706,6 +10800,16 @@ enum Chats_Response_Response {
   setAdmin,
   removeAdmin,
   transferOwnership,
+  checkUsername,
+  resolveLink,
+  joinChat,
+  inviteLinks,
+  createInviteLink,
+  editInviteLink,
+  revokeInviteLink,
+  deleteRevokedInviteLinks,
+  joinRequests,
+  answerJoinRequest,
   notSet
 }
 
@@ -8742,6 +10846,16 @@ class Chats_Response extends $pb.GeneratedMessage {
     Chats_SetAdminResult? setAdmin,
     Chats_RemoveAdminResult? removeAdmin,
     Chats_TransferOwnershipResult? transferOwnership,
+    Chats_CheckUsernameResult? checkUsername,
+    Chats_ResolveLinkResult? resolveLink,
+    Chats_JoinChatResult? joinChat,
+    Chats_InviteLinksResult? inviteLinks,
+    Chats_CreateInviteLinkResult? createInviteLink,
+    Chats_EditInviteLinkResult? editInviteLink,
+    Chats_RevokeInviteLinkResult? revokeInviteLink,
+    Chats_DeleteRevokedInviteLinksResult? deleteRevokedInviteLinks,
+    Chats_JoinRequestsResult? joinRequests,
+    Chats_AnswerJoinRequestResult? answerJoinRequest,
   }) {
     final result = create();
     if (list != null) result.list = list;
@@ -8775,6 +10889,16 @@ class Chats_Response extends $pb.GeneratedMessage {
     if (setAdmin != null) result.setAdmin = setAdmin;
     if (removeAdmin != null) result.removeAdmin = removeAdmin;
     if (transferOwnership != null) result.transferOwnership = transferOwnership;
+    if (checkUsername != null) result.checkUsername = checkUsername;
+    if (resolveLink != null) result.resolveLink = resolveLink;
+    if (joinChat != null) result.joinChat = joinChat;
+    if (inviteLinks != null) result.inviteLinks = inviteLinks;
+    if (createInviteLink != null) result.createInviteLink = createInviteLink;
+    if (editInviteLink != null) result.editInviteLink = editInviteLink;
+    if (revokeInviteLink != null) result.revokeInviteLink = revokeInviteLink;
+    if (deleteRevokedInviteLinks != null) result.deleteRevokedInviteLinks = deleteRevokedInviteLinks;
+    if (joinRequests != null) result.joinRequests = joinRequests;
+    if (answerJoinRequest != null) result.answerJoinRequest = answerJoinRequest;
     return result;
   }
 
@@ -8817,11 +10941,63 @@ class Chats_Response extends $pb.GeneratedMessage {
     29: Chats_Response_Response.setAdmin,
     30: Chats_Response_Response.removeAdmin,
     31: Chats_Response_Response.transferOwnership,
+    32: Chats_Response_Response.checkUsername,
+    33: Chats_Response_Response.resolveLink,
+    34: Chats_Response_Response.joinChat,
+    35: Chats_Response_Response.inviteLinks,
+    36: Chats_Response_Response.createInviteLink,
+    37: Chats_Response_Response.editInviteLink,
+    38: Chats_Response_Response.revokeInviteLink,
+    39: Chats_Response_Response.deleteRevokedInviteLinks,
+    40: Chats_Response_Response.joinRequests,
+    41: Chats_Response_Response.answerJoinRequest,
     0: Chats_Response_Response.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31])
+    ..oo(0, [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41
+    ])
     ..aOM<Chats_ListResult>(1, _omitFieldNames ? '' : 'list', subBuilder: Chats_ListResult.create)
     ..aOM<Chats_OpenPrivateResult>(2, _omitFieldNames ? '' : 'openPrivate',
         protoName: 'openPrivate', subBuilder: Chats_OpenPrivateResult.create)
@@ -8872,6 +11048,25 @@ class Chats_Response extends $pb.GeneratedMessage {
         protoName: 'removeAdmin', subBuilder: Chats_RemoveAdminResult.create)
     ..aOM<Chats_TransferOwnershipResult>(31, _omitFieldNames ? '' : 'transferOwnership',
         protoName: 'transferOwnership', subBuilder: Chats_TransferOwnershipResult.create)
+    ..aOM<Chats_CheckUsernameResult>(32, _omitFieldNames ? '' : 'checkUsername',
+        protoName: 'checkUsername', subBuilder: Chats_CheckUsernameResult.create)
+    ..aOM<Chats_ResolveLinkResult>(33, _omitFieldNames ? '' : 'resolveLink',
+        protoName: 'resolveLink', subBuilder: Chats_ResolveLinkResult.create)
+    ..aOM<Chats_JoinChatResult>(34, _omitFieldNames ? '' : 'joinChat', protoName: 'joinChat', subBuilder: Chats_JoinChatResult.create)
+    ..aOM<Chats_InviteLinksResult>(35, _omitFieldNames ? '' : 'inviteLinks',
+        protoName: 'inviteLinks', subBuilder: Chats_InviteLinksResult.create)
+    ..aOM<Chats_CreateInviteLinkResult>(36, _omitFieldNames ? '' : 'createInviteLink',
+        protoName: 'createInviteLink', subBuilder: Chats_CreateInviteLinkResult.create)
+    ..aOM<Chats_EditInviteLinkResult>(37, _omitFieldNames ? '' : 'editInviteLink',
+        protoName: 'editInviteLink', subBuilder: Chats_EditInviteLinkResult.create)
+    ..aOM<Chats_RevokeInviteLinkResult>(38, _omitFieldNames ? '' : 'revokeInviteLink',
+        protoName: 'revokeInviteLink', subBuilder: Chats_RevokeInviteLinkResult.create)
+    ..aOM<Chats_DeleteRevokedInviteLinksResult>(39, _omitFieldNames ? '' : 'deleteRevokedInviteLinks',
+        protoName: 'deleteRevokedInviteLinks', subBuilder: Chats_DeleteRevokedInviteLinksResult.create)
+    ..aOM<Chats_JoinRequestsResult>(40, _omitFieldNames ? '' : 'joinRequests',
+        protoName: 'joinRequests', subBuilder: Chats_JoinRequestsResult.create)
+    ..aOM<Chats_AnswerJoinRequestResult>(41, _omitFieldNames ? '' : 'answerJoinRequest',
+        protoName: 'answerJoinRequest', subBuilder: Chats_AnswerJoinRequestResult.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -8922,6 +11117,16 @@ class Chats_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(29)
   @$pb.TagNumber(30)
   @$pb.TagNumber(31)
+  @$pb.TagNumber(32)
+  @$pb.TagNumber(33)
+  @$pb.TagNumber(34)
+  @$pb.TagNumber(35)
+  @$pb.TagNumber(36)
+  @$pb.TagNumber(37)
+  @$pb.TagNumber(38)
+  @$pb.TagNumber(39)
+  @$pb.TagNumber(40)
+  @$pb.TagNumber(41)
   Chats_Response_Response whichResponse() => _Chats_Response_ResponseByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -8954,6 +11159,16 @@ class Chats_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(29)
   @$pb.TagNumber(30)
   @$pb.TagNumber(31)
+  @$pb.TagNumber(32)
+  @$pb.TagNumber(33)
+  @$pb.TagNumber(34)
+  @$pb.TagNumber(35)
+  @$pb.TagNumber(36)
+  @$pb.TagNumber(37)
+  @$pb.TagNumber(38)
+  @$pb.TagNumber(39)
+  @$pb.TagNumber(40)
+  @$pb.TagNumber(41)
   void clearResponse() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -9296,6 +11511,116 @@ class Chats_Response extends $pb.GeneratedMessage {
   void clearTransferOwnership() => $_clearField(31);
   @$pb.TagNumber(31)
   Chats_TransferOwnershipResult ensureTransferOwnership() => $_ensure(30);
+
+  @$pb.TagNumber(32)
+  Chats_CheckUsernameResult get checkUsername => $_getN(31);
+  @$pb.TagNumber(32)
+  set checkUsername(Chats_CheckUsernameResult value) => $_setField(32, value);
+  @$pb.TagNumber(32)
+  $core.bool hasCheckUsername() => $_has(31);
+  @$pb.TagNumber(32)
+  void clearCheckUsername() => $_clearField(32);
+  @$pb.TagNumber(32)
+  Chats_CheckUsernameResult ensureCheckUsername() => $_ensure(31);
+
+  @$pb.TagNumber(33)
+  Chats_ResolveLinkResult get resolveLink => $_getN(32);
+  @$pb.TagNumber(33)
+  set resolveLink(Chats_ResolveLinkResult value) => $_setField(33, value);
+  @$pb.TagNumber(33)
+  $core.bool hasResolveLink() => $_has(32);
+  @$pb.TagNumber(33)
+  void clearResolveLink() => $_clearField(33);
+  @$pb.TagNumber(33)
+  Chats_ResolveLinkResult ensureResolveLink() => $_ensure(32);
+
+  @$pb.TagNumber(34)
+  Chats_JoinChatResult get joinChat => $_getN(33);
+  @$pb.TagNumber(34)
+  set joinChat(Chats_JoinChatResult value) => $_setField(34, value);
+  @$pb.TagNumber(34)
+  $core.bool hasJoinChat() => $_has(33);
+  @$pb.TagNumber(34)
+  void clearJoinChat() => $_clearField(34);
+  @$pb.TagNumber(34)
+  Chats_JoinChatResult ensureJoinChat() => $_ensure(33);
+
+  @$pb.TagNumber(35)
+  Chats_InviteLinksResult get inviteLinks => $_getN(34);
+  @$pb.TagNumber(35)
+  set inviteLinks(Chats_InviteLinksResult value) => $_setField(35, value);
+  @$pb.TagNumber(35)
+  $core.bool hasInviteLinks() => $_has(34);
+  @$pb.TagNumber(35)
+  void clearInviteLinks() => $_clearField(35);
+  @$pb.TagNumber(35)
+  Chats_InviteLinksResult ensureInviteLinks() => $_ensure(34);
+
+  @$pb.TagNumber(36)
+  Chats_CreateInviteLinkResult get createInviteLink => $_getN(35);
+  @$pb.TagNumber(36)
+  set createInviteLink(Chats_CreateInviteLinkResult value) => $_setField(36, value);
+  @$pb.TagNumber(36)
+  $core.bool hasCreateInviteLink() => $_has(35);
+  @$pb.TagNumber(36)
+  void clearCreateInviteLink() => $_clearField(36);
+  @$pb.TagNumber(36)
+  Chats_CreateInviteLinkResult ensureCreateInviteLink() => $_ensure(35);
+
+  @$pb.TagNumber(37)
+  Chats_EditInviteLinkResult get editInviteLink => $_getN(36);
+  @$pb.TagNumber(37)
+  set editInviteLink(Chats_EditInviteLinkResult value) => $_setField(37, value);
+  @$pb.TagNumber(37)
+  $core.bool hasEditInviteLink() => $_has(36);
+  @$pb.TagNumber(37)
+  void clearEditInviteLink() => $_clearField(37);
+  @$pb.TagNumber(37)
+  Chats_EditInviteLinkResult ensureEditInviteLink() => $_ensure(36);
+
+  @$pb.TagNumber(38)
+  Chats_RevokeInviteLinkResult get revokeInviteLink => $_getN(37);
+  @$pb.TagNumber(38)
+  set revokeInviteLink(Chats_RevokeInviteLinkResult value) => $_setField(38, value);
+  @$pb.TagNumber(38)
+  $core.bool hasRevokeInviteLink() => $_has(37);
+  @$pb.TagNumber(38)
+  void clearRevokeInviteLink() => $_clearField(38);
+  @$pb.TagNumber(38)
+  Chats_RevokeInviteLinkResult ensureRevokeInviteLink() => $_ensure(37);
+
+  @$pb.TagNumber(39)
+  Chats_DeleteRevokedInviteLinksResult get deleteRevokedInviteLinks => $_getN(38);
+  @$pb.TagNumber(39)
+  set deleteRevokedInviteLinks(Chats_DeleteRevokedInviteLinksResult value) => $_setField(39, value);
+  @$pb.TagNumber(39)
+  $core.bool hasDeleteRevokedInviteLinks() => $_has(38);
+  @$pb.TagNumber(39)
+  void clearDeleteRevokedInviteLinks() => $_clearField(39);
+  @$pb.TagNumber(39)
+  Chats_DeleteRevokedInviteLinksResult ensureDeleteRevokedInviteLinks() => $_ensure(38);
+
+  @$pb.TagNumber(40)
+  Chats_JoinRequestsResult get joinRequests => $_getN(39);
+  @$pb.TagNumber(40)
+  set joinRequests(Chats_JoinRequestsResult value) => $_setField(40, value);
+  @$pb.TagNumber(40)
+  $core.bool hasJoinRequests() => $_has(39);
+  @$pb.TagNumber(40)
+  void clearJoinRequests() => $_clearField(40);
+  @$pb.TagNumber(40)
+  Chats_JoinRequestsResult ensureJoinRequests() => $_ensure(39);
+
+  @$pb.TagNumber(41)
+  Chats_AnswerJoinRequestResult get answerJoinRequest => $_getN(40);
+  @$pb.TagNumber(41)
+  set answerJoinRequest(Chats_AnswerJoinRequestResult value) => $_setField(41, value);
+  @$pb.TagNumber(41)
+  $core.bool hasAnswerJoinRequest() => $_has(40);
+  @$pb.TagNumber(41)
+  void clearAnswerJoinRequest() => $_clearField(41);
+  @$pb.TagNumber(41)
+  Chats_AnswerJoinRequestResult ensureAnswerJoinRequest() => $_ensure(40);
 }
 
 /// CHATS — диалоги.
@@ -9331,7 +11656,10 @@ class Chats extends $pb.GeneratedMessage {
 }
 
 /// История чата: сообщения с messageID < offsetID (0 — с последнего), по
-/// убыванию messageID.
+/// убыванию messageID. Публичную группу (OPEN) можно читать и не вступив
+/// (ChatPreview.canViewHistory), то же — Messages.Get. В группе со «Скрыть
+/// историю» вступивший после включения видит только сообщения после своего
+/// вступления (так же — Get, GetChatDifference, пересылка, закреплённые).
 class Messages_History extends $pb.GeneratedMessage {
   factory Messages_History({
     $core.List<$core.int>? chatID,

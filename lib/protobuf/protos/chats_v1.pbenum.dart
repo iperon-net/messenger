@@ -59,6 +59,31 @@ class ChatRole extends $pb.ProtobufEnum {
   const ChatRole._(super.value, super.name);
 }
 
+/// Как вступают в группу (подэтап 3.3, «Приватность групп»): OPEN — публичная,
+/// по username любой вступает сразу (единственный режим с username); LINK —
+/// частная, по ссылкам-приглашениям (у ссылки может быть одобрение заявок);
+/// REQUEST — по ссылке, но всегда через заявку, которую одобряет админ с
+/// inviteUsers; ADMINS — только админы с inviteUsers добавляют сами, ссылок
+/// нет, участники добавлять не могут.
+class ChatJoinMode extends $pb.ProtobufEnum {
+  static const ChatJoinMode CHAT_JOIN_LINK = ChatJoinMode._(0, _omitEnumNames ? '' : 'CHAT_JOIN_LINK');
+  static const ChatJoinMode CHAT_JOIN_OPEN = ChatJoinMode._(1, _omitEnumNames ? '' : 'CHAT_JOIN_OPEN');
+  static const ChatJoinMode CHAT_JOIN_REQUEST = ChatJoinMode._(2, _omitEnumNames ? '' : 'CHAT_JOIN_REQUEST');
+  static const ChatJoinMode CHAT_JOIN_ADMINS = ChatJoinMode._(3, _omitEnumNames ? '' : 'CHAT_JOIN_ADMINS');
+
+  static const $core.List<ChatJoinMode> values = <ChatJoinMode>[
+    CHAT_JOIN_LINK,
+    CHAT_JOIN_OPEN,
+    CHAT_JOIN_REQUEST,
+    CHAT_JOIN_ADMINS,
+  ];
+
+  static final $core.List<ChatJoinMode?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 3);
+  static ChatJoinMode? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const ChatJoinMode._(super.value, super.name);
+}
+
 class MessageKind extends $pb.ProtobufEnum {
   static const MessageKind MESSAGE_KIND_TEXT = MessageKind._(0, _omitEnumNames ? '' : 'MESSAGE_KIND_TEXT');
   static const MessageKind MESSAGE_KIND_PHOTO = MessageKind._(1, _omitEnumNames ? '' : 'MESSAGE_KIND_PHOTO');

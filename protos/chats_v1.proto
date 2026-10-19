@@ -37,6 +37,19 @@ enum ChatRole {
   CHAT_ROLE_OWNER = 4;
 }
 
+// Как вступают в группу (подэтап 3.3, «Приватность групп»): OPEN — публичная,
+// по username любой вступает сразу (единственный режим с username); LINK —
+// частная, по ссылкам-приглашениям (у ссылки может быть одобрение заявок);
+// REQUEST — по ссылке, но всегда через заявку, которую одобряет админ с
+// inviteUsers; ADMINS — только админы с inviteUsers добавляют сами, ссылок
+// нет, участники добавлять не могут.
+enum ChatJoinMode {
+  CHAT_JOIN_LINK = 0;
+  CHAT_JOIN_OPEN = 1;
+  CHAT_JOIN_REQUEST = 2;
+  CHAT_JOIN_ADMINS = 3;
+}
+
 // Группа (общее для всех участников). Название, описание и аватар хранятся на
 // сервере зашифрованными (crypto.Encryptor). pts — журнал ЧАТА: у группы свой
 // монотонный номер обновлений, не копия в журнал каждого участника (см.
@@ -57,6 +70,59 @@ message ChatInfo {
   int64 createdAt = 10; // unix millis
   // Роль вступающих / добавленных (READER или WRITER; по умолчанию WRITER).
   ChatRole defaultRole = 11;
+  // Публичное имя (ссылка iperon.net/<username>) — только у OPEN, иначе пусто.
+  string username = 12;
+  ChatJoinMode joinMode = 13;
+  // «Скрыть историю» (только частные — не OPEN): вступившие после включения
+  // видят сообщения только с момента вступления.
+  bool historyHidden = 14;
+}
+
+// Ссылка-приглашение (как chatInviteExported в Telegram). Путь ссылки —
+// iperon.net/+<code>; код выдаёт сервер (12 символов base62). primary —
+// основная: создаётся с группой, её можно только заменить (Revoke выдаёт
+// новую основную), не удалить. Видят и правят владелец и админы с inviteUsers.
+message ChatInviteLink {
+  string code = 1;
+  // Название для админов; пусто — показывается сама ссылка.
+  string title = 2;
+  bool primary = 3;
+  bool revoked = 4;
+  int64 expireDate = 5;  // unix millis, 0 — бессрочно
+  int32 usageLimit = 6;  // 0 — без ограничения
+  int32 usage = 7;       // сколько вступило
+  // Вступление по ссылке — заявкой (у REQUEST — всегда).
+  bool requestApproval = 8;
+  int64 createdAt = 9;   // unix millis
+  bytes creatorUserID = 10;
+  // Ждущих заявок по этой ссылке.
+  int32 pendingCount = 11;
+}
+
+// Заявка на вступление.
+message ChatJoinRequest {
+  bytes userID = 1;
+  int64 date = 2; // unix millis
+  // Ссылка, по которой пришла (пусто — по username у OPEN не бывает; основная
+  // — её код), и её название.
+  string inviteCode = 3;
+  string inviteTitle = 4;
+}
+
+// Предпросмотр группы до вступления (по ссылке-приглашению или username).
+message ChatPreview {
+  // Без pts; avatar — со ссылкой на скачивание.
+  ChatInfo chat = 1;
+  // Вступление — заявкой (ссылка с одобрением или режим REQUEST).
+  bool requestNeeded = 2;
+  // Моя заявка уже ждёт.
+  bool requested = 3;
+  // Можно читать историю без вступления (публичная, OPEN) — Messages.History /
+  // Get по chatID без журнала и без отметок о прочтении.
+  bool canViewHistory = 4;
+  // Несколько участников для «Анна, Олег и ещё 12» (профили — глазами
+  // смотрящего).
+  repeated Profile.Response members = 5;
 }
 
 // Права админа (как chatAdminRights в Telegram) — раздельные галочки при
@@ -110,7 +176,7 @@ message MessageChatAction {
   enum Kind {
     CREATED = 0;        // создал группу «title»
     ADDED = 1;          // добавил userIDs
-    JOINED = 2;         // вступил сам (подэтап 3.3)
+    JOINED = 2;         // вступил сам (по username, ссылке или одобренной заявке)
     LEFT = 3;           // вышел
     REMOVED = 4;        // исключил userIDs
     TITLE_CHANGED = 5;  // сменил название на title
@@ -402,6 +468,10 @@ message Dialog {
   // Мои права в группе (ADMIN; у OWNER — все, у остальных — пусто) и звание.
   ChatAdminRights rights = 21;
   string rank = 22;
+  // Владельцу и админам с inviteUsers: основная ссылка-приглашение (код) и
+  // число ждущих заявок; остальным — пусто / 0.
+  string inviteCode = 23;
+  int32 pendingRequests = 24;
 }
 
 // Отложенное сообщение — моё, ещё не отправленное (как scheduled messages в
@@ -579,6 +649,15 @@ message Update {
     repeated ChatMember updated = 5;
   }
 
+  // Изменились заявки на вступление в группу (журнал пользователя — только
+  // владельцу и админам с inviteUsers): pendingCount — сколько ждёт,
+  // recentUserIDs — последние (до 3) для плашки «Заявки на вступление».
+  message JoinRequestsChanged {
+    bytes chatID = 1;
+    int32 pendingCount = 2;
+    repeated bytes recentUserIDs = 3;
+  }
+
   // У меня появился диалог группы (создал, добавили, вступил) — журнал
   // пользователя. После него клиент подписан на журнал чата с dialog.chat.pts.
   // Вышел / исключили / группу удалили — Update.dialogDeleted.
@@ -606,6 +685,7 @@ message Update {
     ChatInfoChanged chatInfo = 17;
     ChatMembersChanged chatMembers = 18;
     DialogNew dialogNew = 19;
+    JoinRequestsChanged joinRequests = 20;
   }
 }
 
@@ -836,12 +916,19 @@ message Chats {
   // идемпотентность: повтор (обрыв связи) вернёт уже созданную. В ленте —
   // служебные CREATED и ADDED; участникам — Update.dialogNew. Лимит частоты
   // «создать чат».
+  //
+  // joinMode (по умолчанию LINK) и username (только при OPEN, обязателен;
+  // занят — FAILED_PRECONDITION «usernameTaken», не по правилам —
+  // INVALID_ARGUMENT «usernameInvalid»); у не-OPEN сервер сразу выдаёт
+  // основную ссылку-приглашение (Dialog.inviteCode).
   message CreateGroup {
     string title = 1;
     string about = 2;
     repeated bytes memberUserIDs = 3;
     bytes avatarCdnID = 4;
     int64 randomID = 5;
+    string username = 6;
+    ChatJoinMode joinMode = 7;
   }
 
   message CreateGroupResult {
@@ -855,20 +942,29 @@ message Chats {
   // удалить фото; defaultRole — READER или WRITER (иначе INVALID_ARGUMENT),
   // касается вступающих после. Смена названия / фото — служебное в ленту;
   // всем — Update.chatInfo. Без изменений — без обновлений.
+  //
+  // joinMode / username / historyHidden — право changeInfo. OPEN требует
+  // username (вместе или уже заданный), уход из OPEN освобождает его (и
+  // убирает из поиска публичных); username при не-OPEN — INVALID_ARGUMENT.
+  // historyHidden при OPEN — INVALID_ARGUMENT. Переход в не-OPEN без основной
+  // ссылки — сервер её выдаёт. Ошибки имени — как в CreateGroup.
   message EditChat {
     bytes chatID = 1;
     optional string title = 2;
     optional string about = 3;
     optional bytes avatarCdnID = 4;
     optional ChatRole defaultRole = 5;
+    optional string username = 6;
+    optional ChatJoinMode joinMode = 7;
+    optional bool historyHidden = 8;
   }
 
   message EditChatResult {
     Updates updates = 1;
   }
 
-  // Добавить участников (≤ 200 за раз) с ролью по умолчанию: любой участник
-  // (способы вступления — 3.3). Уже состоящие пропускаются; кому нельзя по
+  // Добавить участников (≤ 200 за раз) с ролью по умолчанию: любой участник,
+  // а в режиме ADMINS — только владелец / админ с inviteUsers. Уже состоящие пропускаются; кому нельзя по
   // приватности — restrictedUserIDs. Заблокированных в группе может добавить
   // только админ с banUsers (они разблокируются), остальным — restricted.
   // Группа заполнена (200 000) — FAILED_PRECONDITION «membersLimit».
@@ -1049,6 +1145,138 @@ message Chats {
     Updates updates = 1;
   }
 
+  // Свободно ли публичное имя (форма создания / «Изменить»): общее
+  // пространство с именами пользователей. exceptChatID — своя группа (её
+  // текущее имя — свободно).
+  message CheckUsername {
+    string username = 1;
+    bytes exceptChatID = 2;
+  }
+
+  message CheckUsernameResult {
+    bool available = 1;
+    // Не по правилам (длина, символы).
+    bool invalid = 2;
+  }
+
+  // Ссылка iperon.net/<path>: path — username (пользователя или группы) или
+  // «+код» приглашения. Пользователь — его личный чат со мной (как
+  // ResolveUsername, в dialog); группа, где я участник, — dialog; чужая —
+  // preview. Нет такого / ссылка отозвана, истекла, исчерпана —
+  // NOT_FOUND. Лимит частоты — как ResolveUsername.
+  message ResolveLink {
+    string path = 1;
+  }
+
+  message ResolveLinkResult {
+    Dialog dialog = 1;
+    ChatPreview preview = 2;
+  }
+
+  // Вступить (path — как в ResolveLink: username OPEN-группы или «+код»).
+  // Сразу — dialogNew (у меня) + служебное JOINED и chatMembers (всем);
+  // нужна заявка — requested = true (админам — joinRequests), повтор —
+  // то же без дублей. Заблокирован в группе — PERMISSION_DENIED «banned»;
+  // ссылка недействительна — NOT_FOUND; полна — «membersLimit»; моих групп
+  // уже 500 — «groupsLimit». Уже участник — dialog без изменений.
+  message JoinChat {
+    string path = 1;
+  }
+
+  message JoinChatResult {
+    Dialog dialog = 1;
+    bool requested = 2;
+    Updates updates = 3;
+  }
+
+  // Ссылки-приглашения группы (владелец / админ с inviteUsers): все, основная
+  // первой, затем по дате создания (новые сверху), отозванные — в конце.
+  message InviteLinks {
+    bytes chatID = 1;
+  }
+
+  message InviteLinksResult {
+    repeated ChatInviteLink links = 1;
+  }
+
+  // Новая дополнительная ссылка (≤ 100 активных на группу — FAILED_PRECONDITION
+  // «linksLimit»). title ≤ 32, usageLimit 0..99999, expireDate в будущем или 0.
+  message CreateInviteLink {
+    bytes chatID = 1;
+    string title = 2;
+    int64 expireDate = 3;
+    int32 usageLimit = 4;
+    bool requestApproval = 5;
+  }
+
+  message CreateInviteLinkResult {
+    ChatInviteLink link = 1;
+  }
+
+  // Изменить ссылку (не отозванную; у основной — только requestApproval).
+  message EditInviteLink {
+    bytes chatID = 1;
+    string code = 2;
+    string title = 3;
+    int64 expireDate = 4;
+    int32 usageLimit = 5;
+    bool requestApproval = 6;
+  }
+
+  message EditInviteLinkResult {
+    ChatInviteLink link = 1;
+  }
+
+  // Отозвать: по ссылке больше не вступить, её ждущие заявки остаются.
+  // Основная — заменяется новой (primary в ответе), Dialog.inviteCode у
+  // админов — через dialogSettings.
+  message RevokeInviteLink {
+    bytes chatID = 1;
+    string code = 2;
+  }
+
+  message RevokeInviteLinkResult {
+    ChatInviteLink revoked = 1;
+    ChatInviteLink primary = 2;
+    Updates updates = 3;
+  }
+
+  // Удалить все отозванные ссылки (основную не трогает).
+  message DeleteRevokedInviteLinks {
+    bytes chatID = 1;
+  }
+
+  message DeleteRevokedInviteLinksResult {}
+
+  // Заявки на вступление — страница (новые сверху); владелец / админ с
+  // inviteUsers. profiles — как в Members.
+  message JoinRequests {
+    bytes chatID = 1;
+    bytes offset = 2;
+    int32 limit = 3;
+  }
+
+  message JoinRequestsResult {
+    repeated ChatJoinRequest requests = 1;
+    repeated Profile.Response profiles = 2;
+    bytes nextOffset = 3;
+    int32 total = 4;
+  }
+
+  // Одобрить / отклонить заявку (userID пусто — все ждущие). Одобренный
+  // вступает с ролью по умолчанию: ему dialogNew, всем — JOINED и
+  // chatMembers; отклонённому ничего не приходит (как в Telegram). Админам —
+  // joinRequests с новым счётчиком.
+  message AnswerJoinRequest {
+    bytes chatID = 1;
+    bytes userID = 2;
+    bool approve = 3;
+  }
+
+  message AnswerJoinRequestResult {
+    Updates updates = 1;
+  }
+
   message Request {
     oneof request {
       List list = 1;
@@ -1082,6 +1310,16 @@ message Chats {
       SetAdmin setAdmin = 29;
       RemoveAdmin removeAdmin = 30;
       TransferOwnership transferOwnership = 31;
+      CheckUsername checkUsername = 32;
+      ResolveLink resolveLink = 33;
+      JoinChat joinChat = 34;
+      InviteLinks inviteLinks = 35;
+      CreateInviteLink createInviteLink = 36;
+      EditInviteLink editInviteLink = 37;
+      RevokeInviteLink revokeInviteLink = 38;
+      DeleteRevokedInviteLinks deleteRevokedInviteLinks = 39;
+      JoinRequests joinRequests = 40;
+      AnswerJoinRequest answerJoinRequest = 41;
     }
   }
 
@@ -1118,6 +1356,16 @@ message Chats {
       SetAdminResult setAdmin = 29;
       RemoveAdminResult removeAdmin = 30;
       TransferOwnershipResult transferOwnership = 31;
+      CheckUsernameResult checkUsername = 32;
+      ResolveLinkResult resolveLink = 33;
+      JoinChatResult joinChat = 34;
+      InviteLinksResult inviteLinks = 35;
+      CreateInviteLinkResult createInviteLink = 36;
+      EditInviteLinkResult editInviteLink = 37;
+      RevokeInviteLinkResult revokeInviteLink = 38;
+      DeleteRevokedInviteLinksResult deleteRevokedInviteLinks = 39;
+      JoinRequestsResult joinRequests = 40;
+      AnswerJoinRequestResult answerJoinRequest = 41;
     }
   }
 }
@@ -1125,7 +1373,10 @@ message Chats {
 // MESSAGES — сообщения.
 message Messages {
   // История чата: сообщения с messageID < offsetID (0 — с последнего), по
-  // убыванию messageID.
+  // убыванию messageID. Публичную группу (OPEN) можно читать и не вступив
+  // (ChatPreview.canViewHistory), то же — Messages.Get. В группе со «Скрыть
+  // историю» вступивший после включения видит только сообщения после своего
+  // вступления (так же — Get, GetChatDifference, пересылка, закреплённые).
   message History {
     bytes chatID = 1;
     int64 offsetID = 2;
