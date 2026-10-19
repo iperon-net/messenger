@@ -8116,16 +8116,24 @@ class Chats_DeleteChatResult extends $pb.GeneratedMessage {
 /// ChatInfo.membersHidden не-админу — только владелец и админы.
 /// offset — курсор из прошлого ответа (пусто — с начала). profiles — профили
 /// участников страницы глазами запросившего (гейты приватности, как PROFILE).
+///
+/// query (подэтап 3.5) — поиск участников: «@имя» — по началу username;
+/// иначе слова запроса — по началам слов имени и фамилии в профиле (слепой
+/// индекс на сервере, регистр и ё/е не важны, все слова должны совпасть).
+/// С query порядок тот же (по дате вступления), total — 0 (неизвестно).
+/// При membersHidden не-админ ищет только среди владельца и админов.
 class Chats_Members extends $pb.GeneratedMessage {
   factory Chats_Members({
     $core.List<$core.int>? chatID,
     $core.List<$core.int>? offset,
     $core.int? limit,
+    $core.String? query,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
     if (offset != null) result.offset = offset;
     if (limit != null) result.limit = limit;
+    if (query != null) result.query = query;
     return result;
   }
 
@@ -8141,6 +8149,7 @@ class Chats_Members extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
     ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'offset', $pb.PbFieldType.OY)
     ..aI(3, _omitFieldNames ? '' : 'limit')
+    ..aOS(4, _omitFieldNames ? '' : 'query')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -8186,6 +8195,15 @@ class Chats_Members extends $pb.GeneratedMessage {
   $core.bool hasLimit() => $_has(2);
   @$pb.TagNumber(3)
   void clearLimit() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get query => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set query($core.String value) => $_setString(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasQuery() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearQuery() => $_clearField(4);
 }
 
 class Chats_MembersResult extends $pb.GeneratedMessage {
