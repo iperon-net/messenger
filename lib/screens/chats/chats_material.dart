@@ -217,7 +217,8 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll {
   }
 
   /// «Глобальный поиск» под найденными чатами — в стиле самого списка (как в
-  /// Telegram): подпись-заголовок и строки того же размера, что у чатов.
+  /// Telegram): подпись-заголовок на фоне списка и строки того же размера, что
+  /// у чатов.
   List<Widget> _globalSearch(BuildContext context, ChatsState state) {
     final t = context.t;
     final status = state.globalStatus;
@@ -230,9 +231,9 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll {
       _ => null,
     };
     return [
-      Container(
-        color: scheme.surfaceContainerHigh,
-        padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+      // Без своей заливки — фон тот же, что у строк результатов.
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
         child: Text(
           t.screenNewChat.globalSearch,
           style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: scheme.onSurfaceVariant),
