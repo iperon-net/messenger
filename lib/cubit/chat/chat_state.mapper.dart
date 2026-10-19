@@ -167,6 +167,13 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: const [],
   );
+  static List<String> _$vanishingIDs(ChatState v) => v.vanishingIDs;
+  static const Field<ChatState, List<String>> _f$vanishingIDs = Field(
+    'vanishingIDs',
+    _$vanishingIDs,
+    opt: true,
+    def: const [],
+  );
   static List<models.Message> _$forwarding(ChatState v) => v.forwarding;
   static const Field<ChatState, List<models.Message>> _f$forwarding = Field(
     'forwarding',
@@ -334,6 +341,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #unreadFromID: _f$unreadFromID,
     #selecting: _f$selecting,
     #selectedIDs: _f$selectedIDs,
+    #vanishingIDs: _f$vanishingIDs,
     #forwarding: _f$forwarding,
     #searching: _f$searching,
     #searchQuery: _f$searchQuery,
@@ -372,6 +380,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       unreadFromID: data.dec(_f$unreadFromID),
       selecting: data.dec(_f$selecting),
       selectedIDs: data.dec(_f$selectedIDs),
+      vanishingIDs: data.dec(_f$vanishingIDs),
       forwarding: data.dec(_f$forwarding),
       searching: data.dec(_f$searching),
       searchQuery: data.dec(_f$searchQuery),
@@ -475,6 +484,7 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
   get replyQuote;
   models.MessageCopyWith<$R, models.Message, models.Message>? get editing;
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get selectedIDs;
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get vanishingIDs;
   ListCopyWith<
     $R,
     models.Message,
@@ -528,6 +538,7 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     String? unreadFromID,
     bool? selecting,
     List<String>? selectedIDs,
+    List<String>? vanishingIDs,
     List<models.Message>? forwarding,
     bool? searching,
     String? searchQuery,
@@ -606,6 +617,13 @@ class _ChatStateCopyWithImpl<$R, $Out>
     $value.selectedIDs,
     (v, t) => ObjectCopyWith(v, $identity, t),
     (v) => call(selectedIDs: v),
+  );
+  @override
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>>
+  get vanishingIDs => ListCopyWith(
+    $value.vanishingIDs,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(vanishingIDs: v),
   );
   @override
   ListCopyWith<
@@ -701,6 +719,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     Object? unreadFromID = $none,
     bool? selecting,
     List<String>? selectedIDs,
+    List<String>? vanishingIDs,
     List<models.Message>? forwarding,
     bool? searching,
     String? searchQuery,
@@ -737,6 +756,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (unreadFromID != $none) #unreadFromID: unreadFromID,
       if (selecting != null) #selecting: selecting,
       if (selectedIDs != null) #selectedIDs: selectedIDs,
+      if (vanishingIDs != null) #vanishingIDs: vanishingIDs,
       if (forwarding != null) #forwarding: forwarding,
       if (searching != null) #searching: searching,
       if (searchQuery != null) #searchQuery: searchQuery,
@@ -776,6 +796,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     unreadFromID: data.get(#unreadFromID, or: $value.unreadFromID),
     selecting: data.get(#selecting, or: $value.selecting),
     selectedIDs: data.get(#selectedIDs, or: $value.selectedIDs),
+    vanishingIDs: data.get(#vanishingIDs, or: $value.vanishingIDs),
     forwarding: data.get(#forwarding, or: $value.forwarding),
     searching: data.get(#searching, or: $value.searching),
     searchQuery: data.get(#searchQuery, or: $value.searchQuery),

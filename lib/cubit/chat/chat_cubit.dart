@@ -193,8 +193,10 @@ class ChatCubit extends Cubit<ChatState> {
     _pinnedSubscription = source.watchPinnedMessages(chatID).listen((pinned) {
       if (!isClosed) emit(state.copyWith(pinned: pinned));
     });
-    _messagesSubscription = source.watchMessages(chatID).listen((messages) {
+    _messagesSubscription = source.watchMessages(chatID).listen((fresh) {
       if (isClosed) return;
+      _sourceMessages = fresh;
+      final messages = _withRetained(fresh);
       emit(state.copyWith(messages: messages));
       // Отмечено сервером (здесь или на другом устройстве) — больше не ждём.
       _reactionsSeen.removeWhere((id) => !messages.any((m) => m.id == id && m.reactionsUnread));
@@ -699,6 +701,58 @@ class ChatCubit extends Cubit<ChatState> {
 
   void clearSelection() => emit(state.copyWith(selecting: false, selectedIDs: const []));
 
+  /// Удаляемые с «пылью» (id → сообщение): пока пыль летит, они остаются в
+  /// ленте, даже если источник их уже убрал, — иначе соседние строки прыгнули
+  /// бы на их место раньше пыли.
+  final _retained = <String, models.Message>{};
+  List<models.Message> _sourceMessages = const [];
+  Timer? _vanishTimer;
+
+  /// Сколько строка держит место после старта пыли (видна пыль, потом место
+  /// схлопывается — сам схлоп анимирует лента).
+  static const vanishDuration = Duration(milliseconds: 950);
+
+  List<models.Message> _withRetained(List<models.Message> messages) {
+    if (_retained.isEmpty) return messages;
+    final result = [...messages];
+    for (final kept in _retained.values) {
+      if (result.any((m) => m.id == kept.id)) continue;
+      final index = result.indexWhere((m) => m.date.isAfter(kept.date));
+      result.insert(index < 0 ? result.length : index, kept);
+    }
+    return result;
+  }
+
+  /// Перед удалением с «пылью»: держать [ids] в ленте, пока не [vanish] /
+  /// [releaseDust].
+  void holdForDust(List<String> ids) {
+    for (final m in state.messages) {
+      if (ids.contains(m.id)) _retained[m.id] = m;
+    }
+  }
+
+  /// Удаление прошло — строки [ids] становятся пустым местом (пыль рисуется
+  /// поверх), через [vanishDuration] уходят из ленты совсем.
+  void vanish(List<String> ids) {
+    if (isClosed) return;
+    emit(state.copyWith(vanishingIDs: {...state.vanishingIDs, ...ids}.toList()));
+    _vanishTimer?.cancel();
+    _vanishTimer = Timer(vanishDuration, () {
+      if (isClosed) return;
+      final gone = state.vanishingIDs.toSet();
+      _retained.removeWhere((id, _) => gone.contains(id));
+      emit(state.copyWith(vanishingIDs: const [], messages: _withRetained(_sourceMessages)));
+    });
+  }
+
+  /// Удалить не вышло — больше не держим.
+  void releaseDust(List<String> ids) {
+    for (final id in ids) {
+      _retained.remove(id);
+    }
+    if (!isClosed) emit(state.copyWith(messages: _withRetained(_sourceMessages)));
+  }
+
   /// Удалить можно свои, а в личном чате — любые (как одиночное удаление).
   bool canDelete(models.Message message) => message.outgoing || state.chat?.type == models.ChatType.private;
 
@@ -1042,6 +1096,7 @@ class ChatCubit extends Cubit<ChatState> {
   @override
   Future<void> close() async {
     await _chatsSubscription?.cancel();
+    _vanishTimer?.cancel();
     await _messagesSubscription?.cancel();
     await _scheduledSubscription?.cancel();
     await _pinnedSubscription?.cancel();

@@ -50,6 +50,10 @@ class ChatState with ChatStateMappable {
   final bool selecting;
   final List<String> selectedIDs;
 
+  /// Удалённые, которые сейчас рассыпаются в пыль: строка ещё в ленте пустым
+  /// местом своей высоты, потом плавно схлопывается (см. ChatCubit.vanish).
+  final List<String> vanishingIDs;
+
   /// Пересылаемые в этот чат сообщения — плашка над полем ввода, уходят по
   /// «Отправить» (после текста, если он есть).
   final List<models.Message> forwarding;
@@ -136,6 +140,7 @@ class ChatState with ChatStateMappable {
     this.unreadFromID,
     this.selecting = false,
     this.selectedIDs = const [],
+    this.vanishingIDs = const [],
     this.forwarding = const [],
     this.searching = false,
     this.searchQuery = '',

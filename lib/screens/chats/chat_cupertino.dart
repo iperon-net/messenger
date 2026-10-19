@@ -246,10 +246,16 @@ class _ChatCupertinoState extends State<ChatCupertino> {
   }
 
   /// Отмеченные — с «пылью» (см. [deleteWithDust]).
-  Future<void> _deleteSelectedScoped(BuildContext context, bool forEveryone) => deleteWithDust(context, [
-    for (final m in _cubit.state.selectedMessages)
-      if (_cubit.canDelete(m)) _keyFor(m.id),
-  ], () => _cubit.deleteSelected(forEveryone: forEveryone));
+  Future<void> _deleteSelectedScoped(BuildContext context, bool forEveryone) => deleteWithDust(
+    context,
+    _cubit,
+    [
+      for (final m in _cubit.state.selectedMessages)
+        if (_cubit.canDelete(m)) m.id,
+    ],
+    _keyFor,
+    () => _cubit.deleteSelected(forEveryone: forEveryone),
+  );
 
   Future<void> _deleteSelected(BuildContext context) async {
     final chat = _cubit.state.chat;
@@ -610,6 +616,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                                   : _swipeReply,
                                               selecting: state.selecting,
                                               selectedIDs: state.selectedIDs,
+                                              vanishingIDs: state.vanishingIDs,
                                               onSelect: _cubit.toggleSelected,
                                               selectionColor: CupertinoTheme.of(context).primaryColor,
                                               selectionCheckColor: ThemesCupertino.onAccent(context),
@@ -834,7 +841,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
           if (!chatDeleteScoped(chat)) return _confirmDelete(context, chat, message);
           final forEveryone = await ask(afterContextMenu: true);
           if (forEveryone != null && context.mounted) {
-            await deleteWithDust(context, [_keyFor(message.id)], () => _cubit.delete(message, forEveryone: forEveryone));
+            await deleteWithDust(context, _cubit, [message.id], _keyFor, () => _cubit.delete(message, forEveryone: forEveryone));
           }
         }, destructive: true),
       ],
@@ -856,7 +863,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
   Future<void> _confirmDelete(BuildContext context, models.Chat chat, models.Message message) async {
     final forEveryone = await _askDelete(context, chat, 1);
     if (forEveryone != null && context.mounted) {
-      await deleteWithDust(context, [_keyFor(message.id)], () => _cubit.delete(message, forEveryone: forEveryone));
+      await deleteWithDust(context, _cubit, [message.id], _keyFor, () => _cubit.delete(message, forEveryone: forEveryone));
     }
   }
 }

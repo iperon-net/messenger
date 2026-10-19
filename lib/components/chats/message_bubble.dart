@@ -143,6 +143,10 @@ class ChatMessagesView extends StatelessWidget {
   /// Режим выделения: отмеченные [selectedIDs], тап по строке — [onSelect].
   final bool selecting;
   final List<String> selectedIDs;
+
+  /// Рассыпаются в пыль после удаления: пустое место их высоты, потом оно
+  /// плавно схлопывается ([_Vanishing]).
+  final List<String> vanishingIDs;
   final ValueChanged<models.Message>? onSelect;
   final Color selectionColor;
 
@@ -199,6 +203,7 @@ class ChatMessagesView extends StatelessWidget {
     this.flashRange,
     this.selecting = false,
     this.selectedIDs = const [],
+    this.vanishingIDs = const [],
     this.onSelect,
     this.selectionColor = const Color(0xFF007AFF),
     this.selectionCheckColor = const Color(0xFFFFFFFF),
@@ -224,6 +229,10 @@ class ChatMessagesView extends StatelessWidget {
       a.senderName == b.senderName &&
       _sameDay(a.date, b.date) &&
       b.date.difference(a.date).abs() < const Duration(minutes: 5);
+
+  /// Строка удалённого, по которой сейчас летит пыль, — пустым местом (см.
+  /// [_Vanishing]).
+  Widget _vanishable(String id, Widget row) => vanishingIDs.contains(id) ? _Vanishing(key: ValueKey('vanish:$id'), child: row) : row;
 
   @override
   Widget build(BuildContext context) {
@@ -282,87 +291,90 @@ class ChatMessagesView extends StatelessWidget {
         items.add(_Pill(text: m.text, style: style));
       } else {
         items.add(
-          Padding(
-            key: keyFor?.call(m.id),
-            padding: EdgeInsets.only(top: groupedWithOlder ? 2 : 8),
-            // Режим выделения: тап по строке отмечает, слева — кружок, жесты
-            // пузыря (меню, медиа, реакции) выключены. Дерево одно и то же в
-            // обоих режимах — пузыри не пересоздаются.
-            child: _ReactionsShown(
-              message: m,
-              onShown: onReactionsShown,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: selecting ? (onSelect == null ? null : () => onSelect!(m)) : (onTap == null ? null : () => onTap!(m)),
-                child: AnimatedContainer(
-                  duration: Duration(milliseconds: selecting ? 150 : 400),
-                  color: selecting && selectedIDs.contains(m.id)
-                      ? selectionColor.withValues(alpha: 0.18)
-                      : style.outgoing.withValues(alpha: m.id == flashID ? 0.25 : 0),
-                  child: Stack(
-                    children: [
-                      AnimatedPadding(
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeOutCubic,
-                        padding: EdgeInsets.only(left: selecting ? 38 : 0),
-                        child: IgnorePointer(
-                          ignoring: selecting,
-                          // Снимок для «пыли» при удалении — пузырь без
-                          // подсветки выделения и кружка.
-                          child: DustSource(
-                            child: SwipeToReply(
-                              onReply: onReply == null ? null : () => onReply!(m),
-                              background: style.pill,
-                              iconColor: style.pillText,
-                              child: MessageBubble(
-                                key: ValueKey(m.id),
-                                message: m,
-                                style: style,
-                                tail: !groupedWithNewer,
-                                showSender: group && !m.outgoing && !groupedWithOlder,
-                                avatar: group && !m.outgoing
-                                    ? (groupedWithNewer ? const SizedBox(width: 34) : _SenderAvatar(name: m.senderName))
-                                    : null,
-                                onLongPress: () => onLongPress(m),
-                                onMediaTap: onMediaTap == null ? null : (index) => onMediaTap!(m, index),
-                                highlight: highlight,
-                                focused: m.id == focusedID,
-                                mark: m.id == flashID ? flashRange : null,
-                                onCancelUpload: onCancelUpload == null ? null : () => onCancelUpload!(m),
-                                onReaction: onReaction == null ? null : (emoji) => onReaction!(m, emoji),
-                                onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(m),
-                                onReplyTap: onReplyTap == null ? null : () => onReplyTap!(m),
-                                onForwardTap: onForwardTap == null ? null : () => onForwardTap!(m),
-                                menuWrapper: menuWrapper == null ? null : (bubble, preview) => menuWrapper!(m, bubble, preview),
-                                onCommentsTap: onCommentsTap == null ? null : () => onCommentsTap!(m),
-                                commentsClosed: commentsClosedIDs.contains(m.id),
-                                onPollVote: onPollVote == null ? null : (options) => onPollVote!(m, options),
-                                onPollVoters: onPollVoters == null ? null : () => onPollVoters!(m),
-                                onCallTap: onCallTap == null ? null : () => onCallTap!(m),
+          _vanishable(
+            m.id,
+            Padding(
+              key: keyFor?.call(m.id),
+              padding: EdgeInsets.only(top: groupedWithOlder ? 2 : 8),
+              // Режим выделения: тап по строке отмечает, слева — кружок, жесты
+              // пузыря (меню, медиа, реакции) выключены. Дерево одно и то же в
+              // обоих режимах — пузыри не пересоздаются.
+              child: _ReactionsShown(
+                message: m,
+                onShown: onReactionsShown,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: selecting ? (onSelect == null ? null : () => onSelect!(m)) : (onTap == null ? null : () => onTap!(m)),
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: selecting ? 150 : 400),
+                    color: selecting && selectedIDs.contains(m.id)
+                        ? selectionColor.withValues(alpha: 0.18)
+                        : style.outgoing.withValues(alpha: m.id == flashID ? 0.25 : 0),
+                    child: Stack(
+                      children: [
+                        AnimatedPadding(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeOutCubic,
+                          padding: EdgeInsets.only(left: selecting ? 38 : 0),
+                          child: IgnorePointer(
+                            ignoring: selecting,
+                            // Снимок для «пыли» при удалении — пузырь без
+                            // подсветки выделения и кружка.
+                            child: DustSource(
+                              child: SwipeToReply(
+                                onReply: onReply == null ? null : () => onReply!(m),
+                                background: style.pill,
+                                iconColor: style.pillText,
+                                child: MessageBubble(
+                                  key: ValueKey(m.id),
+                                  message: m,
+                                  style: style,
+                                  tail: !groupedWithNewer,
+                                  showSender: group && !m.outgoing && !groupedWithOlder,
+                                  avatar: group && !m.outgoing
+                                      ? (groupedWithNewer ? const SizedBox(width: 34) : _SenderAvatar(name: m.senderName))
+                                      : null,
+                                  onLongPress: () => onLongPress(m),
+                                  onMediaTap: onMediaTap == null ? null : (index) => onMediaTap!(m, index),
+                                  highlight: highlight,
+                                  focused: m.id == focusedID,
+                                  mark: m.id == flashID ? flashRange : null,
+                                  onCancelUpload: onCancelUpload == null ? null : () => onCancelUpload!(m),
+                                  onReaction: onReaction == null ? null : (emoji) => onReaction!(m, emoji),
+                                  onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(m),
+                                  onReplyTap: onReplyTap == null ? null : () => onReplyTap!(m),
+                                  onForwardTap: onForwardTap == null ? null : () => onForwardTap!(m),
+                                  menuWrapper: menuWrapper == null ? null : (bubble, preview) => menuWrapper!(m, bubble, preview),
+                                  onCommentsTap: onCommentsTap == null ? null : () => onCommentsTap!(m),
+                                  commentsClosed: commentsClosedIDs.contains(m.id),
+                                  onPollVote: onPollVote == null ? null : (options) => onPollVote!(m, options),
+                                  onPollVoters: onPollVoters == null ? null : () => onPollVoters!(m),
+                                  onCallTap: onCallTap == null ? null : () => onCallTap!(m),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      Positioned(
-                        left: 10,
-                        top: 0,
-                        bottom: 0,
-                        child: IgnorePointer(
-                          child: AnimatedOpacity(
-                            duration: const Duration(milliseconds: 200),
-                            opacity: selecting ? 1 : 0,
-                            child: Center(
-                              child: _SelectCheck(
-                                selected: selectedIDs.contains(m.id),
-                                color: selectionColor,
-                                checkColor: selectionCheckColor,
+                        Positioned(
+                          left: 10,
+                          top: 0,
+                          bottom: 0,
+                          child: IgnorePointer(
+                            child: AnimatedOpacity(
+                              duration: const Duration(milliseconds: 200),
+                              opacity: selecting ? 1 : 0,
+                              child: Center(
+                                child: _SelectCheck(
+                                  selected: selectedIDs.contains(m.id),
+                                  color: selectionColor,
+                                  checkColor: selectionCheckColor,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -2227,4 +2239,50 @@ class _SelfDestructBadgeState extends State<SelfDestructBadge> {
       ],
     );
   }
+}
+
+/// Удалённое сообщение, по которому летит пыль: место его высоты остаётся
+/// пустым, пока пыль не разлетится, потом плавно схлопывается — соседние
+/// строки подъезжают (как в Telegram). Убирает строку совсем ChatCubit.vanish.
+class _Vanishing extends StatefulWidget {
+  final Widget child;
+
+  const _Vanishing({super.key, required this.child});
+
+  /// Пауза до схлопывания и само схлопывание (вместе — меньше
+  /// `ChatCubit.vanishDuration`).
+  static const hold = Duration(milliseconds: 550);
+  static const collapse = Duration(milliseconds: 320);
+
+  @override
+  State<_Vanishing> createState() => _VanishingState();
+}
+
+class _VanishingState extends State<_Vanishing> with SingleTickerProviderStateMixin {
+  late final _controller = AnimationController(vsync: this, duration: _Vanishing.collapse);
+  late final _size = Tween<double>(begin: 1, end: 0).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic));
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(_Vanishing.hold, () {
+      if (mounted) _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => SizeTransition(
+    sizeFactor: _size,
+    child: IgnorePointer(
+      child: Visibility(visible: false, maintainSize: true, maintainAnimation: true, maintainState: true, child: widget.child),
+    ),
+  );
 }

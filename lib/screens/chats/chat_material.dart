@@ -264,10 +264,16 @@ class _ChatMaterialState extends State<ChatMaterial> {
   }
 
   /// Отмеченные — с «пылью» (см. [deleteWithDust]).
-  Future<void> _deleteSelectedScoped(BuildContext context, bool forEveryone) => deleteWithDust(context, [
-    for (final m in _cubit.state.selectedMessages)
-      if (_cubit.canDelete(m)) _keyFor(m.id),
-  ], () => _cubit.deleteSelected(forEveryone: forEveryone));
+  Future<void> _deleteSelectedScoped(BuildContext context, bool forEveryone) => deleteWithDust(
+    context,
+    _cubit,
+    [
+      for (final m in _cubit.state.selectedMessages)
+        if (_cubit.canDelete(m)) m.id,
+    ],
+    _keyFor,
+    () => _cubit.deleteSelected(forEveryone: forEveryone),
+  );
 
   Future<void> _deleteSelected(BuildContext context) async {
     final chat = _cubit.state.chat;
@@ -607,6 +613,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                             : _swipeReply,
                                         selecting: state.selecting,
                                         selectedIDs: state.selectedIDs,
+                                        vanishingIDs: state.vanishingIDs,
                                         onSelect: _cubit.toggleSelected,
                                         selectionColor: Theme.of(context).colorScheme.primary,
                                         selectionCheckColor: Theme.of(context).colorScheme.onPrimary,
@@ -896,7 +903,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
       case 'delete':
         final forEveryone = await _askDelete(context, chat, 1);
         if (forEveryone != null && context.mounted) {
-          await deleteWithDust(context, [_keyFor(message.id)], () => _cubit.delete(message, forEveryone: forEveryone));
+          await deleteWithDust(context, _cubit, [message.id], _keyFor, () => _cubit.delete(message, forEveryone: forEveryone));
         }
     }
   }

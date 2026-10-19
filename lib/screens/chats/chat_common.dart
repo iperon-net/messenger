@@ -1182,15 +1182,29 @@ Widget composeBannerText(
   );
 }
 
-/// Удаление с эффектом «пыли» (как в Telegram): снимки строк [keys] — до
-/// запроса (пока они на экране), рассыпание — только если [delete] удалось
-/// (без сети сообщения остаются, и пыли нет).
-Future<void> deleteWithDust(BuildContext context, Iterable<GlobalKey> keys, Future<bool> Function() delete) async {
-  final snapshots = await DustEffect.captureAll(keys.map((key) => key.currentContext));
+/// Удаление сообщений [ids] с эффектом «пыли» (как в Telegram): снимки — до
+/// запроса (пока строки на экране), и строки держат место в ленте; удалось —
+/// они становятся пустым местом, по нему рассыпается пыль, потом место плавно
+/// схлопывается ([ChatCubit.vanish]). Не удалось (нет сети) — всё как было.
+Future<void> deleteWithDust(
+  BuildContext context,
+  ChatCubit cubit,
+  List<String> ids,
+  GlobalKey Function(String id) keyFor,
+  Future<bool> Function() delete,
+) async {
+  final snapshots = await DustEffect.captureAll(ids.map((id) => keyFor(id).currentContext));
+  if (snapshots.isEmpty) {
+    await delete();
+    return;
+  }
+  cubit.holdForDust(ids);
   final ok = await delete();
   if (ok && context.mounted) {
+    cubit.vanish(ids);
     DustEffect.play(context, snapshots);
   } else {
+    cubit.releaseDust(ids);
     for (final snapshot in snapshots) {
       snapshot.dispose();
     }

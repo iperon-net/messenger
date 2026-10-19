@@ -188,8 +188,9 @@ class _Particles {
   _Particles(this.snapshot, math.Random random) {
     final w = snapshot.rect.width;
     final h = snapshot.rect.height;
-    // Кусочки 2.5 pt, но не больше ~9000 на снимок (длинное сообщение).
-    final cell = math.max(2.5, math.sqrt(w * h / 9000));
+    // Кусочки 2.3 pt (≈ +20% частиц к 2.5), но не больше ~10800 на снимок
+    // (длинное сообщение).
+    final cell = math.max(2.3, math.sqrt(w * h / 10800));
     final r = snapshot.ratio;
     final xs = <double>[], ys = <double>[], dx = <double>[], dy = <double>[], start = <double>[], life = <double>[], src = <double>[];
     for (var y = 0.0; y < h; y += cell) {
