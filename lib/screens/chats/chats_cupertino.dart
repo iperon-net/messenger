@@ -14,7 +14,8 @@ import '../../models.dart' as models;
 import 'chat_actions_cupertino.dart';
 import 'chat_swipe_actions.dart';
 import 'chat_common.dart';
-import 'chats_new_cupertino.dart';
+import 'chat_create_common.dart';
+import '../../chats/users_search.dart';
 
 /// Вкладка «Чаты» (iOS). Сверху поиск и табы-папки в стиле сегмент-контрола
 /// «Звонков»; папки листаются свайпом влево/вправо (`PageView`), бегунок таба
@@ -188,14 +189,7 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
     final chats = state.chatsOf(folder);
     final archived = folder.isAll && state.query.isEmpty ? state.archived : const <models.Chat>[];
     // Глобальный поиск людей (номер / @username) — секцией после чатов.
-    final global = state.query.isEmpty
-        ? const <Widget>[]
-        : usersSearchSectionCupertino(
-            context,
-            status: state.globalStatus,
-            results: state.globalResults,
-            onTap: (member) => _openGlobal(context, member),
-          );
+    final global = state.query.isEmpty ? const <Widget>[] : _globalSearch(context, state);
     if (chats.isEmpty && archived.isEmpty && global.isEmpty) {
       return _empty(context, state.query.isEmpty ? context.t.screenChats.emptyFolder : context.t.screenChats.empty, folder: folder);
     }
@@ -215,7 +209,7 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
       itemCount: chats.length + offset + (global.isEmpty ? 0 : 1),
       separatorBuilder: (_, index) => index == chats.length + offset - 1 && global.isNotEmpty ? const SizedBox.shrink() : divider,
       itemBuilder: (context, index) {
-        if (index == chats.length + offset) return Column(children: global);
+        if (index == chats.length + offset) return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: global);
         if (index < offset) return _ArchiveTileCupertino(archived: archived, onTap: () => context.push('/chats/archive'));
         final chat = chats[index - offset];
         return ChatDeleteMenuAnchorCupertino(
@@ -232,6 +226,49 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
         );
       },
     );
+  }
+
+  /// «Глобальный поиск» под найденными чатами — в стиле самого списка (как в
+  /// Telegram): серая плашка-заголовок и строки того же размера, что у чатов.
+  List<Widget> _globalSearch(BuildContext context, ChatsState state) {
+    final t = context.t;
+    final status = state.globalStatus;
+    if (status == UsersSearchStatus.idle) return const [];
+    final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
+    final note = switch (status) {
+      UsersSearchStatus.offline => t.screenNewChat.globalSearchOffline,
+      UsersSearchStatus.flood => t.screenNewChat.globalSearchFlood,
+      UsersSearchStatus.done when state.globalResults.isEmpty => t.screenNewChat.globalSearchEmpty,
+      _ => null,
+    };
+    final divider = Container(
+      margin: const EdgeInsetsDirectional.only(start: ChatTileCupertino.dividerIndent),
+      height: 0.5,
+      color: CupertinoColors.separator.resolveFrom(context),
+    );
+    return [
+      Container(
+        color: ThemesCupertino.groupedBackground.resolveFrom(context),
+        padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+        child: Text(t.screenNewChat.globalSearch, style: TextStyle(fontSize: 14, color: secondary)),
+      ),
+      if (status == UsersSearchStatus.loading)
+        const Padding(padding: EdgeInsets.all(16), child: CupertinoActivityIndicator())
+      else if (note != null)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+          child: Text(
+            note,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 15, color: secondary),
+          ),
+        )
+      else
+        for (final (i, member) in state.globalResults.indexed) ...[
+          if (i > 0) divider,
+          _UserSearchTileCupertino(member: member, onTap: () => _openGlobal(context, member)),
+        ],
+    ];
   }
 
   Future<void> _openGlobal(BuildContext context, models.ChatMember member) async {
@@ -315,6 +352,73 @@ class _ArchiveTileCupertino extends StatelessWidget {
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Найденный глобальным поиском — строка в размерах [ChatTileCupertino]:
+/// аватар 49, имя, ниже @username / номер.
+class _UserSearchTileCupertino extends StatefulWidget {
+  final models.ChatMember member;
+  final VoidCallback onTap;
+
+  const _UserSearchTileCupertino({required this.member, required this.onTap});
+
+  @override
+  State<_UserSearchTileCupertino> createState() => _UserSearchTileCupertinoState();
+}
+
+class _UserSearchTileCupertinoState extends State<_UserSearchTileCupertino> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed != value) setState(() => _pressed = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final member = widget.member;
+    final subtitle = globalSearchSubtitle(member);
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => _setPressed(true),
+      onTapUp: (_) => _setPressed(false),
+      onTapCancel: () => _setPressed(false),
+      onTap: widget.onTap,
+      child: ColoredBox(
+        color: _pressed ? CupertinoColors.systemGrey5.resolveFrom(context) : const Color(0x00000000),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 8, 12, 8),
+          child: Row(
+            children: [
+              ContactAvatar(contact: member, size: 49),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      member.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: CupertinoColors.label.resolveFrom(context)),
+                    ),
+                    if (subtitle.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 15, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
