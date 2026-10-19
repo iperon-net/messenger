@@ -529,6 +529,13 @@ class MessagePollMapper extends ClassMapperBase<MessagePoll> {
     opt: true,
     def: false,
   );
+  static int _$totalVoters(MessagePoll v) => v.totalVoters;
+  static const Field<MessagePoll, int> _f$totalVoters = Field(
+    'totalVoters',
+    _$totalVoters,
+    opt: true,
+    def: 0,
+  );
 
   @override
   final MappableFields<MessagePoll> fields = const {
@@ -539,6 +546,7 @@ class MessagePollMapper extends ClassMapperBase<MessagePoll> {
     #quiz: _f$quiz,
     #explanation: _f$explanation,
     #closed: _f$closed,
+    #totalVoters: _f$totalVoters,
   };
 
   static MessagePoll _instantiate(DecodingData data) {
@@ -550,6 +558,7 @@ class MessagePollMapper extends ClassMapperBase<MessagePoll> {
       quiz: data.dec(_f$quiz),
       explanation: data.dec(_f$explanation),
       closed: data.dec(_f$closed),
+      totalVoters: data.dec(_f$totalVoters),
     );
   }
 
@@ -623,6 +632,7 @@ abstract class MessagePollCopyWith<$R, $In extends MessagePoll, $Out>
     bool? quiz,
     String? explanation,
     bool? closed,
+    int? totalVoters,
   });
   MessagePollCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -651,6 +661,7 @@ class _MessagePollCopyWithImpl<$R, $Out>
     bool? quiz,
     String? explanation,
     bool? closed,
+    int? totalVoters,
   }) => $apply(
     FieldCopyWithData({
       if (question != null) #question: question,
@@ -660,6 +671,7 @@ class _MessagePollCopyWithImpl<$R, $Out>
       if (quiz != null) #quiz: quiz,
       if (explanation != null) #explanation: explanation,
       if (closed != null) #closed: closed,
+      if (totalVoters != null) #totalVoters: totalVoters,
     }),
   );
   @override
@@ -671,6 +683,7 @@ class _MessagePollCopyWithImpl<$R, $Out>
     quiz: data.get(#quiz, or: $value.quiz),
     explanation: data.get(#explanation, or: $value.explanation),
     closed: data.get(#closed, or: $value.closed),
+    totalVoters: data.get(#totalVoters, or: $value.totalVoters),
   );
 
   @override
@@ -1873,6 +1886,13 @@ class MessageMapper extends ClassMapperBase<Message> {
     opt: true,
     def: false,
   );
+  static bool _$mentionUnread(Message v) => v.mentionUnread;
+  static const Field<Message, bool> _f$mentionUnread = Field(
+    'mentionUnread',
+    _$mentionUnread,
+    opt: true,
+    def: false,
+  );
   static List<MessageMedia> _$media(Message v) => v.media;
   static const Field<Message, List<MessageMedia>> _f$media = Field(
     'media',
@@ -2068,6 +2088,7 @@ class MessageMapper extends ClassMapperBase<Message> {
     #waveform: _f$waveform,
     #mediaUnread: _f$mediaUnread,
     #reactionsUnread: _f$reactionsUnread,
+    #mentionUnread: _f$mentionUnread,
     #media: _f$media,
     #fileSize: _f$fileSize,
     #uploadedBytes: _f$uploadedBytes,
@@ -2117,6 +2138,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       waveform: data.dec(_f$waveform),
       mediaUnread: data.dec(_f$mediaUnread),
       reactionsUnread: data.dec(_f$reactionsUnread),
+      mentionUnread: data.dec(_f$mentionUnread),
       media: data.dec(_f$media),
       fileSize: data.dec(_f$fileSize),
       uploadedBytes: data.dec(_f$uploadedBytes),
@@ -2249,6 +2271,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     List<int>? waveform,
     bool? mediaUnread,
     bool? reactionsUnread,
+    bool? mentionUnread,
     List<MessageMedia>? media,
     int? fileSize,
     int? uploadedBytes,
@@ -2371,6 +2394,7 @@ class _MessageCopyWithImpl<$R, $Out>
     List<int>? waveform,
     bool? mediaUnread,
     bool? reactionsUnread,
+    bool? mentionUnread,
     List<MessageMedia>? media,
     int? fileSize,
     int? uploadedBytes,
@@ -2418,6 +2442,7 @@ class _MessageCopyWithImpl<$R, $Out>
       if (waveform != null) #waveform: waveform,
       if (mediaUnread != null) #mediaUnread: mediaUnread,
       if (reactionsUnread != null) #reactionsUnread: reactionsUnread,
+      if (mentionUnread != null) #mentionUnread: mentionUnread,
       if (media != null) #media: media,
       if (fileSize != null) #fileSize: fileSize,
       if (uploadedBytes != null) #uploadedBytes: uploadedBytes,
@@ -2468,6 +2493,7 @@ class _MessageCopyWithImpl<$R, $Out>
     waveform: data.get(#waveform, or: $value.waveform),
     mediaUnread: data.get(#mediaUnread, or: $value.mediaUnread),
     reactionsUnread: data.get(#reactionsUnread, or: $value.reactionsUnread),
+    mentionUnread: data.get(#mentionUnread, or: $value.mentionUnread),
     media: data.get(#media, or: $value.media),
     fileSize: data.get(#fileSize, or: $value.fileSize),
     uploadedBytes: data.get(#uploadedBytes, or: $value.uploadedBytes),

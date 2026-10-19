@@ -1677,6 +1677,10 @@ class _Translations$chatAction$ru extends Translations$chatAction$en {
 	@override String get linksLimit => 'Достигнут предел ссылок-приглашений.';
 	@override String get usernameTaken => 'Эта ссылка уже занята.';
 	@override String get usernameInvalid => 'Ссылка — от 5 до 24 символов: латиница, цифры и «_».';
+	@override String get newcomerRestricted => 'Вы недавно вступили в группу: пока можно отправлять только текст без ссылок и медиа.';
+	@override String get slowModeWait => 'В группе включён медленный режим — сообщение отправится, когда закончится ожидание.';
+	@override String get pollClosed => 'Опрос уже завершён.';
+	@override String get pollForward => 'Опрос нельзя переслать.';
 }
 
 // Path: chatTtl
@@ -3010,6 +3014,10 @@ extension on TranslationsRu {
 			'chatAction.linksLimit' => 'Достигнут предел ссылок-приглашений.',
 			'chatAction.usernameTaken' => 'Эта ссылка уже занята.',
 			'chatAction.usernameInvalid' => 'Ссылка — от 5 до 24 символов: латиница, цифры и «_».',
+			'chatAction.newcomerRestricted' => 'Вы недавно вступили в группу: пока можно отправлять только текст без ссылок и медиа.',
+			'chatAction.slowModeWait' => 'В группе включён медленный режим — сообщение отправится, когда закончится ожидание.',
+			'chatAction.pollClosed' => 'Опрос уже завершён.',
+			'chatAction.pollForward' => 'Опрос нельзя переслать.',
 			'chatTtl.title' => 'Автоудаление',
 			'chatTtl.titleLong' => 'Автоудаление сообщений',
 			'chatTtl.off' => 'Выкл',

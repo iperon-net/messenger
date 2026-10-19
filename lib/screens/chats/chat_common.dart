@@ -61,10 +61,13 @@ bool canRetractVote(models.Message message) {
   return poll != null && poll.voted && !poll.quiz && !poll.closed;
 }
 
-/// Опрос: «Завершить опрос» — автор или админ, пока не завершён.
-bool canClosePoll(models.Chat chat, models.Message message) {
+/// Опрос: «Завершить опрос» — автор или админ (в группе — с правом удалять
+/// сообщения, как на сервере), пока не завершён.
+bool canClosePoll(models.Chat chat, models.Message message, {List<models.ChatMember> members = const []}) {
   final poll = message.poll;
-  return poll != null && !poll.closed && (message.outgoing || chat.canManage);
+  if (poll == null || poll.closed) return false;
+  if (message.outgoing) return true;
+  return chat.type == models.ChatType.group ? canDeleteOthers(chat, members) : chat.canManage;
 }
 
 /// «Завершить опрос?» — `true`, если подтвердили.
@@ -433,6 +436,10 @@ void showChatsFailed(BuildContext context, String error) {
       'linksLimit' => t.linksLimit,
       'usernameTaken' => t.usernameTaken,
       'usernameInvalid' => t.usernameInvalid,
+      'newcomerRestricted' => t.newcomerRestricted,
+      'slowModeWait' => t.slowModeWait,
+      'pollClosed' => t.pollClosed,
+      'pollForward' => t.pollForward,
       _ => t.failed,
     }),
   );
@@ -1551,7 +1558,8 @@ class ChatScrollDownButton extends StatelessWidget {
 
 /// Круглая кнопка ❤️ над кнопкой «вниз» (как в Telegram): есть наши
 /// сообщения с непрочитанными реакциями ([count]); тап — к самому старому.
-/// Кнопка «вниз» спрятана — опускается на её место. Положение — сама
+/// Она же «@» (упоминания нас, [icon]) — ещё выше на [above] видимых кнопок
+/// (❤️). Кнопка «вниз» спрятана — опускаются на её место. Положение — сама
 /// (Positioned), класть прямо в Stack ленты.
 class ChatReactionsButton extends StatelessWidget {
   final ChatScrollTracker tracker;
@@ -1561,6 +1569,8 @@ class ChatReactionsButton extends StatelessWidget {
   final Color iconColor;
   final Color badgeColor;
   final Color badgeTextColor;
+  final FaIconData icon;
+  final int above;
 
   const ChatReactionsButton({
     super.key,
@@ -1571,6 +1581,8 @@ class ChatReactionsButton extends StatelessWidget {
     required this.iconColor,
     required this.badgeColor,
     this.badgeTextColor = const Color(0xFFFFFFFF),
+    this.icon = FontAwesomeIcons.heart,
+    this.above = 0,
   });
 
   @override
@@ -1582,7 +1594,7 @@ class ChatReactionsButton extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         curve: Curves.easeOutCubic,
         right: 10,
-        bottom: tracker.showDown ? 62 : 10,
+        bottom: (tracker.showDown ? 62 : 10) + above * 52.0,
         child: IgnorePointer(
           ignoring: !visible,
           child: AnimatedOpacity(
@@ -1606,7 +1618,7 @@ class ChatReactionsButton extends StatelessWidget {
                         shape: BoxShape.circle,
                         boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 6, offset: Offset(0, 1))],
                       ),
-                      child: FaIcon(FontAwesomeIcons.heart, size: 18, color: iconColor),
+                      child: FaIcon(icon, size: 18, color: iconColor),
                     ),
                     if (visible)
                       Positioned(

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:material_ui/material_ui.dart';
@@ -367,6 +368,18 @@ class _ChatMaterialState extends State<ChatMaterial> {
     if (id != null && mounted) await _tracker.jumpTo(id);
   }
 
+  /// Кнопка «@» — к самому старому непрочитанному упоминанию нас.
+  Future<void> _nextMention() async {
+    final id = await _cubit.nextUnreadMention();
+    if (id != null && mounted) await _tracker.jumpTo(id);
+  }
+
+  /// «Кто за что» — сервер отдаёт по запросу (без сети — «Нет соединения»).
+  Future<void> _pollVoters(models.Message message) async {
+    final poll = await _cubit.pollVoters(message);
+    if (poll != null && mounted) await showPollVoters(context, poll);
+  }
+
   /// «Закрепить» / «Открепить»: в личном чате — у меня и у собеседника или
   /// только у меня (см. [askPinScopeMaterial]).
   Future<void> _pin(models.Chat chat, models.Message message) async {
@@ -598,7 +611,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                           commentsClosedIDs: state.commentsClosedIDs,
                                           // Опрос: голосовать — участникам (не подписавшимся — нет).
                                           onPollVote: chat.isMember ? (message, options) => _cubit.votePoll(message, options) : null,
-                                          onPollVoters: (message) => showPollVoters(context, message.poll!),
+                                          onPollVoters: _pollVoters,
                                           // Звонок в ленте — перезвонить тем же видом.
                                           onCallTap: chat.type == models.ChatType.private && !chat.isSelf
                                               ? (message) => chatInfoCall(chat, video: message.phoneCall?.video ?? false)
@@ -622,7 +635,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                           onReplyTap: _tracker.jumpToReply,
                                           onForwardTap: (message) => openForwardAuthor(context, message),
                                           onPinnedServiceTap: _jumpTo,
-                                          onReactionsShown: _cubit.reactionsShown,
+                                          onReactionsShown: _cubit.unreadShown,
                                           pinned: state.pinnedMessages,
                                           unreadFromID: state.unreadFromID,
                                           flashID: _flashID,
@@ -662,6 +675,18 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                     tracker: _tracker,
                                     count: chat.unreadReactions,
                                     onTap: _nextReaction,
+                                    background: barColor,
+                                    iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    badgeColor: Theme.of(context).colorScheme.primary,
+                                    badgeTextColor: Theme.of(context).colorScheme.onPrimary,
+                                  ),
+                                  // «@» — над ❤️ (как в Telegram).
+                                  ChatReactionsButton(
+                                    tracker: _tracker,
+                                    icon: FontAwesomeIcons.at,
+                                    above: chat.unreadReactions > 0 ? 1 : 0,
+                                    count: chat.unreadMentions,
+                                    onTap: _nextMention,
                                     background: barColor,
                                     iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
                                     badgeColor: Theme.of(context).colorScheme.primary,
@@ -829,7 +854,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                   title: Text(message.pinned ? t.unpin : t.pin),
                   onTap: () => Navigator.of(sheetContext).pop('pin'),
                 ),
-              if (features.forward && ChatCubit.forwardable(message) && !protected)
+              if (features.forward && _cubit.canForward(message) && !protected)
                 ListTile(
                   leading: const Icon(Icons.forward),
                   title: Text(t.forward),
@@ -855,7 +880,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                   title: Text(t.retractVote),
                   onTap: () => Navigator.of(sheetContext).pop('retract'),
                 ),
-              if (canClosePoll(chat, message))
+              if (canClosePoll(chat, message, members: _cubit.state.members))
                 ListTile(
                   leading: Icon(Icons.stop_circle_outlined, color: error),
                   title: Text(t.closePoll, style: TextStyle(color: error)),

@@ -175,8 +175,9 @@ class ChatMessagesView extends StatelessWidget {
   /// Тап по звонку — перезвонить.
   final ValueChanged<models.Message>? onCallTap;
 
-  /// Наше сообщение с непрочитанными реакциями оказалось на экране (строка
-  /// построена — лента ленивая) или получило их, уже будучи на экране.
+  /// Наше сообщение с непрочитанными реакциями (или упоминание нас)
+  /// оказалось на экране (строка построена — лента ленивая) или получило
+  /// флаг, уже будучи на экране.
   final ValueChanged<models.Message>? onReactionsShown;
 
   const ChatMessagesView({
@@ -2125,9 +2126,10 @@ class _PollViewState extends State<_PollView> {
   }
 }
 
-/// Строка ленты: наше сообщение с непрочитанными реакциями построено (лента
-/// ленивая — оно на экране или у края) или получило их, уже будучи
-/// построенным, — сообщает [onShown] после кадра. Обёртка есть всегда (дерево
+/// Строка ленты: наше сообщение с непрочитанными реакциями или упоминание
+/// нас ещё не прочитано, и оно построено (лента ленивая — на экране или у
+/// края) или получило флаг, уже будучи построенным, — сообщает [onShown]
+/// после кадра. Обёртка есть всегда (дерево
 /// не меняется, когда флаг появляется / пропадает).
 class _ReactionsShown extends StatefulWidget {
   final models.Message message;
@@ -2150,13 +2152,14 @@ class _ReactionsShownState extends State<_ReactionsShown> {
   @override
   void didUpdateWidget(_ReactionsShown old) {
     super.didUpdateWidget(old);
-    if (!old.message.reactionsUnread) _notify();
+    if (!old.message.reactionsUnread || !old.message.mentionUnread) _notify();
   }
 
   void _notify() {
     final onShown = widget.onShown;
     final message = widget.message;
-    if (onShown == null || !message.outgoing || !message.reactionsUnread) return;
+    final unread = message.outgoing ? message.reactionsUnread : message.mentionUnread;
+    if (onShown == null || !unread) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) onShown(message);
     });

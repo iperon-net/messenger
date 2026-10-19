@@ -95,6 +95,7 @@ models.MessageKind kindFromPb(pb.MessageKind kind) => switch (kind) {
 /// первому элементу), без вложений — текст.
 models.MessageKind contentKind(pb.MessageContent content) {
   if (content.hasCall()) return models.MessageKind.call;
+  if (content.hasPoll()) return models.MessageKind.poll;
   return content.media.isEmpty ? models.MessageKind.text : kindFromPb(content.media.first.kind);
 }
 
@@ -165,7 +166,17 @@ String pinSnippet(pb.ChatMessage? pinned) {
 /// Реакции сервера (кто, чем, когда — от ранних к поздним) → чипы под
 /// сообщением: по эмодзи в порядке первой постановки, с числом; наши —
 /// [models.MessageReaction.chosen] с порядком нашей постановки.
+///
+/// Группа — только счётчики (`counts`, по первой постановке эмодзи): наши —
+/// с `chosenOrder` > 0 (глазами смотрящего; в кэше — после
+/// [mergeSharedReactions]).
 List<models.MessageReaction> reactionsFromPb(pb.MessageReactions reactions, {required List<int> myUserID}) {
+  if (reactions.counts.isNotEmpty) {
+    return [
+      for (final c in reactions.counts)
+        if (c.count > 0) models.MessageReaction(emoji: c.emoji, count: c.count, chosen: c.chosenOrder > 0, chosenOrder: c.chosenOrder),
+    ];
+  }
   final chips = <String, models.MessageReaction>{};
   var mine = 0;
   for (final r in reactions.reactions) {
@@ -175,6 +186,123 @@ List<models.MessageReaction> reactionsFromPb(pb.MessageReactions reactions, {req
   }
   return chips.values.toList(growable: false);
 }
+
+/// Реакции группы из общего обновления (журнал чата: `counts` без
+/// `chosenOrder`) поверх сохранённых [stored]: кто изменил — [actorUserID] с
+/// его набором [actorEmojis] целиком. Это я — мои теперь [actorEmojis] (в
+/// этом порядке), иначе свои остаются как были. Пришло глазами смотрящего
+/// (есть `chosenOrder` — History / Get / ответ SetReactions) или это личный
+/// чат (полный список `reactions`) — как есть.
+pb.MessageReactions mergeSharedReactions(
+  pb.MessageReactions? stored,
+  pb.MessageReactions incoming, {
+  List<int> actorUserID = const [],
+  List<String> actorEmojis = const [],
+  required List<int> myUserID,
+}) {
+  if (incoming.counts.isEmpty || incoming.counts.any((c) => c.chosenOrder > 0)) return incoming;
+  final List<String> mine;
+  if (actorUserID.isNotEmpty && sameID(actorUserID, myUserID)) {
+    mine = actorEmojis;
+  } else {
+    final chosen = [
+      for (final c in stored?.counts ?? const <pb.ReactionCount>[])
+        if (c.chosenOrder > 0) c,
+    ]..sort((a, b) => a.chosenOrder.compareTo(b.chosenOrder));
+    mine = [for (final c in chosen) c.emoji];
+  }
+  final result = incoming.deepCopy();
+  for (final c in result.counts) {
+    final order = mine.indexOf(c.emoji);
+    c.chosenOrder = order >= 0 && c.count > 0 ? order + 1 : 0;
+  }
+  return result;
+}
+
+/// Имя «мы» в списке «кто за что» (`PollOption.voters`, как в демо):
+/// экран показывает его как «Вы» текущего языка.
+const pollVoterSelf = 'Вы';
+
+/// Опрос: содержимое ([poll], верный ответ сервер из него убирает) и итоги
+/// глазами смотрящего ([results]; `null` — ещё нет, например неотправленный)
+/// → модель. Верный вариант и пояснение викторины — только когда итоги
+/// открыты (мы проголосовали или опрос завершён) и сервер их прислал.
+models.MessagePoll pollFromPb(pb.MessagePoll poll, pb.PollResults? results) {
+  final r = results ?? pb.PollResults();
+  final chosen = r.chosen.toSet();
+  final revealed = results != null && poll.quiz && (chosen.isNotEmpty || r.closed) && r.correctOption >= 0;
+  return models.MessagePoll(
+    question: poll.question,
+    options: [
+      for (final (i, text) in poll.options.indexed)
+        models.PollOption(
+          text: text,
+          votes: i < r.votes.length ? r.votes[i] : 0,
+          chosen: chosen.contains(i),
+          correct: revealed && r.correctOption == i,
+        ),
+    ],
+    anonymous: poll.anonymous,
+    multiple: poll.multiple && !poll.quiz,
+    quiz: poll.quiz,
+    explanation: revealed ? r.explanation : '',
+    closed: r.closed,
+    totalVoters: r.totalVoters,
+  );
+}
+
+/// Опрос для отправки (`MessageContent.poll`): у викторины — индекс верного
+/// варианта и пояснение, без мультивыбора.
+pb.MessagePoll pollToPb(models.MessagePoll poll) {
+  final correct = poll.options.indexWhere((o) => o.correct);
+  return pb.MessagePoll(
+    question: poll.question.trim(),
+    options: [for (final o in poll.options) o.text.trim()],
+    anonymous: poll.anonymous,
+    multiple: poll.multiple && !poll.quiz,
+    quiz: poll.quiz,
+    correctOption: poll.quiz ? (correct < 0 ? 0 : correct) : null,
+    explanation: poll.quiz && poll.explanation.trim().isNotEmpty ? poll.explanation.trim() : null,
+  );
+}
+
+/// Итоги опроса из обновления поверх сохранённых [stored]. Общее (журнал
+/// чата: без моего выбора и без верного ответа, пока не завершён) — мой выбор
+/// остаётся, а если проголосовал я ([actorIsMe]) — теперь [actorOptions];
+/// уже открытый мне верный ответ не пропадает. Глазами меня ([shared] false:
+/// журнал пользователя, ответ VotePoll / ClosePoll, History / Get) — как есть.
+pb.PollResults mergePollResults(
+  pb.PollResults? stored,
+  pb.PollResults incoming, {
+  required bool shared,
+  bool actorIsMe = false,
+  List<int> actorOptions = const [],
+}) {
+  if (!shared) return incoming;
+  final result = incoming.deepCopy();
+  result.chosen
+    ..clear()
+    ..addAll(actorIsMe ? actorOptions : (stored?.chosen ?? const <int>[]));
+  if (result.correctOption < 0 && stored != null && stored.correctOption >= 0 && (stored.chosen.isNotEmpty || stored.closed)) {
+    result
+      ..correctOption = stored.correctOption
+      ..explanation = stored.explanation;
+  }
+  return result;
+}
+
+/// Режим реакций группы — сервер → модель и обратно (порядок совпадает).
+models.ChatReactionsMode reactionsModeFromPb(pb.ChatReactionsMode mode) => switch (mode) {
+  pb.ChatReactionsMode.CHAT_REACTIONS_SOME => models.ChatReactionsMode.some,
+  pb.ChatReactionsMode.CHAT_REACTIONS_NONE => models.ChatReactionsMode.none,
+  _ => models.ChatReactionsMode.all,
+};
+
+pb.ChatReactionsMode reactionsModeToPb(models.ChatReactionsMode mode) => switch (mode) {
+  models.ChatReactionsMode.all => pb.ChatReactionsMode.CHAT_REACTIONS_ALL,
+  models.ChatReactionsMode.some => pb.ChatReactionsMode.CHAT_REACTIONS_SOME,
+  models.ChatReactionsMode.none => pb.ChatReactionsMode.CHAT_REACTIONS_NONE,
+};
 
 /// ✓ / ✓✓ исходящего: прочитано, если собеседник дочитал до него
 /// (`readOutboxMaxID`). В «Избранном» читать некому — всегда прочитано.
@@ -220,7 +348,8 @@ models.Message messageFromPb(
     senderUserID: group && !outgoing ? idHex(m.fromUserID) : '',
     pinned: pinned,
     pinnedOnlyMe: pinned && pinnedOnlyMe,
-    text: content.hasChatAction() ? serviceText : content.text,
+    // Опрос: текста нет — вопрос (превью, ответ, поиск по ленте).
+    text: content.hasChatAction() ? serviceText : (content.hasPoll() ? content.poll.question : content.text),
     entities: [for (final e in content.entities) entityFromPb(e)],
     outgoing: outgoing,
     status: outgoing
@@ -243,6 +372,8 @@ models.Message messageFromPb(
     waveform: [for (final v in first?.waveform ?? const <int>[]) v >> 3],
     mediaUnread: m.mediaUnread,
     reactionsUnread: outgoing && m.reactionsUnread,
+    mentionUnread: !outgoing && m.mentionUnread,
+    poll: content.hasPoll() ? pollFromPb(content.poll, m.hasPoll() ? m.poll : null) : null,
     media: [
       if (kind == models.MessageKind.photo || kind == models.MessageKind.video)
         for (final media in content.media)
@@ -269,7 +400,7 @@ models.MessageReply replyFromPb(pb.MessageReplyTo r, {pb.ChatMessage? replied, r
   final repliedContent = replied?.content;
   final kind = repliedContent == null ? models.MessageKind.text : contentKind(repliedContent);
   final fileName = repliedContent != null && repliedContent.media.isNotEmpty ? repliedContent.media.first.fileName : '';
-  final text = repliedContent?.text ?? '';
+  final text = repliedContent == null ? '' : (repliedContent.hasPoll() ? repliedContent.poll.question : repliedContent.text);
   return models.MessageReply(
     messageID: r.messageID.toString(),
     // Как в ChatCubit._takeReply: у своего — пусто («Вы»), у входящего в
@@ -331,7 +462,7 @@ models.ChatLastMessage lastMessageFromPb(
   final outgoing = sameID(m.fromUserID, myUserID);
   return models.ChatLastMessage(
     kind: contentKind(m.content),
-    text: m.content.text,
+    text: m.content.hasPoll() ? m.content.poll.question : m.content.text,
     outgoing: outgoing,
     status: outgoing
         ? outgoingStatus(messageID: m.messageID.toInt(), readOutboxMaxID: readOutboxMaxID, isSelf: isSelf)

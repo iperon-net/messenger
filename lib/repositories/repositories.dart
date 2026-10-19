@@ -16,6 +16,7 @@ import '../logger.dart';
 import '../settings.dart';
 import '../models.dart' as models;
 import '../protobuf/protos/chats_v1.pb.dart' as pb;
+import '../chats/chats_mapping.dart' show mergePollResults, mergeSharedReactions;
 import '../chats/message_search.dart';
 
 part "cache.dart";
@@ -815,6 +816,22 @@ class Repositories {
             PRIMARY KEY (userID, chatID, code)
           );
         ''');
+      }),
+    );
+
+    migrations.add(
+      SqliteMigration(38, (tx) async {
+        // Сообщения в группе (подэтап 3.4): непрочитанные упоминания меня —
+        // счётчик сервера (Dialog.unreadMentionsCount, бейдж «@») и сами
+        // сообщения (chatMentions: Update.mentions может прийти раньше
+        // сообщения, поэтому не флагом в chatMessages); итоги опроса глазами
+        // меня (PollResults BLOB); медленный режим и дата вступления в группу
+        // (Dialog.slowModeUntil / joinedAt, unix millis).
+        await tx.execute('ALTER TABLE chatDialogs ADD COLUMN unreadMentions INTEGER NOT NULL DEFAULT 0;');
+        await tx.execute('ALTER TABLE chatMessages ADD COLUMN poll BLOB NULL;');
+        await tx.execute('ALTER TABLE chatGroups ADD COLUMN slowModeUntil INTEGER NOT NULL DEFAULT 0;');
+        await tx.execute('ALTER TABLE chatGroups ADD COLUMN joinedAt INTEGER NOT NULL DEFAULT 0;');
+        await tx.execute(ChatsRepository.mentionsSchema);
       }),
     );
 

@@ -167,7 +167,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
       await readAll([chatID, for (final c in _communityChats(chatID)) c.id]);
       return;
     }
-    _update(chatID, (c) => read ? c.copyWith(unreadCount: 0, unreadMentions: 0, markedUnread: false) : c.copyWith(markedUnread: true));
+    // Упоминания остаются, пока их не увидят (readMentions), как в Telegram.
+    _update(chatID, (c) => read ? c.copyWith(unreadCount: 0, markedUnread: false) : c.copyWith(markedUnread: true));
   }
 
   @override
@@ -179,6 +180,11 @@ class ChatsDemoDataSource implements ChatsDataSource {
         if (chatIDs.contains(c.communityID)) c.id,
     };
     _chats = [for (final c in _chats) ids.contains(c.id) ? c.copyWith(unreadCount: 0, unreadMentions: 0, markedUnread: false) : c];
+    for (final id in ids) {
+      for (final m in [...?_messages[id]]) {
+        if (m.mentionUnread) _updateMessage(id, m.id, (m) => m.copyWith(mentionUnread: false));
+      }
+    }
     _emit();
   }
 
@@ -1274,6 +1280,11 @@ class ChatsDemoDataSource implements ChatsDataSource {
     });
   }
 
+  /// Голоса демо уже в опросе (`PollOption.voters`).
+  @override
+  Future<models.MessagePoll?> pollVoters(String chatID, String messageID) async =>
+      _history(chatID).where((m) => m.id == messageID).firstOrNull?.poll;
+
   @override
   Future<void> closePoll(String chatID, String messageID) async =>
       _updateMessage(chatID, messageID, (m) => m.poll == null ? m : m.copyWith(poll: m.poll!.copyWith(closed: true)));
@@ -1878,6 +1889,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
       entities: entities,
       senderName: chat.type == models.ChatType.private ? '' : sender,
       date: DateTime.now(),
+      mentionUnread: mention,
     );
     if (_messages.containsKey(chatID)) _setMessages(chatID, [..._history(chatID), message]);
     _update(
@@ -2054,6 +2066,31 @@ class ChatsDemoDataSource implements ChatsDataSource {
   @override
   Future<String?> nextUnreadReaction(String chatID) async =>
       (_messages[chatID] ?? const <models.Message>[]).where((m) => m.reactionsUnread).firstOrNull?.id;
+
+  /// Самое старое непрочитанное упоминание; в ленте его нет (счётчик без
+  /// сообщения) — счётчик устарел, обнуляем.
+  @override
+  Future<String?> nextUnreadMention(String chatID) async {
+    final id = _history(chatID).where((m) => m.mentionUnread).firstOrNull?.id;
+    if (id == null) _update(chatID, (c) => c.copyWith(unreadMentions: 0));
+    return id;
+  }
+
+  @override
+  Future<void> readMentions(String chatID, List<String> messageIDs) async {
+    final unread = [
+      for (final m in _messages[chatID] ?? const <models.Message>[])
+        if (m.mentionUnread && (messageIDs.isEmpty || messageIDs.contains(m.id))) m.id,
+    ];
+    for (final id in unread) {
+      _updateMessage(chatID, id, (m) => m.copyWith(mentionUnread: false));
+    }
+    if (messageIDs.isEmpty) {
+      _update(chatID, (c) => c.copyWith(unreadMentions: 0));
+    } else if (unread.isNotEmpty) {
+      _update(chatID, (c) => c.copyWith(unreadMentions: (c.unreadMentions - unread.length).clamp(0, c.unreadMentions)));
+    }
+  }
 
   @override
   Future<void> setDraft(String chatID, String draft) async {
@@ -2611,6 +2648,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
       String pinnedMessageID = '',
       List<models.MessageReaction> reactions = const [],
       models.MessagePoll? poll,
+      bool mention = false,
       Duration step = const Duration(minutes: 7),
     }) {
       date = date.add(step);
@@ -2637,6 +2675,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
             if (album == 0 && spoiler) models.MessageMedia(kind: kind, spoiler: true),
           ],
           reactions: reactions,
+          mentionUnread: mention,
           pinned: pinned,
           pinnedMessageID: pinnedMessageID,
           linkPreview: kind == models.MessageKind.text && !service ? _linkPreviewOf(text, entities) : null,
@@ -2700,6 +2739,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
         add('', sender: 'Иван', kind: models.MessageKind.file, fileName: 'отчёт_сентябрь.xlsx', pinned: true);
         add('', sender: 'Иван', service: true, pinnedMessageID: result.last.id, step: const Duration(minutes: 1));
         add('', sender: 'Дмитрий', poll: _seedPoll(channel: false), step: const Duration(minutes: 20));
+        // Непрочитанное упоминание (бейдж «@» в списке) — кнопка «@» ведёт к нему.
+        if (chat.unreadMentions > 0) add('@you глянь отчёт до пятницы, пожалуйста 🙏', sender: 'Ольга', mention: true);
       case models.ChatType.channel:
         // Реакции канала — только из разрешённых админом.
         final allowed = chat.reactionsMode == models.ChatReactionsMode.some ? chat.reactions : const ['👍', '🔥', '❤️'];

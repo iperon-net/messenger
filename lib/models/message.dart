@@ -89,6 +89,10 @@ class MessagePoll with MessagePollMappable {
   /// Завершён: голосовать нельзя, видны итоги.
   final bool closed;
 
+  /// Проголосовавших людей (сервер; у мультивыбора человек считается один
+  /// раз); 0 — неизвестно, тогда [totalVotes] — по сумме голосов.
+  final int totalVoters;
+
   const MessagePoll({
     required this.question,
     required this.options,
@@ -97,14 +101,15 @@ class MessagePoll with MessagePollMappable {
     this.quiz = false,
     this.explanation = '',
     this.closed = false,
+    this.totalVoters = 0,
   });
 
   /// Мы уже проголосовали.
   bool get voted => options.any((o) => o.chosen);
 
-  /// Проголосовавших (у мультивыбора человек считается один раз — в демо
-  /// приближённо: по сумме голосов).
-  int get totalVotes => options.fold(0, (sum, o) => sum + o.votes);
+  /// Проголосовавших (у мультивыбора человек считается один раз — с сервера
+  /// [totalVoters], в демо приближённо: по сумме голосов).
+  int get totalVotes => totalVoters > 0 ? totalVoters : options.fold(0, (sum, o) => sum + o.votes);
 
   /// Итоги видны: проголосовали или опрос завершён.
   bool get showResults => voted || closed;
@@ -282,6 +287,11 @@ class Message with MessageMappable {
   /// чата ведёт к нему; показ на экране — «просмотрено»).
   final bool reactionsUnread;
 
+  /// Группа: сообщение упоминает нас (@username, по имени или ответ на наше),
+  /// и мы его ещё не видели — кнопка «@» в окне чата ведёт к нему; показ на
+  /// экране — «прочитано» (`ChatsDataSource.readMentions`).
+  final bool mentionUnread;
+
   /// Альбом: до [maxAlbum] фото/видео одним сообщением (сеткой в пузыре), подпись
   /// — [text]. Один элемент — метаданные одиночного фото/видео (размеры,
   /// thumbhash); пусто — обычное сообщение ([kind] + [localPath]).
@@ -392,6 +402,7 @@ class Message with MessageMappable {
     this.waveform = const [],
     this.mediaUnread = false,
     this.reactionsUnread = false,
+    this.mentionUnread = false,
     this.media = const [],
     this.fileSize = 0,
     this.uploadedBytes = 0,

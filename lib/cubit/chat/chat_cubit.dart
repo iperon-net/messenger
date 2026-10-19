@@ -47,6 +47,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   Timer? _floodTimer;
   StreamSubscription<({Uint8List chatID, Uint8List? peerUserID, bool restricted})>? _writeSubscription;
   StreamSubscription<({String chatID, List<String> messageIDs})>? _deletedSubscription;
+  StreamSubscription<({Uint8List chatID, String error})>? _rejectedSubscription;
 
   /// Собеседник ограничил, кто может ему писать (ответ `canWrite` при открытии
   /// или отказ сервера при отправке) — вместо поля ввода плашка.
@@ -87,6 +88,10 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   /// без сети — повтор после переподключения.
   final _reactionsSeen = <String>{};
   Timer? _reactionsSeenTimer;
+
+  /// То же для упоминаний нас (`Message.mentionUnread`).
+  final _mentionsSeen = <String>{};
+  Timer? _mentionsSeenTimer;
 
   /// Непрочитанных при открытии (до `setRead`) и поставлен ли уже разделитель.
   int? _openUnread;
@@ -136,10 +141,18 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
       _deletedSubscription = ChatsSync.instance.messagesDeleted.listen((event) {
         if (event.chatID == chatID) dissolveRemoved(event.messageIDs);
       });
+      // Сервер не принял сообщение из outbox этого чата — объясняем почему
+      // («новичкам — без ссылок и медиа», опрос не пересылается, медленный
+      // режим …); общие отказы — без пояснения, как раньше («!» у сообщения).
+      _rejectedSubscription = ChatsSync.instance.sendRejected.listen((event) {
+        if (isClosed || idHex(event.chatID) != chatID || !_sendErrors.contains(event.error)) return;
+        emit(state.copyWith(failNotice: state.failNotice + 1, failError: event.error));
+      });
       _connectionSubscription = getIt.get<API>().connectionStatusStream.listen((status) {
         if (isClosed || status != ApiConnectionStatus.connected) return;
         if (_writeRestricted) unawaited(ChatsSync.instance.canWrite(idBytes(_chatID)));
         if (_reactionsSeen.isNotEmpty) _scheduleReactionsSeen();
+        if (_mentionsSeen.isNotEmpty) _scheduleMentionsSeen();
       });
     }
     _chatsSubscription = source.watchChats().listen((chats) {
@@ -207,6 +220,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
       emit(state.copyWith(messages: messages));
       // Отмечено сервером (здесь или на другом устройстве) — больше не ждём.
       _reactionsSeen.removeWhere((id) => !messages.any((m) => m.id == id && m.reactionsUnread));
+      _mentionsSeen.removeWhere((id) => !messages.any((m) => m.id == id && m.mentionUnread));
       _placeUnread();
       _syncLimits();
       _recheckCanWrite(messages);
@@ -566,11 +580,31 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     await _source?.setReactions(_chatID, message.id, toggleMyReaction(mine, emoji));
   }
 
-  /// Строка ленты с нашим сообщением, на котором есть непрочитанные реакции,
-  /// оказалась на экране — «просмотрено» (пачкой).
-  void reactionsShown(models.Message message) {
-    if (!message.outgoing || !message.reactionsUnread || !_reactionsSeen.add(message.id)) return;
-    _scheduleReactionsSeen();
+  /// Строка ленты оказалась на экране: наше сообщение с непрочитанными
+  /// реакциями или упоминание нас — «просмотрено» (пачкой).
+  void unreadShown(models.Message message) {
+    if (message.outgoing && message.reactionsUnread && _reactionsSeen.add(message.id)) _scheduleReactionsSeen();
+    if (!message.outgoing && message.mentionUnread && _mentionsSeen.add(message.id)) _scheduleMentionsSeen();
+  }
+
+  void _scheduleMentionsSeen() {
+    _mentionsSeenTimer?.cancel();
+    _mentionsSeenTimer = Timer(const Duration(milliseconds: 300), () {
+      final ids = _mentionsSeen.toList();
+      if (!isClosed && ids.isNotEmpty) unawaited(_source?.readMentions(_chatID, ids));
+    });
+  }
+
+  /// Кнопка «@»: id самого старого непрочитанного упоминания нас (лента
+  /// расширяется до него) — экран переходит к нему; оно же сразу прочитано.
+  Future<String?> nextUnreadMention() async {
+    final source = _source;
+    if (source == null) return null;
+    final id = await source.nextUnreadMention(_chatID);
+    if (id == null || isClosed) return null;
+    await _reveal(id);
+    unawaited(source.readMentions(_chatID, [id]));
+    return id;
   }
 
   void _scheduleReactionsSeen() {
@@ -758,11 +792,14 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   static bool forwardable(models.Message m) =>
       m.kind != models.MessageKind.call && m.status != models.MessageStatus.pending && m.status != models.MessageStatus.failed;
 
+  /// [forwardable] в этом источнике: опрос на сервере не пересылается.
+  bool canForward(models.Message m) => forwardable(m) && (m.kind != models.MessageKind.poll || features.forwardPolls);
+
   /// Отмеченные для пересылки, с автором оригинала — сейчас, пока известен
   /// этот чат (в личном у входящих имени отправителя нет — это название чата).
   List<models.Message> _forwardSelection() => [
     for (final m in state.selectedMessages)
-      if (forwardable(m))
+      if (canForward(m))
         m.forward != null
             ? m
             : m.copyWith(
@@ -972,7 +1009,20 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   }
 
   /// Ключи отказов сервера, у которых есть свой текст (`showChatsFailed`).
-  static const _knownErrors = {'rightsTooWide', 'rankInvalid', 'chatWriteForbidden', 'passwordInvalid', 'privacyRestricted', 'banned'};
+  static const _knownErrors = {
+    'rightsTooWide',
+    'rankInvalid',
+    'chatWriteForbidden',
+    'passwordInvalid',
+    'privacyRestricted',
+    'banned',
+    'newcomerRestricted',
+    'pollClosed',
+    'pollForward',
+  };
+
+  /// Отказы при отправке из outbox, которые объясняем ([ChatsSync.sendRejected]).
+  static const _sendErrors = {'newcomerRestricted', 'pollForward', 'chatWriteForbidden', 'slowModeWait'};
 
   /// Назначить админом / изменить права и «звание». false — не сохранено.
   Future<bool> setAdmin(models.ChatMember member, models.ChatAdminRights rights, String rank) =>
@@ -1010,10 +1060,37 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     await _source?.sendMessage(_chatID, kind: models.MessageKind.poll, text: poll.question, poll: poll, reply: reply);
   }
 
-  /// Голос в опросе (пустой список — отменить голос).
-  Future<void> votePoll(models.Message message, List<int> options) async => _source?.votePoll(_chatID, message.id, options);
+  /// Голос в опросе (пустой список — отменить голос). Сервер: без сети —
+  /// «Нет соединения» (выбор не «прыгает»), отказ («pollClosed» …) —
+  /// объяснение, лимит частоты — общий текст.
+  Future<bool> votePoll(models.Message message, List<int> options) => _serverAction(() => _source?.votePoll(_chatID, message.id, options));
 
-  Future<void> closePoll(models.Message message) async => _source?.closePoll(_chatID, message.id);
+  Future<bool> closePoll(models.Message message) => _serverAction(() => _source?.closePoll(_chatID, message.id));
+
+  /// «Кто за что» в открытом опросе (сервер — по запросу). `null` — не
+  /// загрузилось (нет сети — «Нет соединения», отказ — объяснение).
+  Future<models.MessagePoll?> pollVoters(models.Message message) async {
+    models.MessagePoll? poll;
+    await _serverAction(() async => poll = await _source?.pollVoters(_chatID, message.id));
+    return poll;
+  }
+
+  /// Серверное действие: без сети — `offlineNotice`, отказ или лимит
+  /// частоты — `failNotice`. false — не выполнено.
+  Future<bool> _serverAction(Future<void>? Function() action) async {
+    var done = false;
+    await _online(() async {
+      try {
+        await action();
+        done = true;
+      } on ChatsFloodException {
+        _failed(const ChatsRequestException('', StatusCode.resourceExhausted));
+      } on ChatsRequestException catch (error) {
+        _failed(error);
+      }
+    });
+    return done;
+  }
 
   /// «Подписаться» / «Вступить» / «Подать заявку». Сервер: без сети — «Нет
   /// соединения», отказ (заблокирован, группа заполнена, ссылка устарела …)
@@ -1075,12 +1152,12 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   /// «Написать сообщение» участнику — id личного чата с ним.
   Future<String?> privateChatWith(models.ChatMember member) async => _source?.openPrivateChat(member.id);
 
-  /// Профиль чата → «Реакции» (админ).
-  Future<void> setChatReactions(models.ChatReactionsMode mode, List<String> reactions, {int? maxReactions}) async =>
-      _source?.setChatReactions(_chatID, mode, reactions, maxReactions: maxReactions);
+  /// Профиль чата → «Реакции» (админ). Сервер: без сети — «Нет соединения».
+  Future<bool> setChatReactions(models.ChatReactionsMode mode, List<String> reactions, {int? maxReactions}) =>
+      _serverAction(() => _source?.setChatReactions(_chatID, mode, reactions, maxReactions: maxReactions));
 
   /// Профиль чата → «Медленный режим» (админ): интервал в секундах, 0 — выкл.
-  Future<void> setSlowMode(int seconds) async => _source?.setSlowMode(_chatID, seconds);
+  Future<bool> setSlowMode(int seconds) => _serverAction(() => _source?.setSlowMode(_chatID, seconds));
 
   /// Чат сообщества: настройки по умолчанию — снова от сообщества.
   Future<void> resetToCommunity() async => _source?.resetToCommunity(_chatID);
@@ -1177,6 +1254,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     await _floodSubscription?.cancel();
     await _writeSubscription?.cancel();
     await _deletedSubscription?.cancel();
+    await _rejectedSubscription?.cancel();
     await _connectionSubscription?.cancel();
     await _blocksSubscription?.cancel();
     final peer = _presencePeer;
@@ -1189,6 +1267,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     _slowModeTimer?.cancel();
     _commentsTimer?.cancel();
     _reactionsSeenTimer?.cancel();
+    _mentionsSeenTimer?.cancel();
     return super.close();
   }
 }

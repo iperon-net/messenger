@@ -57,6 +57,27 @@ class ChatsFloodException implements Exception {
   String toString() => 'ChatsFloodException: повторить через $seconds с';
 }
 
+/// Медленный режим группы (`ResourceExhausted` «slowModeWait:<секунды>»,
+/// подэтап 3.4): следующее сообщение — через [seconds]. Не путать с
+/// [ChatsFloodException]: ждёт только этот чат, остальной outbox уходит.
+class ChatsSlowModeException implements Exception {
+  final int seconds;
+
+  const ChatsSlowModeException(this.seconds);
+
+  /// Разбор ответа сервера; `null` — это не медленный режим.
+  static ChatsSlowModeException? parse(int statusCode, String error) {
+    if (statusCode != StatusCode.resourceExhausted || !error.startsWith(_prefix)) return null;
+    final seconds = int.tryParse(error.substring(_prefix.length));
+    return seconds == null ? null : ChatsSlowModeException(seconds < 1 ? 1 : seconds);
+  }
+
+  static const _prefix = 'slowModeWait:';
+
+  @override
+  String toString() => 'ChatsSlowModeException: следующее через $seconds с';
+}
+
 /// Сервер отклонил запрос чатов; [error] — i18n-ключ или текст ошибки из
 /// [APICallStatus].
 class ChatsRequestException implements Exception {
@@ -168,6 +189,8 @@ class ChatsSync {
     }
     final flood = ChatsFloodException.parse(status.statusCode, status.error);
     if (flood != null) throw flood;
+    final slowMode = ChatsSlowModeException.parse(status.statusCode, status.error);
+    if (slowMode != null) throw slowMode;
     throw ChatsRequestException(status.error, status.statusCode);
   }
 
@@ -200,6 +223,13 @@ class ChatsSync {
   /// отправке из outbox (тогда [chatID] может быть пустым — чат по
   /// [peerUserID] ещё не создан). Окно чата меняет поле ввода на плашку.
   Stream<({Uint8List chatID, Uint8List? peerUserID, bool restricted})> get writeRestricted => _writeRestricted.stream;
+
+  final _sendRejected = StreamController<({Uint8List chatID, String error})>.broadcast();
+
+  /// Сервер не принял сообщение из outbox (или принял не сразу — медленный
+  /// режим «slowModeWait»): [error] — ключ отказа («newcomerRestricted»,
+  /// «pollForward», «chatWriteForbidden» …). Окно чата объясняет.
+  Stream<({Uint8List chatID, String error})> get sendRejected => _sendRejected.stream;
 
   final _messagesDeleted = StreamController<({String chatID, List<String> messageIDs})>.broadcast(sync: true);
 
@@ -679,7 +709,7 @@ class ChatsSync {
           followUps.reloadDialogs = true;
           dialog = await tx.dialog(userID: user, chatID: chatID);
         }
-        await tx.upsertMessage(userID: user, message: message);
+        await tx.upsertMessage(userID: user, message: message, shared: update.chatPts > 0);
         // Написал — больше не «печатает…».
         if (!outgoing) ChatsTyping.instance.clear(chatID, message.fromUserID);
         final id = message.messageID.toInt();
@@ -700,7 +730,9 @@ class ChatsSync {
         final dialog = await tx.dialog(userID: user, chatID: chatID);
         final cached = await tx.message(userID: user, chatID: chatID, messageID: id);
         // Нет в кэше — не заводим «островок» в истории, подтянется с историей.
-        if (cached != null || dialog?.topMessageID == id) await tx.upsertMessage(userID: user, message: message);
+        if (cached != null || dialog?.topMessageID == id) {
+          await tx.upsertMessage(userID: user, message: message, shared: update.chatPts > 0);
+        }
         if (dialog != null && dialog.topMessageID == id) await tx.setTopMessage(userID: user, chatID: chatID, message: message);
 
       case pb.Update_Update.deleteMessages:
@@ -794,14 +826,61 @@ class ChatsSync {
 
       case pb.Update_Update.messageReactions:
         final changed = update.messageReactions;
+        final messageID = changed.messageID.toInt();
+        // Группа: счётчики без моего порядка + кто изменил ([mergeSharedReactions]).
+        final reactions = changed.reactions.counts.isEmpty
+            ? changed.reactions
+            : mergeSharedReactions(
+                await tx.messageReactions(userID: user, chatID: changed.chatID, messageID: messageID),
+                changed.reactions,
+                actorUserID: changed.actorUserID,
+                actorEmojis: changed.actorEmojis,
+                myUserID: user,
+              );
+        // Непрочитанные реакции автору — только в журнале пользователя; в
+        // общем журнале группы счётчик и флаг не значимы.
+        final own = update.chatPts == 0;
         await tx.setReactions(
           userID: user,
           chatID: changed.chatID,
-          messageID: changed.messageID.toInt(),
-          reactions: changed.reactions,
-          unread: changed.reactionsUnread,
+          messageID: messageID,
+          reactions: reactions,
+          unread: own ? changed.reactionsUnread : null,
         );
-        await tx.updateDialog(userID: user, chatID: changed.chatID, fields: {'unreadReactions': changed.unreadReactionsCount});
+        if (own) await tx.updateDialog(userID: user, chatID: changed.chatID, fields: {'unreadReactions': changed.unreadReactionsCount});
+
+      case pb.Update_Update.mentions:
+        // Упоминания меня в группе (журнал пользователя): новые / прочитаны /
+        // сообщения удалены; счётчик — как на сервере.
+        final mentions = update.mentions;
+        final ids = [for (final id in mentions.messageIDs) id.toInt()];
+        if (mentions.unread) {
+          await tx.addMentions(userID: user, chatID: mentions.chatID, messageIDs: ids);
+        } else {
+          await tx.removeMentions(userID: user, chatID: mentions.chatID, messageIDs: ids.isEmpty ? null : ids);
+        }
+        await tx.updateDialog(userID: user, chatID: mentions.chatID, fields: {'unreadMentions': mentions.unreadMentionsCount});
+
+      case pb.Update_Update.messagePoll:
+        // Итоги опроса. Общий журнал чата (или с actor) — без моего выбора:
+        // свой выбор меняю, только если голосовал я; журнал пользователя без
+        // actor — глазами меня целиком.
+        final changed = update.messagePoll;
+        final messageID = changed.messageID.toInt();
+        final shared = update.chatPts > 0 || changed.actorUserID.isNotEmpty;
+        final stored = await tx.pollResults(userID: user, chatID: changed.chatID, messageID: messageID);
+        await tx.setPollResults(
+          userID: user,
+          chatID: changed.chatID,
+          messageID: messageID,
+          results: mergePollResults(
+            stored,
+            changed.results,
+            shared: shared,
+            actorIsMe: changed.actorUserID.isNotEmpty && sameID(changed.actorUserID, user),
+            actorOptions: changed.actorOptions,
+          ),
+        );
 
       case pb.Update_Update.readReactions:
         final read = update.readReactions;
@@ -1058,6 +1137,12 @@ class ChatsSync {
     return found;
   }
 
+  /// Итоги опроса глазами меня (ответ VotePoll / ClosePoll) — в кэш.
+  Future<void> savePollResults(Uint8List chatID, int messageID, pb.PollResults results) {
+    final user = me;
+    return _locked(() => _store.setPollResults(userID: user, chatID: chatID, messageID: messageID, results: results));
+  }
+
   /// Чаты, у которых на сервере старше уже нет (hex chatID).
   final _noOlder = <String>{};
 
@@ -1205,6 +1290,34 @@ class ChatsSync {
     }
   }
 
+  /// Медленный режим групп: до какого времени ждёт outbox чата (hex chatID)
+  /// — его сообщения стоят с часиками, по таймеру уходят сами; остальные
+  /// чаты не ждут.
+  final _slowModeWait = <String, DateTime>{};
+  final _slowModeTimers = <String, Timer>{};
+
+  bool _slowModeWaiting(Uint8List? chatID) {
+    if (chatID == null) return false;
+    final until = _slowModeWait[idHex(chatID)];
+    return until != null && until.isAfter(DateTime.now());
+  }
+
+  /// Сервер ответил «slowModeWait»: отсчёт в окне чата (`Chat.slowModeUntil`)
+  /// и повтор, когда он закончится.
+  Future<void> _waitSlowMode(Uint8List chatID, int seconds) async {
+    final key = idHex(chatID);
+    final until = DateTime.now().add(Duration(seconds: seconds));
+    _slowModeWait[key] = until;
+    _slowModeTimers[key]?.cancel();
+    _slowModeTimers[key] = Timer(until.difference(DateTime.now()), () {
+      _slowModeWait.remove(key);
+      _slowModeTimers.remove(key);
+      unawaited(flushOutbox());
+    });
+    final user = me;
+    await _locked(() => _store.setGroupSlowModeUntil(userID: user, chatID: chatID, until: until.millisecondsSinceEpoch));
+  }
+
   /// Один проход по outbox; `false` — прервались (нет сети / разлогин).
   Future<bool> _flushOnce() async {
     final user = me;
@@ -1212,6 +1325,9 @@ class ChatsSync {
     if (floodUntil != null) return false;
     for (final row in await _store.outbox(userID: user)) {
       if (row.failed) continue;
+      // Медленный режим: чат ждёт (порядок его сообщений сохраняется), а
+      // отложенные он не касается.
+      if (!row.isScheduled && _slowModeWaiting(row.chatID)) continue;
       if (!await hasNetwork()) return false;
       var content = pb.MessageContent.fromBuffer(row.content);
       if (row.media.isNotEmpty) {
@@ -1253,6 +1369,15 @@ class ChatsSync {
         _logger.info('chats: send flood wait ${error.seconds}s randomID=${row.randomID}');
         _setFlood(error.seconds);
         return false;
+      } on ChatsSlowModeException catch (error) {
+        // Медленный режим группы — тоже не ошибка сообщения: оно ждёт с
+        // часиками, в окне чата — отсчёт, потом уходит само.
+        final chatID = row.chatID;
+        _logger.info('chats: send slow mode wait ${error.seconds}s randomID=${row.randomID}');
+        if (chatID == null) return false;
+        await _waitSlowMode(chatID, error.seconds);
+        _sendRejected.add((chatID: chatID, error: 'slowModeWait'));
+        continue;
       } on ChatsRequestException catch (error) {
         if (error.statusCode == StatusCode.unauthenticated) return false;
         _logger.warning('chats: send rejected randomID=${row.randomID}: $error');
@@ -1260,6 +1385,7 @@ class ChatsSync {
         if (error.isPrivacyRestricted) {
           _writeRestricted.add((chatID: row.chatID ?? Uint8List(0), peerUserID: row.peerUserID, restricted: true));
         }
+        if (row.chatID case final chatID?) _sendRejected.add((chatID: chatID, error: error.error));
         continue;
       }
       final result = response.send;
@@ -1281,6 +1407,10 @@ class ChatsSync {
             await tx.upsertMessage(userID: user, message: message);
             if (message.messageID.toInt() >= (dialog?.topMessageID ?? 0)) {
               await tx.setTopMessage(userID: user, chatID: message.chatID, message: message);
+            }
+            // Группа с медленным режимом: когда можно следующее (0 — сразу).
+            if (!result.hasScheduled()) {
+              await tx.setGroupSlowModeUntil(userID: user, chatID: message.chatID, until: result.slowModeUntil.toInt());
             }
           }
           await tx.deleteOutbox(userID: user, randomID: row.randomID);

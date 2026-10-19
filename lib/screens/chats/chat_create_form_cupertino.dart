@@ -522,7 +522,7 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                                   ),
                                 menuRow<int>(
                                   title: t.screenNewChat.newcomerMedia,
-                                  values: commentsLimitOptions,
+                                  values: newcomerMediaOptions,
                                   current: state.newcomerMediaDelay,
                                   label: (value) => newcomerMediaLabel(t, value),
                                   onSelected: context.read<ChatCreateCubit>().setNewcomerMediaDelay,
@@ -557,7 +557,7 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                             children: [
                               menuRow<int>(
                                 title: t.screenNewChat.newcomerMedia,
-                                values: commentsLimitOptions,
+                                values: newcomerMediaOptions,
                                 current: state.newcomerMediaDelay,
                                 label: (value) => newcomerMediaLabel(t, value),
                                 onSelected: context.read<ChatCreateCubit>().setNewcomerMediaDelay,

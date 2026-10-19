@@ -197,6 +197,7 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                     state.newcomerMediaDelay,
                     title: t.screenNewChat.newcomerMedia,
                     label: (value) => newcomerMediaLabel(t, value),
+                    values: newcomerMediaOptions,
                   );
                   if (seconds != null) cubit.setNewcomerMediaDelay(seconds);
                 },

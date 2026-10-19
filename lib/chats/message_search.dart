@@ -13,6 +13,7 @@ String _foldYo(String s) => s.replaceAll('ё', 'е').replaceAll('Ё', 'Е');
 String messageSearchText(pb.MessageContent content) => _foldYo(
   [
     content.text,
+    if (content.hasPoll()) ...[content.poll.question, ...content.poll.options],
     for (final media in content.media)
       if (media.fileName.isNotEmpty) media.fileName,
   ].where((s) => s.trim().isNotEmpty).join('\n'),

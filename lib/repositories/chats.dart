@@ -16,6 +16,9 @@ class ChatDialogRow {
 
   /// Моих сообщений с непрочитанными реакциями (бейдж ❤️).
   final int unreadReactions;
+
+  /// Группа: непрочитанных упоминаний меня (бейдж «@»).
+  final int unreadMentions;
   final bool pinned;
   final bool archived;
   final bool markedUnread;
@@ -40,6 +43,7 @@ class ChatDialogRow {
     required this.readOutboxMaxID,
     required this.unreadCount,
     this.unreadReactions = 0,
+    this.unreadMentions = 0,
     required this.pinned,
     required this.archived,
     required this.markedUnread,
@@ -61,6 +65,7 @@ class ChatDialogRow {
     readOutboxMaxID: row['readOutboxMaxID'] as int,
     unreadCount: row['unreadCount'] as int,
     unreadReactions: row['unreadReactions'] as int? ?? 0,
+    unreadMentions: row['unreadMentions'] as int? ?? 0,
     pinned: (row['pinned'] as int) != 0,
     archived: (row['archived'] as int) != 0,
     markedUnread: (row['markedUnread'] as int) != 0,
@@ -88,6 +93,11 @@ class ChatGroupRow {
   final String inviteCode;
   final int pendingRequests;
 
+  /// Медленный режим: когда мне можно следующее сообщение (unix millis; 0 —
+  /// сейчас). Когда я вступил (0 — неизвестно) — для «новичков».
+  final int slowModeUntil;
+  final int joinedAt;
+
   ChatGroupRow({
     required this.chatID,
     required this.info,
@@ -97,6 +107,8 @@ class ChatGroupRow {
     this.rank = '',
     this.inviteCode = '',
     this.pendingRequests = 0,
+    this.slowModeUntil = 0,
+    this.joinedAt = 0,
   }) : rights = rights ?? pb.ChatAdminRights();
 
   factory ChatGroupRow._fromRow(Map<String, dynamic> row) => ChatGroupRow(
@@ -108,6 +120,8 @@ class ChatGroupRow {
     rank: row['rank'] as String? ?? '',
     inviteCode: row['inviteCode'] as String? ?? '',
     pendingRequests: row['pendingRequests'] as int? ?? 0,
+    slowModeUntil: row['slowModeUntil'] as int? ?? 0,
+    joinedAt: row['joinedAt'] as int? ?? 0,
   );
 }
 
@@ -277,10 +291,21 @@ class ChatsRepository {
   static const groupsTable = 'chatGroups';
   static const groupMembersTable = 'chatGroupMembers';
   static const inviteLinksTable = 'chatInviteLinks';
+  static const mentionsTable = 'chatMentions';
+
+  /// Мои непрочитанные упоминания в группах (миграция 38).
+  static const mentionsSchema = '''
+    CREATE TABLE chatMentions (
+      userID BLOB NOT NULL,
+      chatID BLOB NOT NULL,
+      messageID INTEGER NOT NULL,
+      PRIMARY KEY (userID, chatID, messageID)
+    );
+  ''';
 
   static const _dialogColumns =
       'chatID, type, peerUserID, topMessageID, topMessageDate, topMessage, readInboxMaxID, readOutboxMaxID, unreadCount, '
-      'unreadReactions, pinned, archived, markedUnread, mutedUntil, draft, createdAt, ttlPeriod, noForwards';
+      'unreadReactions, unreadMentions, pinned, archived, markedUnread, mutedUntil, draft, createdAt, ttlPeriod, noForwards';
 
   /// Dialog.noForwards / noForwardsMine → столбец noForwards.
   static int noForwardsColumn(pb.Dialog dialog) => !dialog.noForwards ? 0 : (dialog.noForwardsMine ? 1 : 2);
@@ -363,8 +388,9 @@ class ChatsRepository {
     await ctx.execute(
       '''
       INSERT INTO chatDialogs (userID, chatID, type, peerUserID, topMessageID, topMessageDate, topMessage, readInboxMaxID,
-        readOutboxMaxID, unreadCount, unreadReactions, pinned, archived, markedUnread, mutedUntil, createdAt, draft, ttlPeriod, noForwards)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        readOutboxMaxID, unreadCount, unreadReactions, unreadMentions, pinned, archived, markedUnread, mutedUntil, createdAt, draft, ttlPeriod,
+        noForwards)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(userID, chatID) DO UPDATE SET
         -- Свой неотправленный черновик серверный не перезаписывает.
         draft = CASE WHEN chatDialogs.draftPending = 1 THEN chatDialogs.draft ELSE excluded.draft END,
@@ -377,6 +403,7 @@ class ChatsRepository {
         readOutboxMaxID = excluded.readOutboxMaxID,
         unreadCount = excluded.unreadCount,
         unreadReactions = excluded.unreadReactions,
+        unreadMentions = excluded.unreadMentions,
         pinned = excluded.pinned,
         archived = excluded.archived,
         markedUnread = excluded.markedUnread,
@@ -397,6 +424,7 @@ class ChatsRepository {
         dialog.readOutboxMaxID.toInt(),
         dialog.unreadCount,
         dialog.unreadReactionsCount,
+        dialog.unreadMentionsCount,
         dialog.pinned ? 1 : 0,
         dialog.archived ? 1 : 0,
         dialog.markedUnread ? 1 : 0,
@@ -486,6 +514,7 @@ class ChatsRepository {
     await ctx.execute('DELETE FROM chatGroups WHERE userID = ? AND chatID = ?;', [userID, chatID]);
     await ctx.execute('DELETE FROM chatGroupMembers WHERE userID = ? AND chatID = ?;', [userID, chatID]);
     await ctx.execute('DELETE FROM chatInviteLinks WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+    await ctx.execute('DELETE FROM chatMentions WHERE userID = ? AND chatID = ?;', [userID, chatID]);
   }
 
   /// Полный список с сервера заменяет локальный: исчезнувшие диалоги удаляются
@@ -526,12 +555,34 @@ class ChatsRepository {
 
   // --- сообщения ---
 
-  Future<void> upsertMessage({required List<int> userID, required pb.ChatMessage message}) async {
+  /// Сообщение с сервера — в кэш. [shared] — из общего журнала группы
+  /// (`Update.chatPts > 0`): там реакции без моего порядка, итоги опроса без
+  /// моего выбора и `mentionUnread` всегда false — мои сохранённые значения
+  /// остаются ([mergeSharedReactions], [mergePollResults]). Упоминание
+  /// только добавляется (снимают Update.mentions / сверка истории).
+  Future<void> upsertMessage({required List<int> userID, required pb.ChatMessage message, bool shared = false}) async {
+    var reactions = message.hasReactions() ? message.reactions : null;
+    var poll = message.hasPoll() ? message.poll : null;
+    if (shared && (reactions != null || poll != null)) {
+      final stored = await ctx.getOptional('SELECT reactions, poll FROM chatMessages WHERE userID = ? AND chatID = ? AND messageID = ?;', [
+        userID,
+        message.chatID,
+        message.messageID.toInt(),
+      ]);
+      if (reactions != null) {
+        final blob = stored?['reactions'] as List<int>?;
+        reactions = mergeSharedReactions(blob == null ? null : pb.MessageReactions.fromBuffer(blob), reactions, myUserID: userID);
+      }
+      if (poll != null) {
+        final blob = stored?['poll'] as List<int>?;
+        poll = mergePollResults(blob == null ? null : pb.PollResults.fromBuffer(blob), poll, shared: true);
+      }
+    }
     await ctx.execute(
       '''
       INSERT INTO chatMessages (userID, chatID, messageID, fromUserID, date, editDate, randomID, mediaUnread, silent, content, searchText, reactions,
-        reactionsUnread, expireAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        reactionsUnread, expireAt, poll)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(userID, chatID, messageID) DO UPDATE SET
         fromUserID = excluded.fromUserID,
         date = excluded.date,
@@ -543,7 +594,8 @@ class ChatsRepository {
         searchText = excluded.searchText,
         reactions = excluded.reactions,
         reactionsUnread = excluded.reactionsUnread,
-        expireAt = excluded.expireAt;
+        expireAt = excluded.expireAt,
+        poll = COALESCE(excluded.poll, chatMessages.poll);
       ''',
       [
         userID,
@@ -557,11 +609,13 @@ class ChatsRepository {
         message.silent ? 1 : 0,
         message.content.writeToBuffer(),
         messageSearchText(message.content),
-        _reactionsBlob(message.hasReactions() ? message.reactions : null),
+        _reactionsBlob(reactions),
         _reactionsUnread(userID, message) ? 1 : 0,
         messageExpireAt(message),
+        poll?.writeToBuffer(),
       ],
     );
+    if (message.mentionUnread) await addMentions(userID: userID, chatID: message.chatID, messageIDs: [message.messageID.toInt()]);
     if (message.content.hasCall()) await _upsertCallLog(userID: userID, message: message);
     // Закреплённое правили — и в плашке новый текст.
     await ctx.execute('UPDATE chatPinned SET message = ? WHERE userID = ? AND chatID = ? AND messageID = ?;', [
@@ -738,6 +792,15 @@ class ChatsRepository {
     for (final message in messages) {
       await upsertMessage(userID: userID, message: message);
     }
+    // История — глазами меня: упоминание, которого в ней уже нет, прочитано.
+    await removeMentions(
+      userID: userID,
+      chatID: chatID,
+      messageIDs: [
+        for (final m in messages)
+          if (!m.mentionUnread) m.messageID.toInt(),
+      ],
+    );
 
     var next = stale;
     if (!hasMore) {
@@ -813,13 +876,18 @@ class ChatsRepository {
       chatID,
       ...messageIDs,
     ]);
+    await ctx.execute('DELETE FROM chatMentions WHERE userID = ? AND chatID = ? AND messageID IN ($placeholders);', [
+      userID,
+      chatID,
+      ...messageIDs,
+    ]);
     return unread?['n'] as int? ?? 0;
   }
 
   // --- реакции ---
 
   static Uint8List? _reactionsBlob(pb.MessageReactions? reactions) =>
-      reactions == null || reactions.reactions.isEmpty ? null : reactions.writeToBuffer();
+      reactions == null || (reactions.reactions.isEmpty && reactions.counts.isEmpty) ? null : reactions.writeToBuffer();
 
   /// Флаг сервера значим только для автора: на чужом сообщении — игнорируем.
   static bool _reactionsUnread(List<int> userID, pb.ChatMessage message) =>
@@ -828,17 +896,119 @@ class ChatsRepository {
   /// Реакции на сообщение изменились (Update.messageReactions). Нет в кэше —
   /// ничего: подтянутся с историей. [unread] — на моём сообщении есть
   /// непросмотренные реакции (на чужом не ставится).
+  ///
+  /// [unread] `null` — флаг не трогать (общий журнал группы: он значим только
+  /// в обновлении автору, журнал пользователя).
   Future<void> setReactions({
     required List<int> userID,
     required List<int> chatID,
     required int messageID,
     required pb.MessageReactions reactions,
-    bool unread = false,
+    bool? unread = false,
   }) async {
+    if (unread == null) {
+      await ctx.execute('UPDATE chatMessages SET reactions = ? WHERE userID = ? AND chatID = ? AND messageID = ?;', [
+        _reactionsBlob(reactions),
+        userID,
+        chatID,
+        messageID,
+      ]);
+      return;
+    }
     await ctx.execute(
       'UPDATE chatMessages SET reactions = ?, reactionsUnread = (? AND fromUserID = ?) WHERE userID = ? AND chatID = ? AND messageID = ?;',
       [_reactionsBlob(reactions), unread ? 1 : 0, userID, userID, chatID, messageID],
     );
+  }
+
+  /// Сохранённые реакции сообщения (`null` — нет сообщения в кэше или реакций).
+  Future<pb.MessageReactions?> messageReactions({required List<int> userID, required List<int> chatID, required int messageID}) async {
+    final row = await ctx.getOptional('SELECT reactions FROM chatMessages WHERE userID = ? AND chatID = ? AND messageID = ?;', [
+      userID,
+      chatID,
+      messageID,
+    ]);
+    final blob = row?['reactions'] as List<int>?;
+    return blob == null ? null : pb.MessageReactions.fromBuffer(blob);
+  }
+
+  // --- упоминания ---
+
+  /// Непрочитанные упоминания меня в [messageIDs] (Update.mentions unread,
+  /// сообщение из History / Get с `mentionUnread`).
+  Future<void> addMentions({required List<int> userID, required List<int> chatID, required List<int> messageIDs}) async {
+    for (final id in messageIDs) {
+      await ctx.execute('INSERT OR IGNORE INTO chatMentions (userID, chatID, messageID) VALUES (?, ?, ?);', [userID, chatID, id]);
+    }
+  }
+
+  /// Упоминания прочитаны / сообщения удалены; [messageIDs] `null` — все в
+  /// чате.
+  Future<void> removeMentions({required List<int> userID, required List<int> chatID, List<int>? messageIDs}) async {
+    if (messageIDs == null) {
+      await ctx.execute('DELETE FROM chatMentions WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+      return;
+    }
+    if (messageIDs.isEmpty) return;
+    final placeholders = List.filled(messageIDs.length, '?').join(',');
+    await ctx.execute('DELETE FROM chatMentions WHERE userID = ? AND chatID = ? AND messageID IN ($placeholders);', [
+      userID,
+      chatID,
+      ...messageIDs,
+    ]);
+  }
+
+  /// Непрочитанные упоминания чата в кэше — от старых к новым.
+  Future<List<int>> unreadMentionIDs({required List<int> userID, required List<int> chatID}) async {
+    final rows = await ctx.getAll('SELECT messageID FROM chatMentions WHERE userID = ? AND chatID = ? ORDER BY messageID ASC;', [
+      userID,
+      chatID,
+    ]);
+    return [for (final row in rows) row['messageID'] as int];
+  }
+
+  // --- опросы ---
+
+  /// Итоги опроса глазами меня (`null` — нет сообщения в кэше или итогов).
+  Future<pb.PollResults?> pollResults({required List<int> userID, required List<int> chatID, required int messageID}) async {
+    final row = await ctx.getOptional('SELECT poll FROM chatMessages WHERE userID = ? AND chatID = ? AND messageID = ?;', [
+      userID,
+      chatID,
+      messageID,
+    ]);
+    final blob = row?['poll'] as List<int>?;
+    return blob == null ? null : pb.PollResults.fromBuffer(blob);
+  }
+
+  /// Новые итоги опроса (уже сведённые с сохранёнными). Нет в кэше — ничего:
+  /// подтянутся с историей.
+  Future<void> setPollResults({
+    required List<int> userID,
+    required List<int> chatID,
+    required int messageID,
+    required pb.PollResults results,
+  }) async {
+    await ctx.execute('UPDATE chatMessages SET poll = ? WHERE userID = ? AND chatID = ? AND messageID = ?;', [
+      results.writeToBuffer(),
+      userID,
+      chatID,
+      messageID,
+    ]);
+    // Закреплённый опрос — с теми же итогами.
+    final pinned = await ctx.getOptional('SELECT message FROM chatPinned WHERE userID = ? AND chatID = ? AND messageID = ?;', [
+      userID,
+      chatID,
+      messageID,
+    ]);
+    if (pinned != null) {
+      final message = pb.ChatMessage.fromBuffer(pinned['message'] as List<int>)..poll = results;
+      await ctx.execute('UPDATE chatPinned SET message = ? WHERE userID = ? AND chatID = ? AND messageID = ?;', [
+        message.writeToBuffer(),
+        userID,
+        chatID,
+        messageID,
+      ]);
+    }
   }
 
   /// Реакции на мои сообщения [messageIDs] просмотрены (Update.readReactions).
@@ -1026,6 +1196,7 @@ class ChatsRepository {
     reactions: row['reactions'] == null ? null : pb.MessageReactions.fromBuffer(row['reactions'] as List<int>),
     reactionsUnread: (row['reactionsUnread'] as int? ?? 0) != 0,
     ttlPeriod: _ttlFromRow(row),
+    poll: row['poll'] == null ? null : pb.PollResults.fromBuffer(row['poll'] as List<int>),
   );
 
   static int _ttlFromRow(Map<String, dynamic> row) {
@@ -1065,7 +1236,7 @@ class ChatsRepository {
 
   // --- группы ---
 
-  static const _groupColumns = 'chatID, info, role, pts, rights, rank, inviteCode, pendingRequests';
+  static const _groupColumns = 'chatID, info, role, pts, rights, rank, inviteCode, pendingRequests, slowModeUntil, joinedAt';
 
   Future<List<ChatGroupRow>> groups({required List<int> userID}) async {
     final rows = await ctx.getAll('SELECT $_groupColumns FROM chatGroups WHERE userID = ?;', [userID]);
@@ -1085,7 +1256,8 @@ class ChatsRepository {
     final info = dialog.chat;
     await ctx.execute(
       '''
-      INSERT INTO chatGroups (userID, chatID, info, role, pts, rights, rank, inviteCode, pendingRequests) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO chatGroups (userID, chatID, info, role, pts, rights, rank, inviteCode, pendingRequests, slowModeUntil, joinedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(userID, chatID) DO UPDATE SET
         info = excluded.info,
         role = excluded.role,
@@ -1093,6 +1265,9 @@ class ChatsRepository {
         rank = excluded.rank,
         inviteCode = excluded.inviteCode,
         pendingRequests = excluded.pendingRequests,
+        slowModeUntil = excluded.slowModeUntil,
+        -- Дата вступления не пропадает, если в снимке её нет.
+        joinedAt = CASE WHEN excluded.joinedAt > 0 THEN excluded.joinedAt ELSE chatGroups.joinedAt END,
         pts = ${resetPts ? 'excluded.pts' : 'MAX(chatGroups.pts, excluded.pts)'};
       ''',
       [
@@ -1105,8 +1280,16 @@ class ChatsRepository {
         dialog.rank,
         dialog.inviteCode,
         dialog.pendingRequests,
+        dialog.slowModeUntil.toInt(),
+        dialog.joinedAt.toInt(),
       ],
     );
+  }
+
+  /// Медленный режим: когда можно следующее (ответ Send / отказ
+  /// «slowModeWait»; unix millis, 0 — сейчас).
+  Future<void> setGroupSlowModeUntil({required List<int> userID, required List<int> chatID, required int until}) async {
+    await ctx.execute('UPDATE chatGroups SET slowModeUntil = ? WHERE userID = ? AND chatID = ?;', [until, userID, chatID]);
   }
 
   /// Моя роль / права / звание изменились (Update.dialogSettings группы);

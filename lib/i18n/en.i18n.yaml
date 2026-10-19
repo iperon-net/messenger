@@ -1281,6 +1281,10 @@ dateTime:
   "linksLimit": "The invite link limit has been reached."
   "usernameTaken": "This link is already taken."
   "usernameInvalid": "The link must be 5–24 characters: Latin letters, digits and «_»."
+  "newcomerRestricted": "You joined this group recently: for now you can only send text without links or media."
+  "slowModeWait": "Slow mode is on in this group — the message will be sent when the wait is over."
+  "pollClosed": "This poll has already ended."
+  "pollForward": "Polls can't be forwarded."
 
 "chatTtl":
   "title": "Auto-delete"

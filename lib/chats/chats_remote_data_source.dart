@@ -48,9 +48,10 @@ import 'read_receipts.dart';
 /// выйти / удалить; 3.2 — роли и права админа, исключение и блокировка,
 /// передача владения, роль по умолчанию, закреп у всех; 3.3 — способы
 /// вступления, публичное имя, ссылки-приглашения, заявки, «Скрыть историю»,
-/// предпросмотр чужой группы по ссылке и «Вступить». Реакции групп, каналы,
-/// сообщества, опросы — следующие срезы: их действия бросают
-/// [UnsupportedError].
+/// предпросмотр чужой группы по ссылке и «Вступить»; 3.4 — сообщения в
+/// группе: реакции группы (счётчики), опросы, упоминания и кнопка «@»,
+/// «кто прочитал», медленный режим, «новички», «скрыть участников». Каналы и
+/// сообщества — следующие срезы: их действия бросают [UnsupportedError].
 class ChatsRemoteDataSource implements ChatsDataSource {
   ChatsRemoteDataSource._();
 
@@ -93,8 +94,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   static Never _unsupported(String what) => throw UnsupportedError('$what — пока только в демо (личные чаты — первый срез)');
 
   /// Закреплённые, реакции, пересылка и отложенные — есть; группы — по флагу
-  /// «Группы», с ролями и правами (3.2) и вступлением (3.3), без расширенного
-  /// (реакции, опросы … — 3.4).
+  /// «Группы», с ролями и правами (3.2), вступлением (3.3) и сообщениями в
+  /// группе (3.4: реакции, опросы, упоминания …). Каналов и сообществ нет;
+  /// опрос не пересылается (сервер — «pollForward»).
   @override
   ChatsFeatures get features => ChatsFeatures(
     reactions: true,
@@ -104,6 +106,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     groups: _sync.groups,
     groupRoles: true,
     groupJoining: true,
+    groupExtras: true,
   );
 
   /// Сервер удаляет отозванные ссылки только все сразу.
@@ -310,7 +313,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           final content = pb.MessageContent.fromBuffer(queued.content);
           lastMessage = models.ChatLastMessage(
             kind: contentKind(content),
-            text: content.text,
+            text: content.hasPoll() ? content.poll.question : content.text,
             outgoing: true,
             status: queued.failed ? models.MessageStatus.failed : models.MessageStatus.pending,
             date: date,
@@ -339,6 +342,15 @@ class ChatsRemoteDataSource implements ChatsDataSource {
             historyHidden: group.info.historyHidden,
             inviteLink: invitePath(group.inviteCode),
             pendingRequests: group.pendingRequests,
+            // Сообщения в группе (3.4).
+            reactionsMode: reactionsModeFromPb(group.info.reactionsMode),
+            reactions: group.info.reactions,
+            slowMode: group.info.slowMode,
+            slowModeUntil: group.slowModeUntil > 0 ? DateTime.fromMillisecondsSinceEpoch(group.slowModeUntil) : null,
+            newcomerMediaDelay: group.info.newcomerMediaDelay,
+            joinedAt: group.joinedAt > 0 ? DateTime.fromMillisecondsSinceEpoch(group.joinedAt) : null,
+            membersHidden: group.info.membersHidden,
+            unreadMentions: row.unreadMentions,
             lastMessage: lastMessage,
             unreadCount: row.unreadCount,
             unreadReactions: row.unreadReactions,
@@ -638,10 +650,13 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     }
   }
 
+  /// «Прочитать все» (папка): и упоминания в группах — иначе «@» остался бы.
   @override
   Future<void> readAll(List<String> chatIDs) async {
     for (final chatID in chatIDs) {
       await setRead(chatID, true);
+      final row = await _store.dialog(userID: _sync.me, chatID: idBytes(chatID));
+      if (row != null && row.unreadMentions > 0) await readMentions(chatID, const []);
     }
   }
 
@@ -894,7 +909,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final group = await _store.group(userID: _sync.me, chatID: chat);
     if (group == null) _unsupported('Каналы и сообщества');
     // Название, описание, фото, роль вступающих (3.2), способ вступления,
-    // публичное имя и «Скрыть историю» (3.3); остальное — следующие срезы.
+    // публичное имя и «Скрыть историю» (3.3), «новички» и «скрыть участников»
+    // (3.4); остальное — следующие срезы.
     final info = group.info;
     final currentAvatar = await _avatarPath(info.avatarCdnID);
     final avatarChanged = avatarPath != currentAvatar && !(avatarPath.isEmpty && info.avatarCdnID.isEmpty);
@@ -903,7 +919,10 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final roleChanged =
         (defaultRole == models.ChatRole.reader || defaultRole == models.ChatRole.writer) && defaultRole != roleFromPb(info.defaultRole);
     final join = editJoinChanges(info, joinMode: joinMode, username: username, historyHidden: historyHidden);
-    if (!titleChanged && !aboutChanged && !avatarChanged && !roleChanged && join.isEmpty) return;
+    final newcomerChanged = newcomerMediaDelay != info.newcomerMediaDelay;
+    final membersHiddenChanged = membersHidden != info.membersHidden;
+    final extrasChanged = newcomerChanged || membersHiddenChanged;
+    if (!titleChanged && !aboutChanged && !avatarChanged && !roleChanged && join.isEmpty && !extrasChanged) return;
     await _requireNetwork();
     final avatar = !avatarChanged ? null : (avatarPath.isEmpty ? Uint8List(0) : await _uploadChatAvatar(avatarPath));
     final response = await _sync.chats(
@@ -917,9 +936,20 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           joinMode: join.joinMode,
           username: join.username,
           historyHidden: join.historyHidden,
+          newcomerMediaDelay: newcomerChanged ? newcomerMediaDelay : null,
+          membersHidden: membersHiddenChanged ? membersHidden : null,
         ),
       ),
     );
+    await _sync.applyUpdates(response.editChat.updates);
+  }
+
+  /// Настройка группы через `EditChat` (право changeInfo): без сети —
+  /// [ChatsOfflineException], отказ — `ChatsRequestException`; новое
+  /// `ChatInfo` приходит обновлением журнала чата.
+  Future<void> _editChat(pb.Chats_EditChat edit) async {
+    await _requireNetwork();
+    final response = await _sync.chats(pb.Chats_Request(editChat: edit));
     await _sync.applyUpdates(response.editChat.updates);
   }
 
@@ -1021,6 +1051,11 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       joinMode: previewJoinMode(preview.preview),
       username: info.username,
       historyHidden: info.historyHidden,
+      reactionsMode: reactionsModeFromPb(info.reactionsMode),
+      reactions: info.reactions,
+      slowMode: info.slowMode,
+      newcomerMediaDelay: info.newcomerMediaDelay,
+      membersHidden: info.membersHidden,
       isMember: false,
       joinRequested: preview.requested,
       createdAt: info.createdAt > 0 ? DateTime.fromMillisecondsSinceEpoch(info.createdAt.toInt()) : null,
@@ -1528,15 +1563,33 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     );
   }
 
+  /// Группа: режим и набор (`EditChat.reactions`). «Некоторые» без единой —
+  /// сервер не примет (1..всех), не отправляем.
   @override
-  Future<void> setChatReactions(String chatID, models.ChatReactionsMode mode, List<String> reactions, {int? maxReactions}) async =>
-      _unsupported('Реакции групп и каналов');
+  Future<void> setChatReactions(String chatID, models.ChatReactionsMode mode, List<String> reactions, {int? maxReactions}) async {
+    final chat = idBytes(chatID);
+    if (await _store.group(userID: _sync.me, chatID: chat) == null) _unsupported('Реакции каналов');
+    if (mode == models.ChatReactionsMode.some && reactions.isEmpty) return;
+    await _editChat(
+      pb.Chats_EditChat(
+        chatID: chat,
+        reactions: pb.Chats_ChatReactionsSettings(
+          mode: reactionsModeToPb(mode),
+          emojis: mode == models.ChatReactionsMode.some ? reactions : const [],
+        ),
+      ),
+    );
+  }
 
   @override
   Future<void> resetToCommunity(String chatID) async => _unsupported('Сообщества');
 
   @override
-  Future<void> setSlowMode(String chatID, int seconds) async => _unsupported('Медленный режим');
+  Future<void> setSlowMode(String chatID, int seconds) async {
+    final chat = idBytes(chatID);
+    if (await _store.group(userID: _sync.me, chatID: chat) == null) _unsupported('Медленный режим сообществ');
+    await _editChat(pb.Chats_EditChat(chatID: chat, slowMode: seconds));
+  }
 
   // --- сообщения ---
 
@@ -1671,6 +1724,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final pinnedIDs = {for (final m in await _store.pinned(userID: me, chatID: chat)) m.messageID.toInt()};
     final sharedPinnedIDs = await _store.sharedPinnedIDs(userID: me, chatID: chat);
     final pendingReactions = {for (final r in await _store.pendingReactions(userID: me, chatID: chat)) r.messageID: r.emojis};
+    // Непрочитанные упоминания меня — отдельно от сообщений (см. chatMentions).
+    final mentions = row == null ? const <int>{} : (await _store.unreadMentionIDs(userID: me, chatID: chat)).toSet();
     final group = preview != null || (row != null && row.type == pb.ChatType.CHAT_TYPE_GROUP.value) ? await _groupPeople(history) : null;
 
     models.Message map(pb.ChatMessage m) {
@@ -1689,7 +1744,11 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       );
       // Мой набор, ещё не принятый сервером, — поверх серверных.
       final mine = pendingReactions[m.messageID.toInt()];
-      return mine == null ? message : message.copyWith(reactions: applyMyReactions(message.reactions, mine));
+      final mention = !message.outgoing && mentions.contains(m.messageID.toInt());
+      return message.copyWith(
+        reactions: mine == null ? message.reactions : applyMyReactions(message.reactions, mine),
+        mentionUnread: mention,
+      );
     }
 
     final outboxDir = await outboxMediaDir();
@@ -1918,12 +1977,17 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     bool linkPreview = true,
     models.MessagePoll? poll,
   }) async {
-    if (kind == models.MessageKind.poll || poll != null) _unsupported('Опросы');
     final chat = idBytes(chatID);
     if (chat.isEmpty) return;
-    final content = textContent(text: text, entities: entities, reply: reply, linkPreview: linkPreview);
+    // Опрос — только в группе (в личном сервер откажет); текста у него нет.
+    final isPoll = kind == models.MessageKind.poll || poll != null;
+    if (isPoll && (poll == null || await _store.group(userID: _sync.me, chatID: chat) == null)) _unsupported('Опросы вне групп');
+    final content = isPoll
+        ? textContent(text: '', reply: reply)
+        : textContent(text: text, entities: entities, reply: reply, linkPreview: linkPreview);
+    if (isPoll) content.poll = pollToPb(poll!);
     final local = <OutboxMedia>[];
-    switch (kind) {
+    switch (isPoll ? models.MessageKind.poll : kind) {
       case models.MessageKind.text:
         if (text.isEmpty) return;
       case models.MessageKind.photo || models.MessageKind.video:
@@ -1960,11 +2024,13 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           ),
         );
         local.add(OutboxMedia(path: await stashOutboxFile(localPath)));
+      case models.MessageKind.poll:
+        break;
       // Звонок пишет только сервер.
-      case models.MessageKind.poll || models.MessageKind.call:
+      case models.MessageKind.call:
         return;
     }
-    if (kind != models.MessageKind.text && local.isEmpty) return;
+    if (kind != models.MessageKind.text && !isPoll && local.isEmpty) return;
     // Подпись к медиа — без превью ссылки.
     if (local.isNotEmpty) content.clearNoLinkPreview();
     await _store.addOutbox(
@@ -1980,11 +2046,94 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     unawaited(_sync.flushOutbox());
   }
 
+  /// Голос — на сервере (без сети [ChatsOfflineException], без
+  /// «оптимистичного» выбора); итоги глазами меня — сразу в кэш.
   @override
-  Future<void> votePoll(String chatID, String messageID, List<int> options) async => _unsupported('Опросы');
+  Future<void> votePoll(String chatID, String messageID, List<int> options) async {
+    final id = serverMessageID(messageID);
+    if (id == null) return;
+    await _requireNetwork();
+    final chat = idBytes(chatID);
+    final response = await _sync.messages(
+      pb.Messages_Request(
+        votePoll: pb.Messages_VotePoll(chatID: chat, messageID: Int64(id), options: options),
+      ),
+    );
+    final result = response.votePoll;
+    await _sync.applyUpdates(result.updates);
+    if (result.hasResults()) await _sync.savePollResults(chat, id, result.results);
+  }
 
+  /// Автор / владелец / админ с правом удалять сообщения (иначе отказ).
   @override
-  Future<void> closePoll(String chatID, String messageID) async => _unsupported('Опросы');
+  Future<void> closePoll(String chatID, String messageID) async {
+    final id = serverMessageID(messageID);
+    if (id == null) return;
+    await _requireNetwork();
+    final chat = idBytes(chatID);
+    final response = await _sync.messages(
+      pb.Messages_Request(
+        closePoll: pb.Messages_ClosePoll(chatID: chat, messageID: Int64(id)),
+      ),
+    );
+    final result = response.closePoll;
+    await _sync.applyUpdates(result.updates);
+    if (result.hasResults()) await _sync.savePollResults(chat, id, result.results);
+  }
+
+  /// Сколько голосов читать за раз и сколько страниц максимум.
+  static const _votersPage = 100;
+  static const _votersPages = 10;
+
+  /// «Кто за что» — с сервера (`Messages.PollVoters`, все варианты сразу):
+  /// имена по общему правилу, мы — «Вы». Без сети — [ChatsOfflineException];
+  /// анонимный — отказ сервера.
+  @override
+  Future<models.MessagePoll?> pollVoters(String chatID, String messageID) async {
+    final id = serverMessageID(messageID);
+    final chat = idBytes(chatID);
+    if (id == null || chat.isEmpty) return null;
+    final me = _sync.me;
+    final cached = await _store.message(userID: me, chatID: chat, messageID: id);
+    if (cached == null || !cached.content.hasPoll()) return null;
+    await _requireNetwork();
+    final voters = <pb.Messages_PollVoter>[];
+    var offset = <int>[];
+    for (var page = 0; page < _votersPages; page++) {
+      final response = await _sync.messages(
+        pb.Messages_Request(
+          pollVoters: pb.Messages_PollVoters(
+            chatID: chat,
+            messageID: Int64(id),
+            option: -1,
+            offset: offset.isEmpty ? null : offset,
+            limit: _votersPage,
+          ),
+        ),
+      );
+      voters.addAll(response.pollVoters.voters);
+      offset = response.pollVoters.nextOffset;
+      if (offset.isEmpty) break;
+    }
+    final peers = _Peers(await _loadPeers([for (final v in voters) Uint8List.fromList(v.userID)]));
+    _requestProfiles([
+      for (final v in voters)
+        if (!sameID(v.userID, me)) (userID: Uint8List.fromList(v.userID), cached: peers.of(v.userID).profile != null),
+    ]);
+    final poll = pollFromPb(cached.content.poll, cached.hasPoll() ? cached.poll : null);
+    String name(List<int> userID) => sameID(userID, me) ? pollVoterSelf : peers.of(userID).title;
+    return poll.copyWith(
+      options: [
+        for (final (i, option) in poll.options.indexed)
+          option.copyWith(
+            voters: [
+              for (final v in voters)
+                if (v.options.contains(i)) name(v.userID),
+            ],
+          ),
+      ],
+    );
+  }
 
   // --- отложенные ---
 
@@ -2342,16 +2491,17 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     unawaited(_sync.flushReactions());
   }
 
-  /// Личный чат: когда собеседник прочитал (сервер, ≤ 7 дней). Группы — позже.
+  /// Личный чат: когда собеседник прочитал (сервер, ≤ 7 дней). Группа — кто
+  /// прочитал (`Messages.ReadParticipants`, ≤ 100 участников).
   @override
   Future<MessageReadInfo> readInfo(String chatID, String messageID) async {
     final id = serverMessageID(messageID);
     if (id == null) return const MessageReadInfo(MessageReadStatus.notRead);
-    // «Избранное» — читать некому (сервер отвечает только по личным не-self);
-    // «Кто прочитал» в группе — подэтап 3.4.
+    // «Избранное» — читать некому (сервер отвечает только по личным не-self).
     final row = await _store.dialog(userID: _sync.me, chatID: idBytes(chatID));
     final peer = row?.peerUserID;
     if (peer != null && sameID(peer, _sync.me)) return const MessageReadInfo(MessageReadStatus.unavailable);
+    if (row != null && row.type == pb.ChatType.CHAT_TYPE_GROUP.value) return _groupReaders(idBytes(chatID), id);
     if (row != null && row.type != pb.ChatType.CHAT_TYPE_PRIVATE.value) return const MessageReadInfo(MessageReadStatus.unavailable);
     await _requireNetwork();
     final response = await _sync.chats(
@@ -2369,6 +2519,41 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       pb.Chats_ReadDateResult_Status.HIDDEN => const MessageReadInfo(MessageReadStatus.hidden),
       _ => const MessageReadInfo(MessageReadStatus.unavailable),
     };
+  }
+
+  /// «Кто прочитал» в группе: от последних к первым, имена — по общему
+  /// правилу, реакция — первая его.
+  Future<MessageReadInfo> _groupReaders(Uint8List chat, int messageID) async {
+    await _requireNetwork();
+    final response = await _sync.messages(
+      pb.Messages_Request(
+        readParticipants: pb.Messages_ReadParticipants(chatID: chat, messageID: Int64(messageID)),
+      ),
+    );
+    final result = response.readParticipants;
+    switch (result.status) {
+      case pb.Messages_ReadParticipantsResult_Status.NOT_READ:
+        return const MessageReadInfo(MessageReadStatus.notRead);
+      case pb.Messages_ReadParticipantsResult_Status.READ:
+        break;
+      default:
+        return const MessageReadInfo(MessageReadStatus.unavailable);
+    }
+    if (result.readers.isEmpty) return const MessageReadInfo(MessageReadStatus.notRead);
+    final peers = _Peers(await _loadPeers([for (final r in result.readers) Uint8List.fromList(r.userID)]));
+    _requestProfiles([for (final r in result.readers) (userID: Uint8List.fromList(r.userID), cached: peers.of(r.userID).profile != null)]);
+    return MessageReadInfo(
+      MessageReadStatus.read,
+      readers: [
+        for (final r in result.readers)
+          MessageReader(
+            userID: idHex(r.userID),
+            name: peers.of(r.userID).title,
+            date: DateTime.fromMillisecondsSinceEpoch(r.date.toInt()),
+            reaction: r.reaction,
+          ),
+      ],
+    );
   }
 
   /// «Прослушано» — фоновое (началось проигрывание): сейчас или при
@@ -2442,6 +2627,66 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     }
     final ids = await _store.unreadReactionIDs(userID: _sync.me, chatID: chat);
     return ids.isEmpty ? null : ids.first.toString();
+  }
+
+  /// Кнопка «@»: самое старое непрочитанное упоминание меня — с сервера
+  /// (старого может не быть в кэше), без сети — из кэша. Сервер ответил «нет»
+  /// — счётчик в кэше устарел, обнуляем.
+  @override
+  Future<String?> nextUnreadMention(String chatID) async {
+    final chat = idBytes(chatID);
+    if (chat.isEmpty || !_auth.isAuthorized) return null;
+    final me = _sync.me;
+    try {
+      if (await _sync.hasNetwork()) {
+        final response = await _sync.messages(pb.Messages_Request(unreadMentions: pb.Messages_UnreadMentions(chatID: chat, limit: 1)));
+        final messages = response.unreadMentions.messages;
+        if (messages.isNotEmpty) return messages.first.messageID.toString();
+        await _store.transaction((tx) async {
+          await tx.removeMentions(userID: me, chatID: chat);
+          await tx.updateDialog(userID: me, chatID: chat, fields: {'unreadMentions': 0});
+        });
+        return null;
+      }
+    } on ChatsOfflineException {
+      // Ниже — из кэша.
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace);
+    }
+    final ids = await _store.unreadMentionIDs(userID: me, chatID: chat);
+    return ids.isEmpty ? null : ids.first.toString();
+  }
+
+  /// Упоминания увидели — фоновое, как [readReactions]: без сети молча
+  /// пропускаем (отметка останется до следующего показа). Пустой список —
+  /// все в чате; сервер ничего не снял — кэш устарел, снимаем сами.
+  @override
+  Future<void> readMentions(String chatID, List<String> messageIDs) async {
+    final chat = idBytes(chatID);
+    final ids = [for (final id in messageIDs.map(serverMessageID)) ?id];
+    if (chat.isEmpty || (messageIDs.isNotEmpty && ids.isEmpty) || !_auth.isAuthorized) return;
+    try {
+      if (!await _sync.hasNetwork()) return;
+      final response = await _sync.messages(
+        pb.Messages_Request(
+          readMentions: pb.Messages_ReadMentions(chatID: chat, messageIDs: [for (final id in ids) Int64(id)]),
+        ),
+      );
+      final updates = response.readMentions.updates;
+      if (updates.updates.isNotEmpty) {
+        await _sync.applyUpdates(updates);
+        return;
+      }
+      final me = _sync.me;
+      await _store.transaction((tx) async {
+        await tx.removeMentions(userID: me, chatID: chat, messageIDs: ids.isEmpty ? null : ids);
+        if (ids.isEmpty) await tx.updateDialog(userID: me, chatID: chat, fields: {'unreadMentions': 0});
+      });
+    } on ChatsOfflineException {
+      // Отметим в следующий раз.
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace);
+    }
   }
 
   /// Черновик — сразу локально (виден и без сети) и на сервер — на мои

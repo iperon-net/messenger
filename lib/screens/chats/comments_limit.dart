@@ -11,6 +11,13 @@ import '../../models.dart' as models;
 /// нужно быть подписанным, `Chat.commentsMinSubscription`).
 const commentsLimitOptions = [3600, 3 * 3600, 5 * 3600, 8 * 3600, 86400, 3 * 86400, 7 * 86400, 30 * 86400, 365 * 86400, 0];
 
+/// «Новичкам — без ссылок и медиа» (`Chat.newcomerMediaDelay`): те же сроки,
+/// но не дольше недели (как на сервере, `EditChat.newcomerMediaDelay`).
+final newcomerMediaOptions = [
+  for (final value in commentsLimitOptions)
+    if (value <= 7 * 86400) value,
+];
+
 String commentsLimitLabel(Translations t, int seconds) {
   final s = t.screenNewChat;
   return switch (seconds) {
@@ -46,12 +53,18 @@ String newcomerMediaLabel(Translations t, int seconds) => seconds <= 0 ? t.scree
 /// Android: выбор срока — нижний лист с отметкой текущего (на iOS —
 /// выпадающее меню прямо у строки, `CupertinoMenuAnchor`). `null` — закрыли.
 /// [label] — подпись варианта (по умолчанию [commentsLimitLabel]).
-Future<int?> pickCommentsLimit(BuildContext context, int current, {required String title, String Function(int value)? label}) {
+Future<int?> pickCommentsLimit(
+  BuildContext context,
+  int current, {
+  required String title,
+  String Function(int value)? label,
+  List<int> values = commentsLimitOptions,
+}) {
   final t = context.t;
   return _pick(
     context,
     title: title,
-    values: commentsLimitOptions,
+    values: values,
     current: current,
     label: label ?? (value) => commentsLimitLabel(t, value),
     icon: (value) => value == 0 ? m.Icons.all_inclusive : m.Icons.schedule,

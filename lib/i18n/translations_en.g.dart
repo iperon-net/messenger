@@ -3994,6 +3994,18 @@ class Translations$chatAction$en {
 
 	/// en: 'The link must be 5–24 characters: Latin letters, digits and «_».'
 	String get usernameInvalid => 'The link must be 5–24 characters: Latin letters, digits and «_».';
+
+	/// en: 'You joined this group recently: for now you can only send text without links or media.'
+	String get newcomerRestricted => 'You joined this group recently: for now you can only send text without links or media.';
+
+	/// en: 'Slow mode is on in this group — the message will be sent when the wait is over.'
+	String get slowModeWait => 'Slow mode is on in this group — the message will be sent when the wait is over.';
+
+	/// en: 'This poll has already ended.'
+	String get pollClosed => 'This poll has already ended.';
+
+	/// en: 'Polls can't be forwarded.'
+	String get pollForward => 'Polls can\'t be forwarded.';
 }
 
 // Path: chatTtl
@@ -5459,6 +5471,10 @@ extension on Translations {
 			'chatAction.linksLimit' => 'The invite link limit has been reached.',
 			'chatAction.usernameTaken' => 'This link is already taken.',
 			'chatAction.usernameInvalid' => 'The link must be 5–24 characters: Latin letters, digits and «_».',
+			'chatAction.newcomerRestricted' => 'You joined this group recently: for now you can only send text without links or media.',
+			'chatAction.slowModeWait' => 'Slow mode is on in this group — the message will be sent when the wait is over.',
+			'chatAction.pollClosed' => 'This poll has already ended.',
+			'chatAction.pollForward' => 'Polls can\'t be forwarded.',
 			'chatTtl.title' => 'Auto-delete',
 			'chatTtl.titleLong' => 'Auto-delete messages',
 			'chatTtl.off' => 'Off',

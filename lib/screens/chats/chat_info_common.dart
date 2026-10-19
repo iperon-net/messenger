@@ -64,7 +64,7 @@ bool chatInfoDeletes(models.Chat chat) =>
 /// «Добавить участников»: админ; в группе на сервере — любой участник, а в
 /// режиме «Только админы» — с правом приглашать ([canAddGroupMembers]).
 bool canAddMembers(models.Chat chat, ChatsFeatures features, List<models.ChatMember> members) {
-  if (features.groupExtras || chat.type != models.ChatType.group) return chat.canManage;
+  if (features.channels || chat.type != models.ChatType.group) return chat.canManage;
   return canAddGroupMembers(chat, members);
 }
 
@@ -81,7 +81,7 @@ bool chatInfoCanEdit(models.Chat chat, List<models.ChatMember> members) =>
 
 /// Роли участников, админы и блокировки доступны в этом чате (демо — всё; в
 /// группе на сервере — подэтап 3.2).
-bool chatRolesEnabled(ChatsFeatures features) => features.groupExtras || features.groupRoles;
+bool chatRolesEnabled(ChatsFeatures features) => features.channels || features.groupRoles;
 
 /// «Заблокированные» в профиле: у групп и сообществ (не их чатов) — с правом
 /// блокировать.

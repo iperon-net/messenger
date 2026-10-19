@@ -42,11 +42,18 @@ class ChatsFeatures {
   final bool groupJoining;
 
   /// Расширенное в группах: реакции, опросы, упоминания, медленный режим,
-  /// «новички», «скрыть участников» (демо; на сервере — подэтап 3.4).
-  /// `false` — в группе это скрыто, а «Изменить» — только название,
-  /// описание, фото (роль по умолчанию — с [groupRoles], вступление — с
-  /// [groupJoining]).
+  /// «новички», «скрыть участников» (на сервере — подэтап 3.4). `false` — в
+  /// группе это скрыто, а «Изменить» — только название, описание, фото (роль
+  /// по умолчанию — с [groupRoles], вступление — с [groupJoining]).
   final bool groupExtras;
+
+  /// Каналы и сообщества (только демо): их правила в профиле чата — ссылки и
+  /// заявки любому админу, участников добавляют админы. Без них (сервер) —
+  /// правила групп: по правам приглашать (см. `chatInfoShowsInvites`).
+  final bool channels;
+
+  /// Опрос можно переслать (демо); на сервере — нет («pollForward»).
+  final bool forwardPolls;
 
   const ChatsFeatures({
     required this.reactions,
@@ -57,6 +64,8 @@ class ChatsFeatures {
     this.groupRoles = false,
     this.groupJoining = false,
     this.groupExtras = false,
+    this.channels = false,
+    this.forwardPolls = false,
   });
 
   const ChatsFeatures.all()
@@ -67,7 +76,9 @@ class ChatsFeatures {
       groups = true,
       groupRoles = true,
       groupJoining = true,
-      groupExtras = true;
+      groupExtras = true,
+      channels = true,
+      forwardPolls = true;
 
   const ChatsFeatures.none()
     : reactions = false,
@@ -77,7 +88,9 @@ class ChatsFeatures {
       groups = false,
       groupRoles = false,
       groupJoining = false,
-      groupExtras = false;
+      groupExtras = false,
+      channels = false,
+      forwardPolls = false;
 
   /// Доступное в чате [chat]: в группе без [groupExtras] — без реакций, а
   /// закреп — только с [groupRoles] (у всех — по праву pinMessages).
@@ -92,6 +105,8 @@ class ChatsFeatures {
       groupRoles: groupRoles,
       groupJoining: groupJoining,
       groupExtras: groupExtras,
+      channels: channels,
+      forwardPolls: forwardPolls,
     );
   }
 }
@@ -398,10 +413,17 @@ abstract class ChatsDataSource {
   });
 
   /// Опрос: наш голос — варианты [options] (пустой список — отменить голос).
+  /// Сервер: без сети — [ChatsOfflineException], опрос завершён —
+  /// `ChatsRequestException` «pollClosed».
   Future<void> votePoll(String chatID, String messageID, List<int> options);
 
   /// Завершить опрос (автор или админ): голосовать больше нельзя.
   Future<void> closePoll(String chatID, String messageID);
+
+  /// Открытый опрос: «кто за что» — опрос с заполненными
+  /// `PollOption.voters` (мы — «Вы»). Сервер — по запросу (без сети —
+  /// [ChatsOfflineException]); `null` — опроса нет.
+  Future<models.MessagePoll?> pollVoters(String chatID, String messageID);
 
   /// Отложенные сообщения чата (отправка с [sendMessage] `scheduleDate`) — от
   /// ранних к поздним; в момент `scheduledDate` уходят в чат сами.
@@ -469,6 +491,15 @@ abstract class ChatsDataSource {
   /// Кнопка ❤️ в окне чата: самое старое наше сообщение с непрочитанными
   /// реакциями; `null` — таких нет.
   Future<String?> nextUnreadReaction(String chatID);
+
+  /// Кнопка «@» в окне чата: самое старое непрочитанное упоминание нас;
+  /// `null` — таких нет.
+  Future<String?> nextUnreadMention(String chatID);
+
+  /// Упоминания нас в [messageIDs] увидели на экране (пустой список — все в
+  /// чате): снять `Message.mentionUnread` и уменьшить бейдж «@»
+  /// (`Chat.unreadMentions`). Фоновое — без сети молча ждёт следующего показа.
+  Future<void> readMentions(String chatID, List<String> messageIDs);
 
   /// Сохранить черновик поля ввода (показывается в списке чатов).
   Future<void> setDraft(String chatID, String draft);

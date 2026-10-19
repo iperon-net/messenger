@@ -350,14 +350,16 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
         // ней, и раскладка не прыгает.
         final onCover = community && _overCover;
         final canEdit = chat != null && chatInfoCanEdit(chat, state.members);
-        // Реакции, медленный режим — демо (на сервере — 3.4); ссылки и заявки
-        // — с вступлением (3.3) и правом приглашать.
+        // Реакции, медленный режим — с сообщениями в группе (3.4); ссылки и
+        // заявки — с вступлением (3.3) и правом приглашать (демо с каналами и
+        // сообществами — по своим правилам).
         final features = context.read<ChatCubit>().features;
         final extras = features.groupExtras;
-        final invites = chat != null && (extras ? !chat.inCommunity : chatInfoShowsInvites(chat, features, state.members));
+        final demoRules = features.channels;
+        final invites = chat != null && (demoRules ? !chat.inCommunity : chatInfoShowsInvites(chat, features, state.members));
         final requests =
             chat != null &&
-            (extras
+            (demoRules
                 ? (!chat.inCommunity || chat.joinMode == models.ChatJoinMode.request)
                 : chatInfoShowsInvites(chat, features, state.members));
         final navBar = CupertinoNavigationBar(
