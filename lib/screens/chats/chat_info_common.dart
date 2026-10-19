@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
@@ -15,6 +14,7 @@ import '../../components.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import 'chat_create_common.dart';
 
 export '../../chats/group_rights.dart';
 
@@ -601,11 +601,8 @@ class _MemberRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
         child: Row(
           children: [
-            SizedBox(
-              width: 40,
-              height: 40,
-              child: BoringAvatar(name: member.name, type: BoringAvatarType.beam, shape: const CircleBorder()),
-            ),
+            // Участник с сервера — его фото (как в «Контактах»), демо — заглушка.
+            ContactAvatar(contact: member),
             const SizedBox(width: 12),
             Expanded(
               child: Column(

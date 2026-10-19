@@ -223,11 +223,17 @@ class _UserAvatarState extends State<UserAvatar> {
                 cacheHeight: (widget.size * MediaQuery.devicePixelRatioOf(context)).round(),
               ),
             )
-          : AnimatedBoringAvatar(
-              name: widget.placeholderName,
-              type: BoringAvatarType.beam,
-              shape: const CircleBorder(),
-              duration: const Duration(milliseconds: 400),
+          // Прозрачная подложка ловит тапы: hitTest заглушки смотрит на размер с
+          // последней отрисовки, и после перестройки без перерисовки (новый
+          // painter) тап мимо — аватар «не нажимается».
+          : ColoredBox(
+              color: const Color(0x00000000),
+              child: AnimatedBoringAvatar(
+                name: widget.placeholderName,
+                type: BoringAvatarType.beam,
+                shape: const CircleBorder(),
+                duration: const Duration(milliseconds: 400),
+              ),
             ),
     );
   }

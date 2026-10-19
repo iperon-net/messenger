@@ -214,8 +214,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   /// Скачался аватар группы — список перечитывается.
   final _avatarsChanged = StreamController<void>.broadcast();
 
-  /// Аватары групп, которые уже качаются / качались за этот запуск (hex cdnID).
-  final _avatarDownloads = <String>{};
+  /// Аватары групп, которые уже качаются / качались за этот запуск: hex cdnID →
+  /// ссылка последней попытки.
+  final _avatarDownloads = <String, String>{};
 
   /// Список чатов подписан ([watchChats]) — только тогда держим «в сети»
   /// собеседников свежим (загрузка, закончившаяся после отписки, не включит).
@@ -444,13 +445,16 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   Future<String> _groupAvatar(pb.ChatInfo info) async {
     if (info.avatarCdnID.isEmpty) return '';
     final path = await _avatarPath(info.avatarCdnID);
-    if (path.isNotEmpty || !info.hasAvatar() || !_avatarDownloads.add(idHex(info.avatarCdnID))) return path;
+    // Ссылка с токеном живёт ограниченно: сохранённая в кэше могла истечь.
+    // Повторяем, только когда пришла другая ссылка (свежий ChatInfo).
+    final key = idHex(info.avatarCdnID);
+    if (path.isNotEmpty || !info.hasAvatar() || _avatarDownloads[key] == info.avatar.url) return path;
+    _avatarDownloads[key] = info.avatar.url;
     unawaited(
       getIt.get<CDNManager>().download(cdn: models.CDN.fromProto(info.avatar)).then((_) => _avatarsChanged.add(null)).catchError((
         Object error,
         StackTrace stackTrace,
       ) {
-        // Повторим при следующем запуске (или когда сменится аватар).
         _logger.handle(error, stackTrace);
       }),
     );

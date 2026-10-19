@@ -124,16 +124,22 @@ class ChatAvatar extends StatelessWidget {
       );
     }
 
+    // Прозрачная подложка ловит тапы (шапка чата): hitTest заглушки смотрит на
+    // размер с последней отрисовки, и после перестройки шапки без перерисовки
+    // (новый painter) тап проходил мимо — профиль не открывался.
     return SizedBox(
       width: size,
       height: size,
-      child: BoringAvatar(
-        // Комментарии к посту — аватар канала. Личный — по userID
-        // собеседника, как UserAvatar в «Контактах» и «Звонках»: заглушка у
-        // человека везде одна.
-        name: chat.isThread ? chat.threadOf : (chat.peerUserID.isNotEmpty ? chat.peerUserID : chat.id),
-        type: chat.type == models.ChatType.private ? BoringAvatarType.beam : BoringAvatarType.marble,
-        shape: shape,
+      child: ColoredBox(
+        color: const Color(0x00000000),
+        child: BoringAvatar(
+          // Комментарии к посту — аватар канала. Личный — по userID
+          // собеседника, как UserAvatar в «Контактах» и «Звонках»: заглушка у
+          // человека везде одна.
+          name: chat.isThread ? chat.threadOf : (chat.peerUserID.isNotEmpty ? chat.peerUserID : chat.id),
+          type: chat.type == models.ChatType.private ? BoringAvatarType.beam : BoringAvatarType.marble,
+          shape: shape,
+        ),
       ),
     );
   }
