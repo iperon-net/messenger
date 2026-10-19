@@ -29,6 +29,14 @@ const failedStatusColor = Color(0xFFFF3B30);
 /// Пузырь для превью меню сообщения с предельной шириной [maxWidth], без
 /// жестов. [selectableText] — обёртка текста, которую оставляют живой (iOS:
 /// выделить фрагмент и «Цитировать»), остальное пузыря жесты не получает.
+/// Двойной тап по пузырю (быстрая реакция). Ловит обёртка меню
+/// ([MessageBubble.menuWrapper]): на iOS `CupertinoContextMenu` уже на касании
+/// прячет пузырь в ленте и поднимает его копию в оверлей («нажатие»), и без
+/// отмены пузырь пропадает, пока эта анимация не откатится.
+class MessageDoubleTapNotification extends Notification {
+  const MessageDoubleTapNotification();
+}
+
 typedef MessageBubblePreview = Widget Function(double maxWidth, {Widget Function(Widget text)? selectableText});
 
 /// Платформенное оформление окна чата (см. `chat_cupertino.dart` /
@@ -1012,34 +1020,39 @@ class MessageBubble extends StatelessWidget {
     // [MessageBubblePreview]; в превью меню у пузыря своих жестов нет.
     Widget body(double maxWidth, {bool preview = false, Widget Function(Widget text)? selectableText}) => ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth),
-      child: GestureDetector(
-        // С обёрткой (iOS-меню) long-press ловит `CupertinoContextMenu`.
-        onLongPress: menuWrapper == null && !preview ? onLongPress : null,
-        onDoubleTap: onDoubleTap == null || preview
-            ? null
-            : () {
-                HapticFeedback.lightImpact();
-                onDoubleTap!();
-              },
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: bigEmoji > 0 ? null : (out ? style.outgoing : style.incoming),
-            borderRadius: BorderRadius.only(
-              topLeft: _radius,
-              topRight: _radius,
-              bottomLeft: !out && tail ? _tailRadius : _radius,
-              bottomRight: out && tail ? _tailRadius : _radius,
+      child: Builder(
+        builder: (context) => GestureDetector(
+          // С обёрткой (iOS-меню) long-press ловит `CupertinoContextMenu`.
+          onLongPress: menuWrapper == null && !preview ? onLongPress : null,
+          onDoubleTap: onDoubleTap == null || preview
+              ? null
+              : () {
+                  HapticFeedback.lightImpact();
+                  // Контекст — под обёрткой меню: она гасит начатое касанием
+                  // «нажатие» (см. [MessageDoubleTapNotification]).
+                  const MessageDoubleTapNotification().dispatch(context);
+                  onDoubleTap!();
+                },
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: bigEmoji > 0 ? null : (out ? style.outgoing : style.incoming),
+              borderRadius: BorderRadius.only(
+                topLeft: _radius,
+                topRight: _radius,
+                bottomLeft: !out && tail ? _tailRadius : _radius,
+                bottomRight: out && tail ? _tailRadius : _radius,
+              ),
             ),
-          ),
-          child: Padding(
-            padding: bigEmoji > 0
-                ? const EdgeInsets.fromLTRB(2, 0, 2, 2)
-                : EdgeInsets.fromLTRB(visual ? 4 : 11, visual ? 4 : 7, visual ? 4 : 11, 7),
-            child: IntrinsicWidth(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisSize: MainAxisSize.min,
-                children: buildContent(selectableText),
+            child: Padding(
+              padding: bigEmoji > 0
+                  ? const EdgeInsets.fromLTRB(2, 0, 2, 2)
+                  : EdgeInsets.fromLTRB(visual ? 4 : 11, visual ? 4 : 7, visual ? 4 : 11, 7),
+              child: IntrinsicWidth(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: buildContent(selectableText),
+                ),
               ),
             ),
           ),

@@ -1,6 +1,8 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/rendering.dart';
 
+import '../../components/chats/message_bubble.dart' show MessageDoubleTapNotification;
+
 /// Пузырь сообщения с `CupertinoContextMenu`. Превью открытого меню —
 /// тот же пузырь той же ширины, что в ленте (ширину запоминаем при раскладке),
 /// ужатый под выданный меню прямоугольник.
@@ -18,33 +20,50 @@ class MessageContextMenuCupertino extends StatefulWidget {
 class MessageContextMenuCupertinoCupertinoState extends State<MessageContextMenuCupertino> {
   double? _width;
 
+  /// Анимация «нажатия» меню (до открытия — его `AnimationController`).
+  Animation<double>? _press;
+
+  /// Двойной тап (реакция): касание уже спрятало пузырь и подняло копию в
+  /// оверлей — сбрасываем «нажатие», и пузырь сразу виден на месте (уже с
+  /// реакцией), а не пропадает до конца обратной анимации.
+  bool _onDoubleTap(MessageDoubleTapNotification _) {
+    if (_press case final AnimationController press when press.value > 0 && press.value < CupertinoContextMenu.animationOpensAt) {
+      press.reset();
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return CupertinoContextMenu.builder(
-      enableHapticFeedback: true,
-      actions: widget.actions,
-      builder: (context, animation) {
-        final width = _width;
-        if (animation.value < CupertinoContextMenu.animationOpensAt || width == null) {
-          // Пока меню закрывается, пузырь зажат в свой прежний размер; если за
-          // это время он вырос (поставили реакцию из меню — добавилась строка
-          // реакций), без OverflowBox — «RenderFlex overflowed». В ленте
-          // (высота не ограничена) размер — по пузырю.
-          return _SizeReporter(
-            onSize: (size) => _width = size.width,
-            child: ClipRect(
-              child: OverflowBox(
-                minHeight: 0,
-                maxHeight: double.infinity,
-                alignment: Alignment.topCenter,
-                fit: OverflowBoxFit.deferToChild,
-                child: widget.bubble,
+    return NotificationListener<MessageDoubleTapNotification>(
+      onNotification: _onDoubleTap,
+      child: CupertinoContextMenu.builder(
+        enableHapticFeedback: true,
+        actions: widget.actions,
+        builder: (context, animation) {
+          if (animation is AnimationController) _press = animation;
+          final width = _width;
+          if (animation.value < CupertinoContextMenu.animationOpensAt || width == null) {
+            // Пока меню закрывается, пузырь зажат в свой прежний размер; если за
+            // это время он вырос (поставили реакцию из меню — добавилась строка
+            // реакций), без OverflowBox — «RenderFlex overflowed». В ленте
+            // (высота не ограничена) размер — по пузырю.
+            return _SizeReporter(
+              onSize: (size) => _width = size.width,
+              child: ClipRect(
+                child: OverflowBox(
+                  minHeight: 0,
+                  maxHeight: double.infinity,
+                  alignment: Alignment.topCenter,
+                  fit: OverflowBoxFit.deferToChild,
+                  child: widget.bubble,
+                ),
               ),
-            ),
-          );
-        }
-        return FittedBox(fit: BoxFit.scaleDown, child: widget.preview(width));
-      },
+            );
+          }
+          return FittedBox(fit: BoxFit.scaleDown, child: widget.preview(width));
+        },
+      ),
     );
   }
 }
