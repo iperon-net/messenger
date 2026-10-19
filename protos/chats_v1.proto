@@ -50,6 +50,16 @@ enum ChatJoinMode {
   CHAT_JOIN_ADMINS = 3;
 }
 
+// Какие реакции можно ставить в группе (подэтап 3.4): все из общего набора
+// (allChatReactions клиента = chatAllReactions сервера, общий
+// all_chat_reactions.json), только выбранные (ChatInfo.reactions) или никаких.
+// Смена режима не трогает уже поставленные.
+enum ChatReactionsMode {
+  CHAT_REACTIONS_ALL = 0;
+  CHAT_REACTIONS_SOME = 1;
+  CHAT_REACTIONS_NONE = 2;
+}
+
 // Группа (общее для всех участников). Название, описание и аватар хранятся на
 // сервере зашифрованными (crypto.Encryptor). pts — журнал ЧАТА: у группы свой
 // монотонный номер обновлений, не копия в журнал каждого участника (см.
@@ -76,6 +86,19 @@ message ChatInfo {
   // «Скрыть историю» (только частные — не OPEN): вступившие после включения
   // видят сообщения только с момента вступления.
   bool historyHidden = 14;
+  // Медленный режим (подэтап 3.4): участник без прав админа отправляет не
+  // чаще одного сообщения за столько секунд; 0 — выключен. Значения — 0, 10,
+  // 30, 60, 300, 900, 3600.
+  int32 slowMode = 15;
+  // «Новичкам — без ссылок и медиа»: вступившие меньше стольких секунд назад
+  // (не админы) пишут только текст без ссылок; 0 — выключено.
+  int32 newcomerMediaDelay = 16;
+  // «Скрыть участников»: список участников видят только владелец и админы
+  // (остальным Members отдаёт только админов).
+  bool membersHidden = 17;
+  // Реакции группы: режим и набор (для SOME, порядок — порядок в полосе).
+  ChatReactionsMode reactionsMode = 18;
+  repeated string reactions = 19;
 }
 
 // Ссылка-приглашение (как chatInviteExported в Telegram). Путь ссылки —
@@ -359,6 +382,42 @@ message ChatTyping {
   Action action = 3;
 }
 
+// Опрос / викторина (подэтап 3.4, только группы; в личном чате —
+// INVALID_ARGUMENT). Вопрос ≤ 255 символов, 2–10 вариантов по ≤ 100,
+// пояснение ≤ 200. Викторина — один верный вариант (correctOption), без
+// multiple. Верный вариант и пояснение сервер при выдаче из содержимого
+// УБИРАЕТ (correctOption = -1, explanation пусто) — они приходят в
+// PollResults тому, кто уже проголосовал, или всем после завершения.
+// Пересылать опрос нельзя (INVALID_ARGUMENT «pollForward»), править — тоже.
+message MessagePoll {
+  string question = 1;
+  repeated string options = 2;
+  // Анонимный: кто как голосовал, не видно (PollVoters — отказ).
+  bool anonymous = 3;
+  bool multiple = 4;
+  bool quiz = 5;
+  // Викторина — индекс верного варианта (при отправке обязателен); при
+  // выдаче — всегда -1 (см. PollResults.correctOption).
+  int32 correctOption = 6;
+  string explanation = 7;
+}
+
+// Итоги опроса глазами смотрящего (ChatMessage.poll, ответ VotePoll,
+// Update.MessagePollChanged). chosen — мой выбор (в общем обновлении журнала
+// чата не заполняется — см. MessagePollChanged.actorUserID).
+message PollResults {
+  // По вариантам — сколько выбрало; chosen — индексы моих вариантов.
+  repeated int32 votes = 1;
+  repeated int32 chosen = 2;
+  // Проголосовавших людей (у multiple человек считается один раз).
+  int32 totalVoters = 3;
+  bool closed = 4;
+  // Викторина: верный вариант и пояснение — мне после моего голоса или всем
+  // после завершения; иначе -1 и пусто.
+  int32 correctOption = 5;
+  string explanation = 6;
+}
+
 // Содержимое сообщения. На сервере хранится ОДНИМ зашифрованным блобом
 // (messages.contentEncrypted, crypto.Encryptor) — открыты только chatID,
 // messageID, отправитель, дата и флаги.
@@ -383,6 +442,8 @@ message MessageContent {
   MessageNoForwardsRequest noForwardsRequest = 11;
   // Служебное действие в группе (только от сервера; при отправке — отказ).
   MessageChatAction chatAction = 12;
+  // Опрос (группа). Текст при этом пуст.
+  MessagePoll poll = 13;
 }
 
 // Реакция участника на сообщение: кто, каким эмодзи и когда поставил.
@@ -392,12 +453,22 @@ message MessageReaction {
   int64 date = 3; // unix millis
 }
 
+// Счётчик реакции в группе: эмодзи, сколько поставили и (глазами
+// смотрящего) порядок моей постановки — 1, 2, 3; 0 — не моя (в общем
+// обновлении журнала чата всегда 0 — см. MessageReactionsChanged.actorUserID).
+message ReactionCount {
+  string emoji = 1;
+  int32 count = 2;
+  int32 chosenOrder = 3;
+}
+
 // Реакции на сообщение (как MessageReactions в Telegram). Личный чат —
-// полный список, от ранних к поздним: чипы и «мои» клиент собирает сам.
-// Группы/каналы позже добавят счётчики «эмодзи → число» (там список авторов
-// — только последние или вовсе скрыт).
+// полный список reactions, от ранних к поздним: чипы и «мои» клиент
+// собирает сам. Группа — только counts (по первой постановке эмодзи), кто
+// поставил — Messages.ReactionsList по запросу.
 message MessageReactions {
   repeated MessageReaction reactions = 1;
+  repeated ReactionCount counts = 2;
 }
 
 // Сообщение «глазами получателя»: outgoing = fromUserID == я; прочитано ли
@@ -423,6 +494,14 @@ message ChatMessage {
   // сервер удалит сообщение у всех, клиент удаляет его у себя в тот же момент
   // сам (и без сети). 0 — не удаляется. Таймер чата на момент отправки.
   int32 ttlPeriod = 12;
+  // Группа: сообщение упоминает меня (@username, по имени или ответ на моё) и
+  // я его ещё не видел — снимается Messages.ReadMentions. Заполняется глазами
+  // запросившего (History / Get / UnreadMentions); в общем обновлении журнала
+  // чата — false (новые упоминания приходят Update.mentions).
+  bool mentionUnread = 13;
+  // Опрос: итоги глазами запросившего (в общем обновлении журнала чата —
+  // без chosen и без верного ответа).
+  PollResults poll = 14;
 }
 
 // Диалог пользователя: общий чат + моё состояние в нём.
@@ -472,6 +551,13 @@ message Dialog {
   // число ждущих заявок; остальным — пусто / 0.
   string inviteCode = 23;
   int32 pendingRequests = 24;
+  // Группа: непрочитанных упоминаний меня (бейдж «@», кнопка «@» в чате).
+  int32 unreadMentionsCount = 25;
+  // Медленный режим: когда мне можно отправить следующее (unix millis; 0 /
+  // в прошлом — можно сейчас; у админов — всегда 0).
+  int64 slowModeUntil = 26;
+  // Когда я вступил (unix millis) — для «Новичкам — без ссылок и медиа».
+  int64 joinedAt = 27;
 }
 
 // Отложенное сообщение — моё, ещё не отправленное (как scheduled messages в
@@ -593,6 +679,12 @@ message Update {
 
   // Изменились реакции на сообщение (мои — на этом или другом устройстве — или
   // собеседника). reactions — текущие целиком (заменяют прежние).
+  //
+  // Группа: журнал чата (всем), reactions.counts без chosenOrder; actorUserID /
+  // actorEmojis — кто изменил и его набор целиком (пусто — снял все): если
+  // это я — мои реакции теперь такие, иначе свои не менять. Автору сообщения
+  // при новой чужой реакции — ещё такое же обновление в журнал пользователя
+  // (pts > 0) с unreadReactionsCount / reactionsUnread.
   message MessageReactionsChanged {
     bytes chatID = 1;
     int64 messageID = 2;
@@ -601,6 +693,8 @@ message Update {
     int32 unreadReactionsCount = 4;
     // ChatMessage.reactionsUnread сообщения (значим только для автора).
     bool reactionsUnread = 5;
+    bytes actorUserID = 6;
+    repeated string actorEmojis = 7;
   }
 
   // Реакции на мои сообщения messageIDs просмотрены (на этом или другом
@@ -658,6 +752,33 @@ message Update {
     repeated bytes recentUserIDs = 3;
   }
 
+  // Упоминания меня в группе (журнал пользователя): unread — новые
+  // непрочитанные (сообщения с @мной, с моим именем или ответы на мои),
+  // иначе — прочитаны (Messages.ReadMentions на этом или другом устройстве)
+  // или сообщения удалены у всех. unreadMentionsCount — текущий
+  // Dialog.unreadMentionsCount.
+  message MentionsChanged {
+    bytes chatID = 1;
+    repeated int64 messageIDs = 2;
+    bool unread = 3;
+    int32 unreadMentionsCount = 4;
+  }
+
+  // Изменились итоги опроса. Журнал чата (всем участникам): results без
+  // chosen (и без верного ответа, пока не завершён); actorUserID /
+  // actorOptions — кто проголосовал и его выбор целиком (пусто — отменил
+  // голос; у завершения — пусто): если это я — мой выбор теперь такой,
+  // иначе свой выбор не менять. Голосовавшему в журнал пользователя (на все
+  // его устройства) — такое же обновление с results глазами него (chosen,
+  // верный ответ и пояснение викторины), actorUserID пуст.
+  message MessagePollChanged {
+    bytes chatID = 1;
+    int64 messageID = 2;
+    PollResults results = 3;
+    bytes actorUserID = 4;
+    repeated int32 actorOptions = 5;
+  }
+
   // У меня появился диалог группы (создал, добавили, вступил) — журнал
   // пользователя. После него клиент подписан на журнал чата с dialog.chat.pts.
   // Вышел / исключили / группу удалили — Update.dialogDeleted.
@@ -686,6 +807,8 @@ message Update {
     ChatMembersChanged chatMembers = 18;
     DialogNew dialogNew = 19;
     JoinRequestsChanged joinRequests = 20;
+    MentionsChanged mentions = 21;
+    MessagePollChanged messagePoll = 22;
   }
 }
 
@@ -948,6 +1071,11 @@ message Chats {
   // убирает из поиска публичных); username при не-OPEN — INVALID_ARGUMENT.
   // historyHidden при OPEN — INVALID_ARGUMENT. Переход в не-OPEN без основной
   // ссылки — сервер её выдаёт. Ошибки имени — как в CreateGroup.
+  //
+  // Подэтап 3.4 (право changeInfo): slowMode — только из ChatInfo.slowMode,
+  // newcomerMediaDelay ≥ 0 (≤ 7 суток), membersHidden, reactions — режим и
+  // набор (SOME — 1..allChatReactions, без повторов, только из общего набора;
+  // иначе INVALID_ARGUMENT).
   message EditChat {
     bytes chatID = 1;
     optional string title = 2;
@@ -957,6 +1085,15 @@ message Chats {
     optional string username = 6;
     optional ChatJoinMode joinMode = 7;
     optional bool historyHidden = 8;
+    optional int32 slowMode = 9;
+    optional int32 newcomerMediaDelay = 10;
+    optional bool membersHidden = 11;
+    optional ChatReactionsSettings reactions = 12;
+  }
+
+  message ChatReactionsSettings {
+    ChatReactionsMode mode = 1;
+    repeated string emojis = 2;
   }
 
   message EditChatResult {
@@ -999,7 +1136,8 @@ message Chats {
     Updates updates = 1;
   }
 
-  // Участники группы — страница по дате вступления (владелец первым).
+  // Участники группы — страница по дате вступления (владелец первым). При
+  // ChatInfo.membersHidden не-админу — только владелец и админы.
   // offset — курсор из прошлого ответа (пусто — с начала). profiles — профили
   // участников страницы глазами запросившего (гейты приватности, как PROFILE).
   message Members {
@@ -1409,6 +1547,14 @@ message Messages {
     // уйдёт в ближайшие секунды. Не дальше года; до 100 на чат
     // (FAILED_PRECONDITION «scheduledLimit»); пересылку отложить нельзя.
     int64 scheduleDate = 7;
+    // Группа (подэтап 3.4), проверки для не-админов: медленный режим —
+    // RESOURCE_EXHAUSTED «slowModeWait:<секунд>» (отложенные не считаются и
+    // не проверяются; пересылка — как обычная отправка); новичок
+    // (ChatInfo.newcomerMediaDelay) — PERMISSION_DENIED «newcomerRestricted»
+    // на медиа, опрос, ссылки в тексте (entities URL / TEXT_URL и голые
+    // домены — общий newcomer_link_cases.json) и пересылку таких сообщений.
+    // Упоминания (MENTION — @username участника, MENTION_NAME — userID
+    // участника, ответ на сообщение участника) сервер находит сам.
   }
 
   // Исходное сообщение пересылки — в чате, где я участник и оно мне видно.
@@ -1421,6 +1567,9 @@ message Messages {
     ChatMessage message = 1;
     Updates updates = 2;
     ScheduledMessage scheduled = 3;
+    // Группа с медленным режимом: когда можно следующее (unix millis; 0 — нет
+    // ограничения), как Dialog.slowModeUntil.
+    int64 slowModeUntil = 4;
   }
 
   // Мои отложенные в чате — по времени отправки.
@@ -1546,7 +1695,9 @@ message Messages {
   // трёх разных, только из разрешённых в чате (личный чат — фиксированный
   // набор). Новые нельзя, если собеседник ограничил, кто может ему писать
   // (PERMISSION_DENIED «privacyRestricted»); снять свои можно всегда.
-  // Служебные сообщения реакций не принимают.
+  // Служебные сообщения реакций не принимают. Группа — любой участник (и
+  // READER), только из разрешённых ChatInfo.reactionsMode / reactions (иначе
+  // INVALID_ARGUMENT); снять свои — всегда.
   message SetReactions {
     bytes chatID = 1;
     int64 messageID = 2;
@@ -1593,6 +1744,118 @@ message Messages {
     repeated ChatMessage messages = 1;
   }
 
+  // «Кто прочитал» моё сообщение в группе (как getMessageReadParticipants):
+  // по событиям прочтения; только группы до groups.readParticipantsMaxMembers
+  // (100) участников и сообщения не старше 7 дней — иначе status UNAVAILABLE.
+  // readers — от последних к первым, без автора; reaction — его реакция на
+  // сообщение (первая, пусто — нет).
+  message ReadParticipants {
+    bytes chatID = 1;
+    int64 messageID = 2;
+  }
+
+  message ReadParticipant {
+    bytes userID = 1;
+    int64 date = 2; // unix millis
+    string reaction = 3;
+  }
+
+  message ReadParticipantsResult {
+    enum Status {
+      READ = 0;
+      NOT_READ = 1;
+      UNAVAILABLE = 2;
+    }
+    Status status = 1;
+    repeated ReadParticipant readers = 2;
+  }
+
+  // Мои непрочитанные упоминания в группе, от старых к новым (как
+  // getUnreadMentions) — куда вести кнопку «@».
+  message UnreadMentions {
+    bytes chatID = 1;
+    int32 limit = 2;
+  }
+
+  message UnreadMentionsResult {
+    repeated ChatMessage messages = 1;
+  }
+
+  // Упоминания messageIDs увидел на экране (пусто — все в чате): снять,
+  // моим устройствам — Update.mentions.
+  message ReadMentions {
+    bytes chatID = 1;
+    repeated int64 messageIDs = 2;
+  }
+
+  message ReadMentionsResult {
+    Updates updates = 1;
+  }
+
+  // Голос в опросе: options — мой выбор целиком (пусто — отменить голос;
+  // у викторины отменить нельзя, и вариант ровно один; без multiple — один).
+  // Любой участник (и READER); завершённый — FAILED_PRECONDITION
+  // «pollClosed». Ответ — итоги глазами меня.
+  message VotePoll {
+    bytes chatID = 1;
+    int64 messageID = 2;
+    repeated int32 options = 3;
+  }
+
+  message VotePollResult {
+    PollResults results = 1;
+    Updates updates = 2;
+  }
+
+  // Завершить опрос: автор, владелец или админ с deleteMessages (иначе
+  // PERMISSION_DENIED). Всем — MessagePollChanged с closed и верным ответом.
+  message ClosePoll {
+    bytes chatID = 1;
+    int64 messageID = 2;
+  }
+
+  message ClosePollResult {
+    PollResults results = 1;
+    Updates updates = 2;
+  }
+
+  // Кто как голосовал (неанонимный опрос; анонимный — PERMISSION_DENIED):
+  // option ≥ 0 — только выбравшие его, -1 — все. Страница по дате голоса,
+  // offset — курсор из прошлого ответа.
+  message PollVoters {
+    bytes chatID = 1;
+    int64 messageID = 2;
+    int32 option = 3;
+    bytes offset = 4;
+    int32 limit = 5;
+  }
+
+  message PollVoter {
+    bytes userID = 1;
+    repeated int32 options = 2;
+    int64 date = 3; // unix millis
+  }
+
+  message PollVotersResult {
+    repeated PollVoter voters = 1;
+    bytes nextOffset = 2;
+  }
+
+  // Кто поставил реакции на сообщение группы (по запросу): emoji пусто — все.
+  // Страница от поздних к ранним, offset — курсор из прошлого ответа.
+  message ReactionsList {
+    bytes chatID = 1;
+    int64 messageID = 2;
+    string emoji = 3;
+    bytes offset = 4;
+    int32 limit = 5;
+  }
+
+  message ReactionsListResult {
+    repeated MessageReaction reactions = 1;
+    bytes nextOffset = 2;
+  }
+
   message Request {
     oneof request {
       History history = 1;
@@ -1611,6 +1874,13 @@ message Messages {
       Reschedule reschedule = 14;
       DeleteScheduled deleteScheduled = 15;
       Get get = 16;
+      ReadParticipants readParticipants = 17;
+      UnreadMentions unreadMentions = 18;
+      ReadMentions readMentions = 19;
+      VotePoll votePoll = 20;
+      ClosePoll closePoll = 21;
+      PollVoters pollVoters = 22;
+      ReactionsList reactionsList = 23;
     }
   }
 
@@ -1632,6 +1902,13 @@ message Messages {
       RescheduleResult reschedule = 14;
       DeleteScheduledResult deleteScheduled = 15;
       GetResult get = 16;
+      ReadParticipantsResult readParticipants = 17;
+      UnreadMentionsResult unreadMentions = 18;
+      ReadMentionsResult readMentions = 19;
+      VotePollResult votePoll = 20;
+      ClosePollResult closePoll = 21;
+      PollVotersResult pollVoters = 22;
+      ReactionsListResult reactionsList = 23;
     }
   }
 }

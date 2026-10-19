@@ -84,6 +84,27 @@ class ChatJoinMode extends $pb.ProtobufEnum {
   const ChatJoinMode._(super.value, super.name);
 }
 
+/// Какие реакции можно ставить в группе (подэтап 3.4): все из общего набора
+/// (allChatReactions клиента = chatAllReactions сервера, общий
+/// all_chat_reactions.json), только выбранные (ChatInfo.reactions) или никаких.
+/// Смена режима не трогает уже поставленные.
+class ChatReactionsMode extends $pb.ProtobufEnum {
+  static const ChatReactionsMode CHAT_REACTIONS_ALL = ChatReactionsMode._(0, _omitEnumNames ? '' : 'CHAT_REACTIONS_ALL');
+  static const ChatReactionsMode CHAT_REACTIONS_SOME = ChatReactionsMode._(1, _omitEnumNames ? '' : 'CHAT_REACTIONS_SOME');
+  static const ChatReactionsMode CHAT_REACTIONS_NONE = ChatReactionsMode._(2, _omitEnumNames ? '' : 'CHAT_REACTIONS_NONE');
+
+  static const $core.List<ChatReactionsMode> values = <ChatReactionsMode>[
+    CHAT_REACTIONS_ALL,
+    CHAT_REACTIONS_SOME,
+    CHAT_REACTIONS_NONE,
+  ];
+
+  static final $core.List<ChatReactionsMode?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 2);
+  static ChatReactionsMode? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const ChatReactionsMode._(super.value, super.name);
+}
+
 class MessageKind extends $pb.ProtobufEnum {
   static const MessageKind MESSAGE_KIND_TEXT = MessageKind._(0, _omitEnumNames ? '' : 'MESSAGE_KIND_TEXT');
   static const MessageKind MESSAGE_KIND_PHOTO = MessageKind._(1, _omitEnumNames ? '' : 'MESSAGE_KIND_PHOTO');
@@ -260,6 +281,25 @@ class Chats_ReadDateResult_Status extends $pb.ProtobufEnum {
   static Chats_ReadDateResult_Status? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const Chats_ReadDateResult_Status._(super.value, super.name);
+}
+
+class Messages_ReadParticipantsResult_Status extends $pb.ProtobufEnum {
+  static const Messages_ReadParticipantsResult_Status READ = Messages_ReadParticipantsResult_Status._(0, _omitEnumNames ? '' : 'READ');
+  static const Messages_ReadParticipantsResult_Status NOT_READ =
+      Messages_ReadParticipantsResult_Status._(1, _omitEnumNames ? '' : 'NOT_READ');
+  static const Messages_ReadParticipantsResult_Status UNAVAILABLE =
+      Messages_ReadParticipantsResult_Status._(2, _omitEnumNames ? '' : 'UNAVAILABLE');
+
+  static const $core.List<Messages_ReadParticipantsResult_Status> values = <Messages_ReadParticipantsResult_Status>[
+    READ,
+    NOT_READ,
+    UNAVAILABLE,
+  ];
+
+  static final $core.List<Messages_ReadParticipantsResult_Status?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 2);
+  static Messages_ReadParticipantsResult_Status? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const Messages_ReadParticipantsResult_Status._(super.value, super.name);
 }
 
 const $core.bool _omitEnumNames = $core.bool.fromEnvironment('protobuf.omit_enum_names');
