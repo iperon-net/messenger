@@ -65,17 +65,18 @@ void main() {
         PRIMARY KEY (userID, chatID, messageID)
       );
     ''');
-    // Как в миграции 35.
+    // Как в миграциях 35 и 36.
     await db.execute('''
       CREATE TABLE chatGroups (
         userID BLOB NOT NULL, chatID BLOB NOT NULL, info BLOB NOT NULL, role INTEGER NOT NULL DEFAULT 0, pts INTEGER NOT NULL DEFAULT 0,
+        rights BLOB, rank TEXT NOT NULL DEFAULT '',
         PRIMARY KEY (userID, chatID)
       );
     ''');
     await db.execute('''
       CREATE TABLE chatGroupMembers (
         userID BLOB NOT NULL, chatID BLOB NOT NULL, memberUserID BLOB NOT NULL, role INTEGER NOT NULL DEFAULT 0,
-        joinedAt INTEGER NOT NULL DEFAULT 0, inviterUserID BLOB,
+        joinedAt INTEGER NOT NULL DEFAULT 0, inviterUserID BLOB, rights BLOB, rank TEXT NOT NULL DEFAULT '', promotedByUserID BLOB,
         PRIMARY KEY (userID, chatID, memberUserID)
       );
     ''');
@@ -134,7 +135,7 @@ void main() {
     expect(group?.info.title, 'Дом');
     // Журнал обрезан — pts как в снимке.
     final fresh = groupDialog(pts: 40);
-    await store.upsertGroup(userID: me, info: fresh.chat, role: fresh.role, resetPts: true);
+    await store.upsertGroup(userID: me, dialog: fresh, resetPts: true);
     group = await store.group(userID: me, chatID: groupChat);
     expect(group?.pts, 40);
   });
@@ -197,5 +198,51 @@ void main() {
     await store.replaceDialogs(userID: me, dialogs: [private]);
     expect(await store.dialog(userID: me, chatID: groupChat), isNull);
     expect(await store.group(userID: me, chatID: groupChat), isNull);
+  });
+
+  test('3.2: мои права и звание — из диалога, меняются dialogSettings', () async {
+    final admin = groupDialog()
+      ..role = pb.ChatRole.CHAT_ROLE_ADMIN
+      ..rights = pb.ChatAdminRights(banUsers: true, pinMessages: true)
+      ..rank = 'модератор';
+    await store.upsertDialog(userID: me, dialog: admin);
+    var group = await store.group(userID: me, chatID: groupChat);
+    expect(group?.role, pb.ChatRole.CHAT_ROLE_ADMIN);
+    expect(group?.rights.banUsers, isTrue);
+    expect(group?.rights.changeInfo, isFalse);
+    expect(group?.rank, 'модератор');
+    // Сняли админа — роль по умолчанию, прав нет.
+    await store.setGroupRole(userID: me, chatID: groupChat, role: pb.ChatRole.CHAT_ROLE_READER, rights: pb.ChatAdminRights(), rank: '');
+    group = await store.group(userID: me, chatID: groupChat);
+    expect(group?.role, pb.ChatRole.CHAT_ROLE_READER);
+    expect(group?.rights.banUsers, isFalse);
+    expect(group?.rank, '');
+  });
+
+  test('3.2: участник — права, звание; updated заменяет запись', () async {
+    await store.upsertDialog(userID: me, dialog: groupDialog());
+    await store.upsertGroupMembers(
+      userID: me,
+      chatID: groupChat,
+      members: [pb.ChatMember(userID: peer, role: pb.ChatRole.CHAT_ROLE_WRITER, joinedAt: Int64(2))],
+    );
+    await store.upsertGroupMembers(
+      userID: me,
+      chatID: groupChat,
+      members: [
+        pb.ChatMember(
+          userID: peer,
+          role: pb.ChatRole.CHAT_ROLE_ADMIN,
+          joinedAt: Int64(2),
+          rights: pb.ChatAdminRights(deleteMessages: true),
+          rank: 'редактор',
+          promotedByUserID: me,
+        ),
+      ],
+    );
+    final members = await store.groupMembers(userID: me, chatID: groupChat);
+    expect(members.single.role, pb.ChatRole.CHAT_ROLE_ADMIN);
+    expect(members.single.rights.deleteMessages, isTrue);
+    expect(members.single.rank, 'редактор');
   });
 }
