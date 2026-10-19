@@ -65,12 +65,18 @@ void main() {
         PRIMARY KEY (userID, chatID, messageID)
       );
     ''');
-    // Как в миграциях 35 и 36.
+    // Как в миграциях 35–37.
     await db.execute('''
       CREATE TABLE chatGroups (
         userID BLOB NOT NULL, chatID BLOB NOT NULL, info BLOB NOT NULL, role INTEGER NOT NULL DEFAULT 0, pts INTEGER NOT NULL DEFAULT 0,
-        rights BLOB, rank TEXT NOT NULL DEFAULT '',
+        rights BLOB, rank TEXT NOT NULL DEFAULT '', inviteCode TEXT NOT NULL DEFAULT '', pendingRequests INTEGER NOT NULL DEFAULT 0,
         PRIMARY KEY (userID, chatID)
+      );
+    ''');
+    await db.execute('''
+      CREATE TABLE chatInviteLinks (
+        userID BLOB NOT NULL, chatID BLOB NOT NULL, code TEXT NOT NULL, link BLOB NOT NULL,
+        PRIMARY KEY (userID, chatID, code)
       );
     ''');
     await db.execute('''
