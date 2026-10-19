@@ -81,6 +81,9 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     $core.Iterable<$core.List<$core.int>>? phoneNumberAllow,
     $core.Iterable<$core.List<$core.int>>? phoneNumberDeny,
     PrivacySettings_Audience? phoneNumberFind,
+    PrivacySettings_Audience? groupInvites,
+    $core.Iterable<$core.List<$core.int>>? groupInvitesAllow,
+    $core.Iterable<$core.List<$core.int>>? groupInvitesDeny,
   }) {
     final result = create();
     if (calls != null) result.calls = calls;
@@ -109,6 +112,9 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     if (phoneNumberAllow != null) result.phoneNumberAllow.addAll(phoneNumberAllow);
     if (phoneNumberDeny != null) result.phoneNumberDeny.addAll(phoneNumberDeny);
     if (phoneNumberFind != null) result.phoneNumberFind = phoneNumberFind;
+    if (groupInvites != null) result.groupInvites = groupInvites;
+    if (groupInvitesAllow != null) result.groupInvitesAllow.addAll(groupInvitesAllow);
+    if (groupInvitesDeny != null) result.groupInvitesDeny.addAll(groupInvitesDeny);
     return result;
   }
 
@@ -147,6 +153,9 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     ..p<$core.List<$core.int>>(24, _omitFieldNames ? '' : 'phoneNumberAllow', $pb.PbFieldType.PY)
     ..p<$core.List<$core.int>>(25, _omitFieldNames ? '' : 'phoneNumberDeny', $pb.PbFieldType.PY)
     ..aE<PrivacySettings_Audience>(26, _omitFieldNames ? '' : 'phoneNumberFind', enumValues: PrivacySettings_Audience.values)
+    ..aE<PrivacySettings_Audience>(27, _omitFieldNames ? '' : 'groupInvites', enumValues: PrivacySettings_Audience.values)
+    ..p<$core.List<$core.int>>(28, _omitFieldNames ? '' : 'groupInvitesAllow', $pb.PbFieldType.PY)
+    ..p<$core.List<$core.int>>(29, _omitFieldNames ? '' : 'groupInvitesDeny', $pb.PbFieldType.PY)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -359,6 +368,26 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
   $core.bool hasPhoneNumberFind() => $_has(25);
   @$pb.TagNumber(26)
   void clearPhoneNumberFind() => $_clearField(26);
+
+  /// Аудитория «кто может добавлять меня в группы» + её allow/deny-списки
+  /// (та же семантика, что у звонков; ДЕФОЛТ — EVERYBODY, как в Telegram).
+  /// Гейт — при создании группы и добавлении участников по стороне
+  /// добавляемого; не разрешено (или заблокировал добавляющего) — человек в
+  /// restrictedUserIDs ответа, группа без него.
+  @$pb.TagNumber(27)
+  PrivacySettings_Audience get groupInvites => $_getN(26);
+  @$pb.TagNumber(27)
+  set groupInvites(PrivacySettings_Audience value) => $_setField(27, value);
+  @$pb.TagNumber(27)
+  $core.bool hasGroupInvites() => $_has(26);
+  @$pb.TagNumber(27)
+  void clearGroupInvites() => $_clearField(27);
+
+  @$pb.TagNumber(28)
+  $pb.PbList<$core.List<$core.int>> get groupInvitesAllow => $_getList(27);
+
+  @$pb.TagNumber(29)
+  $pb.PbList<$core.List<$core.int>> get groupInvitesDeny => $_getList(28);
 }
 
 /// Настройки приватности per-channel (этап 1 — только звонки). Проверка «кто
@@ -3402,6 +3431,355 @@ class PrivacyPhoneNumberFindUpdate extends $pb.GeneratedMessage {
   static PrivacyPhoneNumberFindUpdate getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyPhoneNumberFindUpdate>(create);
   static PrivacyPhoneNumberFindUpdate? _defaultInstance;
+}
+
+class PrivacyGroupInvitesUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyGroupInvitesUpdate_Request({
+    PrivacySettings_Audience? groupInvites,
+  }) {
+    final result = create();
+    if (groupInvites != null) result.groupInvites = groupInvites;
+    return result;
+  }
+
+  PrivacyGroupInvitesUpdate_Request._();
+
+  factory PrivacyGroupInvitesUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyGroupInvitesUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyGroupInvitesUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aE<PrivacySettings_Audience>(1, _omitFieldNames ? '' : 'groupInvites', enumValues: PrivacySettings_Audience.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyGroupInvitesUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyGroupInvitesUpdate_Request copyWith(void Function(PrivacyGroupInvitesUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyGroupInvitesUpdate_Request)) as PrivacyGroupInvitesUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyGroupInvitesUpdate_Request create() => PrivacyGroupInvitesUpdate_Request._();
+  @$core.override
+  PrivacyGroupInvitesUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyGroupInvitesUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyGroupInvitesUpdate_Request>(create);
+  static PrivacyGroupInvitesUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  PrivacySettings_Audience get groupInvites => $_getN(0);
+  @$pb.TagNumber(1)
+  set groupInvites(PrivacySettings_Audience value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasGroupInvites() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearGroupInvites() => $_clearField(1);
+}
+
+class PrivacyGroupInvitesUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyGroupInvitesUpdate_Response() => create();
+
+  PrivacyGroupInvitesUpdate_Response._();
+
+  factory PrivacyGroupInvitesUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyGroupInvitesUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyGroupInvitesUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyGroupInvitesUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyGroupInvitesUpdate_Response copyWith(void Function(PrivacyGroupInvitesUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyGroupInvitesUpdate_Response)) as PrivacyGroupInvitesUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyGroupInvitesUpdate_Response create() => PrivacyGroupInvitesUpdate_Response._();
+  @$core.override
+  PrivacyGroupInvitesUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyGroupInvitesUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyGroupInvitesUpdate_Response>(create);
+  static PrivacyGroupInvitesUpdate_Response? _defaultInstance;
+}
+
+/// Изменение аудитории «кто может добавлять меня в группы».
+class PrivacyGroupInvitesUpdate extends $pb.GeneratedMessage {
+  factory PrivacyGroupInvitesUpdate() => create();
+
+  PrivacyGroupInvitesUpdate._();
+
+  factory PrivacyGroupInvitesUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyGroupInvitesUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyGroupInvitesUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyGroupInvitesUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyGroupInvitesUpdate copyWith(void Function(PrivacyGroupInvitesUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyGroupInvitesUpdate)) as PrivacyGroupInvitesUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyGroupInvitesUpdate create() => PrivacyGroupInvitesUpdate._();
+  @$core.override
+  PrivacyGroupInvitesUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyGroupInvitesUpdate getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyGroupInvitesUpdate>(create);
+  static PrivacyGroupInvitesUpdate? _defaultInstance;
+}
+
+class PrivacyGroupInvitesAllowUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyGroupInvitesAllowUpdate_Request({
+    $core.Iterable<$core.List<$core.int>>? userIds,
+  }) {
+    final result = create();
+    if (userIds != null) result.userIds.addAll(userIds);
+    return result;
+  }
+
+  PrivacyGroupInvitesAllowUpdate_Request._();
+
+  factory PrivacyGroupInvitesAllowUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyGroupInvitesAllowUpdate_Request.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyGroupInvitesAllowUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..p<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'userIds', $pb.PbFieldType.PY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyGroupInvitesAllowUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyGroupInvitesAllowUpdate_Request copyWith(void Function(PrivacyGroupInvitesAllowUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyGroupInvitesAllowUpdate_Request)) as PrivacyGroupInvitesAllowUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyGroupInvitesAllowUpdate_Request create() => PrivacyGroupInvitesAllowUpdate_Request._();
+  @$core.override
+  PrivacyGroupInvitesAllowUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyGroupInvitesAllowUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyGroupInvitesAllowUpdate_Request>(create);
+  static PrivacyGroupInvitesAllowUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$core.List<$core.int>> get userIds => $_getList(0);
+}
+
+class PrivacyGroupInvitesAllowUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyGroupInvitesAllowUpdate_Response() => create();
+
+  PrivacyGroupInvitesAllowUpdate_Response._();
+
+  factory PrivacyGroupInvitesAllowUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyGroupInvitesAllowUpdate_Response.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyGroupInvitesAllowUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyGroupInvitesAllowUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyGroupInvitesAllowUpdate_Response copyWith(void Function(PrivacyGroupInvitesAllowUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyGroupInvitesAllowUpdate_Response)) as PrivacyGroupInvitesAllowUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyGroupInvitesAllowUpdate_Response create() => PrivacyGroupInvitesAllowUpdate_Response._();
+  @$core.override
+  PrivacyGroupInvitesAllowUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyGroupInvitesAllowUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyGroupInvitesAllowUpdate_Response>(create);
+  static PrivacyGroupInvitesAllowUpdate_Response? _defaultInstance;
+}
+
+/// Полная замена allow-list «всегда разрешать» для добавления в группы.
+class PrivacyGroupInvitesAllowUpdate extends $pb.GeneratedMessage {
+  factory PrivacyGroupInvitesAllowUpdate() => create();
+
+  PrivacyGroupInvitesAllowUpdate._();
+
+  factory PrivacyGroupInvitesAllowUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyGroupInvitesAllowUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyGroupInvitesAllowUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyGroupInvitesAllowUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyGroupInvitesAllowUpdate copyWith(void Function(PrivacyGroupInvitesAllowUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyGroupInvitesAllowUpdate)) as PrivacyGroupInvitesAllowUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyGroupInvitesAllowUpdate create() => PrivacyGroupInvitesAllowUpdate._();
+  @$core.override
+  PrivacyGroupInvitesAllowUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyGroupInvitesAllowUpdate getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyGroupInvitesAllowUpdate>(create);
+  static PrivacyGroupInvitesAllowUpdate? _defaultInstance;
+}
+
+class PrivacyGroupInvitesDenyUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyGroupInvitesDenyUpdate_Request({
+    $core.Iterable<$core.List<$core.int>>? userIds,
+  }) {
+    final result = create();
+    if (userIds != null) result.userIds.addAll(userIds);
+    return result;
+  }
+
+  PrivacyGroupInvitesDenyUpdate_Request._();
+
+  factory PrivacyGroupInvitesDenyUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyGroupInvitesDenyUpdate_Request.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyGroupInvitesDenyUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..p<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'userIds', $pb.PbFieldType.PY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyGroupInvitesDenyUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyGroupInvitesDenyUpdate_Request copyWith(void Function(PrivacyGroupInvitesDenyUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyGroupInvitesDenyUpdate_Request)) as PrivacyGroupInvitesDenyUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyGroupInvitesDenyUpdate_Request create() => PrivacyGroupInvitesDenyUpdate_Request._();
+  @$core.override
+  PrivacyGroupInvitesDenyUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyGroupInvitesDenyUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyGroupInvitesDenyUpdate_Request>(create);
+  static PrivacyGroupInvitesDenyUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<$core.List<$core.int>> get userIds => $_getList(0);
+}
+
+class PrivacyGroupInvitesDenyUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyGroupInvitesDenyUpdate_Response() => create();
+
+  PrivacyGroupInvitesDenyUpdate_Response._();
+
+  factory PrivacyGroupInvitesDenyUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyGroupInvitesDenyUpdate_Response.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyGroupInvitesDenyUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyGroupInvitesDenyUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyGroupInvitesDenyUpdate_Response copyWith(void Function(PrivacyGroupInvitesDenyUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyGroupInvitesDenyUpdate_Response)) as PrivacyGroupInvitesDenyUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyGroupInvitesDenyUpdate_Response create() => PrivacyGroupInvitesDenyUpdate_Response._();
+  @$core.override
+  PrivacyGroupInvitesDenyUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyGroupInvitesDenyUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyGroupInvitesDenyUpdate_Response>(create);
+  static PrivacyGroupInvitesDenyUpdate_Response? _defaultInstance;
+}
+
+/// Полная замена deny-list «всегда запрещать» для добавления в группы.
+class PrivacyGroupInvitesDenyUpdate extends $pb.GeneratedMessage {
+  factory PrivacyGroupInvitesDenyUpdate() => create();
+
+  PrivacyGroupInvitesDenyUpdate._();
+
+  factory PrivacyGroupInvitesDenyUpdate.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyGroupInvitesDenyUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyGroupInvitesDenyUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyGroupInvitesDenyUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyGroupInvitesDenyUpdate copyWith(void Function(PrivacyGroupInvitesDenyUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyGroupInvitesDenyUpdate)) as PrivacyGroupInvitesDenyUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyGroupInvitesDenyUpdate create() => PrivacyGroupInvitesDenyUpdate._();
+  @$core.override
+  PrivacyGroupInvitesDenyUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyGroupInvitesDenyUpdate getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyGroupInvitesDenyUpdate>(create);
+  static PrivacyGroupInvitesDenyUpdate? _defaultInstance;
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

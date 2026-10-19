@@ -86,6 +86,34 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
   @override
   final String id = 'ChatCreateState';
 
+  static int _$restrictedCount(ChatCreateState v) => v.restrictedCount;
+  static const Field<ChatCreateState, int> _f$restrictedCount = Field(
+    'restrictedCount',
+    _$restrictedCount,
+    opt: true,
+    def: 0,
+  );
+  static int _$failNotice(ChatCreateState v) => v.failNotice;
+  static const Field<ChatCreateState, int> _f$failNotice = Field(
+    'failNotice',
+    _$failNotice,
+    opt: true,
+    def: 0,
+  );
+  static String _$failError(ChatCreateState v) => v.failError;
+  static const Field<ChatCreateState, String> _f$failError = Field(
+    'failError',
+    _$failError,
+    opt: true,
+    def: '',
+  );
+  static bool _$basic(ChatCreateState v) => v.basic;
+  static const Field<ChatCreateState, bool> _f$basic = Field(
+    'basic',
+    _$basic,
+    opt: true,
+    def: false,
+  );
   static Status _$status(ChatCreateState v) => v.status;
   static const Field<ChatCreateState, Status> _f$status = Field(
     'status',
@@ -341,6 +369,10 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
 
   @override
   final MappableFields<ChatCreateState> fields = const {
+    #restrictedCount: _f$restrictedCount,
+    #failNotice: _f$failNotice,
+    #failError: _f$failError,
+    #basic: _f$basic,
     #status: _f$status,
     #offlineNotice: _f$offlineNotice,
     #floodNotice: _f$floodNotice,
@@ -381,6 +413,10 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
 
   static ChatCreateState _instantiate(DecodingData data) {
     return ChatCreateState(
+      restrictedCount: data.dec(_f$restrictedCount),
+      failNotice: data.dec(_f$failNotice),
+      failError: data.dec(_f$failError),
+      basic: data.dec(_f$basic),
       status: data.dec(_f$status),
       offlineNotice: data.dec(_f$offlineNotice),
       floodNotice: data.dec(_f$floodNotice),
@@ -501,6 +537,10 @@ abstract class ChatCreateStateCopyWith<$R, $In extends ChatCreateState, $Out>
   >
   get selected;
   $R call({
+    int? restrictedCount,
+    int? failNotice,
+    String? failError,
+    bool? basic,
     Status? status,
     int? offlineNotice,
     int? floodNotice,
@@ -586,6 +626,10 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
   );
   @override
   $R call({
+    int? restrictedCount,
+    int? failNotice,
+    String? failError,
+    bool? basic,
     Status? status,
     int? offlineNotice,
     int? floodNotice,
@@ -624,6 +668,10 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     bool? saved,
   }) => $apply(
     FieldCopyWithData({
+      if (restrictedCount != null) #restrictedCount: restrictedCount,
+      if (failNotice != null) #failNotice: failNotice,
+      if (failError != null) #failError: failError,
+      if (basic != null) #basic: basic,
       if (status != null) #status: status,
       if (offlineNotice != null) #offlineNotice: offlineNotice,
       if (floodNotice != null) #floodNotice: floodNotice,
@@ -665,6 +713,10 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
   );
   @override
   ChatCreateState $make(CopyWithData data) => ChatCreateState(
+    restrictedCount: data.get(#restrictedCount, or: $value.restrictedCount),
+    failNotice: data.get(#failNotice, or: $value.failNotice),
+    failError: data.get(#failError, or: $value.failError),
+    basic: data.get(#basic, or: $value.basic),
     status: data.get(#status, or: $value.status),
     offlineNotice: data.get(#offlineNotice, or: $value.offlineNotice),
     floodNotice: data.get(#floodNotice, or: $value.floodNotice),

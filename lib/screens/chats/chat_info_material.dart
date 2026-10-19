@@ -242,9 +242,11 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
     final cubit = context.read<ChatCubit>();
     final error = Theme.of(context).colorScheme.error;
     final members = cubit.state.members;
-    final manage = canRestrictMember(chat, members, member);
-    final promote = canPromoteMember(chat, members, member);
-    final ban = canBanMember(chat, members, member);
+    // Роли, исключение и админы — расширенное в группах (на сервере — 3.2).
+    final extras = cubit.features.groupExtras;
+    final manage = extras && canRestrictMember(chat, members, member);
+    final promote = extras && canPromoteMember(chat, members, member);
+    final ban = extras && canBanMember(chat, members, member);
     final action = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
@@ -559,7 +561,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                             ),
                           ),
                         if (community && chat.isMember) CommunityChatsMaterial(community: chat, chats: state.communityChats, card: card),
-                        if (chat.canManage && chat.type != models.ChatType.private)
+                        if (chat.canManage && chat.type != models.ChatType.private && context.read<ChatCubit>().features.groupExtras)
                           Card(
                             margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
                             color: card,
@@ -679,7 +681,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                         margin: EdgeInsets.fromLTRB(12, tabs.length > 1 ? 0 : 16, 12, 0),
                         onMemberTap: (member) => _memberTap(context, chat, member),
                         memberWrapper: _memberLongPress(context, chat),
-                        onAddMembers: chat.canManage ? () => _addMembers(context) : null,
+                        onAddMembers: canAddMembers(chat, context.read<ChatCubit>().features) ? () => _addMembers(context) : null,
                       )
                     else if (tabs.isNotEmpty)
                       SliverToBoxAdapter(
@@ -705,7 +707,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                                 onOpenMessage: (id) => Navigator.of(context).pop(ChatInfoResult.goTo(id)),
                                 onMemberTap: (member) => _memberTap(context, chat, member),
                                 memberWrapper: _memberLongPress(context, chat),
-                                onAddMembers: chat.canManage ? () => _addMembers(context) : null,
+                                onAddMembers: canAddMembers(chat, context.read<ChatCubit>().features) ? () => _addMembers(context) : null,
                               ),
                             ],
                           ),

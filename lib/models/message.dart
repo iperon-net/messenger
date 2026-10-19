@@ -246,6 +246,10 @@ class Message with MessageMappable {
   /// Автор входящего в группе/канале (в личном чате не показывается).
   final String senderName;
 
+  /// userID автора входящего в группе (hex) — его аватар слева от пузыря;
+  /// пусто — демо / личный чат (плейсхолдер по имени).
+  final String senderUserID;
+
   final MessageStatus status;
   final DateTime date;
   final bool edited;
@@ -376,6 +380,7 @@ class Message with MessageMappable {
     this.entities = const [],
     this.outgoing = false,
     this.senderName = '',
+    this.senderUserID = '',
     this.status = MessageStatus.sent,
     required this.date,
     this.edited = false,

@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:fixnum/fixnum.dart';
 
+import '../i18n/translations.g.dart';
 import '../models.dart' as models;
 import '../protobuf/protos/chats_v1.pb.dart' as pb;
 
@@ -109,14 +110,43 @@ models.MessageCall? callFromPb(pb.MessageContent content) {
   );
 }
 
-/// Входящее, которое не считается непрочитанным: звонок, кроме пропущенного,
-/// и «закрепил сообщение» (как на сервере, `noUnread`).
 /// Служебное от сервера (плашка по центру ленты): закреп, автоудаление,
 /// защита содержимого и запрос её снять.
-bool _isService(pb.MessageContent content) =>
+bool _isPrivateService(pb.MessageContent content) =>
     content.hasPin() || content.hasTtlChanged() || content.hasNoForwards() || content.hasNoForwardsRequest();
 
-bool skipsUnread(pb.MessageContent content) => _isService(content) || (content.hasCall() && callFromPb(content)?.unanswered != true);
+/// Плюс служебные группы («создал группу», «добавил …», «вышел» …).
+bool _isService(pb.MessageContent content) => _isPrivateService(content) || content.hasChatAction();
+
+/// Входящее, которое не считается непрочитанным: звонок, кроме пропущенного,
+/// и «закрепил сообщение» (как на сервере, `noUnread`). Служебные группы
+/// считаются (как в Telegram).
+bool skipsUnread(pb.MessageContent content) => _isPrivateService(content) || (content.hasCall() && callFromPb(content)?.unanswered != true);
+
+/// Текст служебного группы ([pb.MessageChatAction]) — плашка в ленте и превью
+/// в списке. [outgoing] — сделал я («Вы …»), [actor] — имя сделавшего,
+/// [names] — имена тех, кого добавили / исключили (меня — «вас»).
+String chatActionText(
+  Translations t,
+  pb.MessageChatAction action, {
+  required bool outgoing,
+  required String actor,
+  List<String> names = const [],
+}) {
+  final a = t.chatAction;
+  final who = names.join(', ');
+  return switch (action.kind) {
+    pb.MessageChatAction_Kind.CREATED => outgoing ? a.createdYou(title: action.title) : a.created(name: actor, title: action.title),
+    pb.MessageChatAction_Kind.ADDED => outgoing ? a.addedYou(names: who) : a.added(name: actor, names: who),
+    pb.MessageChatAction_Kind.JOINED => outgoing ? a.joinedYou : a.joined(name: actor),
+    pb.MessageChatAction_Kind.LEFT => outgoing ? a.leftYou : a.left(name: actor),
+    pb.MessageChatAction_Kind.REMOVED => outgoing ? a.removedYou(names: who) : a.removed(name: actor, names: who),
+    pb.MessageChatAction_Kind.TITLE_CHANGED => outgoing ? a.titleYou(title: action.title) : a.title(name: actor, title: action.title),
+    pb.MessageChatAction_Kind.PHOTO_CHANGED => outgoing ? a.photoYou : a.photo(name: actor),
+    pb.MessageChatAction_Kind.PHOTO_REMOVED => outgoing ? a.photoRemovedYou : a.photoRemoved(name: actor),
+    _ => '',
+  };
+}
 
 /// Текст закреплённого для «закрепил «…»»: подпись / текст, у файла — имя,
 /// у остального — пусто (тогда подпись вида — на стороне экрана).
@@ -152,7 +182,8 @@ models.MessageStatus outgoingStatus({required int messageID, required int readOu
 
 /// Сообщение сервера → `Message`. [replied] — сообщение, на которое ответили
 /// (если есть в локальном кэше), [peerName] — имя собеседника (автор входящих в
-/// личном чате).
+/// личном чате). Группа — [nameOf]: имя участника по userID (автор и ответ),
+/// [serviceText] — текст служебного группы (см. [chatActionText]).
 models.Message messageFromPb(
   pb.ChatMessage m, {
   required String chatID,
@@ -161,10 +192,13 @@ models.Message messageFromPb(
   required bool isSelf,
   pb.ChatMessage? replied,
   String peerName = '',
+  String Function(List<int> userID)? nameOf,
+  String serviceText = '',
   bool pinned = false,
   bool pinnedOnlyMe = false,
 }) {
   final outgoing = sameID(m.fromUserID, myUserID);
+  final group = nameOf != null;
   final content = m.content;
   final kind = contentKind(content);
   final first = content.media.isEmpty ? null : content.media.first;
@@ -181,10 +215,11 @@ models.Message messageFromPb(
     noForwardsPrev: content.noForwards.prevValue,
     noForwardsRequestID: content.noForwards.requestID > 0 ? content.noForwards.requestID.toString() : '',
     noForwardsRequest: content.hasNoForwardsRequest(),
-    senderName: _isService(content) && !outgoing ? peerName : '',
+    senderName: outgoing ? '' : (group ? nameOf(m.fromUserID) : (_isService(content) ? peerName : '')),
+    senderUserID: group && !outgoing ? idHex(m.fromUserID) : '',
     pinned: pinned,
     pinnedOnlyMe: pinned && pinnedOnlyMe,
-    text: content.text,
+    text: content.hasChatAction() ? serviceText : content.text,
     entities: [for (final e in content.entities) entityFromPb(e)],
     outgoing: outgoing,
     status: outgoing
@@ -192,7 +227,14 @@ models.Message messageFromPb(
         : models.MessageStatus.read,
     date: DateTime.fromMillisecondsSinceEpoch(m.date.toInt()),
     edited: m.editDate > 0,
-    reply: content.hasReplyTo() ? replyFromPb(content.replyTo, replied: replied, myUserID: myUserID, peerName: peerName) : null,
+    reply: content.hasReplyTo()
+        ? replyFromPb(
+            content.replyTo,
+            replied: replied,
+            myUserID: myUserID,
+            peerName: group && replied != null ? nameOf(replied.fromUserID) : peerName,
+          )
+        : null,
     fileName: first?.fileName ?? '',
     fileSize: first?.size.toInt() ?? 0,
     duration: first?.duration ?? 0,
@@ -360,3 +402,12 @@ pb.ChatFolder folderToPb(models.ChatFolder folder) {
     excludeRead: folder.excludeRead,
   );
 }
+
+/// Роль в группе с сервера → модель (в 3.1 приходят только владелец и
+/// «Запись»; неизвестная — «Запись»).
+models.ChatRole roleFromPb(pb.ChatRole role) => switch (role) {
+  pb.ChatRole.CHAT_ROLE_OWNER => models.ChatRole.owner,
+  pb.ChatRole.CHAT_ROLE_ADMIN => models.ChatRole.admin,
+  pb.ChatRole.CHAT_ROLE_READER => models.ChatRole.reader,
+  _ => models.ChatRole.writer,
+};

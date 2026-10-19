@@ -20,7 +20,7 @@ enum CallsListKind { allow, deny }
 /// рождения, «О себе», последнее посещение или «кто может мне писать». Пикер контактов один на все —
 /// различается только тем, какой список настройки он заменяет через
 /// [SettingsPrivacyAndSecurityCubit].
-enum PrivacyChannel { calls, birthday, aboutMe, lastSeen, messages, forwards, phoneNumber }
+enum PrivacyChannel { calls, birthday, aboutMe, lastSeen, messages, forwards, phoneNumber, groupInvites }
 
 @MappableClass(includeCustomMappers: [Uint8ListMapper()])
 class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappable {
@@ -102,6 +102,15 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
   final List<Uint8List> forwardsAllow;
   final List<Uint8List> forwardsDeny;
 
+  /// «Кто может добавлять меня в группы». Дефолт — ВСЕ (как в Telegram и на
+  /// сервере). Гейт серверный, при создании группы / добавлении участников:
+  /// нельзя — меня в группу не добавят (у добавляющего — «не добавлены»).
+  final CallsPrivacyAudience groupInvitesAudience;
+
+  /// Allow/deny-списки исключений для групп (см. [callsAllow]/[callsDeny]).
+  final List<Uint8List> groupInvitesAllow;
+  final List<Uint8List> groupInvitesDeny;
+
   /// «Скрывать время прочтения» (в «Последнем посещении»): «Прочитано в 12:30»
   /// не видно тем, кому не видно моё последнее посещение. Взаимно — включив,
   /// сам не видишь чужое. Галочки ✓✓ остаются.
@@ -153,6 +162,9 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
     this.forwardsAudience = CallsPrivacyAudience.everybody,
     this.forwardsAllow = const [],
     this.forwardsDeny = const [],
+    this.groupInvitesAudience = CallsPrivacyAudience.everybody,
+    this.groupInvitesAllow = const [],
+    this.groupInvitesDeny = const [],
     this.hideReadTime = false,
     this.messagesTTL = 0,
     this.blocked = const [],

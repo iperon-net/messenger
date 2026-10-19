@@ -14,7 +14,8 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-/// Тип чата. Пока только личные; группы/каналы/сообщества — следующие срезы.
+/// Тип чата. Личные и группы (срез 3, docs/plans/chats-groups.md); каналы /
+/// сообщества — следующие срезы.
 class ChatType extends $pb.ProtobufEnum {
   static const ChatType CHAT_TYPE_PRIVATE = ChatType._(0, _omitEnumNames ? '' : 'CHAT_TYPE_PRIVATE');
   static const ChatType CHAT_TYPE_GROUP = ChatType._(1, _omitEnumNames ? '' : 'CHAT_TYPE_GROUP');
@@ -32,6 +33,30 @@ class ChatType extends $pb.ProtobufEnum {
   static ChatType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const ChatType._(super.value, super.name);
+}
+
+/// Роль участника группы (docs/plans/chats-groups.md). Владелец — создатель:
+/// не снимается, удаляет группу. В срезе 3.1 — только OWNER и WRITER
+/// (остальные роли и права админа — подэтап 3.2).
+class ChatRole extends $pb.ProtobufEnum {
+  static const ChatRole CHAT_ROLE_NONE = ChatRole._(0, _omitEnumNames ? '' : 'CHAT_ROLE_NONE');
+  static const ChatRole CHAT_ROLE_READER = ChatRole._(1, _omitEnumNames ? '' : 'CHAT_ROLE_READER');
+  static const ChatRole CHAT_ROLE_WRITER = ChatRole._(2, _omitEnumNames ? '' : 'CHAT_ROLE_WRITER');
+  static const ChatRole CHAT_ROLE_ADMIN = ChatRole._(3, _omitEnumNames ? '' : 'CHAT_ROLE_ADMIN');
+  static const ChatRole CHAT_ROLE_OWNER = ChatRole._(4, _omitEnumNames ? '' : 'CHAT_ROLE_OWNER');
+
+  static const $core.List<ChatRole> values = <ChatRole>[
+    CHAT_ROLE_NONE,
+    CHAT_ROLE_READER,
+    CHAT_ROLE_WRITER,
+    CHAT_ROLE_ADMIN,
+    CHAT_ROLE_OWNER,
+  ];
+
+  static final $core.List<ChatRole?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 4);
+  static ChatRole? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const ChatRole._(super.value, super.name);
 }
 
 class MessageKind extends $pb.ProtobufEnum {
@@ -55,6 +80,33 @@ class MessageKind extends $pb.ProtobufEnum {
   static MessageKind? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageKind._(super.value, super.name);
+}
+
+class MessageChatAction_Kind extends $pb.ProtobufEnum {
+  static const MessageChatAction_Kind CREATED = MessageChatAction_Kind._(0, _omitEnumNames ? '' : 'CREATED');
+  static const MessageChatAction_Kind ADDED = MessageChatAction_Kind._(1, _omitEnumNames ? '' : 'ADDED');
+  static const MessageChatAction_Kind JOINED = MessageChatAction_Kind._(2, _omitEnumNames ? '' : 'JOINED');
+  static const MessageChatAction_Kind LEFT = MessageChatAction_Kind._(3, _omitEnumNames ? '' : 'LEFT');
+  static const MessageChatAction_Kind REMOVED = MessageChatAction_Kind._(4, _omitEnumNames ? '' : 'REMOVED');
+  static const MessageChatAction_Kind TITLE_CHANGED = MessageChatAction_Kind._(5, _omitEnumNames ? '' : 'TITLE_CHANGED');
+  static const MessageChatAction_Kind PHOTO_CHANGED = MessageChatAction_Kind._(6, _omitEnumNames ? '' : 'PHOTO_CHANGED');
+  static const MessageChatAction_Kind PHOTO_REMOVED = MessageChatAction_Kind._(7, _omitEnumNames ? '' : 'PHOTO_REMOVED');
+
+  static const $core.List<MessageChatAction_Kind> values = <MessageChatAction_Kind>[
+    CREATED,
+    ADDED,
+    JOINED,
+    LEFT,
+    REMOVED,
+    TITLE_CHANGED,
+    PHOTO_CHANGED,
+    PHOTO_REMOVED,
+  ];
+
+  static final $core.List<MessageChatAction_Kind?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 7);
+  static MessageChatAction_Kind? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const MessageChatAction_Kind._(super.value, super.name);
 }
 
 class MessageEntity_Type extends $pb.ProtobufEnum {

@@ -403,6 +403,60 @@ class ChatsFloodListener<B extends StateStreamable<S>, S> extends StatelessWidge
   );
 }
 
+/// Группа создана / участники добавлены, но [count] человек нет — их
+/// приватность «Кто может добавлять меня в группы».
+Future<void> showChatsRestricted(BuildContext context, int count) {
+  final t = context.t.chatAction;
+  return _showNotice(
+    context,
+    t.restricted(n: count, count: count),
+    title: t.restrictedTitle,
+  );
+}
+
+/// Сервер отклонил действие с группой ([error] — ключ ошибки сервера).
+void showChatsFailed(BuildContext context, String error) {
+  final t = context.t.chatAction;
+  unawaited(
+    _showNotice(context, switch (error) {
+      'titleInvalid' => t.titleInvalid,
+      'groupsDisabled' => t.groupsDisabled,
+      _ => t.failed,
+    }),
+  );
+}
+
+/// Показывает [showChatsRestricted] / [showChatsFailed], когда cubit сообщает
+/// о частичном добавлении ([restricted] растёт, [count] — сколько не
+/// добавлены) или отказе сервера ([failed] растёт, [error] — ключ).
+class ChatsGroupNoticeListener<B extends StateStreamable<S>, S> extends StatelessWidget {
+  final int Function(S state) restricted;
+  final int Function(S state) count;
+  final int Function(S state) failed;
+  final String Function(S state) error;
+  final Widget child;
+
+  const ChatsGroupNoticeListener({
+    super.key,
+    required this.restricted,
+    required this.count,
+    required this.failed,
+    required this.error,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) => BlocListener<B, S>(
+    listenWhen: (previous, current) => restricted(current) > restricted(previous),
+    listener: (context, state) => unawaited(showChatsRestricted(context, count(state))),
+    child: BlocListener<B, S>(
+      listenWhen: (previous, current) => failed(current) > failed(previous),
+      listener: (context, state) => showChatsFailed(context, error(state)),
+      child: child,
+    ),
+  );
+}
+
 /// Тап по упоминанию по имени (без @username) — профиль человека.
 void openMentionName(BuildContext context, String userID) => openUserProfile(context, userID);
 
@@ -608,8 +662,9 @@ Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController
   final cubit = context.read<ChatCubit>();
   final chat = cubit.state.chat;
   if (!checkSlowMode(context) || !checkNewcomer(context, media: true)) return;
-  // «Опрос» — в группах, сообществах, каналах и комментариях (не в личных).
-  final polls = chat != null && chat.type != models.ChatType.private;
+  // «Опрос» — в группах, сообществах, каналах и комментариях (не в личных);
+  // на сервере опросов пока нет.
+  final polls = chat != null && chat.type != models.ChatType.private && cubit.features.groupExtras;
   final result = await showToolbarAttachments(
     context,
     tabs: [ToolbarAttachmentTabKind.gallery, ToolbarAttachmentTabKind.file, if (polls) ToolbarAttachmentTabKind.poll],

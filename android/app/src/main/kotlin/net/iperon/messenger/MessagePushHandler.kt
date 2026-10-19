@@ -131,9 +131,13 @@ object MessagePushHandler {
                     style.messages.removeAt(0)
                     ids.removeAt(0)
                 }
+                // Группа: название — заголовком беседы, отправитель — у каждого
+                // сообщения («Имя: текст»).
+                val group = payload.chatTitle.isNotEmpty()
+                if (group) style.setConversationTitle(payload.chatTitle).setGroupConversation(true)
                 builder.setStyle(style)
-                    .setContentTitle(payload.title.ifEmpty { appName })
-                    .setContentText(text)
+                    .setContentTitle(if (group) payload.chatTitle else payload.title.ifEmpty { appName })
+                    .setContentText(if (group && payload.title.isNotEmpty()) "${payload.title}: $text" else text)
                     .addExtras(android.os.Bundle().apply { putLongArray(EXTRA_MESSAGE_IDS, ids.toLongArray()) })
             }
 

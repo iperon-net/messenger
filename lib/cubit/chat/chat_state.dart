@@ -127,9 +127,23 @@ class ChatState with ChatStateMappable {
   /// (`ChatsOfflineException`): экран показывает «Нет соединения».
   final int offlineNotice;
 
+  /// Добавили участников, но не всех: растёт на каждый такой ответ,
+  /// [restrictedCount] — сколько не добавлены (их приватность).
+  final int restrictedNotice;
+  final int restrictedCount;
+
+  /// Сервер отклонил действие с группой: растёт на каждый отказ, [failError]
+  /// — ключ ошибки сервера («titleInvalid», «groupsDisabled» …).
+  final int failNotice;
+  final String failError;
+
   const ChatState({
     this.status = Status.initialization,
     this.offlineNotice = 0,
+    this.restrictedNotice = 0,
+    this.restrictedCount = 0,
+    this.failNotice = 0,
+    this.failError = '',
     this.chat,
     this.messages = const [],
     this.communityChats = const [],

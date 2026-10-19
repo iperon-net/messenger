@@ -63,3 +63,43 @@ UpdatesPlan planUpdates(int localPts, List<int> updatesPts, {int statePts = 0}) 
   if (!gap && statePts > pts) gap = true;
   return UpdatesPlan(apply: apply, pts: pts, gap: gap);
 }
+
+/// План применения обновлений журналов ЧАТОВ (группы, `Update.chatPts > 0`):
+/// у каждой группы свой журнал без дыр, порядок — по chatPts внутри chatID
+/// (те же правила, что у журнала пользователя: повтор — пропуск, дыра — догон
+/// через `Chats.GetChatDifference` по этому чату).
+class ChatUpdatesPlan {
+  /// hex chatID → план по этому чату (индексы — в исходной пачке).
+  final Map<String, UpdatesPlan> chats;
+
+  /// Индексы обновлений групп, которых у нас нет (ещё не пришёл dialogNew или
+  /// уже вышли): не применяем — группа придёт через журнал пользователя с
+  /// актуальным pts.
+  final List<int> unknown;
+
+  const ChatUpdatesPlan({required this.chats, required this.unknown});
+
+  /// Чаты, которые после применения надо догнать (hex chatID).
+  Iterable<String> get gaps => chats.entries.where((e) => e.value.gap).map((e) => e.key);
+}
+
+/// [localPts] — известные группы (hex chatID → последний применённый chatPts),
+/// [updates] — chatID и chatPts обновлений пачки (в любом порядке).
+ChatUpdatesPlan planChatUpdates(Map<String, int> localPts, List<({String chatID, int chatPts})> updates) {
+  final byChat = <String, List<int>>{};
+  for (final (i, u) in updates.indexed) {
+    byChat.putIfAbsent(u.chatID, () => []).add(i);
+  }
+  final chats = <String, UpdatesPlan>{};
+  final unknown = <int>[];
+  for (final MapEntry(key: chatID, value: indices) in byChat.entries) {
+    final local = localPts[chatID];
+    if (local == null) {
+      unknown.addAll(indices);
+      continue;
+    }
+    final plan = planUpdates(local, [for (final i in indices) updates[i].chatPts]);
+    chats[chatID] = UpdatesPlan(apply: [for (final j in plan.apply) indices[j]], pts: plan.pts, gap: plan.gap);
+  }
+  return ChatUpdatesPlan(chats: chats, unknown: unknown);
+}

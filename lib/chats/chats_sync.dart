@@ -23,6 +23,10 @@ import 'updates_plan.dart';
 import 'chats_media_cleanup.dart';
 import 'chats_typing.dart';
 
+/// Capability сессии «умеет группы» (`Subscribe.capabilities`, флаг «Группы»
+/// на экране «Разработчик»): групповое сервер отдаёт только таким сессиям.
+const groupsCapability = 'groups';
+
 /// Действие требует сети, а её нет (или сервер недоступен): ничего не
 /// изменилось — UI должен честно сказать «нет сети», а не делать вид, что
 /// получилось.
@@ -77,11 +81,28 @@ class ChatsRequestException implements Exception {
   /// «requestExpired»).
   bool get isRequestExpired => statusCode == StatusCode.failedPrecondition && error == 'requestExpired';
 
+  /// Группы выключены — на сервере (`groups.enabled`) или у сессии нет
+  /// capability `groups` (`FailedPrecondition` «groupsDisabled»).
+  bool get isGroupsDisabled => statusCode == StatusCode.failedPrecondition && error == 'groupsDisabled';
+
   /// Не найдено (`NotFound`): например, пользователя с таким именем нет.
   bool get isNotFound => statusCode == StatusCode.notFound;
 
   @override
   String toString() => 'ChatsRequestException($statusCode): $error';
+}
+
+/// Группа создана / участники добавлены, но не все: [count] человек не
+/// добавлены — их приватность «Кто может добавлять меня в группы» (или они
+/// меня заблокировали). [chatID] — группа (hex).
+class ChatsMembersRestrictedException implements Exception {
+  final String chatID;
+  final int count;
+
+  const ChatsMembersRestrictedException(this.chatID, this.count);
+
+  @override
+  String toString() => 'ChatsMembersRestrictedException: $count не добавлены в $chatID';
 }
 
 /// Синхронизация чатов с сервером по модели Telegram (см.
@@ -213,6 +234,41 @@ class ChatsSync {
     }
   }
 
+  bool _groups = false;
+
+  /// Флаг «Группы» (экран «Разработчик»): capability `groups` в Subscribe,
+  /// журналы групп и группы в списке. Выключен — кэш групп не стирается.
+  bool get groups => _groups;
+
+  /// Включили — после переподключения перечитать список диалогов целиком:
+  /// группы, созданные без флага, в журнал этой сессии не попадали.
+  bool _reloadOnConnect = false;
+
+  final _groupsChanged = StreamController<void>.broadcast();
+
+  final _membersChanged = StreamController<String>.broadcast();
+
+  /// Изменился состав группы (hex chatID): `Update.chatMembers` или страница
+  /// `Chats.Members`.
+  Stream<String> get membersChanged => _membersChanged.stream;
+
+  /// Состав группы перечитан с сервера ([ChatsRemoteDataSource]).
+  void notifyMembersChanged(String chatID) => _membersChanged.add(chatID);
+
+  /// Переключили «Группы» — список чатов перечитывается (группы появляются /
+  /// скрываются).
+  Stream<void> get groupsChanged => _groupsChanged.stream;
+
+  /// Ставит [CommonCubit]: при старте ([initial] — без перезагрузки списка) и
+  /// при переключении. Набор capability поменялся — стрим переподписывается.
+  void setGroups(bool value, {bool initial = false}) {
+    if (_groups == value) return;
+    _groups = value;
+    if (value && !initial) _reloadOnConnect = true;
+    _groupsChanged.add(null);
+    if (getIt.isRegistered<API>()) unawaited(getIt.get<API>().resubscribe());
+  }
+
   StreamSubscription<int>? _badgeSub;
 
   /// Бейдж на иконке (iOS) — из локального списка диалогов при каждом его
@@ -232,9 +288,11 @@ class ChatsSync {
     final changes = StreamController<void>();
     final dialogsSub = repositories.db.onChange([ChatsRepository.dialogsTable]).listen(changes.add, onError: changes.addError);
     final hiddenSub = repositories.hiddenProfiles.changes.listen(changes.add);
+    final groupsSub = _groupsChanged.stream.listen(changes.add);
     changes.onCancel = () async {
       await dialogsSub.cancel();
       await hiddenSub.cancel();
+      await groupsSub.cancel();
     };
     _badgeSub = changes.stream
         .asyncMap((_) => _badge())
@@ -256,6 +314,8 @@ class ChatsSync {
     var total = 0;
     for (final row in await _store.dialogs(userID: me)) {
       if (mutedFromPb(row.mutedUntil, now).muted) continue;
+      // Группы без флага «Группы» не видны — и в бейдж не идут (как на сервере).
+      if (!_groups && row.type != pb.ChatType.CHAT_TYPE_PRIVATE.value) continue;
       if (row.peerUserID case final peer? when hidden.containsKey(idHex(peer))) continue;
       total += row.unreadCount > 0 ? row.unreadCount : (row.markedUnread ? 1 : 0);
     }
@@ -290,7 +350,8 @@ class ChatsSync {
 
   Future<void> _catchUp() async {
     final user = me;
-    if (await _store.getPts(userID: user) == null) {
+    if (await _store.getPts(userID: user) == null || _reloadOnConnect) {
+      _reloadOnConnect = false;
       await _reloadDialogs();
     } else if (await _store.folders(userID: user) == null) {
       // Журнал уже был до папок (обновили приложение) — снимок отдельно.
@@ -299,6 +360,8 @@ class ChatsSync {
     // Пока листали страницы списка, могли прийти обновления — догоняем от pts
     // первой страницы (повторное применение идемпотентно).
     await _getDifference();
+    // Журналы групп — каждый свой: что изменилось, пока нас не было.
+    if (_groups) await _syncGroups();
     await _ensureSelfChat(user);
   }
 
@@ -347,7 +410,7 @@ class ChatsSync {
     final pts = state.pts.toInt();
     final date = state.date.toInt();
     await _store.transaction((tx) async {
-      await tx.replaceDialogs(userID: user, dialogs: dialogs, staleHistory: staleHistory);
+      await tx.replaceDialogs(userID: user, dialogs: dialogs, staleHistory: staleHistory, keepGroups: !_groups);
       await tx.setPts(userID: user, pts: pts, date: date);
     });
     // Изменения папок после этого pts придут обновлениями folders.
@@ -413,8 +476,85 @@ class ChatsSync {
       }
       // Пустой ответ с state.pts == нашему (параллельная запись ещё идёт) —
       // pts остаётся, обновление придёт push'ем.
-      await _applyBatch(response.updates, setPts: response.state.pts.toInt());
+      final result = await _applyBatch(response.updates, setPts: response.state.pts.toInt());
+      await _catchUpChats(result.chatGaps);
       if (!response.hasMore) return;
+    }
+  }
+
+  // --- журналы групп ---
+
+  /// Предел групп в одном `GetChatsState` (как на сервере).
+  static const _chatsStateLimit = 500;
+
+  /// После подключения: у каких моих групп журнал ушёл вперёд (их догоняем
+  /// [_getChatDifference]) и из каких меня уже нет (удаляем локально).
+  Future<void> _syncGroups() async {
+    final user = me;
+    final groups = await _store.groups(userID: user);
+    for (var from = 0; from < groups.length; from += _chatsStateLimit) {
+      final chunk = groups.sublist(from, math.min(groups.length, from + _chatsStateLimit));
+      final response = await chats(
+        pb.Chats_Request(
+          getChatsState: pb.Chats_GetChatsState(
+            chats: [for (final g in chunk) pb.Chats_ChatPts(chatID: g.chatID, pts: Int64(g.pts))],
+          ),
+        ),
+      );
+      final state = response.getChatsState;
+      if (state.gone.isNotEmpty) {
+        await _store.transaction((tx) async {
+          for (final chatID in state.gone) {
+            _logger.info('chats: group ${idHex(chatID)} gone');
+            await tx.deleteDialog(userID: user, chatID: chatID);
+            unawaited(PushManager.clearChatNotifications(chatID, all: true));
+          }
+        });
+      }
+      await _catchUpChats([for (final c in state.changed) Uint8List.fromList(c.chatID)]);
+    }
+  }
+
+  /// Догнать журналы [chatIDs] (дыра в пачке / изменились, пока нас не было).
+  /// Без сети — при следующем подключении.
+  Future<void> _catchUpChats(List<Uint8List> chatIDs) async {
+    for (final chatID in chatIDs) {
+      try {
+        await _getChatDifference(chatID);
+      } on ChatsRequestException catch (error) {
+        _logger.warning('chats: chat difference ${idHex(chatID)} failed: $error');
+      }
+    }
+  }
+
+  /// `GetChatDifference` от pts группы, пока сервер говорит `hasMore`.
+  /// `tooLong` — журнал после нашего pts обрезан: диалог — из ответа, pts —
+  /// его, кэш истории чата — несверенный (сверится при открытии).
+  Future<void> _getChatDifference(Uint8List chatID) async {
+    final user = me;
+    final key = idHex(chatID);
+    for (var page = 0; page < _maxDifferencePages; page++) {
+      final group = await _store.group(userID: user, chatID: chatID);
+      if (group == null) return;
+      final response = await chats(
+        pb.Chats_Request(
+          getChatDifference: pb.Chats_GetChatDifference(chatID: chatID, pts: Int64(group.pts), limit: _pageLimit),
+        ),
+      );
+      final diff = response.getChatDifference;
+      if (diff.tooLong) {
+        _logger.info('chats: chat difference too long $key');
+        if (!diff.hasDialog()) return;
+        await _store.transaction((tx) async {
+          await tx.markChatHistoryStale(userID: user, chatID: chatID);
+          await tx.upsertDialog(userID: user, dialog: diff.dialog);
+          if (diff.dialog.hasChat()) await tx.upsertGroup(userID: user, info: diff.dialog.chat, role: diff.dialog.role, resetPts: true);
+        });
+        _noOlder.remove(key);
+        return;
+      }
+      await _applyBatch(diff.updates, chatSetPts: {key: diff.pts.toInt()});
+      if (!diff.hasMore) return;
     }
   }
 
@@ -433,38 +573,80 @@ class ChatsSync {
   Future<void> applyUpdates(pb.Updates updates) => _locked(() => _applyUpdatesLocked(updates));
 
   Future<void> _applyUpdatesLocked(pb.Updates updates) async {
-    final gap = await _applyBatch(updates.updates, statePts: updates.hasState() ? updates.state.pts.toInt() : 0);
-    if (gap) {
-      try {
-        await _getDifference();
-      } on ChatsOfflineException {
-        // Догоним при следующем подключении.
-      }
+    final result = await _applyBatch(updates.updates, statePts: updates.hasState() ? updates.state.pts.toInt() : 0);
+    try {
+      if (result.gap) await _getDifference();
+      await _catchUpChats(result.chatGaps);
+    } on ChatsOfflineException {
+      // Догоним при следующем подключении.
     }
   }
 
   /// Применяет пачку в одной транзакции (диалоги + сообщения + pts атомарно).
-  /// [setPts] — pts, до которого пачка покрывает журнал (ответ GET_DIFFERENCE).
-  /// Возвращает, есть ли дыра.
-  Future<bool> _applyBatch(List<pb.Update> updates, {int statePts = 0, int? setPts}) async {
+  /// [setPts] — pts, до которого пачка покрывает журнал (ответ GET_DIFFERENCE);
+  /// [chatSetPts] — то же для журналов групп (hex chatID → pts, ответ
+  /// GetChatDifference). Обновления с `chatPts > 0` — журналы групп
+  /// ([planChatUpdates]), применяются после журнала пользователя: его
+  /// dialogNew из той же пачки заводит группу. Возвращает, есть ли дыра в
+  /// журнале пользователя и в каких группах.
+  Future<({bool gap, List<Uint8List> chatGaps})> _applyBatch(
+    List<pb.Update> updates, {
+    int statePts = 0,
+    int? setPts,
+    Map<String, int> chatSetPts = const {},
+  }) async {
     final user = me;
     final followUps = _FollowUps();
-    final gap = await _store.transaction((tx) async {
+    final own = <int>[];
+    final shared = <int>[];
+    for (final (i, update) in updates.indexed) {
+      (update.chatPts > 0 ? shared : own).add(i);
+    }
+    final result = await _store.transaction((tx) async {
       final local = await tx.getPts(userID: user);
       // Журнал ещё не загружен — всё придёт полным списком при подключении.
-      if (local == null) return false;
-      final plan = planUpdates(local, [for (final u in updates) u.pts.toInt()], statePts: setPts == null ? statePts : 0);
-      for (final i in plan.apply) {
-        await _applyOne(tx, user, updates[i], followUps);
+      if (local == null) return (gap: false, chatGaps: const <Uint8List>[]);
+      final plan = planUpdates(local, [for (final i in own) updates[i].pts.toInt()], statePts: setPts == null ? statePts : 0);
+      for (final j in plan.apply) {
+        await _applyOne(tx, user, updates[own[j]], followUps);
       }
       final pts = setPts == null ? plan.pts : math.max(plan.pts, setPts);
       if (pts != local) await tx.setPts(userID: user, pts: pts);
-      return plan.gap;
+
+      final chatGaps = <Uint8List>[];
+      if (shared.isNotEmpty || chatSetPts.isNotEmpty) {
+        final known = {for (final g in await tx.groups(userID: user)) idHex(g.chatID): g.pts};
+        final chatPlan = planChatUpdates(known, [
+          for (final i in shared) (chatID: idHex(updates[i].chatID), chatPts: updates[i].chatPts.toInt()),
+        ]);
+        for (final MapEntry(key: chatID, value: chat) in chatPlan.chats.entries) {
+          for (final i in chat.apply) {
+            await _applyOne(tx, user, updates[shared[i]], followUps);
+          }
+          // Группу могли удалить этой же пачкой (dialogDeleted) — pts уже некуда.
+          final ptsNow = math.max(chat.pts, chatSetPts[chatID] ?? 0);
+          if (ptsNow != known[chatID]) await tx.setGroupPts(userID: user, chatID: idBytes(chatID), pts: ptsNow);
+          if (chat.gap) chatGaps.add(idBytes(chatID));
+        }
+        // Ответ GetChatDifference без обновлений — pts всё равно сдвигается.
+        for (final MapEntry(key: chatID, value: forced) in chatSetPts.entries) {
+          if (chatPlan.chats.containsKey(chatID)) continue;
+          final current = known[chatID];
+          if (current != null && forced > current) await tx.setGroupPts(userID: user, chatID: idBytes(chatID), pts: forced);
+        }
+        if (chatPlan.unknown.isNotEmpty) _logger.debug('chats: ${chatPlan.unknown.length} updates of unknown groups skipped');
+      }
+      return (gap: plan.gap, chatGaps: chatGaps);
     });
+    for (final chatID in followUps.membersChanged) {
+      _membersChanged.add(chatID);
+    }
     if (followUps.reloadDialogs || followUps.refreshTop.isNotEmpty || followUps.refreshPinned.isNotEmpty) {
       unawaited(_runFollowUps(followUps));
     }
-    return gap;
+    if (followUps.chatCatchUp.isEmpty) return result;
+    final gaps = {for (final id in result.chatGaps) idHex(id)};
+    return (gap: result.gap, chatGaps: [...result.chatGaps, ...followUps.chatCatchUp.where((id) => !gaps.contains(idHex(id)))]);
   }
 
   Future<void> _applyOne(ChatsRepository tx, Uint8List user, pb.Update update, _FollowUps followUps) async {
@@ -612,6 +794,31 @@ class ChatsSync {
       case pb.Update_Update.folders:
         await tx.setFolders(userID: user, folders: update.folders);
 
+      case pb.Update_Update.dialogNew:
+        // Меня добавили в группу (создал, добавили): диалог + сведения + pts
+        // журнала чата. Снимок мог отстать от уже разосланного журнала —
+        // догоняем этот чат после пачки.
+        final dialog = update.dialogNew.dialog;
+        _logger.info('chats: dialog new ${idHex(dialog.chatID)} pts=${update.pts} chatPts=${dialog.chat.pts}');
+        await tx.upsertDialog(userID: user, dialog: dialog);
+        if (dialog.hasChat()) followUps.chatCatchUp.add(Uint8List.fromList(dialog.chatID));
+
+      case pb.Update_Update.chatInfo:
+        // Название / описание / аватар / число участников — журнал чата; pts
+        // ведёт сам журнал.
+        final info = update.chatInfo.chat;
+        if (await tx.group(userID: user, chatID: info.chatID) != null) await tx.setGroupInfo(userID: user, info: info);
+
+      case pb.Update_Update.chatMembers:
+        final changed = update.chatMembers;
+        final chatID = changed.chatID.isNotEmpty ? changed.chatID : update.chatID;
+        final group = await tx.group(userID: user, chatID: chatID);
+        if (group == null) return;
+        await tx.upsertGroupMembers(userID: user, chatID: chatID, members: changed.added);
+        await tx.removeGroupMembers(userID: user, chatID: chatID, memberUserIDs: changed.removedUserIDs);
+        await tx.setGroupInfo(userID: user, info: group.info.deepCopy()..membersCount = changed.membersCount);
+        followUps.membersChanged.add(idHex(chatID));
+
       case pb.Update_Update.notSet:
         // Пустое обновление (например, новое сообщение, которое потом удалили):
         // ничего не меняем, но pts сдвигается — это не дыра.
@@ -710,6 +917,16 @@ class ChatsSync {
     } catch (error, stackTrace) {
       _logger.handle(error, stackTrace);
     }
+  }
+
+  /// Группы у меня больше нет (вышел / удалил — сервер принял): диалог,
+  /// история и участники — из кэша, не дожидаясь dialogDeleted по стриму.
+  Future<void> forgetChat(Uint8List chatID) {
+    final user = me;
+    return _locked(() async {
+      await _store.transaction((tx) => tx.deleteDialog(userID: user, chatID: chatID));
+      unawaited(PushManager.clearChatNotifications(chatID, all: true));
+    });
   }
 
   /// Диалог из ответа (OpenPrivate) — в кэш, в общей очереди с обновлениями.
@@ -1353,4 +1570,10 @@ class _FollowUps {
   bool reloadDialogs = false;
   final refreshTop = <Uint8List>[];
   final refreshPinned = <Uint8List>[];
+
+  /// Группы, которые догнать после пачки (появились через dialogNew).
+  final chatCatchUp = <Uint8List>[];
+
+  /// Группы, у которых изменился состав (hex chatID).
+  final membersChanged = <String>{};
 }

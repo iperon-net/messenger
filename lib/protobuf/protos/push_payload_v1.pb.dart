@@ -48,6 +48,7 @@ class PushPayload extends $pb.GeneratedMessage {
     $core.Iterable<$fixnum.Int64>? messageIDs,
     $core.String? senderPhone,
     $core.bool? titleFromContact,
+    $core.String? chatTitle,
   }) {
     final result = create();
     if (kind != null) result.kind = kind;
@@ -63,6 +64,7 @@ class PushPayload extends $pb.GeneratedMessage {
     if (messageIDs != null) result.messageIDs.addAll(messageIDs);
     if (senderPhone != null) result.senderPhone = senderPhone;
     if (titleFromContact != null) result.titleFromContact = titleFromContact;
+    if (chatTitle != null) result.chatTitle = chatTitle;
     return result;
   }
 
@@ -88,6 +90,7 @@ class PushPayload extends $pb.GeneratedMessage {
     ..p<$fixnum.Int64>(11, _omitFieldNames ? '' : 'messageIDs', $pb.PbFieldType.K6, protoName: 'messageIDs')
     ..aOS(12, _omitFieldNames ? '' : 'senderPhone', protoName: 'senderPhone')
     ..aOB(13, _omitFieldNames ? '' : 'titleFromContact', protoName: 'titleFromContact')
+    ..aOS(14, _omitFieldNames ? '' : 'chatTitle', protoName: 'chatTitle')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -224,6 +227,19 @@ class PushPayload extends $pb.GeneratedMessage {
   $core.bool hasTitleFromContact() => $_has(12);
   @$pb.TagNumber(13)
   void clearTitleFromContact() => $_clearField(13);
+
+  /// Сообщение в группе: название группы. Устройство показывает его
+  /// заголовком, а имя отправителя (title / книга) — в начале текста
+  /// («Имя: текст»). Пусто — личный чат. Скрытый на устройстве чат — как
+  /// скрытый профиль: без названия и текста.
+  @$pb.TagNumber(14)
+  $core.String get chatTitle => $_getSZ(13);
+  @$pb.TagNumber(14)
+  set chatTitle($core.String value) => $_setString(13, value);
+  @$pb.TagNumber(14)
+  $core.bool hasChatTitle() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearChatTitle() => $_clearField(14);
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

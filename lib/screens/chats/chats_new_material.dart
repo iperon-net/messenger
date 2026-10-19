@@ -66,6 +66,7 @@ class _ChatsNewMaterial extends State<ChatsNewMaterial> {
               child: BlocBuilder<ChatCreateCubit, ChatCreateState>(
                 builder: (context, state) {
                   final contacts = state.filtered;
+                  final settings = context.read<CommonCubit>().state.settingsDevice;
                   return ListView(
                     keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                     children: [
@@ -77,16 +78,19 @@ class _ChatsNewMaterial extends State<ChatsNewMaterial> {
                           onChanged: (value) => context.read<ChatCreateCubit>().search(value),
                         ),
                       ),
-                      // Группы, каналы и сообщества — пока только в демо (на сервере — личные).
-                      if (state.query.trim().isEmpty && context.read<CommonCubit>().state.settingsDevice.chatsDemo)
+                      // Группы, каналы и сообщества — в демо; на сервере — группы с
+                      // флагом «Группы» (каналы и сообщества — срезы 4–5).
+                      if (state.query.trim().isEmpty && (settings.chatsDemo || settings.chatsGroups))
                         Card(
                           margin: const EdgeInsets.symmetric(horizontal: 12),
                           clipBehavior: Clip.antiAlias,
                           child: Column(
                             children: [
                               action(HugeIcons.strokeRoundedUserGroup, t.screenNewChat.newGroup, '/chats/new/group'),
-                              action(HugeIcons.strokeRoundedMegaphone01, t.screenNewChat.newChannel, '/chats/new/channel'),
-                              action(HugeIcons.strokeRoundedBuilding03, t.screenNewChat.newCommunity, '/chats/new/community'),
+                              if (settings.chatsDemo) ...[
+                                action(HugeIcons.strokeRoundedMegaphone01, t.screenNewChat.newChannel, '/chats/new/channel'),
+                                action(HugeIcons.strokeRoundedBuilding03, t.screenNewChat.newCommunity, '/chats/new/community'),
+                              ],
                             ],
                           ),
                         ),

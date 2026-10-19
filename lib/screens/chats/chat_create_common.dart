@@ -138,8 +138,11 @@ String createNameHint(Translations t, models.ChatType type) => switch (type) {
 };
 
 /// Подпись под описанием (у группы описания в форме нет).
-String createDescriptionFooter(Translations t, models.ChatType type) =>
-    type == models.ChatType.community ? t.screenNewChat.communityDescriptionFooter : t.screenNewChat.channelDescriptionFooter;
+String createDescriptionFooter(Translations t, models.ChatType type) => switch (type) {
+  models.ChatType.community => t.screenNewChat.communityDescriptionFooter,
+  models.ChatType.group => t.screenNewChat.groupDescriptionFooter,
+  _ => t.screenNewChat.channelDescriptionFooter,
+};
 
 /// Подпись под выбором «Публичный / Частный».
 String createTypeFooter(Translations t, models.ChatType type, bool isPublic) => switch ((type, isPublic)) {

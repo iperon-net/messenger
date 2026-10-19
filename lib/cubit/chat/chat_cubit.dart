@@ -96,8 +96,9 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
 
   static void forwardTo(String chatID, List<models.Message> messages) => _pendingForwards[chatID] = messages;
 
-  /// Что доступно в источнике — экраны прячут остальное (реакции, закреп …).
-  ChatsFeatures get features => _source?.features ?? const ChatsFeatures.none();
+  /// Что доступно в источнике и в этом чате — экраны прячут остальное
+  /// (реакции, закреп …; в группе на сервере — см. [ChatsFeatures.forChat]).
+  ChatsFeatures get features => (_source?.features ?? const ChatsFeatures.none()).forChat(state.chat);
 
   /// Окно чата открыто ([initialization] без `markRead: false`): входящие
   /// читаются сразу и спрашивается, можно ли писать. Профиль пользователя
@@ -897,9 +898,24 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     await loadMembers();
   }
 
+  /// Добавить участников: без сети — «Нет соединения»; кого нельзя по
+  /// приватности — пояснение ([ChatState.restrictedNotice]).
   Future<void> addMembers(List<models.ChatMember> members) async {
-    await _source?.addMembers(_chatID, [for (final m in members) m.id]);
-    await loadMembers();
+    await _online(() async {
+      try {
+        await _source?.addMembers(_chatID, [for (final m in members) m.id]);
+      } on ChatsMembersRestrictedException catch (error) {
+        if (!isClosed) emit(state.copyWith(restrictedNotice: state.restrictedNotice + 1, restrictedCount: error.count));
+      } on ChatsRequestException catch (error) {
+        _failed(error);
+      }
+    });
+    if (!isClosed) await loadMembers();
+  }
+
+  /// Сервер отклонил действие — экран объясняет ([ChatState.failNotice]).
+  void _failed(ChatsRequestException error) {
+    if (!isClosed) emit(state.copyWith(failNotice: state.failNotice + 1, failError: error.error));
   }
 
   /// Назначить админом / изменить права и «звание».
@@ -989,7 +1005,19 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   /// Профиль чата: «Удалить чат» / «Покинуть группу».
   /// false — не удалён (нет сети): экран остаётся на месте.
   /// [forEveryone] — и у собеседника.
-  Future<bool> deleteChat({bool forEveryone = false}) => _online(() => _source?.delete(_chatID, forEveryone: forEveryone));
+  Future<bool> deleteChat({bool forEveryone = false}) async {
+    var done = false;
+    await _online(() async {
+      try {
+        await _source?.delete(_chatID, forEveryone: forEveryone);
+        done = true;
+      } on ChatsRequestException catch (error) {
+        // Например, владелец не может выйти из группы («ownerCannotLeave»).
+        _failed(error);
+      }
+    });
+    return done;
+  }
 
   /// Серверное действие без сети: не делаем вид, что получилось, — экран
   /// покажет «Нет соединения» (см. `offlineNotice`). false — не выполнено.

@@ -425,6 +425,18 @@ class API {
     _reconcile();
   }
 
+  /// Изменился набор capability (флаг «Группы»): переоткрыть стрим — новый
+  /// Subscribe уйдёт с новым списком, сервер заново подпишет сессию на
+  /// subject'ы групп; после подключения [ChatsSync.onConnected] догонит
+  /// журнал. Стрим сейчас не нужен — ничего: Subscribe уйдёт при открытии.
+  Future<void> resubscribe() async {
+    if (!_shouldRun || !_isRunning) return;
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
+    await _teardownStream();
+    if (_shouldRun) _open();
+  }
+
   /// Полностью закрывает стрим (в т.ч. broadcast) при завершении приложения
   /// (`AppLifecycleState.detached`).
   Future<void> shutdown() async {
@@ -557,7 +569,10 @@ class API {
         if (background) logger.info('subscribe: background launch, presence stays offline');
         final encodedSubscribe = await crypto.syncer.encode(
           session: auth.session,
-          message: Subscribe_Request(background: background, capabilities: const [secretChatsCapability]).writeToBuffer(),
+          message: Subscribe_Request(
+            background: background,
+            capabilities: [secretChatsCapability, if (ChatsSync.instance.groups) groupsCapability],
+          ).writeToBuffer(),
         );
 
         final outgoing = _outgoing;

@@ -10,11 +10,13 @@ import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart' as mi show Icons;
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../chats/chats_mapping.dart' show idBytes;
 import '../../chats/voice_player.dart';
 import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../dust_effect.dart';
+import '../user_avatar.dart';
 import 'media_viewer.dart';
 import 'message_double_tap.dart';
 import 'message_text.dart';
@@ -333,7 +335,9 @@ class ChatMessagesView extends StatelessWidget {
                                   tail: !groupedWithNewer,
                                   showSender: group && !m.outgoing && !groupedWithOlder,
                                   avatar: group && !m.outgoing
-                                      ? (groupedWithNewer ? const SizedBox(width: 34) : _SenderAvatar(name: m.senderName))
+                                      ? (groupedWithNewer
+                                            ? const SizedBox(width: 34)
+                                            : _SenderAvatar(name: m.senderName, userID: m.senderUserID))
                                       : null,
                                   onLongPress: () => onLongPress(m),
                                   onMediaTap: onMediaTap == null ? null : (index) => onMediaTap!(m, index),
@@ -405,16 +409,23 @@ class ChatMessagesView extends StatelessWidget {
 class _SenderAvatar extends StatelessWidget {
   final String name;
 
-  const _SenderAvatar({required this.name});
+  /// hex userID автора (группа на сервере) — его фото; пусто — плейсхолдер
+  /// по имени (демо).
+  final String userID;
+
+  const _SenderAvatar({required this.name, this.userID = ''});
 
   @override
   Widget build(BuildContext context) {
+    final id = userID.isEmpty ? null : idBytes(userID);
     return Padding(
       padding: const EdgeInsets.only(right: 4),
       child: SizedBox(
         width: 30,
         height: 30,
-        child: BoringAvatar(name: name, type: BoringAvatarType.beam, shape: const CircleBorder()),
+        child: id != null && id.isNotEmpty
+            ? UserAvatar(userID: id, placeholderName: userID, size: 30)
+            : BoringAvatar(name: name, type: BoringAvatarType.beam, shape: const CircleBorder()),
       ),
     );
   }

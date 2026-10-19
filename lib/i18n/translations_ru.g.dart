@@ -76,6 +76,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$screenCall$ru screenCall = _Translations$screenCall$ru._(_root);
 	@override late final _Translations$passkey$ru passkey = _Translations$passkey$ru._(_root);
 	@override late final _Translations$yandex$ru yandex = _Translations$yandex$ru._(_root);
+	@override late final _Translations$chatAction$ru chatAction = _Translations$chatAction$ru._(_root);
 	@override late final _Translations$chatTtl$ru chatTtl = _Translations$chatTtl$ru._(_root);
 	@override late final _Translations$chatNoForwards$ru chatNoForwards = _Translations$chatNoForwards$ru._(_root);
 	@override late final _Translations$secretChat$ru secretChat = _Translations$secretChat$ru._(_root);
@@ -320,6 +321,7 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get description => 'Описание';
 	@override String get descriptionHint => 'Необязательно';
 	@override String get channelDescriptionFooter => 'Расскажите подписчикам, о чём канал.';
+	@override String get groupDescriptionFooter => 'Расскажите участникам, о чём группа.';
 	@override String get communityDescriptionFooter => 'Расскажите об организации: чем занимаетесь, адрес, часы работы. Внутри сообщества будут канал объявлений и группы по темам.';
 	@override String get members => 'Участники';
 	@override String get setPhoto => 'Выбрать фото';
@@ -861,6 +863,7 @@ class _Translations$screenDeveloper$ru extends Translations$screenDeveloper$en {
 	@override String get exportLogs => 'Экспорт логов';
 	@override String get callPreview => 'Превью экрана звонка';
 	@override String get chatsDemo => 'Демо чатов';
+	@override String get chatsGroups => 'Группы';
 	@override String get testPush => 'Тестовое уведомление';
 	@override String testPushSent({required Object apns, required Object fcm, required Object failed}) => 'Отправлено: APNs — ${apns}, FCM — ${fcm}, ошибок — ${failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне.';
 	@override String get testPushNoTokens => 'Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение.';
@@ -1179,6 +1182,9 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get whoCanLinkForwards => 'Кто может добавлять ссылку на мой аккаунт при пересылке моих сообщений';
 	@override String get forwardsNote => 'Остальные увидят в «Переслано от …» только ваше имя — без перехода в ваш профиль.';
 	@override String get forwardsPreviewText => 'Напомни, во сколько завтра встречаемся?';
+	@override String get groupInvites => 'Группы';
+	@override String get whoCanAddToGroups => 'Кто может добавлять меня в группы';
+	@override String get groupInvitesNote => 'Остальные не смогут добавить вас в группу — при создании группы вы просто не попадёте в число участников.';
 	@override String get phoneNumber => 'Номер телефона';
 	@override String get whoCanSeePhoneNumber => 'Кто видит мой номер телефона';
 	@override String get phoneNumberNote => 'Тот, у кого ваш номер уже записан в контактах, видит его всегда.';
@@ -1603,6 +1609,43 @@ class _Translations$yandex$ru extends Translations$yandex$en {
 	@override String get unavailable => 'Яндекс ID сейчас недоступен. Попробуйте позже.';
 }
 
+// Path: chatAction
+class _Translations$chatAction$ru extends Translations$chatAction$en {
+	_Translations$chatAction$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String createdYou({required Object title}) => 'Вы создали группу «${title}»';
+	@override String created({required Object name, required Object title}) => '${name} создал(а) группу «${title}»';
+	@override String addedYou({required Object names}) => 'Вы добавили ${names}';
+	@override String added({required Object name, required Object names}) => '${name} добавил(а) ${names}';
+	@override String get joinedYou => 'Вы вступили в группу';
+	@override String joined({required Object name}) => '${name} вступил(а) в группу';
+	@override String get leftYou => 'Вы вышли из группы';
+	@override String left({required Object name}) => '${name} вышел(а) из группы';
+	@override String removedYou({required Object names}) => 'Вы исключили ${names}';
+	@override String removed({required Object name, required Object names}) => '${name} исключил(а) ${names}';
+	@override String titleYou({required Object title}) => 'Вы изменили название группы на «${title}»';
+	@override String title({required Object name, required Object title}) => '${name} изменил(а) название группы на «${title}»';
+	@override String get photoYou => 'Вы изменили фото группы';
+	@override String photo({required Object name}) => '${name} изменил(а) фото группы';
+	@override String get photoRemovedYou => 'Вы удалили фото группы';
+	@override String photoRemoved({required Object name}) => '${name} удалил(а) фото группы';
+	@override String get youObject => 'вас';
+	@override String get restrictedTitle => 'Не все добавлены';
+	@override String restricted({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${count} человек не добавлен: его настройки приватности не разрешают добавлять в группы.',
+		few: '${count} человека не добавлены: их настройки приватности не разрешают добавлять в группы.',
+		many: '${count} человек не добавлены: их настройки приватности не разрешают добавлять в группы.',
+		other: '${count} человека не добавлены: их настройки приватности не разрешают добавлять в группы.',
+	);
+	@override String get deleteGroupMessage => 'Группа удалится у всех участников.';
+	@override String get failed => 'Не удалось выполнить действие. Попробуйте ещё раз.';
+	@override String get titleInvalid => 'Название группы — от 1 до 128 символов.';
+	@override String get groupsDisabled => 'Группы сейчас недоступны.';
+}
+
 // Path: chatTtl
 class _Translations$chatTtl$ru extends Translations$chatTtl$en {
 	_Translations$chatTtl$ru._(TranslationsRu root) : this._root = root, super.internal(root);
@@ -1923,6 +1966,7 @@ extension on TranslationsRu {
 			'screenNewChat.description' => 'Описание',
 			'screenNewChat.descriptionHint' => 'Необязательно',
 			'screenNewChat.channelDescriptionFooter' => 'Расскажите подписчикам, о чём канал.',
+			'screenNewChat.groupDescriptionFooter' => 'Расскажите участникам, о чём группа.',
 			'screenNewChat.communityDescriptionFooter' => 'Расскажите об организации: чем занимаетесь, адрес, часы работы. Внутри сообщества будут канал объявлений и группы по темам.',
 			'screenNewChat.members' => 'Участники',
 			'screenNewChat.setPhoto' => 'Выбрать фото',
@@ -2269,9 +2313,9 @@ extension on TranslationsRu {
 			'screenChat.micDeniedTitle' => 'Нет доступа к микрофону',
 			'screenChat.micDeniedMessage' => 'Разрешите доступ к микрофону в настройках, чтобы записывать голосовые сообщения.',
 			'screenChat.openSettings' => 'Настройки',
-			'screenChat.hideWithSpoiler' => 'Скрыть под спойлер',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.hideWithSpoiler' => 'Скрыть под спойлер',
 			'screenChat.removeSpoiler' => 'Убрать спойлер',
 			'screenChat.videoHdOn' => 'Видео в HD: 1080p',
 			'screenChat.videoHdOff' => 'Стандартное качество: 720p',
@@ -2353,6 +2397,7 @@ extension on TranslationsRu {
 			'screenDeveloper.exportLogs' => 'Экспорт логов',
 			'screenDeveloper.callPreview' => 'Превью экрана звонка',
 			'screenDeveloper.chatsDemo' => 'Демо чатов',
+			'screenDeveloper.chatsGroups' => 'Группы',
 			'screenDeveloper.testPush' => 'Тестовое уведомление',
 			'screenDeveloper.testPushSent' => ({required Object apns, required Object fcm, required Object failed}) => 'Отправлено: APNs — ${apns}, FCM — ${fcm}, ошибок — ${failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне.',
 			'screenDeveloper.testPushNoTokens' => 'Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение.',
@@ -2584,6 +2629,9 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.whoCanLinkForwards' => 'Кто может добавлять ссылку на мой аккаунт при пересылке моих сообщений',
 			'sessionsPrivacyAndSecurity.forwardsNote' => 'Остальные увидят в «Переслано от …» только ваше имя — без перехода в ваш профиль.',
 			'sessionsPrivacyAndSecurity.forwardsPreviewText' => 'Напомни, во сколько завтра встречаемся?',
+			'sessionsPrivacyAndSecurity.groupInvites' => 'Группы',
+			'sessionsPrivacyAndSecurity.whoCanAddToGroups' => 'Кто может добавлять меня в группы',
+			'sessionsPrivacyAndSecurity.groupInvitesNote' => 'Остальные не смогут добавить вас в группу — при создании группы вы просто не попадёте в число участников.',
 			'sessionsPrivacyAndSecurity.phoneNumber' => 'Номер телефона',
 			'sessionsPrivacyAndSecurity.whoCanSeePhoneNumber' => 'Кто видит мой номер телефона',
 			'sessionsPrivacyAndSecurity.phoneNumberNote' => 'Тот, у кого ваш номер уже записан в контактах, видит его всегда.',
@@ -2779,13 +2827,13 @@ extension on TranslationsRu {
 			'screenAuthModerationApplicationStore.verificationCodeMismatch' => 'Неверный код подтверждения',
 			'screenAuthModerationApplicationStore.moderationApplicationStoreSessionNotFound' => 'Сессия не найдена',
 			'screenAuthModerationApplicationStore.invalidPublicSharedKey' => 'Неверный публичный общий ключ',
+			_ => null,
+		} ?? switch (path) {
 			'screenAuthModerationApplicationStore.invalidPublicSaltKey' => 'Неверный публичный ключ соли',
 			'screenAuthModerationApplicationStore.enterTheCode' => 'Введите код',
 			'screenAuthModerationApplicationStore.sentConfirmationCodeToNumber' => ({required Object phoneNumber}) => 'Мы отправили код подтверждения на номер ${phoneNumber}',
 			'screenAuthModerationApplicationStore.signatureVerificationFailed' => 'Не удалось проверить подпись',
 			'screenAuthCallpasswordConfirmation.weAreExpectingYourCallWithin' => ({required Object duration}) => 'Мы ждём вашего звонка в течение ${duration}',
-			_ => null,
-		} ?? switch (path) {
 			'screenAuthCallpasswordConfirmation.confirmYourNumberDetail' => ({required Object confirmationPhoneNumberRu}) => 'Позвоните на номер ${confirmationPhoneNumberRu} с указанного вами номера телефона и дождитесь сброса вызова.',
 			'screenAuthCallpasswordConfirmation.callForFree' => 'Позвонить бесплатно',
 			'screenAuthCallpasswordConfirmation.signatureVerificationFailed' => 'Не удалось проверить подпись',
@@ -2873,6 +2921,29 @@ extension on TranslationsRu {
 			'yandex.phoneMissing' => 'К аккаунту Яндекс ID не привязан номер телефона. Добавьте его в Яндекс ID или войдите по номеру.',
 			'yandex.invalidPhone' => 'Номер телефона в Яндекс ID не подходит для входа. Войдите по номеру.',
 			'yandex.unavailable' => 'Яндекс ID сейчас недоступен. Попробуйте позже.',
+			'chatAction.createdYou' => ({required Object title}) => 'Вы создали группу «${title}»',
+			'chatAction.created' => ({required Object name, required Object title}) => '${name} создал(а) группу «${title}»',
+			'chatAction.addedYou' => ({required Object names}) => 'Вы добавили ${names}',
+			'chatAction.added' => ({required Object name, required Object names}) => '${name} добавил(а) ${names}',
+			'chatAction.joinedYou' => 'Вы вступили в группу',
+			'chatAction.joined' => ({required Object name}) => '${name} вступил(а) в группу',
+			'chatAction.leftYou' => 'Вы вышли из группы',
+			'chatAction.left' => ({required Object name}) => '${name} вышел(а) из группы',
+			'chatAction.removedYou' => ({required Object names}) => 'Вы исключили ${names}',
+			'chatAction.removed' => ({required Object name, required Object names}) => '${name} исключил(а) ${names}',
+			'chatAction.titleYou' => ({required Object title}) => 'Вы изменили название группы на «${title}»',
+			'chatAction.title' => ({required Object name, required Object title}) => '${name} изменил(а) название группы на «${title}»',
+			'chatAction.photoYou' => 'Вы изменили фото группы',
+			'chatAction.photo' => ({required Object name}) => '${name} изменил(а) фото группы',
+			'chatAction.photoRemovedYou' => 'Вы удалили фото группы',
+			'chatAction.photoRemoved' => ({required Object name}) => '${name} удалил(а) фото группы',
+			'chatAction.youObject' => 'вас',
+			'chatAction.restrictedTitle' => 'Не все добавлены',
+			'chatAction.restricted' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} человек не добавлен: его настройки приватности не разрешают добавлять в группы.', few: '${count} человека не добавлены: их настройки приватности не разрешают добавлять в группы.', many: '${count} человек не добавлены: их настройки приватности не разрешают добавлять в группы.', other: '${count} человека не добавлены: их настройки приватности не разрешают добавлять в группы.', ), 
+			'chatAction.deleteGroupMessage' => 'Группа удалится у всех участников.',
+			'chatAction.failed' => 'Не удалось выполнить действие. Попробуйте ещё раз.',
+			'chatAction.titleInvalid' => 'Название группы — от 1 до 128 символов.',
+			'chatAction.groupsDisabled' => 'Группы сейчас недоступны.',
 			'chatTtl.title' => 'Автоудаление',
 			'chatTtl.titleLong' => 'Автоудаление сообщений',
 			'chatTtl.off' => 'Выкл',

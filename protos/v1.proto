@@ -164,6 +164,11 @@ enum MessageType {
   PRIVACY_PHONE_NUMBER_ALLOW_UPDATE = 88;
   PRIVACY_PHONE_NUMBER_DENY_UPDATE = 89;
   PRIVACY_PHONE_NUMBER_FIND_UPDATE = 90;
+  // «Кто может добавлять меня в группы» (+ исключения,
+  // PrivacySettings.group_invites*). См. privacy_v1.proto.
+  PRIVACY_GROUP_INVITES_UPDATE = 91;
+  PRIVACY_GROUP_INVITES_ALLOW_UPDATE = 92;
+  PRIVACY_GROUP_INVITES_DENY_UPDATE = 93;
 }
 
 service Iperon {

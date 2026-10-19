@@ -242,6 +242,21 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
                         await cubit.reloadForwards();
                       },
                     ),
+                    CupertinoListTileIcon(
+                      title: Text(context.t.sessionsPrivacyAndSecurity.groupInvites),
+                      color: Color(0xFF34C759),
+                      icon: FontAwesomeIcons.userGroup,
+                      isTrailing: true,
+                      additionalInfo: Text(
+                        state.callsLoadError ? "—" : _audienceLabel(context, state.groupInvitesAudience),
+                        style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                      ),
+                      onTab: () async {
+                        final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+                        await context.push("/settings/privacy_and_security/group_invites");
+                        await cubit.reloadGroupInvites();
+                      },
+                    ),
                   ],
                 ),
                 // Автоудаление по умолчанию для новых чатов (как в Telegram).

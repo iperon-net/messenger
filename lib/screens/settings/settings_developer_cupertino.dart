@@ -141,6 +141,21 @@ class SettingsDeveloperCupertino extends StatelessWidget {
                     onTab: () => context.read<CommonCubit>().setChatsDemo(value: !chatsDemo),
                   ),
                 ),
+                // Группы на сервере (срез 3, docs/plans/chats-groups.md): capability
+                // `groups` — групповое сервер отдаёт только с ним.
+                BlocSelector<CommonCubit, CommonState, bool>(
+                  selector: (state) => state.settingsDevice.chatsGroups,
+                  builder: (context, chatsGroups) => CupertinoListTileIcon(
+                    title: Text(context.t.screenDeveloper.chatsGroups),
+                    color: const Color(0xFF34C759),
+                    icon: FontAwesomeIcons.userGroup,
+                    trailing: CupertinoSwitch(
+                      value: chatsGroups,
+                      onChanged: (value) => context.read<CommonCubit>().setChatsGroups(value: value),
+                    ),
+                    onTab: () => context.read<CommonCubit>().setChatsGroups(value: !chatsGroups),
+                  ),
+                ),
                 if (kDebugMode)
                   CupertinoListTileIcon(
                     title: Text(context.t.screenDeveloper.callPreview),

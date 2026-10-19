@@ -58,6 +58,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
     emit(
       state.copyWith(
         status: Status.loading,
+        basic: !(_source?.features.groupExtras ?? true),
         type: type,
         selected: selected,
         inviteLink: newInviteCode(),
@@ -80,6 +81,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
     emit(
       state.copyWith(
         status: Status.success,
+        basic: !(_source?.features.groupExtras ?? true),
         type: chat.type,
         chatID: chat.id,
         communityID: chat.communityID,
@@ -210,18 +212,32 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
     final source = _source;
     if (source == null || state.creating || title.trim().isEmpty || !state.linkReady) return;
     emit(state.copyWith(creating: true));
-    final chatID = await source.createChat(
-      type: state.type,
-      title: title.trim(),
-      about: about.trim(),
-      memberIDs: [for (final m in state.selected) m.id],
-      username: state.isPublic ? state.username : '',
-      inviteLink: state.inviteLink,
-      avatarPath: state.avatarPath,
-      communityID: state.communityID,
-      joinMode: state.joinMode,
-    );
-    if (!isClosed) emit(state.copyWith(creating: false, openChatID: chatID));
+    var chatID = '';
+    var restricted = 0;
+    // Создание на сервере — без сети «Нет соединения», лимит — «попробуйте
+    // через …», отказ — пояснение; форма остаётся, ничего не создано.
+    await _online(() async {
+      try {
+        chatID = await source.createChat(
+          type: state.type,
+          title: title.trim(),
+          about: about.trim(),
+          memberIDs: [for (final m in state.selected) m.id],
+          username: state.isPublic ? state.username : '',
+          inviteLink: state.inviteLink,
+          avatarPath: state.avatarPath,
+          communityID: state.communityID,
+          joinMode: state.joinMode,
+        );
+      } on ChatsMembersRestrictedException catch (error) {
+        // Группа создана без тех, кого нельзя добавить.
+        chatID = error.chatID;
+        restricted = error.count;
+      } on ChatsRequestException catch (error) {
+        if (!isClosed) emit(state.copyWith(failNotice: state.failNotice + 1, failError: error.error));
+      }
+    });
+    if (!isClosed) emit(state.copyWith(creating: false, restrictedCount: restricted, openChatID: chatID));
   }
 
   /// «Изменить» → «Сохранить».
@@ -229,29 +245,37 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
     final source = _source;
     if (source == null || state.creating || !state.isEdit || title.trim().isEmpty || !state.linkReady || !state.coordinatesValid) return;
     emit(state.copyWith(creating: true));
-    await source.updateChat(
-      state.chatID,
-      title: title.trim(),
-      about: about.trim(),
-      avatarPath: state.avatarPath,
-      coverPath: state.coverPath,
-      phone: state.phone,
-      address: state.address,
-      latitude: state.latitudeValue,
-      longitude: state.longitudeValue,
-      joinMode: state.joinMode,
-      username: state.isPublic ? state.username : '',
-      inviteLink: state.inviteLink,
-      defaultRole: state.defaultRole,
-      commentsEnabled: state.commentsEnabled,
-      commentsTimeLimit: state.commentsTimeLimit,
-      commentsWho: state.commentsWho,
-      commentsMinSubscription: state.commentsMinSubscription,
-      newcomerMediaDelay: state.newcomerMediaDelay,
-      signMessages: state.signMessages,
-      membersHidden: state.membersHidden,
-    );
-    if (!isClosed) emit(state.copyWith(creating: false, saved: true));
+    var saved = false;
+    await _online(() async {
+      try {
+        await source.updateChat(
+          state.chatID,
+          title: title.trim(),
+          about: about.trim(),
+          avatarPath: state.avatarPath,
+          coverPath: state.coverPath,
+          phone: state.phone,
+          address: state.address,
+          latitude: state.latitudeValue,
+          longitude: state.longitudeValue,
+          joinMode: state.joinMode,
+          username: state.isPublic ? state.username : '',
+          inviteLink: state.inviteLink,
+          defaultRole: state.defaultRole,
+          commentsEnabled: state.commentsEnabled,
+          commentsTimeLimit: state.commentsTimeLimit,
+          commentsWho: state.commentsWho,
+          commentsMinSubscription: state.commentsMinSubscription,
+          newcomerMediaDelay: state.newcomerMediaDelay,
+          signMessages: state.signMessages,
+          membersHidden: state.membersHidden,
+        );
+        saved = true;
+      } on ChatsRequestException catch (error) {
+        if (!isClosed) emit(state.copyWith(failNotice: state.failNotice + 1, failError: error.error));
+      }
+    });
+    if (!isClosed) emit(state.copyWith(creating: false, saved: saved));
   }
 
   @override

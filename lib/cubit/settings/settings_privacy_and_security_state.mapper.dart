@@ -212,6 +212,36 @@ class SettingsPrivacyAndSecurityStateMapper
     opt: true,
     def: const [],
   );
+  static CallsPrivacyAudience _$groupInvitesAudience(
+    SettingsPrivacyAndSecurityState v,
+  ) => v.groupInvitesAudience;
+  static const Field<SettingsPrivacyAndSecurityState, CallsPrivacyAudience>
+  _f$groupInvitesAudience = Field(
+    'groupInvitesAudience',
+    _$groupInvitesAudience,
+    opt: true,
+    def: CallsPrivacyAudience.everybody,
+  );
+  static List<Uint8List> _$groupInvitesAllow(
+    SettingsPrivacyAndSecurityState v,
+  ) => v.groupInvitesAllow;
+  static const Field<SettingsPrivacyAndSecurityState, List<Uint8List>>
+  _f$groupInvitesAllow = Field(
+    'groupInvitesAllow',
+    _$groupInvitesAllow,
+    opt: true,
+    def: const [],
+  );
+  static List<Uint8List> _$groupInvitesDeny(
+    SettingsPrivacyAndSecurityState v,
+  ) => v.groupInvitesDeny;
+  static const Field<SettingsPrivacyAndSecurityState, List<Uint8List>>
+  _f$groupInvitesDeny = Field(
+    'groupInvitesDeny',
+    _$groupInvitesDeny,
+    opt: true,
+    def: const [],
+  );
   static bool _$hideReadTime(SettingsPrivacyAndSecurityState v) =>
       v.hideReadTime;
   static const Field<SettingsPrivacyAndSecurityState, bool> _f$hideReadTime =
@@ -288,6 +318,9 @@ class SettingsPrivacyAndSecurityStateMapper
     #forwardsAudience: _f$forwardsAudience,
     #forwardsAllow: _f$forwardsAllow,
     #forwardsDeny: _f$forwardsDeny,
+    #groupInvitesAudience: _f$groupInvitesAudience,
+    #groupInvitesAllow: _f$groupInvitesAllow,
+    #groupInvitesDeny: _f$groupInvitesDeny,
     #hideReadTime: _f$hideReadTime,
     #messagesTTL: _f$messagesTTL,
     #blocked: _f$blocked,
@@ -322,6 +355,9 @@ class SettingsPrivacyAndSecurityStateMapper
       forwardsAudience: data.dec(_f$forwardsAudience),
       forwardsAllow: data.dec(_f$forwardsAllow),
       forwardsDeny: data.dec(_f$forwardsDeny),
+      groupInvitesAudience: data.dec(_f$groupInvitesAudience),
+      groupInvitesAllow: data.dec(_f$groupInvitesAllow),
+      groupInvitesDeny: data.dec(_f$groupInvitesDeny),
       hideReadTime: data.dec(_f$hideReadTime),
       messagesTTL: data.dec(_f$messagesTTL),
       blocked: data.dec(_f$blocked),
@@ -435,6 +471,10 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
   ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
   get forwardsDeny;
   ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get groupInvitesAllow;
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get groupInvitesDeny;
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
   get blocked;
   ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
   get phoneNumberAllow;
@@ -464,6 +504,9 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
     CallsPrivacyAudience? forwardsAudience,
     List<Uint8List>? forwardsAllow,
     List<Uint8List>? forwardsDeny,
+    CallsPrivacyAudience? groupInvitesAudience,
+    List<Uint8List>? groupInvitesAllow,
+    List<Uint8List>? groupInvitesDeny,
     bool? hideReadTime,
     int? messagesTTL,
     List<Uint8List>? blocked,
@@ -580,6 +623,20 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
   );
   @override
   ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get groupInvitesAllow => ListCopyWith(
+    $value.groupInvitesAllow,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(groupInvitesAllow: v),
+  );
+  @override
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
+  get groupInvitesDeny => ListCopyWith(
+    $value.groupInvitesDeny,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(groupInvitesDeny: v),
+  );
+  @override
+  ListCopyWith<$R, Uint8List, ObjectCopyWith<$R, Uint8List, Uint8List>>
   get blocked => ListCopyWith(
     $value.blocked,
     (v, t) => ObjectCopyWith(v, $identity, t),
@@ -624,6 +681,9 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     CallsPrivacyAudience? forwardsAudience,
     List<Uint8List>? forwardsAllow,
     List<Uint8List>? forwardsDeny,
+    CallsPrivacyAudience? groupInvitesAudience,
+    List<Uint8List>? groupInvitesAllow,
+    List<Uint8List>? groupInvitesDeny,
     bool? hideReadTime,
     int? messagesTTL,
     List<Uint8List>? blocked,
@@ -657,6 +717,10 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
       if (forwardsAudience != null) #forwardsAudience: forwardsAudience,
       if (forwardsAllow != null) #forwardsAllow: forwardsAllow,
       if (forwardsDeny != null) #forwardsDeny: forwardsDeny,
+      if (groupInvitesAudience != null)
+        #groupInvitesAudience: groupInvitesAudience,
+      if (groupInvitesAllow != null) #groupInvitesAllow: groupInvitesAllow,
+      if (groupInvitesDeny != null) #groupInvitesDeny: groupInvitesDeny,
       if (hideReadTime != null) #hideReadTime: hideReadTime,
       if (messagesTTL != null) #messagesTTL: messagesTTL,
       if (blocked != null) #blocked: blocked,
@@ -697,6 +761,15 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     forwardsAudience: data.get(#forwardsAudience, or: $value.forwardsAudience),
     forwardsAllow: data.get(#forwardsAllow, or: $value.forwardsAllow),
     forwardsDeny: data.get(#forwardsDeny, or: $value.forwardsDeny),
+    groupInvitesAudience: data.get(
+      #groupInvitesAudience,
+      or: $value.groupInvitesAudience,
+    ),
+    groupInvitesAllow: data.get(
+      #groupInvitesAllow,
+      or: $value.groupInvitesAllow,
+    ),
+    groupInvitesDeny: data.get(#groupInvitesDeny, or: $value.groupInvitesDeny),
     hideReadTime: data.get(#hideReadTime, or: $value.hideReadTime),
     messagesTTL: data.get(#messagesTTL, or: $value.messagesTTL),
     blocked: data.get(#blocked, or: $value.blocked),

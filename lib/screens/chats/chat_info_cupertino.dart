@@ -251,9 +251,11 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
     final t = context.t.screenChatInfo;
     final cubit = context.read<ChatCubit>();
     final members = cubit.state.members;
-    final manage = canRestrictMember(chat, members, member);
-    final promote = canPromoteMember(chat, members, member);
-    final ban = canBanMember(chat, members, member);
+    // Роли, исключение и админы — расширенное в группах (на сервере — 3.2).
+    final extras = cubit.features.groupExtras;
+    final manage = extras && canRestrictMember(chat, members, member);
+    final promote = extras && canPromoteMember(chat, members, member);
+    final ban = extras && canBanMember(chat, members, member);
     Future<bool> confirm(String title, String message, String label) async =>
         await showCupertinoDialog<bool>(
           context: context,
@@ -521,7 +523,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                   ),
                                 ),
                               if (community && chat.isMember) CommunityChatsCupertino(community: chat, chats: state.communityChats),
-                              if (chat.canManage && chat.type != models.ChatType.private)
+                              if (chat.canManage && chat.type != models.ChatType.private && context.read<ChatCubit>().features.groupExtras)
                                 _section(context, [
                                   // У чатов сообщества своих ссылок и блокировок нет —
                                   // вступают и блокируются через сообщество.
@@ -660,7 +662,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                               onMemberTap: (member) => _openMember(context, member),
                               memberWrapper: (member, row) =>
                                   RowContextMenuCupertino(background: card, actions: _memberMenuActions(context, chat, member), child: row),
-                              onAddMembers: chat.canManage ? () => _addMembers(context) : null,
+                              onAddMembers: canAddMembers(chat, context.read<ChatCubit>().features) ? () => _addMembers(context) : null,
                             )
                           else if (tabs.isNotEmpty)
                             SliverToBoxAdapter(
@@ -697,7 +699,9 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                           actions: _memberMenuActions(context, chat, member),
                                           child: row,
                                         ),
-                                        onAddMembers: chat.canManage ? () => _addMembers(context) : null,
+                                        onAddMembers: canAddMembers(chat, context.read<ChatCubit>().features)
+                                            ? () => _addMembers(context)
+                                            : null,
                                       ),
                                     ),
                                   ],

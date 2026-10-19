@@ -55,6 +55,8 @@ class CommonCubit extends Cubit<CommonState> {
     }
     // Серверные чаты — всегда (флаг «Серверные чаты» снят 2026-10-16).
     ChatsSync.instance.setEnabled(true);
+    // Группы — по флагу «Группы» (capability `groups` в Subscribe).
+    ChatsSync.instance.setGroups(settingsDevice.chatsGroups, initial: true);
     // При холодном старте после принудительной блокировки биометрию сама не
     // показываем — только по кнопке. Обычная авто-блокировка биометрию разрешает.
     emit(
@@ -239,6 +241,15 @@ class CommonCubit extends Cubit<CommonState> {
   Future<void> setChatsDemo({required bool value}) async {
     await repositories.settingsDevice.setChatsDemo(value);
     emit(state.copyWith(settingsDevice: state.settingsDevice.copyWith(chatsDemo: value)));
+  }
+
+  /// Тумблер «Группы» на экране «Разработчик»: capability `groups` — стрим
+  /// переподписывается, включили — список диалогов перезагружается (группы
+  /// подтянутся), выключили — группы скрываются (кэш остаётся).
+  Future<void> setChatsGroups({required bool value}) async {
+    await repositories.settingsDevice.setChatsGroups(value);
+    emit(state.copyWith(settingsDevice: state.settingsDevice.copyWith(chatsGroups: value)));
+    ChatsSync.instance.setGroups(value);
   }
 
   /// «Темы для чатов»: узор и цвет обоев.

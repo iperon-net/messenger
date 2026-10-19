@@ -109,7 +109,25 @@ class ChatCreateState with ChatCreateStateMappable {
   final int floodNotice;
   final int floodSeconds;
 
+  /// Группа создана, но не все добавлены: [restrictedCount] — сколько (их
+  /// приватность «Кто может добавлять меня в группы»). Экран сообщает об этом
+  /// перед переходом в группу.
+  final int restrictedCount;
+
+  /// Сервер отклонил создание / изменение: растёт на каждый отказ,
+  /// [failError] — ключ ошибки сервера («titleInvalid» …).
+  final int failNotice;
+  final String failError;
+
+  /// Серверный источник (группы среза 3.1): в форме только фото, название и
+  /// описание — без ссылок, способа вступления, ролей и настроек.
+  final bool basic;
+
   const ChatCreateState({
+    this.restrictedCount = 0,
+    this.failNotice = 0,
+    this.failError = '',
+    this.basic = false,
     this.status = Status.initialization,
     this.offlineNotice = 0,
     this.floodNotice = 0,

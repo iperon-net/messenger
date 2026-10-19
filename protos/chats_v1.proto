@@ -17,12 +17,72 @@ import "protos/profile_v1.proto";
 // Идентификаторы: chatID — ObjectID (12 байт), userID — ObjectID (12 байт),
 // messageID — монотонный int64 внутри чата (1, 2, 3 …).
 
-// Тип чата. Пока только личные; группы/каналы/сообщества — следующие срезы.
+// Тип чата. Личные и группы (срез 3, docs/plans/chats-groups.md); каналы /
+// сообщества — следующие срезы.
 enum ChatType {
   CHAT_TYPE_PRIVATE = 0;
   CHAT_TYPE_GROUP = 1;
   CHAT_TYPE_CHANNEL = 2;
   CHAT_TYPE_COMMUNITY = 3;
+}
+
+// Роль участника группы (docs/plans/chats-groups.md). Владелец — создатель:
+// не снимается, удаляет группу. В срезе 3.1 — только OWNER и WRITER
+// (остальные роли и права админа — подэтап 3.2).
+enum ChatRole {
+  CHAT_ROLE_NONE = 0;    // не участник
+  CHAT_ROLE_READER = 1;
+  CHAT_ROLE_WRITER = 2;
+  CHAT_ROLE_ADMIN = 3;
+  CHAT_ROLE_OWNER = 4;
+}
+
+// Группа (общее для всех участников). Название, описание и аватар хранятся на
+// сервере зашифрованными (crypto.Encryptor). pts — журнал ЧАТА: у группы свой
+// монотонный номер обновлений, не копия в журнал каждого участника (см.
+// Update.chatPts и Chats.GetChatDifference).
+message ChatInfo {
+  bytes chatID = 1;
+  ChatType type = 2;
+  string title = 3;
+  string about = 4;
+  // Аватар (загружен через Upload); пусто — нет.
+  bytes avatarCdnID = 5;
+  // Как скачать аватар — заполняет сервер при выдаче (как MessageMedia.file).
+  CDN avatar = 6;
+  int32 membersCount = 7;
+  bytes ownerUserID = 8;
+  // Текущий pts журнала чата.
+  int64 pts = 9;
+  int64 createdAt = 10; // unix millis
+}
+
+// Участник группы.
+message ChatMember {
+  bytes userID = 1;
+  ChatRole role = 2;
+  int64 joinedAt = 3; // unix millis
+  // Кто добавил (пусто — создатель или вступил сам).
+  bytes inviterUserID = 4;
+}
+
+// Служебное действие в группе (только от сервера; при отправке — отказ), как
+// messageAction* в Telegram. От того, кто сделал (fromUserID сообщения).
+message MessageChatAction {
+  enum Kind {
+    CREATED = 0;        // создал группу «title»
+    ADDED = 1;          // добавил userIDs
+    JOINED = 2;         // вступил сам (подэтап 3.3)
+    LEFT = 3;           // вышел
+    REMOVED = 4;        // исключил userIDs (подэтап 3.2)
+    TITLE_CHANGED = 5;  // сменил название на title
+    PHOTO_CHANGED = 6;  // сменил фото
+    PHOTO_REMOVED = 7;  // удалил фото
+  }
+
+  Kind kind = 1;
+  repeated bytes userIDs = 2;
+  string title = 3;
 }
 
 enum MessageKind {
@@ -216,6 +276,8 @@ message MessageContent {
   // от сервера; при отправке — отказ).
   MessageNoForwards noForwards = 10;
   MessageNoForwardsRequest noForwardsRequest = 11;
+  // Служебное действие в группе (только от сервера; при отправке — отказ).
+  MessageChatAction chatAction = 12;
 }
 
 // Реакция участника на сообщение: кто, каким эмодзи и когда поставил.
@@ -292,6 +354,12 @@ message Dialog {
   // включил я (снять могу сам), иначе — собеседник (могу только попросить).
   bool noForwards = 17;
   bool noForwardsMine = 18;
+  // Группа: общее описание (название, аватар, участники, pts журнала чата) и
+  // моя роль. У личного чата — пусто / CHAT_ROLE_NONE. В группе peerUserID
+  // пуст, readOutboxMaxID — до какого мои сообщения прочитал хоть один
+  // участник (✓✓, как в Telegram).
+  ChatInfo chat = 19;
+  ChatRole role = 20;
 }
 
 // Отложенное сообщение — моё, ещё не отправленное (как scheduled messages в
@@ -340,9 +408,19 @@ message UpdatesState {
 
 // Одно обновление журнала. pts — номер обновления у пользователя (без дыр:
 // клиент, получив pts > своего + 1, догоняет через GET_DIFFERENCE).
+//
+// Журнал ЧАТА (группы): у обновления chatPts > 0 и chatID, а pts = 0 (в
+// журнал пользователя не входит). Порядок — по chatPts внутри чата: дубликат
+// пропустить, дыра (chatPts > своего + 1) — Chats.GetChatDifference. В журнал
+// чата идут общие события группы: сообщения (новое / правка / удаление),
+// прослушивание, сведения о группе и участники. Моё состояние диалога
+// (прочитано, звук, закреп, черновик, вступил / вышел) — в журнале
+// пользователя, как у личных.
 message Update {
   int64 pts = 1;
   int64 date = 2;
+  int64 chatPts = 50;
+  bytes chatID = 51;
 
   message NewMessage {
     ChatMessage message = 1;
@@ -441,6 +519,28 @@ message Update {
     Reason reason = 3;
   }
 
+  // Изменились сведения о группе (название, описание, аватар, число
+  // участников) — журнал чата.
+  message ChatInfoChanged {
+    ChatInfo chat = 1;
+  }
+
+  // Изменился состав группы — журнал чата. added — новые участники (с ролью),
+  // removedUserIDs — вышедшие / исключённые; membersCount — текущее число.
+  message ChatMembersChanged {
+    bytes chatID = 1;
+    repeated ChatMember added = 2;
+    repeated bytes removedUserIDs = 3;
+    int32 membersCount = 4;
+  }
+
+  // У меня появился диалог группы (создал, добавили, вступил) — журнал
+  // пользователя. После него клиент подписан на журнал чата с dialog.chat.pts.
+  // Вышел / исключили / группу удалили — Update.dialogDeleted.
+  message DialogNew {
+    Dialog dialog = 1;
+  }
+
   oneof update {
     NewMessage newMessage = 3;
     EditMessage editMessage = 4;
@@ -458,6 +558,9 @@ message Update {
     ChatFolders folders = 14;
     ScheduledMessageChanged scheduledMessage = 15;
     ScheduledDeleted scheduledDeleted = 16;
+    ChatInfoChanged chatInfo = 17;
+    ChatMembersChanged chatMembers = 18;
+    DialogNew dialogNew = 19;
   }
 }
 
@@ -679,6 +782,129 @@ message Chats {
     repeated Profile.Response profiles = 1;
   }
 
+  // Создать группу (как messages.createChat в Telegram): я — владелец,
+  // memberUserIDs — участники (≤ 200, без меня), роль у них WRITER. Кого
+  // нельзя добавить по его приватности «кто может добавлять меня в группы»
+  // (или заблокировал меня) — в restrictedUserIDs, группа создаётся без них.
+  // title — 1..128 символов (иначе INVALID_ARGUMENT «titleInvalid»), about ≤ 255.
+  // avatarCdnID — загружен мной заранее (иначе PERMISSION_DENIED). randomID —
+  // идемпотентность: повтор (обрыв связи) вернёт уже созданную. В ленте —
+  // служебные CREATED и ADDED; участникам — Update.dialogNew. Лимит частоты
+  // «создать чат».
+  message CreateGroup {
+    string title = 1;
+    string about = 2;
+    repeated bytes memberUserIDs = 3;
+    bytes avatarCdnID = 4;
+    int64 randomID = 5;
+  }
+
+  message CreateGroupResult {
+    Dialog dialog = 1;
+    repeated bytes restrictedUserIDs = 2;
+    Updates updates = 3;
+  }
+
+  // Изменить группу (владелец; права админа — подэтап 3.2): отсутствующее
+  // поле — не менять; avatarCdnID пустой — удалить фото. Смена названия /
+  // фото — служебное в ленту; всем — Update.chatInfo. Без изменений — без
+  // обновлений.
+  message EditChat {
+    bytes chatID = 1;
+    optional string title = 2;
+    optional string about = 3;
+    optional bytes avatarCdnID = 4;
+  }
+
+  message EditChatResult {
+    Updates updates = 1;
+  }
+
+  // Добавить участников (≤ 200 за раз; пока — любой участник, права — 3.2).
+  // Уже состоящие пропускаются; кому нельзя по приватности — restrictedUserIDs.
+  message AddMembers {
+    bytes chatID = 1;
+    repeated bytes userIDs = 2;
+  }
+
+  message AddMembersResult {
+    repeated bytes restrictedUserIDs = 1;
+    Updates updates = 2;
+  }
+
+  // Выйти из группы (как leaveChannel): служебное LEFT, у меня —
+  // dialogDeleted. Владелец выйти не может, пока не передал владение (3.2) —
+  // FAILED_PRECONDITION «ownerCannotLeave»; он может удалить группу.
+  message LeaveChat {
+    bytes chatID = 1;
+  }
+
+  message LeaveChatResult {
+    Updates updates = 1;
+  }
+
+  // Удалить группу у всех (только владелец, иначе PERMISSION_DENIED): у всех
+  // участников — dialogDeleted, сообщения и журнал чата удаляются.
+  message DeleteChat {
+    bytes chatID = 1;
+  }
+
+  message DeleteChatResult {
+    Updates updates = 1;
+  }
+
+  // Участники группы — страница по дате вступления (владелец первым).
+  // offset — курсор из прошлого ответа (пусто — с начала). profiles — профили
+  // участников страницы глазами запросившего (гейты приватности, как PROFILE).
+  message Members {
+    bytes chatID = 1;
+    bytes offset = 2;
+    int32 limit = 3;
+  }
+
+  message MembersResult {
+    repeated ChatMember members = 1;
+    repeated Profile.Response profiles = 2;
+    bytes nextOffset = 3;
+    int32 total = 4;
+  }
+
+  // Состояние журналов моих групп (после подключения): chats — какие знает
+  // клиент и до какого chatPts. В ответе changed — те, где на сервере pts
+  // больше (с текущим pts), их догоняют GetChatDifference; gone — где я больше
+  // не участник (группа удалена, исключили). Не названные клиентом группы
+  // приходят через журнал пользователя (dialogNew).
+  message GetChatsState {
+    repeated ChatPts chats = 1;
+  }
+
+  message ChatPts {
+    bytes chatID = 1;
+    int64 pts = 2;
+  }
+
+  message GetChatsStateResult {
+    repeated ChatPts changed = 1;
+    repeated bytes gone = 2;
+  }
+
+  // Догон журнала чата: обновления с chatPts > pts (как getChannelDifference).
+  // tooLong — журнал после pts уже обрезан: перезагрузить верх истории и
+  // dialog, продолжать от dialog.chat.pts.
+  message GetChatDifference {
+    bytes chatID = 1;
+    int64 pts = 2;
+    int32 limit = 3;
+  }
+
+  message GetChatDifferenceResult {
+    repeated Update updates = 1;
+    int64 pts = 2;
+    bool hasMore = 3;
+    bool tooLong = 4;
+    Dialog dialog = 5;
+  }
+
   message Request {
     oneof request {
       List list = 1;
@@ -697,6 +923,14 @@ message Chats {
       SetTTL setTTL = 14;
       SetNoForwards setNoForwards = 15;
       SearchUsers searchUsers = 16;
+      CreateGroup createGroup = 17;
+      EditChat editChat = 18;
+      AddMembers addMembers = 19;
+      LeaveChat leaveChat = 20;
+      DeleteChat deleteChat = 21;
+      Members members = 22;
+      GetChatsState getChatsState = 23;
+      GetChatDifference getChatDifference = 24;
     }
   }
 
@@ -718,6 +952,14 @@ message Chats {
       SetTTLResult setTTL = 14;
       SetNoForwardsResult setNoForwards = 15;
       SearchUsersResult searchUsers = 16;
+      CreateGroupResult createGroup = 17;
+      EditChatResult editChat = 18;
+      AddMembersResult addMembers = 19;
+      LeaveChatResult leaveChat = 20;
+      DeleteChatResult deleteChat = 21;
+      MembersResult members = 22;
+      GetChatsStateResult getChatsState = 23;
+      GetChatDifferenceResult getChatDifference = 24;
     }
   }
 }

@@ -19,6 +19,9 @@ data class PushPayload(
     // Номер отправителя (E.164): не titleFromContact — имя ищем в адресной книге.
     val senderPhone: String = "",
     val titleFromContact: Boolean = false,
+    // Сообщение в группе: её название — заголовком, отправитель — в тексте.
+    // Пусто — личный чат.
+    val chatTitle: String = "",
 ) {
     companion object {
         // PushPayload.Kind
@@ -74,6 +77,7 @@ data class PushPayload(
                     }
                     12 -> payload.copy(senderPhone = reader.expectString(wire))
                     13 -> payload.copy(titleFromContact = reader.expectVarint(wire) != 0L)
+                    14 -> payload.copy(chatTitle = reader.expectString(wire))
                     else -> { reader.skip(wire); payload }
                 }
             }

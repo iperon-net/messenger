@@ -47,6 +47,8 @@ export 'settings/settings_privacy_messages_cupertino.dart';
 export 'settings/settings_privacy_messages_material.dart';
 export 'settings/settings_privacy_forwards_cupertino.dart';
 export 'settings/settings_privacy_forwards_material.dart';
+export 'settings/settings_privacy_group_invites_cupertino.dart';
+export 'settings/settings_privacy_group_invites_material.dart';
 export 'settings/settings_privacy_phone_number_cupertino.dart';
 export 'settings/settings_privacy_phone_number_material.dart';
 export 'settings/settings_passcode_cupertino.dart';

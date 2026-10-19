@@ -78,6 +78,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$screenCall$en screenCall = Translations$screenCall$en.internal(_root);
 	late final Translations$passkey$en passkey = Translations$passkey$en.internal(_root);
 	late final Translations$yandex$en yandex = Translations$yandex$en.internal(_root);
+	late final Translations$chatAction$en chatAction = Translations$chatAction$en.internal(_root);
 	late final Translations$chatTtl$en chatTtl = Translations$chatTtl$en.internal(_root);
 	late final Translations$chatNoForwards$en chatNoForwards = Translations$chatNoForwards$en.internal(_root);
 	late final Translations$secretChat$en secretChat = Translations$secretChat$en.internal(_root);
@@ -648,6 +649,9 @@ class Translations$screenNewChat$en {
 
 	/// en: 'Tell subscribers what the channel is about.'
 	String get channelDescriptionFooter => 'Tell subscribers what the channel is about.';
+
+	/// en: 'Tell members what the group is about.'
+	String get groupDescriptionFooter => 'Tell members what the group is about.';
 
 	/// en: 'Tell people about your organization: what you do, address, opening hours. The community will have an announcements channel and topic groups.'
 	String get communityDescriptionFooter => 'Tell people about your organization: what you do, address, opening hours. The community will have an announcements channel and topic groups.';
@@ -2026,6 +2030,9 @@ class Translations$screenDeveloper$en {
 	/// en: 'Chats demo'
 	String get chatsDemo => 'Chats demo';
 
+	/// en: 'Groups'
+	String get chatsGroups => 'Groups';
+
 	/// en: 'Test notification'
 	String get testPush => 'Test notification';
 
@@ -2805,6 +2812,15 @@ class Translations$sessionsPrivacyAndSecurity$en {
 
 	/// en: 'Remind me, what time are we meeting tomorrow?'
 	String get forwardsPreviewText => 'Remind me, what time are we meeting tomorrow?';
+
+	/// en: 'Groups'
+	String get groupInvites => 'Groups';
+
+	/// en: 'Who can add me to groups'
+	String get whoCanAddToGroups => 'Who can add me to groups';
+
+	/// en: 'Everyone else won't be able to add you to a group — you just won't be among its members.'
+	String get groupInvitesNote => 'Everyone else won\'t be able to add you to a group — you just won\'t be among its members.';
 
 	/// en: 'Phone number'
 	String get phoneNumber => 'Phone number';
@@ -3800,6 +3816,87 @@ class Translations$yandex$en {
 	String get unavailable => 'Yandex ID is unavailable right now. Please try again later.';
 }
 
+// Path: chatAction
+class Translations$chatAction$en {
+	Translations$chatAction$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'You created the group «{title}»'
+	String createdYou({required Object title}) => 'You created the group «${title}»';
+
+	/// en: '{name} created the group «{title}»'
+	String created({required Object name, required Object title}) => '${name} created the group «${title}»';
+
+	/// en: 'You added {names}'
+	String addedYou({required Object names}) => 'You added ${names}';
+
+	/// en: '{name} added {names}'
+	String added({required Object name, required Object names}) => '${name} added ${names}';
+
+	/// en: 'You joined the group'
+	String get joinedYou => 'You joined the group';
+
+	/// en: '{name} joined the group'
+	String joined({required Object name}) => '${name} joined the group';
+
+	/// en: 'You left the group'
+	String get leftYou => 'You left the group';
+
+	/// en: '{name} left the group'
+	String left({required Object name}) => '${name} left the group';
+
+	/// en: 'You removed {names}'
+	String removedYou({required Object names}) => 'You removed ${names}';
+
+	/// en: '{name} removed {names}'
+	String removed({required Object name, required Object names}) => '${name} removed ${names}';
+
+	/// en: 'You changed the group name to «{title}»'
+	String titleYou({required Object title}) => 'You changed the group name to «${title}»';
+
+	/// en: '{name} changed the group name to «{title}»'
+	String title({required Object name, required Object title}) => '${name} changed the group name to «${title}»';
+
+	/// en: 'You changed the group photo'
+	String get photoYou => 'You changed the group photo';
+
+	/// en: '{name} changed the group photo'
+	String photo({required Object name}) => '${name} changed the group photo';
+
+	/// en: 'You removed the group photo'
+	String get photoRemovedYou => 'You removed the group photo';
+
+	/// en: '{name} removed the group photo'
+	String photoRemoved({required Object name}) => '${name} removed the group photo';
+
+	/// en: 'you'
+	String get youObject => 'you';
+
+	/// en: 'Not everyone was added'
+	String get restrictedTitle => 'Not everyone was added';
+
+	/// en: '(one) {{count} person wasn't added: their privacy settings don't allow adding them to groups.} (other) {{count} people weren't added: their privacy settings don't allow adding them to groups.}'
+	String restricted({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${count} person wasn\'t added: their privacy settings don\'t allow adding them to groups.',
+		other: '${count} people weren\'t added: their privacy settings don\'t allow adding them to groups.',
+	);
+
+	/// en: 'The group will be deleted for all members.'
+	String get deleteGroupMessage => 'The group will be deleted for all members.';
+
+	/// en: 'Couldn't complete the action. Please try again.'
+	String get failed => 'Couldn\'t complete the action. Please try again.';
+
+	/// en: 'The group name must be 1 to 128 characters.'
+	String get titleInvalid => 'The group name must be 1 to 128 characters.';
+
+	/// en: 'Groups are unavailable right now.'
+	String get groupsDisabled => 'Groups are unavailable right now.';
+}
+
 // Path: chatTtl
 class Translations$chatTtl$en {
 	Translations$chatTtl$en.internal(this._root);
@@ -4252,6 +4349,7 @@ extension on Translations {
 			'screenNewChat.description' => 'Description',
 			'screenNewChat.descriptionHint' => 'Optional',
 			'screenNewChat.channelDescriptionFooter' => 'Tell subscribers what the channel is about.',
+			'screenNewChat.groupDescriptionFooter' => 'Tell members what the group is about.',
 			'screenNewChat.communityDescriptionFooter' => 'Tell people about your organization: what you do, address, opening hours. The community will have an announcements channel and topic groups.',
 			'screenNewChat.members' => 'Members',
 			'screenNewChat.setPhoto' => 'Set Photo',
@@ -4598,9 +4696,9 @@ extension on Translations {
 			'screenChat.micDeniedTitle' => 'No microphone access',
 			'screenChat.micDeniedMessage' => 'Allow microphone access in Settings to record voice messages.',
 			'screenChat.openSettings' => 'Settings',
-			'screenChat.hideWithSpoiler' => 'Hide with spoiler',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.hideWithSpoiler' => 'Hide with spoiler',
 			'screenChat.removeSpoiler' => 'Remove spoiler',
 			'screenChat.videoHdOn' => 'HD video: 1080p',
 			'screenChat.videoHdOff' => 'Standard quality: 720p',
@@ -4682,6 +4780,7 @@ extension on Translations {
 			'screenDeveloper.exportLogs' => 'Export logs',
 			'screenDeveloper.callPreview' => 'Call screen preview',
 			'screenDeveloper.chatsDemo' => 'Chats demo',
+			'screenDeveloper.chatsGroups' => 'Groups',
 			'screenDeveloper.testPush' => 'Test notification',
 			'screenDeveloper.testPushSent' => ({required Object apns, required Object fcm, required Object failed}) => 'Sent: APNs — ${apns}, FCM — ${fcm}, failed — ${failed}. Minimize the app or lock the screen to check background delivery.',
 			'screenDeveloper.testPushNoTokens' => 'None of your devices has a push token. Make sure notifications are allowed and restart the app.',
@@ -4913,6 +5012,9 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.whoCanLinkForwards' => 'Who can add a link to my account when forwarding my messages',
 			'sessionsPrivacyAndSecurity.forwardsNote' => 'Everyone else will see only your name in "Forwarded from…", without a link to your profile.',
 			'sessionsPrivacyAndSecurity.forwardsPreviewText' => 'Remind me, what time are we meeting tomorrow?',
+			'sessionsPrivacyAndSecurity.groupInvites' => 'Groups',
+			'sessionsPrivacyAndSecurity.whoCanAddToGroups' => 'Who can add me to groups',
+			'sessionsPrivacyAndSecurity.groupInvitesNote' => 'Everyone else won\'t be able to add you to a group — you just won\'t be among its members.',
 			'sessionsPrivacyAndSecurity.phoneNumber' => 'Phone number',
 			'sessionsPrivacyAndSecurity.whoCanSeePhoneNumber' => 'Who can see my phone number',
 			'sessionsPrivacyAndSecurity.phoneNumberNote' => 'People who already have your number saved in their contacts will always see it.',
@@ -5108,13 +5210,13 @@ extension on Translations {
 			'screenAuthModerationApplicationStore.verificationCodeMismatch' => 'Verification code mismatch',
 			'screenAuthModerationApplicationStore.moderationApplicationStoreSessionNotFound' => 'Moderation application store session not found',
 			'screenAuthModerationApplicationStore.invalidPublicSharedKey' => 'Invalid public shared key',
+			_ => null,
+		} ?? switch (path) {
 			'screenAuthModerationApplicationStore.invalidPublicSaltKey' => 'Invalid public salt key',
 			'screenAuthModerationApplicationStore.enterTheCode' => 'Enter the code',
 			'screenAuthModerationApplicationStore.sentConfirmationCodeToNumber' => ({required Object phoneNumber}) => 'We sent a confirmation code to the number ${phoneNumber}',
 			'screenAuthModerationApplicationStore.signatureVerificationFailed' => 'Signature verification failed',
 			'screenAuthCallpasswordConfirmation.weAreExpectingYourCallWithin' => ({required Object duration}) => 'We are expecting your call within ${duration}',
-			_ => null,
-		} ?? switch (path) {
 			'screenAuthCallpasswordConfirmation.confirmYourNumberDetail' => ({required Object confirmationPhoneNumberRu}) => 'Call ${confirmationPhoneNumberRu} from the phone number you provided and wait for the call to be disconnected.',
 			'screenAuthCallpasswordConfirmation.callForFree' => 'Call for free',
 			'screenAuthCallpasswordConfirmation.signatureVerificationFailed' => 'Signature verification failed',
@@ -5202,6 +5304,29 @@ extension on Translations {
 			'yandex.phoneMissing' => 'Your Yandex ID has no phone number. Add one in Yandex ID or sign in with your phone number.',
 			'yandex.invalidPhone' => 'The phone number in your Yandex ID can\'t be used to sign in. Sign in with your phone number.',
 			'yandex.unavailable' => 'Yandex ID is unavailable right now. Please try again later.',
+			'chatAction.createdYou' => ({required Object title}) => 'You created the group «${title}»',
+			'chatAction.created' => ({required Object name, required Object title}) => '${name} created the group «${title}»',
+			'chatAction.addedYou' => ({required Object names}) => 'You added ${names}',
+			'chatAction.added' => ({required Object name, required Object names}) => '${name} added ${names}',
+			'chatAction.joinedYou' => 'You joined the group',
+			'chatAction.joined' => ({required Object name}) => '${name} joined the group',
+			'chatAction.leftYou' => 'You left the group',
+			'chatAction.left' => ({required Object name}) => '${name} left the group',
+			'chatAction.removedYou' => ({required Object names}) => 'You removed ${names}',
+			'chatAction.removed' => ({required Object name, required Object names}) => '${name} removed ${names}',
+			'chatAction.titleYou' => ({required Object title}) => 'You changed the group name to «${title}»',
+			'chatAction.title' => ({required Object name, required Object title}) => '${name} changed the group name to «${title}»',
+			'chatAction.photoYou' => 'You changed the group photo',
+			'chatAction.photo' => ({required Object name}) => '${name} changed the group photo',
+			'chatAction.photoRemovedYou' => 'You removed the group photo',
+			'chatAction.photoRemoved' => ({required Object name}) => '${name} removed the group photo',
+			'chatAction.youObject' => 'you',
+			'chatAction.restrictedTitle' => 'Not everyone was added',
+			'chatAction.restricted' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} person wasn\'t added: their privacy settings don\'t allow adding them to groups.', other: '${count} people weren\'t added: their privacy settings don\'t allow adding them to groups.', ), 
+			'chatAction.deleteGroupMessage' => 'The group will be deleted for all members.',
+			'chatAction.failed' => 'Couldn\'t complete the action. Please try again.',
+			'chatAction.titleInvalid' => 'The group name must be 1 to 128 characters.',
+			'chatAction.groupsDisabled' => 'Groups are unavailable right now.',
 			'chatTtl.title' => 'Auto-delete',
 			'chatTtl.titleLong' => 'Auto-delete messages',
 			'chatTtl.off' => 'Off',

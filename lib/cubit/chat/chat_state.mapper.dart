@@ -103,6 +103,34 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: 0,
   );
+  static int _$restrictedNotice(ChatState v) => v.restrictedNotice;
+  static const Field<ChatState, int> _f$restrictedNotice = Field(
+    'restrictedNotice',
+    _$restrictedNotice,
+    opt: true,
+    def: 0,
+  );
+  static int _$restrictedCount(ChatState v) => v.restrictedCount;
+  static const Field<ChatState, int> _f$restrictedCount = Field(
+    'restrictedCount',
+    _$restrictedCount,
+    opt: true,
+    def: 0,
+  );
+  static int _$failNotice(ChatState v) => v.failNotice;
+  static const Field<ChatState, int> _f$failNotice = Field(
+    'failNotice',
+    _$failNotice,
+    opt: true,
+    def: 0,
+  );
+  static String _$failError(ChatState v) => v.failError;
+  static const Field<ChatState, String> _f$failError = Field(
+    'failError',
+    _$failError,
+    opt: true,
+    def: '',
+  );
   static models.Chat? _$chat(ChatState v) => v.chat;
   static const Field<ChatState, models.Chat> _f$chat = Field(
     'chat',
@@ -331,6 +359,10 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
   final MappableFields<ChatState> fields = const {
     #status: _f$status,
     #offlineNotice: _f$offlineNotice,
+    #restrictedNotice: _f$restrictedNotice,
+    #restrictedCount: _f$restrictedCount,
+    #failNotice: _f$failNotice,
+    #failError: _f$failError,
     #chat: _f$chat,
     #messages: _f$messages,
     #communityChats: _f$communityChats,
@@ -370,6 +402,10 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     return ChatState(
       status: data.dec(_f$status),
       offlineNotice: data.dec(_f$offlineNotice),
+      restrictedNotice: data.dec(_f$restrictedNotice),
+      restrictedCount: data.dec(_f$restrictedCount),
+      failNotice: data.dec(_f$failNotice),
+      failError: data.dec(_f$failError),
       chat: data.dec(_f$chat),
       messages: data.dec(_f$messages),
       communityChats: data.dec(_f$communityChats),
@@ -528,6 +564,10 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
   $R call({
     Status? status,
     int? offlineNotice,
+    int? restrictedNotice,
+    int? restrictedCount,
+    int? failNotice,
+    String? failError,
     models.Chat? chat,
     List<models.Message>? messages,
     List<models.Chat>? communityChats,
@@ -709,6 +749,10 @@ class _ChatStateCopyWithImpl<$R, $Out>
   $R call({
     Status? status,
     int? offlineNotice,
+    int? restrictedNotice,
+    int? restrictedCount,
+    int? failNotice,
+    String? failError,
     Object? chat = $none,
     List<models.Message>? messages,
     List<models.Chat>? communityChats,
@@ -746,6 +790,10 @@ class _ChatStateCopyWithImpl<$R, $Out>
     FieldCopyWithData({
       if (status != null) #status: status,
       if (offlineNotice != null) #offlineNotice: offlineNotice,
+      if (restrictedNotice != null) #restrictedNotice: restrictedNotice,
+      if (restrictedCount != null) #restrictedCount: restrictedCount,
+      if (failNotice != null) #failNotice: failNotice,
+      if (failError != null) #failError: failError,
       if (chat != $none) #chat: chat,
       if (messages != null) #messages: messages,
       if (communityChats != null) #communityChats: communityChats,
@@ -786,6 +834,10 @@ class _ChatStateCopyWithImpl<$R, $Out>
   ChatState $make(CopyWithData data) => ChatState(
     status: data.get(#status, or: $value.status),
     offlineNotice: data.get(#offlineNotice, or: $value.offlineNotice),
+    restrictedNotice: data.get(#restrictedNotice, or: $value.restrictedNotice),
+    restrictedCount: data.get(#restrictedCount, or: $value.restrictedCount),
+    failNotice: data.get(#failNotice, or: $value.failNotice),
+    failError: data.get(#failError, or: $value.failError),
     chat: data.get(#chat, or: $value.chat),
     messages: data.get(#messages, or: $value.messages),
     communityChats: data.get(#communityChats, or: $value.communityChats),

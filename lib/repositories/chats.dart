@@ -72,6 +72,42 @@ class ChatDialogRow {
   );
 }
 
+/// Строка `chatGroups` — группа, в которой я состою (миграция 35): общие
+/// сведения ([info] — `ChatInfo` с сервера), моя роль и pts журнала ЧАТА.
+class ChatGroupRow {
+  final Uint8List chatID;
+  final pb.ChatInfo info;
+  final pb.ChatRole role;
+  final int pts;
+
+  const ChatGroupRow({required this.chatID, required this.info, required this.role, required this.pts});
+
+  factory ChatGroupRow._fromRow(Map<String, dynamic> row) => ChatGroupRow(
+    chatID: Uint8List.fromList(row['chatID'] as List<int>),
+    info: pb.ChatInfo.fromBuffer(row['info'] as List<int>),
+    role: pb.ChatRole.valueOf(row['role'] as int) ?? pb.ChatRole.CHAT_ROLE_WRITER,
+    pts: row['pts'] as int,
+  );
+}
+
+/// Строка `chatGroupMembers` — известный участник группы (пришёл в
+/// `Chats.Members` или `Update.chatMembers`).
+class ChatGroupMemberRow {
+  final Uint8List userID;
+  final pb.ChatRole role;
+  final int joinedAt;
+  final Uint8List? inviterUserID;
+
+  const ChatGroupMemberRow({required this.userID, required this.role, required this.joinedAt, this.inviterUserID});
+
+  factory ChatGroupMemberRow._fromRow(Map<String, dynamic> row) => ChatGroupMemberRow(
+    userID: Uint8List.fromList(row['memberUserID'] as List<int>),
+    role: pb.ChatRole.valueOf(row['role'] as int) ?? pb.ChatRole.CHAT_ROLE_WRITER,
+    joinedAt: row['joinedAt'] as int,
+    inviterUserID: row['inviterUserID'] == null ? null : Uint8List.fromList(row['inviterUserID'] as List<int>),
+  );
+}
+
 /// Строка `chatOutbox` — сообщение, ещё не принятое сервером.
 class ChatOutboxRow {
   final int randomID;
@@ -196,6 +232,8 @@ class ChatsRepository {
   static const pendingReactionsTable = 'chatPendingReactions';
   static const foldersTable = 'chatFolders';
   static const scheduledTable = 'chatScheduled';
+  static const groupsTable = 'chatGroups';
+  static const groupMembersTable = 'chatGroupMembers';
 
   static const _dialogColumns =
       'chatID, type, peerUserID, topMessageID, topMessageDate, topMessage, readInboxMaxID, readOutboxMaxID, unreadCount, '
@@ -327,6 +365,8 @@ class ChatsRepository {
       ],
     );
     if (top != null) await upsertMessage(userID: userID, message: top);
+    // Группа: сведения, моя роль и pts журнала чата (догон — от него).
+    if (dialog.hasChat()) await upsertGroup(userID: userID, info: dialog.chat, role: dialog.role);
   }
 
   /// Пустой диалог, о котором сервер ещё не рассказал (сообщение пришло раньше
@@ -400,6 +440,8 @@ class ChatsRepository {
     await ctx.execute('DELETE FROM chatPinned WHERE userID = ? AND chatID = ?;', [userID, chatID]);
     await ctx.execute('DELETE FROM chatPendingReactions WHERE userID = ? AND chatID = ?;', [userID, chatID]);
     await ctx.execute('DELETE FROM chatDialogs WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+    await ctx.execute('DELETE FROM chatGroups WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+    await ctx.execute('DELETE FROM chatGroupMembers WHERE userID = ? AND chatID = ?;', [userID, chatID]);
   }
 
   /// Полный список с сервера заменяет локальный: исчезнувшие диалоги удаляются
@@ -409,12 +451,20 @@ class ChatsRepository {
   /// [staleHistory] — журнал слишком отстал (`tooLong`): кэш истории мог
   /// разойтись с сервером — не стираем, а помечаем несверенным
   /// ([markHistoryStale]), сверится страницами ([applyHistoryPage]).
-  Future<void> replaceDialogs({required List<int> userID, required List<pb.Dialog> dialogs, bool staleHistory = false}) async {
+  /// [keepGroups] — флаг «Группы» выключен: сервер групп не отдаёт, но их кэш
+  /// не стираем (включат снова — всё на месте).
+  Future<void> replaceDialogs({
+    required List<int> userID,
+    required List<pb.Dialog> dialogs,
+    bool staleHistory = false,
+    bool keepGroups = false,
+  }) async {
     // До записи диалогов: их последние сообщения (новее кэша) — уже сверены.
     if (staleHistory) await markHistoryStale(userID: userID);
     final keep = {for (final d in dialogs) _hex(d.chatID)};
     for (final row in await this.dialogs(userID: userID)) {
       if (keep.contains(_hex(row.chatID)) || (row.topMessageID == 0 && row.type == 0)) continue;
+      if (keepGroups && row.type != pb.ChatType.CHAT_TYPE_PRIVATE.value) continue;
       // Есть неотправленное — не теряем его вместе с диалогом.
       if ((await outbox(userID: userID, chatID: row.chatID)).any((r) => !r.failed)) {
         logger.warning('chats: dialog ${_hex(row.chatID)} missing on server, kept (outbox not empty)');
@@ -571,6 +621,22 @@ class ChatsRepository {
       );
       ''',
       [userID],
+    );
+  }
+
+  /// Кэш истории одного чата — несверенный (журнал группы обрезан,
+  /// `GetChatDifference.tooLong`).
+  Future<void> markChatHistoryStale({required List<int> userID, required List<int> chatID}) async {
+    await ctx.execute(
+      '''
+      UPDATE chatDialogs SET historyStaleBelow = (
+        SELECT MAX(m.messageID) + 1 FROM chatMessages m WHERE m.userID = chatDialogs.userID AND m.chatID = chatDialogs.chatID
+      )
+      WHERE userID = ? AND chatID = ? AND EXISTS (
+        SELECT 1 FROM chatMessages m WHERE m.userID = chatDialogs.userID AND m.chatID = chatDialogs.chatID
+      );
+      ''',
+      [userID, chatID],
     );
   }
 
@@ -951,6 +1017,75 @@ class ChatsRepository {
       if (expireAt > 0 && expireAt <= now) add(row['chatID'] as List<int>, row['messageID'] as int);
     }
     return result;
+  }
+
+  // --- группы ---
+
+  Future<List<ChatGroupRow>> groups({required List<int> userID}) async {
+    final rows = await ctx.getAll('SELECT chatID, info, role, pts FROM chatGroups WHERE userID = ?;', [userID]);
+    return rows.map(ChatGroupRow._fromRow).toList(growable: false);
+  }
+
+  Future<ChatGroupRow?> group({required List<int> userID, required List<int> chatID}) async {
+    final row = await ctx.getOptional('SELECT chatID, info, role, pts FROM chatGroups WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+    return row == null ? null : ChatGroupRow._fromRow(row);
+  }
+
+  /// Сведения о группе с сервера (диалог группы, dialogNew). pts журнала чата
+  /// не уменьшается: обновления, уже применённые после этого снимка, второй
+  /// раз не применяем. [resetPts] — журнал обрезан (tooLong): pts — как в
+  /// снимке.
+  Future<void> upsertGroup({required List<int> userID, required pb.ChatInfo info, required pb.ChatRole role, bool resetPts = false}) async {
+    await ctx.execute(
+      '''
+      INSERT INTO chatGroups (userID, chatID, info, role, pts) VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(userID, chatID) DO UPDATE SET
+        info = excluded.info,
+        role = excluded.role,
+        pts = ${resetPts ? 'excluded.pts' : 'MAX(chatGroups.pts, excluded.pts)'};
+      ''',
+      [userID, info.chatID, info.writeToBuffer(), role.value, info.pts.toInt()],
+    );
+  }
+
+  /// Сведения изменились (Update.chatInfo) — pts журнала ведёт [setGroupPts].
+  Future<void> setGroupInfo({required List<int> userID, required pb.ChatInfo info}) async {
+    await ctx.execute('UPDATE chatGroups SET info = ? WHERE userID = ? AND chatID = ?;', [info.writeToBuffer(), userID, info.chatID]);
+  }
+
+  Future<void> setGroupPts({required List<int> userID, required List<int> chatID, required int pts}) async {
+    await ctx.execute('UPDATE chatGroups SET pts = ? WHERE userID = ? AND chatID = ?;', [pts, userID, chatID]);
+  }
+
+  /// Известные участники группы — по дате вступления.
+  Future<List<ChatGroupMemberRow>> groupMembers({required List<int> userID, required List<int> chatID}) async {
+    final rows = await ctx.getAll('SELECT * FROM chatGroupMembers WHERE userID = ? AND chatID = ? ORDER BY joinedAt ASC;', [
+      userID,
+      chatID,
+    ]);
+    return rows.map(ChatGroupMemberRow._fromRow).toList(growable: false);
+  }
+
+  /// Участники из `Chats.Members` / `Update.chatMembers` — в кэш.
+  Future<void> upsertGroupMembers({required List<int> userID, required List<int> chatID, required List<pb.ChatMember> members}) async {
+    for (final m in members) {
+      await ctx.execute(
+        'INSERT OR REPLACE INTO chatGroupMembers (userID, chatID, memberUserID, role, joinedAt, inviterUserID) VALUES (?, ?, ?, ?, ?, ?);',
+        [userID, chatID, m.userID, m.role.value, m.joinedAt.toInt(), m.inviterUserID.isEmpty ? null : m.inviterUserID],
+      );
+    }
+  }
+
+  Future<void> removeGroupMembers({required List<int> userID, required List<int> chatID, required List<List<int>> memberUserIDs}) async {
+    for (final member in memberUserIDs) {
+      await ctx.execute('DELETE FROM chatGroupMembers WHERE userID = ? AND chatID = ? AND memberUserID = ?;', [userID, chatID, member]);
+    }
+  }
+
+  /// Первая страница `Chats.Members` — полный снимок известных: заменяет кэш.
+  Future<void> replaceGroupMembers({required List<int> userID, required List<int> chatID, required List<pb.ChatMember> members}) async {
+    await ctx.execute('DELETE FROM chatGroupMembers WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+    await upsertGroupMembers(userID: userID, chatID: chatID, members: members);
   }
 
   // --- outbox ---

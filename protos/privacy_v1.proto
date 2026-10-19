@@ -96,6 +96,14 @@ message PrivacySettings {
     // Telegram). Те, кому номер виден (phone_number + исключения), находят
     // всегда.
     Audience phone_number_find = 26;
+    // Аудитория «кто может добавлять меня в группы» + её allow/deny-списки
+    // (та же семантика, что у звонков; ДЕФОЛТ — EVERYBODY, как в Telegram).
+    // Гейт — при создании группы и добавлении участников по стороне
+    // добавляемого; не разрешено (или заблокировал добавляющего) — человек в
+    // restrictedUserIDs ответа, группа без него.
+    Audience group_invites = 27;
+    repeated bytes group_invites_allow = 28;
+    repeated bytes group_invites_deny = 29;
   }
 }
 
@@ -333,6 +341,33 @@ message PrivacyPhoneNumberDenyUpdate {
 message PrivacyPhoneNumberFindUpdate {
   message Request {
     PrivacySettings.Audience phone_number_find = 1;
+  }
+
+  message Response {}
+}
+
+// Изменение аудитории «кто может добавлять меня в группы».
+message PrivacyGroupInvitesUpdate {
+  message Request {
+    PrivacySettings.Audience group_invites = 1;
+  }
+
+  message Response {}
+}
+
+// Полная замена allow-list «всегда разрешать» для добавления в группы.
+message PrivacyGroupInvitesAllowUpdate {
+  message Request {
+    repeated bytes user_ids = 1;
+  }
+
+  message Response {}
+}
+
+// Полная замена deny-list «всегда запрещать» для добавления в группы.
+message PrivacyGroupInvitesDenyUpdate {
+  message Request {
+    repeated bytes user_ids = 1;
   }
 
   message Response {}

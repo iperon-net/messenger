@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -40,10 +41,12 @@ import 'read_receipts.dart';
 /// отправка сообщений (честно ждут в outbox (⏱) и уходят при подключении) и
 /// реакции (ждут в `chatPendingReactions` так же).
 ///
-/// Группы, каналы, сообщества, приглашения, опросы, отложенные и
-/// пересылка — следующие срезы: их действия бросают
+/// Группы — срез 3.1 (флаг «Группы», docs/plans/chats-groups.md): создать,
+/// переписка, служебные, «Изменить» (название, описание, фото), участники,
+/// выйти / удалить. Роли и права, ссылки, заявки, баны, реакции групп,
+/// каналы, сообщества, опросы — следующие срезы: их действия бросают
 /// [UnsupportedError], а то, что экраны читают при открытии любого чата
-/// (участники, отложенные, ссылки), отдаёт пустое.
+/// (ссылки, заявки), отдаёт пустое.
 class ChatsRemoteDataSource implements ChatsDataSource {
   ChatsRemoteDataSource._();
 
@@ -61,6 +64,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     ChatsRepository.dialogsTable,
     ChatsRepository.outboxTable,
     ChatsRepository.pinnedTable,
+    ChatsRepository.groupsTable,
     'profiles',
     'contacts',
   ];
@@ -73,6 +77,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     ChatsRepository.dialogsTable,
     ChatsRepository.pinnedTable,
     ChatsRepository.pendingReactionsTable,
+    // Группа: имена отправителей — из профилей участников.
+    ChatsRepository.groupsTable,
+    'profiles',
   ];
 
   Future<void> _requireNetwork() async {
@@ -81,9 +88,10 @@ class ChatsRemoteDataSource implements ChatsDataSource {
 
   static Never _unsupported(String what) => throw UnsupportedError('$what — пока только в демо (личные чаты — первый срез)');
 
-  /// Закреплённые, реакции, пересылка и отложенные — есть.
+  /// Закреплённые, реакции, пересылка и отложенные — есть; группы — по флагу
+  /// «Группы», без расширенного (роли, реакции, закреп у всех — 3.2–3.4).
   @override
-  ChatsFeatures get features => const ChatsFeatures(reactions: true, pinnedMessages: true, forward: true, scheduled: true);
+  ChatsFeatures get features => ChatsFeatures(reactions: true, pinnedMessages: true, forward: true, scheduled: true, groups: _sync.groups);
 
   // --- список чатов ---
 
@@ -98,6 +106,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     StreamSubscription<void>? presence;
     StreamSubscription<void>? typing;
     StreamSubscription<void>? connection;
+    StreamSubscription<void>? groups;
+    StreamSubscription<void>? avatars;
     List<models.Chat>? loaded;
     var pending = Future<void>.value();
     void reload() {
@@ -123,8 +133,14 @@ class ChatsRemoteDataSource implements ChatsDataSource {
             .listen((_) => reload());
         typing = ChatsTyping.instance.changed.listen((_) {
           final chats = loaded;
-          if (chats != null && !out.isClosed) out.add(_withTyping(chats));
+          if (chats == null || out.isClosed) return;
+          // В группе печатает тот, чьего имени ещё нет, — перечитать с ним.
+          if (_typingNamesMissing(chats)) return reload();
+          out.add(_withTyping(chats));
         });
+        // Флаг «Группы» и скачанные аватары групп.
+        groups = _sync.groupsChanged.listen((_) => reload());
+        avatars = _avatarsChanged.stream.listen((_) => reload());
       },
       onCancel: () async {
         _listShown = false;
@@ -133,22 +149,46 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         await presence?.cancel();
         await typing?.cancel();
         await connection?.cancel();
+        await groups?.cancel();
+        await avatars?.cancel();
       },
     );
     return out.stream;
   }
 
   /// «Печатает…» / «отправляет фото…» из [ChatsTyping] — поверх загруженного.
-  /// В личном чате имя не нужно (собеседник один) — берём заголовок.
-  static List<models.Chat> _withTyping(List<models.Chat> chats) => [
+  /// В личном чате имя не нужно (собеседник один) — берём заголовок; в группе
+  /// — имя участника по общему правилу ([_names]).
+  List<models.Chat> _withTyping(List<models.Chat> chats) => [
     for (final chat in chats)
       switch (ChatsTyping.instance.of(chat.id)) {
         final typing when typing.isEmpty => chat,
         final typing => chat.copyWith(
-          typing: [for (final t in typing) models.ChatTyping(userID: t.userID, name: chat.title, activity: t.activity)],
+          typing: [
+            for (final t in typing)
+              models.ChatTyping(
+                userID: t.userID,
+                name: chat.type == models.ChatType.group ? _names[t.userID] ?? '' : chat.title,
+                activity: t.activity,
+              ),
+          ],
         ),
       },
   ];
+
+  /// В какой-то группе печатает участник, чьё имя ещё не загружено.
+  bool _typingNamesMissing(List<models.Chat> chats) =>
+      chats.any((chat) => chat.type == models.ChatType.group && ChatsTyping.instance.of(chat.id).any((t) => !_names.containsKey(t.userID)));
+
+  /// Имена людей по общему правилу (hex userID → имя) — для «печатает…» в
+  /// группах; пополняется при каждом чтении списка.
+  final _names = <String, String>{};
+
+  /// Скачался аватар группы — список перечитывается.
+  final _avatarsChanged = StreamController<void>.broadcast();
+
+  /// Аватары групп, которые уже качаются / качались за этот запуск (hex cdnID).
+  final _avatarDownloads = <String>{};
 
   /// Список чатов подписан ([watchChats]) — только тогда держим «в сети»
   /// собеседников свежим (загрузка, закончившаяся после отписки, не включит).
@@ -177,9 +217,31 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   Future<List<models.Chat>> _loadChats() async {
     if (!_auth.isAuthorized) return const [];
     final me = _sync.me;
+    final groupsShown = _sync.groups;
     final rows = await _store.dialogs(userID: me);
     final outbox = await _store.outbox(userID: me);
-    final peers = _Peers(await _loadPeers(rows.map((r) => r.peerUserID).nonNulls.toList()));
+    final groups = groupsShown ? {for (final g in await _store.groups(userID: me)) idHex(g.chatID): g} : const <String, ChatGroupRow>{};
+    // Люди списка: собеседники личных, авторы последних сообщений групп и те,
+    // кого касается служебное (добавил / исключил), печатающие в группах.
+    final people = <String, Uint8List>{};
+    for (final row in rows) {
+      if (row.peerUserID case final peer?) people[idHex(peer)] = peer;
+      if (row.type != pb.ChatType.CHAT_TYPE_GROUP.value || !groups.containsKey(idHex(row.chatID))) continue;
+      final top = row.topMessage == null ? null : pb.ChatMessage.fromBuffer(row.topMessage!);
+      if (top != null) {
+        for (final userID in [top.fromUserID, ...top.content.chatAction.userIDs]) {
+          people[idHex(userID)] = Uint8List.fromList(userID);
+        }
+      }
+      for (final typing in ChatsTyping.instance.of(idHex(row.chatID))) {
+        final userID = idBytes(typing.userID);
+        if (userID.isNotEmpty) people[typing.userID] = userID;
+      }
+    }
+    final peers = _Peers(await _loadPeers(people.values.toList()));
+    for (final MapEntry(:key, :value) in peers.byID.entries) {
+      _names[key] = value.title;
+    }
     final now = DateTime.now();
 
     // Последнее неотправленное каждого чата — в превью вместо последнего
@@ -193,10 +255,11 @@ class ChatsRemoteDataSource implements ChatsDataSource {
 
     final chats = <models.Chat>[];
     for (final row in rows) {
-      // В этом срезе — только личные.
-      if (row.type != pb.ChatType.CHAT_TYPE_PRIVATE.value) continue;
       final id = idHex(row.chatID);
-      final peer = row.peerUserID;
+      final group = groups[id];
+      // Личные и (с флагом «Группы») группы; остальное — следующие срезы.
+      if (row.type != pb.ChatType.CHAT_TYPE_PRIVATE.value && group == null) continue;
+      final peer = group == null ? row.peerUserID : null;
       final isSelf = peer != null && sameID(peer, me);
       final info = peer == null || isSelf ? null : peers.of(peer);
       final topBlob = row.topMessage;
@@ -210,6 +273,12 @@ class ChatsRemoteDataSource implements ChatsDataSource {
               isSelf: isSelf,
               pinned: top.content.hasPin() ? await _pinnedMessage(row.chatID, top.content.pin.messageID.toInt()) : null,
             );
+      if (group != null && top != null && lastMessage != null) {
+        lastMessage = top.content.hasChatAction()
+            // Служебное группы — текстом, без автора и галочек.
+            ? lastMessage.copyWith(text: _chatActionText(top, me, peers), outgoing: false)
+            : lastMessage.copyWith(senderName: lastMessage.outgoing ? '' : peers.of(top.fromUserID).title);
+      }
       final queued = pending[id];
       if (queued != null) {
         final date = DateTime.fromMillisecondsSinceEpoch(queued.createdAt);
@@ -225,6 +294,35 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         }
       }
       final muted = mutedFromPb(row.mutedUntil, now);
+      if (group != null) {
+        chats.add(
+          models.Chat(
+            id: id,
+            type: models.ChatType.group,
+            title: group.info.title,
+            about: group.info.about,
+            avatarPath: await _groupAvatar(group.info),
+            membersCount: group.info.membersCount,
+            myRole: roleFromPb(group.role),
+            defaultRole: models.ChatRole.writer,
+            // Ссылок-приглашений в 3.1 нет — добавляют участники.
+            joinMode: models.ChatJoinMode.admins,
+            lastMessage: lastMessage,
+            unreadCount: row.unreadCount,
+            unreadReactions: row.unreadReactions,
+            markedUnread: row.markedUnread,
+            muted: muted.muted,
+            mutedUntil: muted.until,
+            pinned: row.pinned,
+            archived: row.archived,
+            draft: row.draft,
+            createdAt: row.createdAt > 0
+                ? DateTime.fromMillisecondsSinceEpoch(row.createdAt)
+                : (group.info.createdAt > 0 ? DateTime.fromMillisecondsSinceEpoch(group.info.createdAt.toInt()) : null),
+          ),
+        );
+        continue;
+      }
       chats.add(
         models.Chat(
           id: id,
@@ -263,11 +361,40 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       ]);
     }
     _requestProfiles([
-      for (final row in rows)
-        if (row.peerUserID case final peer? when !sameID(peer, me))
-          (userID: peer, cached: (peers.of(peer).profile?.fistName ?? '').isNotEmpty),
+      for (final userID in people.values)
+        if (!sameID(userID, me)) (userID: userID, cached: (peers.of(userID).profile?.fistName ?? '').isNotEmpty),
     ]);
     return chats;
+  }
+
+  /// Текст служебного группы ([chatActionText]) с именами по общему правилу.
+  String _chatActionText(pb.ChatMessage message, List<int> me, _Peers peers) {
+    final action = message.content.chatAction;
+    return chatActionText(
+      t,
+      action,
+      outgoing: sameID(message.fromUserID, me),
+      actor: peers.of(message.fromUserID).title,
+      names: [for (final userID in action.userIDs) sameID(userID, me) ? t.chatAction.youObject : peers.of(userID).title],
+    );
+  }
+
+  /// Аватар группы: скачан — путь; нет — качаем (раз за запуск), список
+  /// перечитается сам ([_avatarsChanged]).
+  Future<String> _groupAvatar(pb.ChatInfo info) async {
+    if (info.avatarCdnID.isEmpty) return '';
+    final path = await _avatarPath(info.avatarCdnID);
+    if (path.isNotEmpty || !info.hasAvatar() || !_avatarDownloads.add(idHex(info.avatarCdnID))) return path;
+    unawaited(
+      getIt.get<CDNManager>().download(cdn: models.CDN.fromProto(info.avatar)).then((_) => _avatarsChanged.add(null)).catchError((
+        Object error,
+        StackTrace stackTrace,
+      ) {
+        // Повторим при следующем запуске (или когда сменится аватар).
+        _logger.handle(error, stackTrace);
+      }),
+    );
+    return '';
   }
 
   /// Закреплённое сообщение — из кэша истории или закреплённых (превью
@@ -470,12 +597,29 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     }
   }
 
+  /// Группа: владелец удаляет её у всех (`DeleteChat`), остальные выходят
+  /// (`LeaveChat`); у меня диалог пропадает обновлением dialogDeleted.
   @override
   Future<void> delete(String chatID, {bool forEveryone = false}) async {
     await _requireNetwork();
+    final chat = idBytes(chatID);
+    final group = await _store.group(userID: _sync.me, chatID: chat);
+    if (group != null) {
+      final owner = group.role == pb.ChatRole.CHAT_ROLE_OWNER;
+      final response = await _sync.chats(
+        owner
+            ? pb.Chats_Request(deleteChat: pb.Chats_DeleteChat(chatID: chat))
+            : pb.Chats_Request(leaveChat: pb.Chats_LeaveChat(chatID: chat)),
+      );
+      await _sync.applyUpdates(owner ? response.deleteChat.updates : response.leaveChat.updates);
+      // Сервер принял — у меня группы больше нет, даже если dialogDeleted
+      // придёт позже (push).
+      await _sync.forgetChat(chat);
+      return;
+    }
     final response = await _sync.chats(
       pb.Chats_Request(
-        deleteDialog: pb.Chats_DeleteDialog(chatID: idBytes(chatID), forEveryone: forEveryone),
+        deleteDialog: pb.Chats_DeleteDialog(chatID: chat, forEveryone: forEveryone),
       ),
     );
     await _sync.applyUpdates(response.deleteDialog.updates);
@@ -611,7 +755,45 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     String avatarPath = '',
     String communityID = '',
     models.ChatJoinMode joinMode = models.ChatJoinMode.open,
-  }) async => _unsupported('Группы, каналы и сообщества');
+  }) async {
+    if (type != models.ChatType.group || communityID.isNotEmpty || !_sync.groups) _unsupported('Каналы и сообщества');
+    await _requireNetwork();
+    final avatar = avatarPath.isEmpty ? null : await _uploadChatAvatar(avatarPath);
+    final response = await _sync.chats(
+      pb.Chats_Request(
+        createGroup: pb.Chats_CreateGroup(
+          title: title,
+          about: about,
+          memberUserIDs: [
+            for (final id in memberIDs)
+              if (idBytes(id) case final userID when userID.isNotEmpty) userID,
+          ],
+          avatarCdnID: avatar,
+          randomID: Int64(_randomID()),
+        ),
+      ),
+    );
+    final result = response.createGroup;
+    await _sync.applyUpdates(result.updates);
+    if (result.hasDialog()) await _sync.saveDialog(result.dialog);
+    final chatID = idHex(result.dialog.chatID);
+    if (result.restrictedUserIDs.isNotEmpty) throw ChatsMembersRestrictedException(chatID, result.restrictedUserIDs.length);
+    return chatID;
+  }
+
+  /// Фото группы — на CDN (как аватар профиля); сбой сети —
+  /// [ChatsOfflineException]: группа не создаётся / не меняется.
+  Future<Uint8List> _uploadChatAvatar(String path) async {
+    try {
+      final file = await getIt.get<CDNManager>().uploadFile(file: File(path), folder: 'avatars', contentType: 'image/jpeg');
+      return Uint8List.fromList(file.cdnID);
+    } on FileSystemException {
+      rethrow;
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace);
+      throw const ChatsOfflineException();
+    }
+  }
 
   @override
   Future<void> updateChat(
@@ -635,7 +817,31 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     int newcomerMediaDelay = 0,
     bool signMessages = false,
     bool membersHidden = false,
-  }) async => _unsupported('Группы, каналы и сообщества');
+  }) async {
+    final chat = idBytes(chatID);
+    final group = await _store.group(userID: _sync.me, chatID: chat);
+    if (group == null) _unsupported('Каналы и сообщества');
+    // В 3.1 меняются название, описание и фото; остальное — следующие срезы.
+    final info = group.info;
+    final currentAvatar = await _avatarPath(info.avatarCdnID);
+    final avatarChanged = avatarPath != currentAvatar && !(avatarPath.isEmpty && info.avatarCdnID.isEmpty);
+    final titleChanged = title != info.title;
+    final aboutChanged = about != info.about;
+    if (!titleChanged && !aboutChanged && !avatarChanged) return;
+    await _requireNetwork();
+    final avatar = !avatarChanged ? null : (avatarPath.isEmpty ? Uint8List(0) : await _uploadChatAvatar(avatarPath));
+    final response = await _sync.chats(
+      pb.Chats_Request(
+        editChat: pb.Chats_EditChat(
+          chatID: chat,
+          title: titleChanged ? title : null,
+          about: aboutChanged ? about : null,
+          avatarCdnID: avatar,
+        ),
+      ),
+    );
+    await _sync.applyUpdates(response.editChat.updates);
+  }
 
   /// Имя пользователя (как на сервере, без учёта регистра).
   static final _usernamePattern = RegExp(r'^[A-Za-z0-9_]{5,24}$');
@@ -714,16 +920,103 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   @override
   Future<void> answerJoinRequest(String chatID, {String userID = '', required bool approve}) async => _unsupported('Заявки на вступление');
 
-  /// Участники — у групп; профиль личного чата их тоже читает — пусто.
+  /// Известные участники группы — из кэша (`chatGroupMembers`: страницы
+  /// `Chats.Members` и `Update.chatMembers`), видны и без сети. Профиль
+  /// личного чата их тоже читает — пусто.
   @override
-  Future<List<models.ChatMember>> members(String chatID) async => const [];
+  Future<List<models.ChatMember>> members(String chatID) async {
+    if (!_auth.isAuthorized) return const [];
+    final rows = await _store.groupMembers(userID: _sync.me, chatID: idBytes(chatID));
+    return _membersFrom(rows);
+  }
+
+  /// Участники из кэша → модели: имя по общему правилу, «в сети» / «был(а)»,
+  /// владелец первым.
+  Future<List<models.ChatMember>> _membersFrom(List<ChatGroupMemberRow> rows) async {
+    if (rows.isEmpty) return const [];
+    final me = _sync.me;
+    final peers = _Peers(await _loadPeers([for (final r in rows) r.userID]));
+    final members = [
+      for (final r in rows)
+        models.ChatMember(
+          id: idHex(r.userID),
+          name: sameID(r.userID, me) ? t.screenChat.you : peers.of(r.userID).title,
+          username: peers.of(r.userID).profile?.username ?? '',
+          role: roleFromPb(r.role),
+          isSelf: sameID(r.userID, me),
+          online: !sameID(r.userID, me) && ChatsPresence.instance.isOnline(idHex(r.userID)),
+          lastSeen: peers.of(r.userID).profile?.lastSeenAt,
+        ),
+    ];
+    final owners = members.where((m) => m.role == models.ChatRole.owner);
+    return [...owners, ...members.where((m) => m.role != models.ChatRole.owner)];
+  }
+
+  /// Страница с сервера (`Chats.Members`, курсор — непрозрачный, base64) —
+  /// в кэш; без сети — весь кэш одной страницей. Поиск ([query]) — по
+  /// загруженным (на сервере его в 3.1 нет).
+  @override
+  Future<ChatMembersPage> membersPage(String chatID, {String cursor = '', int limit = 50, String query = ''}) async {
+    final chat = idBytes(chatID);
+    final me = _sync.me;
+    final group = _auth.isAuthorized ? await _store.group(userID: me, chatID: chat) : null;
+    if (group == null) return const ChatMembersPage(members: [], nextCursor: '', total: 0);
+    Future<ChatMembersPage> cached() async {
+      final members = await _membersFrom(await _store.groupMembers(userID: me, chatID: chat));
+      final q = query.trim().toLowerCase();
+      final found = q.isEmpty
+          ? members
+          : members.where((m) => m.name.toLowerCase().contains(q) || m.username.toLowerCase().contains(q.replaceFirst('@', ''))).toList();
+      return ChatMembersPage(members: found, nextCursor: '', total: q.isEmpty ? group.info.membersCount : found.length);
+    }
+
+    if (query.trim().isNotEmpty || !await _sync.hasNetwork()) return cached();
+    try {
+      final before = {for (final r in await _store.groupMembers(userID: me, chatID: chat)) '${idHex(r.userID)}:${r.role.value}'};
+      final response = await _sync.chats(
+        pb.Chats_Request(
+          members: pb.Chats_Members(chatID: chat, offset: cursor.isEmpty ? null : base64Decode(cursor), limit: limit),
+        ),
+      );
+      final page = response.members;
+      final api = getIt.get<API>();
+      for (final profile in page.profiles) {
+        await api.cacheProfile(profile, waitAvatar: false);
+      }
+      await _store.transaction((tx) async {
+        if (cursor.isEmpty && page.nextOffset.isEmpty) {
+          await tx.replaceGroupMembers(userID: me, chatID: chat, members: page.members);
+        } else {
+          await tx.upsertGroupMembers(userID: me, chatID: chat, members: page.members);
+        }
+      });
+      final after = {for (final r in await _store.groupMembers(userID: me, chatID: chat)) '${idHex(r.userID)}:${r.role.value}'};
+      // Кэш известных изменился — «известные» ([members]) перечитаются.
+      if (!setEquals(before, after)) _sync.notifyMembersChanged(chatID);
+      final rows = [
+        for (final m in page.members)
+          ChatGroupMemberRow(
+            userID: Uint8List.fromList(m.userID),
+            role: m.role,
+            joinedAt: m.joinedAt.toInt(),
+            inviterUserID: m.inviterUserID.isEmpty ? null : Uint8List.fromList(m.inviterUserID),
+          ),
+      ];
+      return ChatMembersPage(
+        members: await _membersFrom(rows),
+        nextCursor: page.nextOffset.isEmpty ? '' : base64Encode(page.nextOffset),
+        total: page.total,
+      );
+    } on ChatsOfflineException {
+      return cached();
+    } on ChatsRequestException catch (error) {
+      _logger.warning('chats: members page failed: $error');
+      return cached();
+    }
+  }
 
   @override
-  Future<ChatMembersPage> membersPage(String chatID, {String cursor = '', int limit = 50, String query = ''}) async =>
-      const ChatMembersPage(members: [], nextCursor: '', total: 0);
-
-  @override
-  Stream<void> watchMembersChanged(String chatID) => const Stream.empty();
+  Stream<void> watchMembersChanged(String chatID) => _sync.membersChanged.where((id) => id == chatID).map((_) {});
 
   @override
   Future<void> setMemberRole(String chatID, String userID, models.ChatRole role) async => _unsupported('Участники групп');
@@ -737,8 +1030,25 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   @override
   Future<void> unbanMember(String chatID, String userID) async => _unsupported('Участники групп');
 
+  /// Любой участник (права — 3.2). Кому нельзя по приватности — сервер
+  /// пропускает, а мы сообщаем ([ChatsMembersRestrictedException]).
   @override
-  Future<void> addMembers(String chatID, List<String> userIDs) async => _unsupported('Участники групп');
+  Future<void> addMembers(String chatID, List<String> userIDs) async {
+    final ids = [
+      for (final id in userIDs)
+        if (idBytes(id) case final userID when userID.isNotEmpty) userID,
+    ];
+    if (ids.isEmpty) return;
+    await _requireNetwork();
+    final response = await _sync.chats(
+      pb.Chats_Request(
+        addMembers: pb.Chats_AddMembers(chatID: idBytes(chatID), userIDs: ids),
+      ),
+    );
+    final result = response.addMembers;
+    await _sync.applyUpdates(result.updates);
+    if (result.restrictedUserIDs.isNotEmpty) throw ChatsMembersRestrictedException(chatID, result.restrictedUserIDs.length);
+  }
 
   @override
   Future<void> setAdmin(String chatID, String userID, {required models.ChatAdminRights rights, String rank = ''}) async =>
@@ -883,6 +1193,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final pinnedIDs = {for (final m in await _store.pinned(userID: me, chatID: chat)) m.messageID.toInt()};
     final sharedPinnedIDs = await _store.sharedPinnedIDs(userID: me, chatID: chat);
     final pendingReactions = {for (final r in await _store.pendingReactions(userID: me, chatID: chat)) r.messageID: r.emojis};
+    final group = row != null && row.type == pb.ChatType.CHAT_TYPE_GROUP.value ? await _groupPeople(history) : null;
 
     models.Message map(pb.ChatMessage m) {
       final message = messageFromPb(
@@ -893,6 +1204,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         isSelf: isSelf,
         replied: m.content.hasReplyTo() ? byID[m.content.replyTo.messageID.toInt()] : null,
         peerName: peerName,
+        nameOf: group == null ? null : (userID) => group.of(userID).title,
+        serviceText: group != null && m.content.hasChatAction() ? _chatActionText(m, me, group) : '',
         pinned: pinnedIDs.contains(m.messageID.toInt()),
         pinnedOnlyMe: !sharedPinnedIDs.contains(m.messageID.toInt()),
       );
@@ -931,6 +1244,21 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     }
     // Ещё отправляющиеся — внизу: они новее всего, что есть на сервере.
     return _withForwardNames([...messages, ...pending]);
+  }
+
+  /// Люди ленты группы: авторы и те, кого касаются служебные; профили
+  /// неизвестных — запросом (лента перечитается, когда придут).
+  Future<_Peers> _groupPeople(List<pb.ChatMessage> messages) async {
+    final me = _sync.me;
+    final people = <String, Uint8List>{};
+    for (final m in messages) {
+      for (final userID in [m.fromUserID, ...m.content.chatAction.userIDs]) {
+        if (userID.isNotEmpty && !sameID(userID, me)) people[idHex(userID)] = Uint8List.fromList(userID);
+      }
+    }
+    final peers = _Peers(await _loadPeers(people.values.toList()));
+    _requestProfiles([for (final userID in people.values) (userID: userID, cached: peers.of(userID).profile != null)]);
+    return peers;
   }
 
   // --- вложения ---
@@ -1422,8 +1750,10 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final isSelf = peer != null && sameID(peer, me);
     final peerName = peer == null || isSelf ? '' : _Peers(await _loadPeers([peer])).of(peer).title;
     final sharedIDs = await _store.sharedPinnedIDs(userID: me, chatID: chat);
+    final pinned = await _store.pinned(userID: me, chatID: chat);
+    final group = row != null && row.type == pb.ChatType.CHAT_TYPE_GROUP.value ? await _groupPeople(pinned) : null;
     return [
-      for (final m in await _store.pinned(userID: me, chatID: chat))
+      for (final m in pinned)
         await _withServerMedia(
           messageFromPb(
             m,
@@ -1432,6 +1762,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
             readOutboxMaxID: row?.readOutboxMaxID ?? 0,
             isSelf: isSelf,
             peerName: peerName,
+            nameOf: group == null ? null : (userID) => group.of(userID).title,
             pinned: true,
             pinnedOnlyMe: !sharedIDs.contains(m.messageID.toInt()),
           ),
@@ -1536,10 +1867,12 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   Future<MessageReadInfo> readInfo(String chatID, String messageID) async {
     final id = serverMessageID(messageID);
     if (id == null) return const MessageReadInfo(MessageReadStatus.notRead);
-    // «Избранное» — читать некому (сервер отвечает только по личным не-self).
+    // «Избранное» — читать некому (сервер отвечает только по личным не-self);
+    // «Кто прочитал» в группе — подэтап 3.4.
     final row = await _store.dialog(userID: _sync.me, chatID: idBytes(chatID));
     final peer = row?.peerUserID;
     if (peer != null && sameID(peer, _sync.me)) return const MessageReadInfo(MessageReadStatus.unavailable);
+    if (row != null && row.type != pb.ChatType.CHAT_TYPE_PRIVATE.value) return const MessageReadInfo(MessageReadStatus.unavailable);
     await _requireNetwork();
     final response = await _sync.chats(
       pb.Chats_Request(

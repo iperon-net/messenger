@@ -57,6 +57,9 @@ const PrivacySettings_Response$json = {
     {'1': 'phone_number_allow', '3': 24, '4': 3, '5': 12, '10': 'phoneNumberAllow'},
     {'1': 'phone_number_deny', '3': 25, '4': 3, '5': 12, '10': 'phoneNumberDeny'},
     {'1': 'phone_number_find', '3': 26, '4': 1, '5': 14, '6': '.iperon.v1.PrivacySettings.Audience', '10': 'phoneNumberFind'},
+    {'1': 'group_invites', '3': 27, '4': 1, '5': 14, '6': '.iperon.v1.PrivacySettings.Audience', '10': 'groupInvites'},
+    {'1': 'group_invites_allow', '3': 28, '4': 3, '5': 12, '10': 'groupInvitesAllow'},
+    {'1': 'group_invites_deny', '3': 29, '4': 3, '5': 12, '10': 'groupInvitesDeny'},
   ],
 };
 
@@ -72,7 +75,7 @@ const PrivacySettings_Audience$json = {
 
 /// Descriptor for `PrivacySettings`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List privacySettingsDescriptor =
-    $convert.base64Decode('Cg9Qcml2YWN5U2V0dGluZ3MaCQoHUmVxdWVzdBrECQoIUmVzcG9uc2USOQoFY2FsbHMYASABKA'
+    $convert.base64Decode('Cg9Qcml2YWN5U2V0dGluZ3MaCQoHUmVxdWVzdBrsCgoIUmVzcG9uc2USOQoFY2FsbHMYASABKA'
         '4yIy5pcGVyb24udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUgVjYWxscxIfCgtjYWxsc19h'
         'bGxvdxgCIAMoDFIKY2FsbHNBbGxvdxIdCgpjYWxsc19kZW55GAMgAygMUgljYWxsc0RlbnkSPw'
         'oIYmlydGhkYXkYBCABKA4yIy5pcGVyb24udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUghi'
@@ -94,8 +97,11 @@ final $typed_data.Uint8List privacySettingsDescriptor =
         'luZ3MuQXVkaWVuY2VSC3Bob25lTnVtYmVyEiwKEnBob25lX251bWJlcl9hbGxvdxgYIAMoDFIQ'
         'cGhvbmVOdW1iZXJBbGxvdxIqChFwaG9uZV9udW1iZXJfZGVueRgZIAMoDFIPcGhvbmVOdW1iZX'
         'JEZW55Ek8KEXBob25lX251bWJlcl9maW5kGBogASgOMiMuaXBlcm9uLnYxLlByaXZhY3lTZXR0'
-        'aW5ncy5BdWRpZW5jZVIPcGhvbmVOdW1iZXJGaW5kIjMKCEF1ZGllbmNlEg0KCUVWRVJZQk9EWR'
-        'AAEgwKCENPTlRBQ1RTEAESCgoGTk9CT0RZEAI=');
+        'aW5ncy5BdWRpZW5jZVIPcGhvbmVOdW1iZXJGaW5kEkgKDWdyb3VwX2ludml0ZXMYGyABKA4yIy'
+        '5pcGVyb24udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUgxncm91cEludml0ZXMSLgoTZ3Jv'
+        'dXBfaW52aXRlc19hbGxvdxgcIAMoDFIRZ3JvdXBJbnZpdGVzQWxsb3cSLAoSZ3JvdXBfaW52aX'
+        'Rlc19kZW55GB0gAygMUhBncm91cEludml0ZXNEZW55IjMKCEF1ZGllbmNlEg0KCUVWRVJZQk9E'
+        'WRAAEgwKCENPTlRBQ1RTEAESCgoGTk9CT0RZEAI=');
 
 @$core.Deprecated('Use privacySettingsUpdateDescriptor instead')
 const PrivacySettingsUpdate$json = {
@@ -724,3 +730,76 @@ final $typed_data.Uint8List privacyPhoneNumberFindUpdateDescriptor =
     $convert.base64Decode('ChxQcml2YWN5UGhvbmVOdW1iZXJGaW5kVXBkYXRlGloKB1JlcXVlc3QSTwoRcGhvbmVfbnVtYm'
         'VyX2ZpbmQYASABKA4yIy5pcGVyb24udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUg9waG9u'
         'ZU51bWJlckZpbmQaCgoIUmVzcG9uc2U=');
+
+@$core.Deprecated('Use privacyGroupInvitesUpdateDescriptor instead')
+const PrivacyGroupInvitesUpdate$json = {
+  '1': 'PrivacyGroupInvitesUpdate',
+  '3': [PrivacyGroupInvitesUpdate_Request$json, PrivacyGroupInvitesUpdate_Response$json],
+};
+
+@$core.Deprecated('Use privacyGroupInvitesUpdateDescriptor instead')
+const PrivacyGroupInvitesUpdate_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'group_invites', '3': 1, '4': 1, '5': 14, '6': '.iperon.v1.PrivacySettings.Audience', '10': 'groupInvites'},
+  ],
+};
+
+@$core.Deprecated('Use privacyGroupInvitesUpdateDescriptor instead')
+const PrivacyGroupInvitesUpdate_Response$json = {
+  '1': 'Response',
+};
+
+/// Descriptor for `PrivacyGroupInvitesUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List privacyGroupInvitesUpdateDescriptor =
+    $convert.base64Decode('ChlQcml2YWN5R3JvdXBJbnZpdGVzVXBkYXRlGlMKB1JlcXVlc3QSSAoNZ3JvdXBfaW52aXRlcx'
+        'gBIAEoDjIjLmlwZXJvbi52MS5Qcml2YWN5U2V0dGluZ3MuQXVkaWVuY2VSDGdyb3VwSW52aXRl'
+        'cxoKCghSZXNwb25zZQ==');
+
+@$core.Deprecated('Use privacyGroupInvitesAllowUpdateDescriptor instead')
+const PrivacyGroupInvitesAllowUpdate$json = {
+  '1': 'PrivacyGroupInvitesAllowUpdate',
+  '3': [PrivacyGroupInvitesAllowUpdate_Request$json, PrivacyGroupInvitesAllowUpdate_Response$json],
+};
+
+@$core.Deprecated('Use privacyGroupInvitesAllowUpdateDescriptor instead')
+const PrivacyGroupInvitesAllowUpdate_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'user_ids', '3': 1, '4': 3, '5': 12, '10': 'userIds'},
+  ],
+};
+
+@$core.Deprecated('Use privacyGroupInvitesAllowUpdateDescriptor instead')
+const PrivacyGroupInvitesAllowUpdate_Response$json = {
+  '1': 'Response',
+};
+
+/// Descriptor for `PrivacyGroupInvitesAllowUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List privacyGroupInvitesAllowUpdateDescriptor =
+    $convert.base64Decode('Ch5Qcml2YWN5R3JvdXBJbnZpdGVzQWxsb3dVcGRhdGUaJAoHUmVxdWVzdBIZCgh1c2VyX2lkcx'
+        'gBIAMoDFIHdXNlcklkcxoKCghSZXNwb25zZQ==');
+
+@$core.Deprecated('Use privacyGroupInvitesDenyUpdateDescriptor instead')
+const PrivacyGroupInvitesDenyUpdate$json = {
+  '1': 'PrivacyGroupInvitesDenyUpdate',
+  '3': [PrivacyGroupInvitesDenyUpdate_Request$json, PrivacyGroupInvitesDenyUpdate_Response$json],
+};
+
+@$core.Deprecated('Use privacyGroupInvitesDenyUpdateDescriptor instead')
+const PrivacyGroupInvitesDenyUpdate_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'user_ids', '3': 1, '4': 3, '5': 12, '10': 'userIds'},
+  ],
+};
+
+@$core.Deprecated('Use privacyGroupInvitesDenyUpdateDescriptor instead')
+const PrivacyGroupInvitesDenyUpdate_Response$json = {
+  '1': 'Response',
+};
+
+/// Descriptor for `PrivacyGroupInvitesDenyUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List privacyGroupInvitesDenyUpdateDescriptor =
+    $convert.base64Decode('Ch1Qcml2YWN5R3JvdXBJbnZpdGVzRGVueVVwZGF0ZRokCgdSZXF1ZXN0EhkKCHVzZXJfaWRzGA'
+        'EgAygMUgd1c2VySWRzGgoKCFJlc3BvbnNl');

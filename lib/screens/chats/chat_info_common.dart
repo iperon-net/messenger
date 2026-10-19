@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../calls.dart';
+import '../../chats/chats_data_source.dart';
 import '../../chats/chats_mapping.dart';
 import '../../chats/message_formatting.dart';
 import '../../chats/reactions.dart';
@@ -54,7 +55,13 @@ Future<void> chatInfoCall(models.Chat chat, {required bool video}) async {
 /// чатов — удаляет (у всех), остальные — покидают.
 bool chatInfoDeletes(models.Chat chat) =>
     chat.type == models.ChatType.private ||
-    chat.myRole == models.ChatRole.owner && (chat.type == models.ChatType.community || chat.inCommunity);
+    chat.myRole == models.ChatRole.owner &&
+        (chat.type == models.ChatType.community || chat.type == models.ChatType.group || chat.inCommunity);
+
+/// «Добавить участников»: админ; в группе на сервере (срез 3.1, без ролей)
+/// — любой участник.
+bool canAddMembers(models.Chat chat, ChatsFeatures features) =>
+    chat.canManage || (!features.groupExtras && chat.type == models.ChatType.group && chat.isMember);
 
 /// «Удалить чат» / «Покинуть группу / канал / сообщество» / «Удалить группу…».
 String chatLeaveLabel(Translations t, models.Chat chat) => switch (chat.type) {
@@ -74,7 +81,12 @@ String chatLeaveLabel(Translations t, models.Chat chat) => switch (chat.type) {
   if (!chatInfoDeletes(chat)) return (title: i.leaveGroupTitle(name: chat.title), message: null);
   return (
     title: i.deleteInCommunityTitle(name: chat.title),
-    message: chat.type == models.ChatType.community ? i.deleteCommunityMessage : i.deleteInCommunityMessage,
+    message: switch (chat.type) {
+      models.ChatType.community => i.deleteCommunityMessage,
+      // Своя группа (не в сообществе) — удаляется у всех участников.
+      models.ChatType.group when !chat.inCommunity => t.chatAction.deleteGroupMessage,
+      _ => i.deleteInCommunityMessage,
+    },
   );
 }
 

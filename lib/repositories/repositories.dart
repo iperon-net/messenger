@@ -753,6 +753,37 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(35, (tx) async {
+        // Группы (срез 3.1, docs/plans/chats-groups.md): флаг «Группы» на
+        // экране «Разработчик», сведения о группе (ChatInfo BLOB, моя роль,
+        // pts журнала ЧАТА) и кэш известных участников. Диалог группы — в
+        // chatDialogs (type = 1, peerUserID NULL).
+        await tx.execute('ALTER TABLE settingsDevice ADD COLUMN chatsGroups INTEGER NOT NULL DEFAULT 0;');
+        await tx.execute('''
+          CREATE TABLE chatGroups (
+            userID BLOB NOT NULL,
+            chatID BLOB NOT NULL,
+            info BLOB NOT NULL,
+            role INTEGER NOT NULL DEFAULT 0,
+            pts INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY (userID, chatID)
+          );
+        ''');
+        await tx.execute('''
+          CREATE TABLE chatGroupMembers (
+            userID BLOB NOT NULL,
+            chatID BLOB NOT NULL,
+            memberUserID BLOB NOT NULL,
+            role INTEGER NOT NULL DEFAULT 0,
+            joinedAt INTEGER NOT NULL DEFAULT 0,
+            inviterUserID BLOB,
+            PRIMARY KEY (userID, chatID, memberUserID)
+          );
+        ''');
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

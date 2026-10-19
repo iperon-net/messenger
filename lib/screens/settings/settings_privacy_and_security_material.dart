@@ -177,6 +177,18 @@ class _SettingsPrivacyAndSecurityMaterial extends State<SettingsPrivacyAndSecuri
                           await cubit.reloadForwards();
                         },
                       ),
+                      MaterialListTileIcon(
+                        title: Text(context.t.sessionsPrivacyAndSecurity.groupInvites),
+                        color: const Color(0xFF34C759),
+                        icon: FontAwesomeIcons.userGroup,
+                        isTrailing: true,
+                        additionalInfo: Text(state.callsLoadError ? "—" : _audienceLabel(context, state.groupInvitesAudience)),
+                        onTab: () async {
+                          final cubit = context.read<SettingsPrivacyAndSecurityCubit>();
+                          await context.push("/settings/privacy_and_security/group_invites");
+                          await cubit.reloadGroupInvites();
+                        },
+                      ),
                     ],
                   ),
                 ),

@@ -97,8 +97,15 @@ class NotificationService: UNNotificationServiceExtension {
       content.title = title
       content.body = Self.text("PUSH_CALL_MISSED_BODY")
     case .message:
-      content.title = title
-      content.body = payload.body.isEmpty ? Self.text("PUSH_MESSAGE_NO_PREVIEW") : payload.body
+      let body = payload.body.isEmpty ? Self.text("PUSH_MESSAGE_NO_PREVIEW") : payload.body
+      if payload.chatTitle.isEmpty {
+        content.title = title
+        content.body = body
+      } else {
+        // Группа: заголовок — её название, отправитель — в начале текста.
+        content.title = payload.chatTitle
+        content.body = senderName.isEmpty ? body : senderName + ": " + body
+      }
       content.threadIdentifier = "chat:" + PushKeychain.hex(payload.chatID)
     case .secretMessage:
       // Секретный чат: текста у сервера нет — только «новое сообщение».

@@ -196,6 +196,13 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType PRIVACY_PHONE_NUMBER_DENY_UPDATE = MessageType._(89, _omitEnumNames ? '' : 'PRIVACY_PHONE_NUMBER_DENY_UPDATE');
   static const MessageType PRIVACY_PHONE_NUMBER_FIND_UPDATE = MessageType._(90, _omitEnumNames ? '' : 'PRIVACY_PHONE_NUMBER_FIND_UPDATE');
 
+  /// «Кто может добавлять меня в группы» (+ исключения,
+  /// PrivacySettings.group_invites*). См. privacy_v1.proto.
+  static const MessageType PRIVACY_GROUP_INVITES_UPDATE = MessageType._(91, _omitEnumNames ? '' : 'PRIVACY_GROUP_INVITES_UPDATE');
+  static const MessageType PRIVACY_GROUP_INVITES_ALLOW_UPDATE =
+      MessageType._(92, _omitEnumNames ? '' : 'PRIVACY_GROUP_INVITES_ALLOW_UPDATE');
+  static const MessageType PRIVACY_GROUP_INVITES_DENY_UPDATE = MessageType._(93, _omitEnumNames ? '' : 'PRIVACY_GROUP_INVITES_DENY_UPDATE');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -284,9 +291,12 @@ class MessageType extends $pb.ProtobufEnum {
     PRIVACY_PHONE_NUMBER_ALLOW_UPDATE,
     PRIVACY_PHONE_NUMBER_DENY_UPDATE,
     PRIVACY_PHONE_NUMBER_FIND_UPDATE,
+    PRIVACY_GROUP_INVITES_UPDATE,
+    PRIVACY_GROUP_INVITES_ALLOW_UPDATE,
+    PRIVACY_GROUP_INVITES_DENY_UPDATE,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 90);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 93);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

@@ -20,7 +20,7 @@ class ChatMembersPage {
 }
 
 /// Что из действий над сообщениями умеет источник: демо — всё, серверный —
-/// пока только первый срез (личные чаты). Экраны прячут недоступное, а не
+/// по срезам (личные чаты, группы срез 3.1). Экраны прячут недоступное, а не
 /// падают с [UnsupportedError].
 class ChatsFeatures {
   final bool reactions;
@@ -28,11 +28,47 @@ class ChatsFeatures {
   final bool forward;
   final bool scheduled;
 
-  const ChatsFeatures({required this.reactions, required this.pinnedMessages, required this.forward, required this.scheduled});
+  /// Группы: «Новое» → «Группа», группы в списке (сервер — флаг «Группы»).
+  final bool groups;
 
-  const ChatsFeatures.all() : reactions = true, pinnedMessages = true, forward = true, scheduled = true;
+  /// Расширенное в группах: реакции, закреп у всех, опросы, упоминания,
+  /// права и роли, ссылки-приглашения, заявки, баны, медленный режим (демо;
+  /// на сервере — подэтапы 3.2–3.4). `false` — в группе это скрыто, а
+  /// «Изменить» — только название, описание и фото.
+  final bool groupExtras;
 
-  const ChatsFeatures.none() : reactions = false, pinnedMessages = false, forward = false, scheduled = false;
+  const ChatsFeatures({
+    required this.reactions,
+    required this.pinnedMessages,
+    required this.forward,
+    required this.scheduled,
+    this.groups = false,
+    this.groupExtras = false,
+  });
+
+  const ChatsFeatures.all() : reactions = true, pinnedMessages = true, forward = true, scheduled = true, groups = true, groupExtras = true;
+
+  const ChatsFeatures.none()
+    : reactions = false,
+      pinnedMessages = false,
+      forward = false,
+      scheduled = false,
+      groups = false,
+      groupExtras = false;
+
+  /// Доступное в чате [chat]: в группе без [groupExtras] — без реакций и
+  /// закрепа.
+  ChatsFeatures forChat(models.Chat? chat) {
+    if (groupExtras || chat == null || chat.type == models.ChatType.private) return this;
+    return ChatsFeatures(
+      reactions: false,
+      pinnedMessages: false,
+      forward: forward,
+      scheduled: scheduled,
+      groups: groups,
+      groupExtras: groupExtras,
+    );
+  }
 }
 
 abstract class ChatsDataSource {

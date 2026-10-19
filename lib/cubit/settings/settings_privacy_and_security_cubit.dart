@@ -81,6 +81,9 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
   /// Алиас [reloadCalls] для читаемости на экране «Пересылка сообщений».
   Future<void> reloadForwards() => _refresh();
 
+  /// Алиас [reloadCalls] для читаемости на экране «Группы».
+  Future<void> reloadGroupInvites() => _refresh();
+
   /// Алиас [reloadCalls] для читаемости на экране «Номер телефона».
   Future<void> reloadPhoneNumber() => _refresh();
 
@@ -126,6 +129,9 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
         forwardsAudience: _fromProto(response.forwards),
         forwardsAllow: response.forwardsAllow.map(Uint8List.fromList).toList(growable: false),
         forwardsDeny: response.forwardsDeny.map(Uint8List.fromList).toList(growable: false),
+        groupInvitesAudience: _fromProto(response.groupInvites),
+        groupInvitesAllow: response.groupInvitesAllow.map(Uint8List.fromList).toList(growable: false),
+        groupInvitesDeny: response.groupInvitesDeny.map(Uint8List.fromList).toList(growable: false),
         hideReadTime: response.hideReadTime,
         messagesTTL: response.messagesTtl,
         blocked: response.blocked.map(Uint8List.fromList).toList(growable: false),
@@ -167,6 +173,9 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
         forwards: _toProto(state.forwardsAudience),
         forwardsAllow: state.forwardsAllow,
         forwardsDeny: state.forwardsDeny,
+        groupInvites: _toProto(state.groupInvitesAudience),
+        groupInvitesAllow: state.groupInvitesAllow,
+        groupInvitesDeny: state.groupInvitesDeny,
         hideReadTime: state.hideReadTime,
         messagesTtl: state.messagesTTL,
         blocked: state.blocked,
@@ -675,6 +684,75 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     }
 
     if (!isClosed) emit(state.copyWith(forwardsDeny: List<Uint8List>.unmodifiable(userIDs)));
+    await _persistFromState();
+    return true;
+  }
+
+  /// Меняет настройку «кто может добавлять меня в группы». Серверная операция, offline
+  /// недоступна. Возвращает `false`, если не применилось.
+  Future<bool> setGroupInvitesAudience(CallsPrivacyAudience audience) async {
+    if (audience == state.groupInvitesAudience && !state.callsLoadError && !state.callsReadOnly) return true;
+
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set group invites audience aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_GROUP_INVITES_UPDATE,
+      PrivacyGroupInvitesUpdate_Request(groupInvites: _toProto(audience)).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update group invites audience failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(groupInvitesAudience: audience, callsLoadError: false, callsReadOnly: false));
+    await _persistFromState();
+    return true;
+  }
+
+  /// Полностью заменяет allow-list «всегда разрешать» для групп.
+  Future<bool> setGroupInvitesAllow(List<Uint8List> userIDs) async {
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set group invites allow aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_GROUP_INVITES_ALLOW_UPDATE,
+      PrivacyGroupInvitesAllowUpdate_Request(userIds: userIDs).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update group invites allow failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(groupInvitesAllow: List<Uint8List>.unmodifiable(userIDs)));
+    await _persistFromState();
+    return true;
+  }
+
+  /// Полностью заменяет deny-list «всегда запрещать» для групп.
+  Future<bool> setGroupInvitesDeny(List<Uint8List> userIDs) async {
+    if (!await utils.hasNetwork()) {
+      logger.info('privacy: set group invites deny aborted, no network');
+      return false;
+    }
+
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_GROUP_INVITES_DENY_UPDATE,
+      PrivacyGroupInvitesDenyUpdate_Request(userIds: userIDs).writeToBuffer(),
+    );
+
+    if (status.status != APIStatus.success) {
+      logger.warning('privacy: update group invites deny failed (${status.error})');
+      return false;
+    }
+
+    if (!isClosed) emit(state.copyWith(groupInvitesDeny: List<Uint8List>.unmodifiable(userIDs)));
     await _persistFromState();
     return true;
   }
