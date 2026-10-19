@@ -102,10 +102,11 @@ class SettingsBlockedCubit extends Cubit<SettingsBlockedState> {
   }
 
   /// Разблокировать; не вышло — «Нет соединения».
-  Future<void> unblock(BlockedUser user) async {
-    if (!await PrivacyBlocks.setBlocked(user.userID, false) && !isClosed) {
-      emit(state.copyWith(offlineNotice: state.offlineNotice + 1));
-    }
+  /// `false` — не разблокировали (нет сети: экран покажет «Нет соединения»).
+  Future<bool> unblock(BlockedUser user) async {
+    final ok = await PrivacyBlocks.setBlocked(user.userID, false);
+    if (!ok && !isClosed) emit(state.copyWith(offlineNotice: state.offlineNotice + 1));
+    return ok;
   }
 
   @override

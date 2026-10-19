@@ -14,6 +14,7 @@ import '../../chats/voice_player.dart';
 import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import '../dust_effect.dart';
 import 'media_viewer.dart';
 import 'message_text.dart';
 import 'spoiler_dust.dart';
@@ -306,35 +307,39 @@ class ChatMessagesView extends StatelessWidget {
                         padding: EdgeInsets.only(left: selecting ? 38 : 0),
                         child: IgnorePointer(
                           ignoring: selecting,
-                          child: SwipeToReply(
-                            onReply: onReply == null ? null : () => onReply!(m),
-                            background: style.pill,
-                            iconColor: style.pillText,
-                            child: MessageBubble(
-                              key: ValueKey(m.id),
-                              message: m,
-                              style: style,
-                              tail: !groupedWithNewer,
-                              showSender: group && !m.outgoing && !groupedWithOlder,
-                              avatar: group && !m.outgoing
-                                  ? (groupedWithNewer ? const SizedBox(width: 34) : _SenderAvatar(name: m.senderName))
-                                  : null,
-                              onLongPress: () => onLongPress(m),
-                              onMediaTap: onMediaTap == null ? null : (index) => onMediaTap!(m, index),
-                              highlight: highlight,
-                              focused: m.id == focusedID,
-                              mark: m.id == flashID ? flashRange : null,
-                              onCancelUpload: onCancelUpload == null ? null : () => onCancelUpload!(m),
-                              onReaction: onReaction == null ? null : (emoji) => onReaction!(m, emoji),
-                              onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(m),
-                              onReplyTap: onReplyTap == null ? null : () => onReplyTap!(m),
-                              onForwardTap: onForwardTap == null ? null : () => onForwardTap!(m),
-                              menuWrapper: menuWrapper == null ? null : (bubble, preview) => menuWrapper!(m, bubble, preview),
-                              onCommentsTap: onCommentsTap == null ? null : () => onCommentsTap!(m),
-                              commentsClosed: commentsClosedIDs.contains(m.id),
-                              onPollVote: onPollVote == null ? null : (options) => onPollVote!(m, options),
-                              onPollVoters: onPollVoters == null ? null : () => onPollVoters!(m),
-                              onCallTap: onCallTap == null ? null : () => onCallTap!(m),
+                          // Снимок для «пыли» при удалении — пузырь без
+                          // подсветки выделения и кружка.
+                          child: DustSource(
+                            child: SwipeToReply(
+                              onReply: onReply == null ? null : () => onReply!(m),
+                              background: style.pill,
+                              iconColor: style.pillText,
+                              child: MessageBubble(
+                                key: ValueKey(m.id),
+                                message: m,
+                                style: style,
+                                tail: !groupedWithNewer,
+                                showSender: group && !m.outgoing && !groupedWithOlder,
+                                avatar: group && !m.outgoing
+                                    ? (groupedWithNewer ? const SizedBox(width: 34) : _SenderAvatar(name: m.senderName))
+                                    : null,
+                                onLongPress: () => onLongPress(m),
+                                onMediaTap: onMediaTap == null ? null : (index) => onMediaTap!(m, index),
+                                highlight: highlight,
+                                focused: m.id == focusedID,
+                                mark: m.id == flashID ? flashRange : null,
+                                onCancelUpload: onCancelUpload == null ? null : () => onCancelUpload!(m),
+                                onReaction: onReaction == null ? null : (emoji) => onReaction!(m, emoji),
+                                onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(m),
+                                onReplyTap: onReplyTap == null ? null : () => onReplyTap!(m),
+                                onForwardTap: onForwardTap == null ? null : () => onForwardTap!(m),
+                                menuWrapper: menuWrapper == null ? null : (bubble, preview) => menuWrapper!(m, bubble, preview),
+                                onCommentsTap: onCommentsTap == null ? null : () => onCommentsTap!(m),
+                                commentsClosed: commentsClosedIDs.contains(m.id),
+                                onPollVote: onPollVote == null ? null : (options) => onPollVote!(m, options),
+                                onPollVoters: onPollVoters == null ? null : () => onPollVoters!(m),
+                                onCallTap: onCallTap == null ? null : () => onCallTap!(m),
+                              ),
                             ),
                           ),
                         ),

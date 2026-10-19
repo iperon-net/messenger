@@ -54,16 +54,23 @@ class SettingsBlockedMaterial extends StatelessWidget {
                             )
                           else
                             for (final user in state.users)
-                              ListTile(
-                                contentPadding: const EdgeInsets.only(left: 12, right: 4),
-                                leading: UserAvatar(userID: user.userID, placeholderName: utils.bytesToHex(user.userID)),
-                                title: Text(user.name.isEmpty ? t.unknownUser : user.name),
-                                trailing: IconButton(
-                                  tooltip: t.unblock,
-                                  onPressed: () => context.read<SettingsBlockedCubit>().unblock(user),
-                                  icon: HugeIcon(icon: HugeIcons.strokeRoundedDelete02, color: Theme.of(context).colorScheme.primary),
+                              // Разблокировали — строка рассыпается в пыль.
+                              DustDismiss(
+                                key: ValueKey(utils.bytesToHex(user.userID)),
+                                builder: (context, dissolve) => ListTile(
+                                  contentPadding: const EdgeInsets.only(left: 12, right: 4),
+                                  leading: UserAvatar(userID: user.userID, placeholderName: utils.bytesToHex(user.userID)),
+                                  title: Text(user.name.isEmpty ? t.unknownUser : user.name),
+                                  trailing: IconButton(
+                                    tooltip: t.unblock,
+                                    onPressed: () {
+                                      final cubit = context.read<SettingsBlockedCubit>();
+                                      dissolve(() => cubit.unblock(user));
+                                    },
+                                    icon: HugeIcon(icon: HugeIcons.strokeRoundedDelete02, color: Theme.of(context).colorScheme.primary),
+                                  ),
+                                  onTap: () => context.push('/profile/${utils.bytesToHex(user.userID)}'),
                                 ),
-                                onTap: () => context.push('/profile/${utils.bytesToHex(user.userID)}'),
                               ),
                         ],
                       ),

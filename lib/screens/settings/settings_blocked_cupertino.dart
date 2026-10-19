@@ -84,24 +84,31 @@ class SettingsBlockedCupertino extends StatelessWidget {
                           )
                         else
                           for (final user in state.users)
-                            CupertinoListTile(
-                              padding: _tilePadding,
-                              leading: UserAvatar(userID: user.userID, placeholderName: utils.bytesToHex(user.userID)),
-                              title: Text(user.name.isEmpty ? t.unknownUser : user.name),
-                              trailing: Semantics(
-                                label: t.unblock,
-                                button: true,
-                                child: CupertinoButton(
-                                  padding: const EdgeInsets.only(left: 8),
-                                  onPressed: () => context.read<SettingsBlockedCubit>().unblock(user),
-                                  child: HugeIcon(
-                                    icon: HugeIcons.strokeRoundedDelete02,
-                                    size: 22,
-                                    color: ThemesCupertino.actionColor(context),
+                            // Разблокировали — строка рассыпается в пыль.
+                            DustDismiss(
+                              key: ValueKey(utils.bytesToHex(user.userID)),
+                              builder: (context, dissolve) => CupertinoListTile(
+                                padding: _tilePadding,
+                                leading: UserAvatar(userID: user.userID, placeholderName: utils.bytesToHex(user.userID)),
+                                title: Text(user.name.isEmpty ? t.unknownUser : user.name),
+                                trailing: Semantics(
+                                  label: t.unblock,
+                                  button: true,
+                                  child: CupertinoButton(
+                                    padding: const EdgeInsets.only(left: 8),
+                                    onPressed: () {
+                                      final cubit = context.read<SettingsBlockedCubit>();
+                                      dissolve(() => cubit.unblock(user));
+                                    },
+                                    child: HugeIcon(
+                                      icon: HugeIcons.strokeRoundedDelete02,
+                                      size: 22,
+                                      color: ThemesCupertino.actionColor(context),
+                                    ),
                                   ),
                                 ),
+                                onTap: () => context.push('/profile/${utils.bytesToHex(user.userID)}'),
                               ),
-                              onTap: () => context.push('/profile/${utils.bytesToHex(user.userID)}'),
                             ),
                       ],
                     ),

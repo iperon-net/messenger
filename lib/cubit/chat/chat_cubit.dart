@@ -702,13 +702,15 @@ class ChatCubit extends Cubit<ChatState> {
   /// Удалить можно свои, а в личном чате — любые (как одиночное удаление).
   bool canDelete(models.Message message) => message.outgoing || state.chat?.type == models.ChatType.private;
 
-  Future<void> deleteSelected({bool forEveryone = true}) async {
+  /// `false` — не удалось (нет сети), остальные не пробовали.
+  Future<bool> deleteSelected({bool forEveryone = true}) async {
     final messages = state.selectedMessages;
     clearSelection();
     for (final m in messages) {
       // Нет сети — одно «Нет соединения», остальные не пробуем.
-      if (canDelete(m) && !await delete(m, forEveryone: forEveryone)) return;
+      if (canDelete(m) && !await delete(m, forEveryone: forEveryone)) return false;
     }
+    return true;
   }
 
   /// Можно ли переслать: не звонок и уже на сервере (неотправленное

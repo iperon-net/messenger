@@ -263,11 +263,17 @@ class _ChatMaterialState extends State<ChatMaterial> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.t.screenChat.copied)));
   }
 
+  /// Отмеченные — с «пылью» (см. [deleteWithDust]).
+  Future<void> _deleteSelectedScoped(BuildContext context, bool forEveryone) => deleteWithDust(context, [
+    for (final m in _cubit.state.selectedMessages)
+      if (_cubit.canDelete(m)) _keyFor(m.id),
+  ], () => _cubit.deleteSelected(forEveryone: forEveryone));
+
   Future<void> _deleteSelected(BuildContext context) async {
     final chat = _cubit.state.chat;
     if (chat == null) return;
     final forEveryone = await _askDelete(context, chat, _cubit.state.selectedIDs.length);
-    if (forEveryone != null) await _cubit.deleteSelected(forEveryone: forEveryone);
+    if (forEveryone != null && context.mounted) await _deleteSelectedScoped(context, forEveryone);
   }
 
   /// Подтверждение удаления [count] сообщений. Личный чат — шторка «У меня» /
@@ -889,7 +895,9 @@ class _ChatMaterialState extends State<ChatMaterial> {
         _cubit.startSelection(message);
       case 'delete':
         final forEveryone = await _askDelete(context, chat, 1);
-        if (forEveryone != null) await _cubit.delete(message, forEveryone: forEveryone);
+        if (forEveryone != null && context.mounted) {
+          await deleteWithDust(context, [_keyFor(message.id)], () => _cubit.delete(message, forEveryone: forEveryone));
+        }
     }
   }
 }

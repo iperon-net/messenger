@@ -1182,6 +1182,21 @@ Widget composeBannerText(
   );
 }
 
+/// Удаление с эффектом «пыли» (как в Telegram): снимки строк [keys] — до
+/// запроса (пока они на экране), рассыпание — только если [delete] удалось
+/// (без сети сообщения остаются, и пыли нет).
+Future<void> deleteWithDust(BuildContext context, Iterable<GlobalKey> keys, Future<bool> Function() delete) async {
+  final snapshots = await DustEffect.captureAll(keys.map((key) => key.currentContext));
+  final ok = await delete();
+  if (ok && context.mounted) {
+    DustEffect.play(context, snapshots);
+  } else {
+    for (final snapshot in snapshots) {
+      snapshot.dispose();
+    }
+  }
+}
+
 /// Прокрутка ленты сообщений к строке с ключом [key] (поиск по чату). Лента
 /// строится лениво: если строки ещё нет, листаем к старым (offset растёт —
 /// список перевёрнут), потом к новым, пока она не построится; затем ставим её
