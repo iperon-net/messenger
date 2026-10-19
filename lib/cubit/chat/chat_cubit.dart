@@ -43,6 +43,7 @@ class ChatCubit extends Cubit<ChatState> {
   StreamSubscription<DateTime?>? _floodSubscription;
   Timer? _floodTimer;
   StreamSubscription<({Uint8List chatID, Uint8List? peerUserID, bool restricted})>? _writeSubscription;
+  StreamSubscription<({String chatID, List<String> messageIDs})>? _deletedSubscription;
 
   /// Собеседник ограничил, кто может ему писать (ответ `canWrite` при открытии
   /// или отказ сервера при отправке) — вместо поля ввода плашка.
@@ -127,6 +128,9 @@ class ChatCubit extends Cubit<ChatState> {
         _writeRestricted = event.restricted;
         _syncWriteRecheck();
         _syncLimits();
+      });
+      _deletedSubscription = ChatsSync.instance.messagesDeleted.listen((event) {
+        if (event.chatID == chatID) _dissolveRemoved(event.messageIDs);
       });
       _connectionSubscription = getIt.get<API>().connectionStatusStream.listen((status) {
         if (isClosed || status != ApiConnectionStatus.connected) return;
@@ -745,6 +749,27 @@ class ChatCubit extends Cubit<ChatState> {
     });
   }
 
+  final _dustRequests = StreamController<List<String>>.broadcast();
+
+  /// Сообщения, удалённые не здесь (собеседником, на другом моём устройстве,
+  /// автоудалением): они уже придержаны в ленте — окно снимает их и рассыпает
+  /// пылью ([vanish]) или, если их не видно, отпускает ([releaseDust]).
+  Stream<List<String>> get dustRequests => _dustRequests.stream;
+
+  /// Удалённые не нами (см. [dustRequests]): придержать строки, пока окно не
+  /// снимет с них снимок. Свои удаления ([holdForDust]) уже придержаны.
+  void _dissolveRemoved(List<String> ids) {
+    if (isClosed) return;
+    final shown = {for (final m in state.messages) m.id};
+    final fresh = [
+      for (final id in ids)
+        if (shown.contains(id) && !_retained.containsKey(id) && !state.vanishingIDs.contains(id)) id,
+    ];
+    if (fresh.isEmpty || !_dustRequests.hasListener) return;
+    holdForDust(fresh);
+    _dustRequests.add(fresh);
+  }
+
   /// Удалить не вышло — больше не держим.
   void releaseDust(List<String> ids) {
     for (final id in ids) {
@@ -1104,6 +1129,8 @@ class ChatCubit extends Cubit<ChatState> {
     await _voiceSubscription?.cancel();
     await _floodSubscription?.cancel();
     await _writeSubscription?.cancel();
+    await _deletedSubscription?.cancel();
+    await _dustRequests.close();
     await _connectionSubscription?.cancel();
     await _blocksSubscription?.cancel();
     final peer = _presencePeer;

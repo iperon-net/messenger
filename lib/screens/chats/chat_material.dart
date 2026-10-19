@@ -93,6 +93,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
   /// Ключи строк ленты — для прокрутки к найденному (поиск по чату).
   final _messageKeys = <String, GlobalKey>{};
   late final ChatCubit _cubit;
+  StreamSubscription<List<String>>? _dustSubscription;
   late final _tracker = ChatScrollTracker(_scroll, _keyFor);
   String? _flashID;
 
@@ -113,6 +114,10 @@ class _ChatMaterialState extends State<ChatMaterial> {
     MessageText.linkHandler = openIperonLink;
     MessageText.mentionNameHandler = openMentionName;
     _cubit = context.read<ChatCubit>();
+    // Удалили не здесь (собеседник, другое устройство) — тоже пылью.
+    _dustSubscription = _cubit.dustRequests.listen((ids) {
+      if (mounted) dissolveRemoved(context, _cubit, ids, _keyFor);
+    });
     // Прокрутили к началу ленты (список перевёрнут — это конец прокрутки) —
     // подгрузить более старые сообщения.
     _scroll.addListener(_maybeLoadOlder);
@@ -156,6 +161,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
 
   @override
   void dispose() {
+    _dustSubscription?.cancel();
     // Поле не трогали — черновик прежний (или пришёл с другого устройства).
     if (_input.text != _shownDraft) _cubit.saveDraft(_input.text);
     _formatMenu.dispose();

@@ -180,6 +180,13 @@ class ChatsSync {
   /// [peerUserID] ещё не создан). Окно чата меняет поле ввода на плашку.
   Stream<({Uint8List chatID, Uint8List? peerUserID, bool restricted})> get writeRestricted => _writeRestricted.stream;
 
+  final _messagesDeleted = StreamController<({String chatID, List<String> messageIDs})>.broadcast(sync: true);
+
+  /// Сообщения сейчас пропадут из кэша (удалил собеседник, другое моё
+  /// устройство, автоудаление) — шлётся ДО записи в БД, чтобы открытое окно
+  /// чата успело придержать строки и рассыпать их пылью. [chatID] — hex.
+  Stream<({String chatID, List<String> messageIDs})> get messagesDeleted => _messagesDeleted.stream;
+
   Future<pb.Messages_Response> messages(pb.Messages_Request request) async =>
       pb.Messages_Response.fromBuffer(await _request(MessageType.MESSAGES, request.writeToBuffer()));
 
@@ -617,6 +624,7 @@ class ChatsSync {
   Future<void> _deleteLocally(ChatsRepository tx, Uint8List user, List<int> chatID, List<int> ids, _FollowUps followUps) async {
     final dialog = await tx.dialog(userID: user, chatID: chatID);
     // Удаляются мои с непрочитанными реакциями — бейдж ❤️ меньше.
+    _messagesDeleted.add((chatID: idHex(chatID), messageIDs: [for (final id in ids) '$id']));
     final reactions = await tx.countUnreadReactions(userID: user, chatID: chatID, messageIDs: ids);
     final unread = await tx.deleteMessages(userID: user, chatID: chatID, messageIDs: ids, readInboxMaxID: dialog?.readInboxMaxID ?? 0);
     unawaited(PushManager.clearChatNotifications(chatID, messageIDs: ids));

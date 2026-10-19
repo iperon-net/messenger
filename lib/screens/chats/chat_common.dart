@@ -1211,6 +1211,22 @@ Future<void> deleteWithDust(
   }
 }
 
+/// Сообщения [ids] удалены не здесь ([ChatCubit.dustRequests]): видимые
+/// рассыпаются пылью, как при своём удалении; не видно ни одного (вне экрана,
+/// слабое устройство) — просто уходят из ленты.
+Future<void> dissolveRemoved(BuildContext context, ChatCubit cubit, List<String> ids, GlobalKey Function(String id) keyFor) async {
+  final snapshots = await DustEffect.captureAll(ids.map((id) => keyFor(id).currentContext));
+  if (snapshots.isEmpty || !context.mounted) {
+    cubit.releaseDust(ids);
+    for (final snapshot in snapshots) {
+      snapshot.dispose();
+    }
+    return;
+  }
+  cubit.vanish(ids);
+  DustEffect.play(context, snapshots);
+}
+
 /// Прокрутка ленты сообщений к строке с ключом [key] (поиск по чату). Лента
 /// строится лениво: если строки ещё нет, листаем к старым (offset растёт —
 /// список перевёрнут), потом к новым, пока она не построится; затем ставим её
