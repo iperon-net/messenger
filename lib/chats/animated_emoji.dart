@@ -302,15 +302,20 @@ class _ReactionEmojiState extends State<ReactionEmoji> with SingleTickerProvider
     if (composition == null) return text;
     final size = (widget.style.fontSize ?? 15) * 1.3;
     // Место — как у текста (плашка не прыгает), анимация чуть крупнее поверх.
+    // Positioned.fill: размер стека — только по тексту. Непозиционированный
+    // OverflowBox берёт максимум ограничений, а пузырь меряется IntrinsicWidth
+    // (ширина не ограничена) — «Stack requires bounded constraints», и пузырь
+    // не рисовался, пока анимация не кончится.
     return Stack(
       clipBehavior: Clip.none,
-      alignment: Alignment.center,
       children: [
         Opacity(opacity: 0, child: text),
-        OverflowBox(
-          maxWidth: size,
-          maxHeight: size,
-          child: Lottie(composition: composition, controller: _controller, width: size, height: size),
+        Positioned.fill(
+          child: OverflowBox(
+            maxWidth: size,
+            maxHeight: size,
+            child: Lottie(composition: composition, controller: _controller, width: size, height: size),
+          ),
         ),
       ],
     );

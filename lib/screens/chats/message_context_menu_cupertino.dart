@@ -21,13 +21,19 @@ class MessageContextMenuCupertinoCupertinoState extends State<MessageContextMenu
   double? _width;
 
   /// Анимация «нажатия» меню (до открытия — его `AnimationController`).
-  Animation<double>? _press;
+  AnimationController? _press;
 
-  /// Двойной тап (реакция), а первое касание уже начало «нажатие» (спрятало
-  /// пузырь и подняло копию в оверлей): сбросить, чтобы пузырь сразу был виден
-  /// на месте, а не пропадал до конца обратной анимации.
+  /// Отпустили, не дождавшись меню (обычный тап, первый из двойного), —
+  /// сразу на место. Меню на касании прячет пузырь в ленте и поднимает его
+  /// копию в оверлей, а на отпускании плавно откатывает: пузырь мигал бы на
+  /// каждом тапе (и на двойном — до реакции).
+  void _onPressStatus(AnimationStatus status) {
+    if (status == AnimationStatus.reverse) _press?.reset();
+  }
+
+  /// Двойной тап (реакция), а «нажатие» уже началось — тоже на место.
   void _cancelPress() {
-    if (_press case final AnimationController press when press.value > 0 && press.value < CupertinoContextMenu.animationOpensAt) {
+    if (_press case final press? when press.value > 0 && press.value < CupertinoContextMenu.animationOpensAt) {
       press.reset();
     }
   }
@@ -38,7 +44,9 @@ class MessageContextMenuCupertinoCupertinoState extends State<MessageContextMenu
       enableHapticFeedback: true,
       actions: widget.actions,
       builder: (context, animation) {
-        if (animation is AnimationController) _press = animation;
+        if (animation is AnimationController && !identical(animation, _press)) {
+          _press = animation..addStatusListener(_onPressStatus);
+        }
         final width = _width;
         if (animation.value < CupertinoContextMenu.animationOpensAt || width == null) {
           // Пока меню закрывается, пузырь зажат в свой прежний размер; если за
