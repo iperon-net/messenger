@@ -51,6 +51,7 @@ export 'chats/chats_cubit.dart';
 export 'chats/chats_state.dart';
 export 'chat/chat_cubit.dart';
 export 'chat/chat_state.dart';
+export 'chat/message_dust.dart';
 export 'chat_create/chat_create_cubit.dart';
 export 'chat_create/chat_create_state.dart';
 export 'chat_invites/chat_invites_cubit.dart';

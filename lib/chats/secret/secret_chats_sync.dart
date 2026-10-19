@@ -562,7 +562,9 @@ class SecretChatsSync {
           case sp.SecretPayload_Payload.read:
             await tx.markOutgoingRead([for (final id in payload.read.randomIDs) id.toInt()], now: _clock());
           case sp.SecretPayload_Payload.delete:
-            removed.addAll(await tx.deleteMessages([for (final id in payload.delete.randomIDs) id.toInt()]));
+            final ids = [for (final id in payload.delete.randomIDs) id.toInt()];
+            _announceDeleted(chatID, ids);
+            removed.addAll(await tx.deleteMessages(ids));
           case sp.SecretPayload_Payload.notSet:
             // Действие из будущего layer — храповик продвинут, остальное пропускаем.
             break;
@@ -715,6 +717,7 @@ class SecretChatsSync {
       }
       for (final messages in byChat.values) {
         final removed = <SecretMessageRecord>[];
+        _announceDeleted(messages.first.secretChatID, [for (final m in messages) m.randomID]);
         await _locked(
           () => store.update(
             sessionID: _sessionID,
@@ -823,6 +826,15 @@ class SecretChatsSync {
   /// Изменился прогресс загрузки (для перерисовки ленты).
   Stream<void> get uploadChanged => _uploadChanged.stream;
   final _uploadChanged = StreamController<void>.broadcast(sync: true);
+
+  /// Сообщения сейчас пропадут из БД (удалил собеседник, истёк таймер; свои
+  /// удаления окно рассыпает само) — шлётся ДО записи, чтобы открытое окно чата успело придержать
+  /// строки и рассыпать их пылью. [chatID] — hex, [messageIDs] — randomID.
+  Stream<({String chatID, List<String> messageIDs})> get messagesDeleted => _messagesDeleted.stream;
+  final _messagesDeleted = StreamController<({String chatID, List<String> messageIDs})>.broadcast(sync: true);
+
+  void _announceDeleted(List<int> chatID, Iterable<int> randomIDs) =>
+      _messagesDeleted.add((chatID: _hex(chatID), messageIDs: [for (final id in randomIDs) '$id']));
 
   /// Отменённые загрузки (сообщение удалено, пока файл грузился).
   final _cancelledUploads = <int>{};

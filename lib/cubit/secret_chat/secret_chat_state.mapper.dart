@@ -154,6 +154,13 @@ class SecretChatStateMapper extends ClassMapperBase<SecretChatState> {
     opt: true,
     def: const [],
   );
+  static List<String> _$vanishingIDs(SecretChatState v) => v.vanishingIDs;
+  static const Field<SecretChatState, List<String>> _f$vanishingIDs = Field(
+    'vanishingIDs',
+    _$vanishingIDs,
+    opt: true,
+    def: const [],
+  );
   static SecretChatNotice _$notice(SecretChatState v) => v.notice;
   static const Field<SecretChatState, SecretChatNotice> _f$notice = Field(
     'notice',
@@ -189,6 +196,7 @@ class SecretChatStateMapper extends ClassMapperBase<SecretChatState> {
     #ttl: _f$ttl,
     #avatarPath: _f$avatarPath,
     #messages: _f$messages,
+    #vanishingIDs: _f$vanishingIDs,
     #notice: _f$notice,
     #noticeCount: _f$noticeCount,
     #removed: _f$removed,
@@ -207,6 +215,7 @@ class SecretChatStateMapper extends ClassMapperBase<SecretChatState> {
       ttl: data.dec(_f$ttl),
       avatarPath: data.dec(_f$avatarPath),
       messages: data.dec(_f$messages),
+      vanishingIDs: data.dec(_f$vanishingIDs),
       notice: data.dec(_f$notice),
       noticeCount: data.dec(_f$noticeCount),
       removed: data.dec(_f$removed),
@@ -282,6 +291,7 @@ abstract class SecretChatStateCopyWith<$R, $In extends SecretChatState, $Out>
     models.MessageCopyWith<$R, models.Message, models.Message>
   >
   get messages;
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get vanishingIDs;
   $R call({
     Status? status,
     String? chatID,
@@ -294,6 +304,7 @@ abstract class SecretChatStateCopyWith<$R, $In extends SecretChatState, $Out>
     int? ttl,
     String? avatarPath,
     List<models.Message>? messages,
+    List<String>? vanishingIDs,
     SecretChatNotice? notice,
     int? noticeCount,
     bool? removed,
@@ -330,6 +341,13 @@ class _SecretChatStateCopyWithImpl<$R, $Out>
     (v) => call(messages: v),
   );
   @override
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>>
+  get vanishingIDs => ListCopyWith(
+    $value.vanishingIDs,
+    (v, t) => ObjectCopyWith(v, $identity, t),
+    (v) => call(vanishingIDs: v),
+  );
+  @override
   $R call({
     Status? status,
     String? chatID,
@@ -342,6 +360,7 @@ class _SecretChatStateCopyWithImpl<$R, $Out>
     int? ttl,
     String? avatarPath,
     List<models.Message>? messages,
+    List<String>? vanishingIDs,
     SecretChatNotice? notice,
     int? noticeCount,
     bool? removed,
@@ -358,6 +377,7 @@ class _SecretChatStateCopyWithImpl<$R, $Out>
       if (ttl != null) #ttl: ttl,
       if (avatarPath != null) #avatarPath: avatarPath,
       if (messages != null) #messages: messages,
+      if (vanishingIDs != null) #vanishingIDs: vanishingIDs,
       if (notice != null) #notice: notice,
       if (noticeCount != null) #noticeCount: noticeCount,
       if (removed != null) #removed: removed,
@@ -376,6 +396,7 @@ class _SecretChatStateCopyWithImpl<$R, $Out>
     ttl: data.get(#ttl, or: $value.ttl),
     avatarPath: data.get(#avatarPath, or: $value.avatarPath),
     messages: data.get(#messages, or: $value.messages),
+    vanishingIDs: data.get(#vanishingIDs, or: $value.vanishingIDs),
     notice: data.get(#notice, or: $value.notice),
     noticeCount: data.get(#noticeCount, or: $value.noticeCount),
     removed: data.get(#removed, or: $value.removed),

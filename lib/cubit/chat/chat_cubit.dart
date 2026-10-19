@@ -24,12 +24,13 @@ import '../../privacy_blocks.dart';
 import '../../repositories/repositories.dart';
 
 import 'chat_state.dart';
+import 'message_dust.dart';
 import '../../chats/animated_emoji.dart';
 
 /// Окно чата. Данные — из того же [ChatsDataSource], что и список чатов: демо
 /// или настоящие ([ChatsRemoteDataSource], см.
 /// docs/plans/chats-groups-channels.md, «Этап 1+»).
-class ChatCubit extends Cubit<ChatState> {
+class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   ChatCubit() : super(const ChatState());
 
   ChatsDataSource? _source;
@@ -130,7 +131,7 @@ class ChatCubit extends Cubit<ChatState> {
         _syncLimits();
       });
       _deletedSubscription = ChatsSync.instance.messagesDeleted.listen((event) {
-        if (event.chatID == chatID) _dissolveRemoved(event.messageIDs);
+        if (event.chatID == chatID) dissolveRemoved(event.messageIDs);
       });
       _connectionSubscription = getIt.get<API>().connectionStatusStream.listen((status) {
         if (isClosed || status != ApiConnectionStatus.connected) return;
@@ -199,8 +200,7 @@ class ChatCubit extends Cubit<ChatState> {
     });
     _messagesSubscription = source.watchMessages(chatID).listen((fresh) {
       if (isClosed) return;
-      _sourceMessages = fresh;
-      final messages = _withRetained(fresh);
+      final messages = withDustRetained(fresh);
       emit(state.copyWith(messages: messages));
       // Отмечено сервером (здесь или на другом устройстве) — больше не ждём.
       _reactionsSeen.removeWhere((id) => !messages.any((m) => m.id == id && m.reactionsUnread));
@@ -705,78 +705,15 @@ class ChatCubit extends Cubit<ChatState> {
 
   void clearSelection() => emit(state.copyWith(selecting: false, selectedIDs: const []));
 
-  /// Удаляемые с «пылью» (id → сообщение): пока пыль летит, они остаются в
-  /// ленте, даже если источник их уже убрал, — иначе соседние строки прыгнули
-  /// бы на их место раньше пыли.
-  final _retained = <String, models.Message>{};
-  List<models.Message> _sourceMessages = const [];
-  Timer? _vanishTimer;
+  @override
+  List<models.Message> get dustShown => state.messages;
 
-  /// Сколько строка держит место после старта пыли (видна пыль, потом место
-  /// схлопывается — сам схлоп анимирует лента).
-  static const vanishDuration = Duration(milliseconds: 950);
+  @override
+  List<String> get dustVanishing => state.vanishingIDs;
 
-  List<models.Message> _withRetained(List<models.Message> messages) {
-    if (_retained.isEmpty) return messages;
-    final result = [...messages];
-    for (final kept in _retained.values) {
-      if (result.any((m) => m.id == kept.id)) continue;
-      final index = result.indexWhere((m) => m.date.isAfter(kept.date));
-      result.insert(index < 0 ? result.length : index, kept);
-    }
-    return result;
-  }
-
-  /// Перед удалением с «пылью»: держать [ids] в ленте, пока не [vanish] /
-  /// [releaseDust].
-  void holdForDust(List<String> ids) {
-    for (final m in state.messages) {
-      if (ids.contains(m.id)) _retained[m.id] = m;
-    }
-  }
-
-  /// Удаление прошло — строки [ids] становятся пустым местом (пыль рисуется
-  /// поверх), через [vanishDuration] уходят из ленты совсем.
-  void vanish(List<String> ids) {
-    if (isClosed) return;
-    emit(state.copyWith(vanishingIDs: {...state.vanishingIDs, ...ids}.toList()));
-    _vanishTimer?.cancel();
-    _vanishTimer = Timer(vanishDuration, () {
-      if (isClosed) return;
-      final gone = state.vanishingIDs.toSet();
-      _retained.removeWhere((id, _) => gone.contains(id));
-      emit(state.copyWith(vanishingIDs: const [], messages: _withRetained(_sourceMessages)));
-    });
-  }
-
-  final _dustRequests = StreamController<List<String>>.broadcast();
-
-  /// Сообщения, удалённые не здесь (собеседником, на другом моём устройстве,
-  /// автоудалением): они уже придержаны в ленте — окно снимает их и рассыпает
-  /// пылью ([vanish]) или, если их не видно, отпускает ([releaseDust]).
-  Stream<List<String>> get dustRequests => _dustRequests.stream;
-
-  /// Удалённые не нами (см. [dustRequests]): придержать строки, пока окно не
-  /// снимет с них снимок. Свои удаления ([holdForDust]) уже придержаны.
-  void _dissolveRemoved(List<String> ids) {
-    if (isClosed) return;
-    final shown = {for (final m in state.messages) m.id};
-    final fresh = [
-      for (final id in ids)
-        if (shown.contains(id) && !_retained.containsKey(id) && !state.vanishingIDs.contains(id)) id,
-    ];
-    if (fresh.isEmpty || !_dustRequests.hasListener) return;
-    holdForDust(fresh);
-    _dustRequests.add(fresh);
-  }
-
-  /// Удалить не вышло — больше не держим.
-  void releaseDust(List<String> ids) {
-    for (final id in ids) {
-      _retained.remove(id);
-    }
-    if (!isClosed) emit(state.copyWith(messages: _withRetained(_sourceMessages)));
-  }
+  @override
+  void emitDust({required List<models.Message> messages, required List<String> vanishingIDs}) =>
+      emit(state.copyWith(messages: messages, vanishingIDs: vanishingIDs));
 
   /// Удалить можно свои, а в личном чате — любые (как одиночное удаление).
   bool canDelete(models.Message message) => message.outgoing || state.chat?.type == models.ChatType.private;
@@ -1121,7 +1058,6 @@ class ChatCubit extends Cubit<ChatState> {
   @override
   Future<void> close() async {
     await _chatsSubscription?.cancel();
-    _vanishTimer?.cancel();
     await _messagesSubscription?.cancel();
     await _scheduledSubscription?.cancel();
     await _pinnedSubscription?.cancel();
@@ -1130,7 +1066,6 @@ class ChatCubit extends Cubit<ChatState> {
     await _floodSubscription?.cancel();
     await _writeSubscription?.cancel();
     await _deletedSubscription?.cancel();
-    await _dustRequests.close();
     await _connectionSubscription?.cancel();
     await _blocksSubscription?.cancel();
     final peer = _presencePeer;

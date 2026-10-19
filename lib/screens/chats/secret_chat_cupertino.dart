@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,6 +13,8 @@ import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
+import 'chat_actions_cupertino.dart';
+import 'chat_common.dart';
 import 'chat_cupertino.dart';
 import 'chat_no_forwards.dart';
 import 'message_context_menu_cupertino.dart';
@@ -29,16 +33,27 @@ class SecretChatCupertino extends StatefulWidget {
 class _SecretChatCupertinoState extends State<SecretChatCupertino> {
   final _input = TextEditingController();
 
+  /// Ключи строк ленты — снимки для «пыли» при удалении.
+  final _messageKeys = <String, GlobalKey>{};
+  StreamSubscription<List<String>>? _dustSubscription;
+
+  GlobalKey _keyFor(String messageID) => _messageKeys.putIfAbsent(messageID, GlobalKey.new);
+
   @override
   void initState() {
     super.initState();
     // Снимок экрана (iOS сообщает о нём) — служебное «сделал скриншот» у обоих.
     final cubit = context.read<SecretChatCubit>();
     ScreenProtector.addListener(cubit.screenshotTaken, null);
+    // Удалил собеседник / истёк таймер — тоже пылью.
+    _dustSubscription = cubit.dustRequests.listen((ids) {
+      if (mounted) dissolveRemoved(context, cubit, ids, _keyFor);
+    });
   }
 
   @override
   void dispose() {
+    _dustSubscription?.cancel();
     ScreenProtector.removeListener();
     _input.dispose();
     super.dispose();
@@ -191,6 +206,8 @@ class _SecretChatCupertinoState extends State<SecretChatCupertino> {
       chatType: models.ChatType.private,
       style: ChatCupertino.bubbleStyle(context),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      keyFor: _keyFor,
+      vanishingIDs: state.vanishingIDs,
       onLongPress: (_) {},
       menuWrapper: (message, bubble, preview) =>
           MessageContextMenuCupertino(actions: _actions(context, message), bubble: bubble, preview: (maxWidth) => preview(maxWidth)),
@@ -216,9 +233,12 @@ class _SecretChatCupertinoState extends State<SecretChatCupertino> {
       CupertinoContextMenuAction(
         trailingIcon: CupertinoIcons.delete,
         isDestructiveAction: true,
-        onPressed: () {
+        onPressed: () async {
           close();
-          context.read<SecretChatCubit>().deleteMessage(message);
+          final cubit = context.read<SecretChatCubit>();
+          // Снимок — когда меню закрылось и пузырь снова на месте.
+          await Future<void>.delayed(contextMenuCloseDuration);
+          if (context.mounted) await deleteWithDust(context, cubit, [message.id], _keyFor, () => cubit.deleteMessage(message));
         },
         child: Text(t.deleteMessage),
       ),

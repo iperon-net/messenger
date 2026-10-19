@@ -38,6 +38,9 @@ class SecretChatState with SecretChatStateMappable {
   /// Переписка по времени (старые сверху).
   final List<models.Message> messages;
 
+  /// Рассыпаются в пыль после удаления (см. `MessageDust`).
+  final List<String> vanishingIDs;
+
   /// Разовое уведомление: [notice] + счётчик [noticeCount].
   final SecretChatNotice notice;
   final int noticeCount;
@@ -57,6 +60,7 @@ class SecretChatState with SecretChatStateMappable {
     this.ttl = 0,
     this.avatarPath = '',
     this.messages = const [],
+    this.vanishingIDs = const [],
     this.notice = SecretChatNotice.none,
     this.noticeCount = 0,
     this.removed = false,

@@ -2242,14 +2242,14 @@ class _SelfDestructBadgeState extends State<SelfDestructBadge> {
 
 /// Удалённое сообщение, по которому летит пыль: место его высоты остаётся
 /// пустым, пока пыль не разлетится, потом плавно схлопывается — соседние
-/// строки подъезжают (как в Telegram). Убирает строку совсем ChatCubit.vanish.
+/// строки подъезжают (как в Telegram). Убирает строку совсем MessageDust.vanish.
 class _Vanishing extends StatefulWidget {
   final Widget child;
 
   const _Vanishing({super.key, required this.child});
 
   /// Пауза до схлопывания и само схлопывание (вместе — меньше
-  /// `ChatCubit.vanishDuration`).
+  /// `MessageDust.vanishDuration`).
   static const hold = Duration(milliseconds: 550);
   static const collapse = Duration(milliseconds: 320);
 

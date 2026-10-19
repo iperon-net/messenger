@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -10,6 +12,7 @@ import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
+import 'chat_common.dart';
 import 'chat_material.dart';
 import 'chat_no_forwards.dart';
 import 'secret_chat_common.dart';
@@ -27,8 +30,25 @@ class SecretChatMaterial extends StatefulWidget {
 class _SecretChatMaterialState extends State<SecretChatMaterial> {
   final _input = TextEditingController();
 
+  /// Ключи строк ленты — снимки для «пыли» при удалении.
+  final _messageKeys = <String, GlobalKey>{};
+  StreamSubscription<List<String>>? _dustSubscription;
+
+  GlobalKey _keyFor(String messageID) => _messageKeys.putIfAbsent(messageID, GlobalKey.new);
+
+  @override
+  void initState() {
+    super.initState();
+    // Удалил собеседник / истёк таймер — тоже пылью.
+    final cubit = context.read<SecretChatCubit>();
+    _dustSubscription = cubit.dustRequests.listen((ids) {
+      if (mounted) dissolveRemoved(context, cubit, ids, _keyFor);
+    });
+  }
+
   @override
   void dispose() {
+    _dustSubscription?.cancel();
     _input.dispose();
     super.dispose();
   }
@@ -81,7 +101,8 @@ class _SecretChatMaterialState extends State<SecretChatMaterial> {
       case 'copy':
         await Clipboard.setData(ClipboardData(text: message.text));
       case 'delete':
-        await context.read<SecretChatCubit>().deleteMessage(message);
+        final cubit = context.read<SecretChatCubit>();
+        await deleteWithDust(context, cubit, [message.id], _keyFor, () => cubit.deleteMessage(message));
     }
   }
 
@@ -212,6 +233,8 @@ class _SecretChatMaterialState extends State<SecretChatMaterial> {
       chatType: models.ChatType.private,
       style: ChatMaterial.bubbleStyle(context),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      keyFor: _keyFor,
+      vanishingIDs: state.vanishingIDs,
       onLongPress: (message) => _messageActions(context, message),
       onMediaTap: (message, index) => openSecretMedia(context, state, message, index),
       // Крестик на кольце загрузки — не отправлять.

@@ -176,7 +176,7 @@ typedef ChatDeleteConfirm = Future<bool?> Function({bool afterContextMenu});
 
 /// Длительность закрытия `CupertinoContextMenu` (`_kModalPopupTransitionDuration`
 /// в cupertino_ui).
-const _contextMenuCloseDuration = Duration(milliseconds: 335);
+const contextMenuCloseDuration = Duration(milliseconds: 335);
 
 /// Виджет [builder] с отдельным выпадающим меню «У меня» / «У меня и
 /// собеседника» ([scopeMenuCupertino]) — открывается вызовом [ScopeAsk]: из
@@ -199,7 +199,7 @@ class _ScopeMenuAnchorCupertinoState extends State<ScopeMenuAnchorCupertino> {
   Future<bool?> _ask({bool destructive = true, bool afterContextMenu = false}) async {
     _finish(null);
     final choice = _choice = Completer<bool?>();
-    if (afterContextMenu) await Future<void>.delayed(_contextMenuCloseDuration);
+    if (afterContextMenu) await Future<void>.delayed(contextMenuCloseDuration);
     // За время ожидания строку убрали или позвали снова — уже завершён.
     if (!mounted || choice.isCompleted) return choice.future;
     setState(() => _destructive = destructive);

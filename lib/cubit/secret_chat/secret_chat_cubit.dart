@@ -19,12 +19,13 @@ import '../../peer_names.dart';
 import '../../protobuf/protos/secret_payload_v1.pb.dart' as sp;
 import '../../repositories.dart';
 import '../../utils.dart';
+import '../chat/message_dust.dart';
 import 'secret_chat_state.dart';
 
 /// Окно секретного чата (и его экран «Ключ шифрования»): читает чат и
 /// переписку из SQLite (перечитывает при изменениях), отправляет через
 /// [SecretChatsSync].
-class SecretChatCubit extends Cubit<SecretChatState> {
+class SecretChatCubit extends Cubit<SecretChatState> with MessageDust<SecretChatState> {
   SecretChatCubit() : super(const SecretChatState());
 
   final logger = getIt.get<Logger>();
@@ -35,6 +36,7 @@ class SecretChatCubit extends Cubit<SecretChatState> {
   StreamSubscription<void>? _changes;
   StreamSubscription<void>? _uploads;
   StreamSubscription<void>? _downloads;
+  StreamSubscription<({String chatID, List<String> messageIDs})>? _deleted;
   Timer? _progressTimer;
   late Uint8List _chatID;
   var _pending = Future<void>.value();
@@ -58,6 +60,10 @@ class SecretChatCubit extends Cubit<SecretChatState> {
       }),
     );
     _downloads = SecretChatsMedia.instance.changed.listen((_) => _reload());
+    // Удалил собеседник / истёк таймер — видимые рассыпаются пылью.
+    _deleted = _sync.messagesDeleted.listen((event) {
+      if (event.chatID == chatID) dissolveRemoved(event.messageIDs);
+    });
     // Истёкшее за время, пока приложение было закрыто, — сразу.
     unawaited(_sync.expireNow());
   }
@@ -88,7 +94,7 @@ class SecretChatCubit extends Cubit<SecretChatState> {
         fingerprintHex: chat.fingerprint == null ? '' : utils.bytesToHex(chat.fingerprint!),
         ttl: chat.ttl,
         avatarPath: await secretPeerAvatar(chat.peerUserID),
-        messages: [for (final record in records) await _message(record, listID, title)],
+        messages: withDustRetained([for (final record in records) await _message(record, listID, title)]),
       ),
     );
     if (_visible && chat.unreadCount > 0) unawaited(_markRead());
@@ -254,15 +260,28 @@ class SecretChatCubit extends Cubit<SecretChatState> {
 
   /// Удалить сообщение у обоих (чат закрыт — только у себя). Неотправленное
   /// вложение (крестик на кольце загрузки) — так же: загрузка бросается.
-  Future<void> deleteMessage(models.Message message) async {
+  /// `false` — не удалилось (для «пыли», см. `deleteWithDust`).
+  Future<bool> deleteMessage(models.Message message) async {
     final randomID = int.tryParse(message.id);
-    if (randomID == null) return;
+    if (randomID == null) return false;
     try {
       await _sync.deleteMessages(_chatID, [randomID]);
+      return true;
     } on SecretChatException {
       _notice(SecretChatNotice.notReady);
+      return false;
     }
   }
+
+  @override
+  List<models.Message> get dustShown => state.messages;
+
+  @override
+  List<String> get dustVanishing => state.vanishingIDs;
+
+  @override
+  void emitDust({required List<models.Message> messages, required List<String> vanishingIDs}) =>
+      emit(state.copyWith(messages: messages, vanishingIDs: vanishingIDs));
 
   /// Удалить чат: закрыть у собеседника (с перепиской) и убрать с устройства.
   /// Без сети — «Нет соединения»: собеседник иначе продолжит писать.
@@ -279,6 +298,7 @@ class SecretChatCubit extends Cubit<SecretChatState> {
     await _changes?.cancel();
     await _uploads?.cancel();
     await _downloads?.cancel();
+    await _deleted?.cancel();
     _progressTimer?.cancel();
     return super.close();
   }
