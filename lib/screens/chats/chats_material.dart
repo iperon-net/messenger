@@ -14,8 +14,7 @@ import '../../models.dart' as models;
 import 'chat_actions_material.dart';
 import 'chat_swipe_actions.dart';
 import 'chat_common.dart';
-import 'chat_create_common.dart';
-import '../../chats/users_search.dart';
+import 'users_search_list_material.dart';
 
 /// Вкладка «Чаты» (Android). Сверху поиск и табы-папки в стиле
 /// `SegmentedButton` «Звонков»; папки листаются свайпом влево/вправо
@@ -183,7 +182,14 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll {
     final chats = state.chatsOf(folder);
     final archived = folder.isAll && state.query.isEmpty ? state.archived : const <models.Chat>[];
     // Глобальный поиск людей (номер / @username) — секцией после чатов.
-    final global = state.query.isEmpty ? const <Widget>[] : _globalSearch(context, state);
+    final global = state.query.isEmpty
+        ? const <Widget>[]
+        : usersSearchListMaterial(
+            context,
+            status: state.globalStatus,
+            results: state.globalResults,
+            onTap: (member) => _openGlobal(context, member),
+          );
     if (chats.isEmpty && archived.isEmpty && global.isEmpty) {
       return _empty(context, state.query.isEmpty ? context.t.screenChats.emptyFolder : context.t.screenChats.empty, folder: folder);
     }
@@ -214,48 +220,6 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll {
         );
       },
     );
-  }
-
-  /// «Глобальный поиск» под найденными чатами — в стиле самого списка (как в
-  /// Telegram): подпись-заголовок на фоне списка и строки того же размера, что
-  /// у чатов.
-  List<Widget> _globalSearch(BuildContext context, ChatsState state) {
-    final t = context.t;
-    final status = state.globalStatus;
-    if (status == UsersSearchStatus.idle) return const [];
-    final scheme = Theme.of(context).colorScheme;
-    final note = switch (status) {
-      UsersSearchStatus.offline => t.screenNewChat.globalSearchOffline,
-      UsersSearchStatus.flood => t.screenNewChat.globalSearchFlood,
-      UsersSearchStatus.done when state.globalResults.isEmpty => t.screenNewChat.globalSearchEmpty,
-      _ => null,
-    };
-    return [
-      // Без своей заливки — фон тот же, что у строк результатов.
-      Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-        child: Text(
-          t.screenNewChat.globalSearch,
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: scheme.onSurfaceVariant),
-        ),
-      ),
-      if (status == UsersSearchStatus.loading)
-        const Padding(
-          padding: EdgeInsets.all(16),
-          child: Center(child: SizedBox.square(dimension: 24, child: CircularProgressIndicator(strokeWidth: 2.5))),
-        )
-      else if (note != null)
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            note,
-            textAlign: TextAlign.center,
-            style: TextStyle(color: scheme.onSurfaceVariant),
-          ),
-        )
-      else
-        for (final member in state.globalResults) _UserSearchTileMaterial(member: member, onTap: () => _openGlobal(context, member)),
-    ];
   }
 
   Future<void> _openGlobal(BuildContext context, models.ChatMember member) async {
@@ -317,56 +281,6 @@ class _ArchiveTileMaterial extends StatelessWidget {
             )
           : null,
       onTap: onTap,
-    );
-  }
-}
-
-/// Найденный глобальным поиском — строка в размерах [ChatTileMaterial]:
-/// аватар 46, имя, ниже @username / номер.
-class _UserSearchTileMaterial extends StatelessWidget {
-  final models.ChatMember member;
-  final VoidCallback onTap;
-
-  const _UserSearchTileMaterial({required this.member, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final subtitle = globalSearchSubtitle(member);
-    final body = theme.textTheme.bodyMedium ?? const TextStyle(fontSize: 14);
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Row(
-          children: [
-            ContactAvatar(contact: member, size: 46),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    member.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  if (subtitle.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: body.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

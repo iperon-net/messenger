@@ -3,7 +3,9 @@ import 'dart:typed_data';
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:messenger/models/mapper.dart';
 
+import '../../chats/users_search.dart';
 import '../../constants.dart';
+import '../../models.dart' as models;
 
 part 'contacts_state.mapper.dart';
 
@@ -76,6 +78,11 @@ class ContactsState with ContactsStateMappable {
   /// снова скрываются. Считается в [ContactsCubit.search], а не в build.
   final Set<String> revealedHex;
 
+  /// Глобальный поиск людей по [query] (номер / username, см. [UsersSearch]):
+  /// найденные — без тех, кто уже в контактах.
+  final UsersSearchStatus globalStatus;
+  final List<models.ChatMember> globalResults;
+
   const ContactsState({
     this.status = Status.initialization,
     this.error = "",
@@ -87,5 +94,7 @@ class ContactsState with ContactsStateMappable {
     this.query = "",
     this.hiddenHashByHex = const {},
     this.revealedHex = const {},
+    this.globalStatus = UsersSearchStatus.idle,
+    this.globalResults = const [],
   });
 }

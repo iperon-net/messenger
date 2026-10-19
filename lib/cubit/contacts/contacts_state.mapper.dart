@@ -197,6 +197,7 @@ class ContactsStateMapper extends ClassMapperBase<ContactsState> {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = ContactsStateMapper._());
       ContactItemMapper.ensureInitialized();
+      models.ChatMemberMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -271,6 +272,17 @@ class ContactsStateMapper extends ClassMapperBase<ContactsState> {
     opt: true,
     def: const {},
   );
+  static UsersSearchStatus _$globalStatus(ContactsState v) => v.globalStatus;
+  static const Field<ContactsState, UsersSearchStatus> _f$globalStatus = Field(
+    'globalStatus',
+    _$globalStatus,
+    opt: true,
+    def: UsersSearchStatus.idle,
+  );
+  static List<models.ChatMember> _$globalResults(ContactsState v) =>
+      v.globalResults;
+  static const Field<ContactsState, List<models.ChatMember>> _f$globalResults =
+      Field('globalResults', _$globalResults, opt: true, def: const []);
 
   @override
   final MappableFields<ContactsState> fields = const {
@@ -284,6 +296,8 @@ class ContactsStateMapper extends ClassMapperBase<ContactsState> {
     #query: _f$query,
     #hiddenHashByHex: _f$hiddenHashByHex,
     #revealedHex: _f$revealedHex,
+    #globalStatus: _f$globalStatus,
+    #globalResults: _f$globalResults,
   };
 
   static ContactsState _instantiate(DecodingData data) {
@@ -298,6 +312,8 @@ class ContactsStateMapper extends ClassMapperBase<ContactsState> {
       query: data.dec(_f$query),
       hiddenHashByHex: data.dec(_f$hiddenHashByHex),
       revealedHex: data.dec(_f$revealedHex),
+      globalStatus: data.dec(_f$globalStatus),
+      globalResults: data.dec(_f$globalResults),
     );
   }
 
@@ -383,6 +399,12 @@ abstract class ContactsStateCopyWith<$R, $In extends ContactsState, $Out>
   get cloud;
   MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
   get hiddenHashByHex;
+  ListCopyWith<
+    $R,
+    models.ChatMember,
+    models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
+  >
+  get globalResults;
   $R call({
     Status? status,
     String? error,
@@ -394,6 +416,8 @@ abstract class ContactsStateCopyWith<$R, $In extends ContactsState, $Out>
     String? query,
     Map<String, String>? hiddenHashByHex,
     Set<String>? revealedHex,
+    UsersSearchStatus? globalStatus,
+    List<models.ChatMember>? globalResults,
   });
   ContactsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -447,6 +471,17 @@ class _ContactsStateCopyWithImpl<$R, $Out>
     (v) => call(hiddenHashByHex: v),
   );
   @override
+  ListCopyWith<
+    $R,
+    models.ChatMember,
+    models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
+  >
+  get globalResults => ListCopyWith(
+    $value.globalResults,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(globalResults: v),
+  );
+  @override
   $R call({
     Status? status,
     String? error,
@@ -458,6 +493,8 @@ class _ContactsStateCopyWithImpl<$R, $Out>
     String? query,
     Map<String, String>? hiddenHashByHex,
     Set<String>? revealedHex,
+    UsersSearchStatus? globalStatus,
+    List<models.ChatMember>? globalResults,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -470,6 +507,8 @@ class _ContactsStateCopyWithImpl<$R, $Out>
       if (query != null) #query: query,
       if (hiddenHashByHex != null) #hiddenHashByHex: hiddenHashByHex,
       if (revealedHex != null) #revealedHex: revealedHex,
+      if (globalStatus != null) #globalStatus: globalStatus,
+      if (globalResults != null) #globalResults: globalResults,
     }),
   );
   @override
@@ -487,6 +526,8 @@ class _ContactsStateCopyWithImpl<$R, $Out>
     query: data.get(#query, or: $value.query),
     hiddenHashByHex: data.get(#hiddenHashByHex, or: $value.hiddenHashByHex),
     revealedHex: data.get(#revealedHex, or: $value.revealedHex),
+    globalStatus: data.get(#globalStatus, or: $value.globalStatus),
+    globalResults: data.get(#globalResults, or: $value.globalResults),
   );
 
   @override

@@ -9,6 +9,8 @@ import 'package:grpc/grpc.dart' show StatusCode;
 import 'package:permission_handler/permission_handler.dart' as ph;
 
 import '../../api.dart';
+import '../../chats/chats_remote_data_source.dart';
+import '../../chats/users_search.dart';
 import '../../auth.dart';
 import '../../constants.dart';
 import '../../crypto.dart';
@@ -424,6 +426,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     _connectionSub?.cancel();
     _hiddenSub?.cancel();
     _profileSub?.cancel();
+    _usersSearch.cancel();
     return super.close();
   }
 
@@ -608,7 +611,27 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     final revealed = await _revealedFor(query, state.hiddenHashByHex);
     if (isClosed) return;
     emit(state.copyWith(query: query, revealedHex: revealed));
+    // «/код-фраза» — локальная, на сервер не уходит.
+    final trimmed = query.trim();
+    _usersSearch.search(trimmed.startsWith('/') ? null : chatsDataSource(demo: false), trimmed);
   }
+
+  late final _usersSearch = UsersSearch((status, results) {
+    if (isClosed) return;
+    final known = {
+      for (final item in [...state.registered, ...state.cloud])
+        if (item.userID != null) utils.bytesToHex(item.userID!),
+    };
+    emit(
+      state.copyWith(
+        globalStatus: status,
+        globalResults: [
+          for (final r in results)
+            if (!known.contains(r.id)) r,
+        ],
+      ),
+    );
+  });
 
   /// hex(userID) скрытых профилей, чью код-фразу содержит запрос вида «/фраза».
   /// Пустой набор, если запрос не начинается с «/» или фраза не совпала.

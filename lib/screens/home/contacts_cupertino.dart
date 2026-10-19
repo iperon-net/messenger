@@ -12,6 +12,8 @@ import '../../themes.dart';
 import '../../components.dart';
 import '../../utils.dart';
 import '../../i18n/translations.g.dart';
+import '../../chats/users_search.dart';
+import '../chats/users_search_list_cupertino.dart';
 
 /// Экран «Контакты»: сверху — найденные в Iperon (тап → профиль), ниже —
 /// остальные с кнопкой «Пригласить». Приватный поиск через OPRF (см. ContactsCubit).
@@ -139,7 +141,14 @@ class _ContactsCupertinoState extends State<ContactsCupertino> with SearchHideOn
                     ),
                   if (invitable.isNotEmpty)
                     _sheet(context, context.t.screenContacts.invite, invitable.map((item) => _invitableTile(context, item)).toList()),
-                  if (registered.isEmpty && invitable.isEmpty && cloud.isEmpty)
+                  // Глобальный поиск людей (номер / @username) — тап открывает профиль.
+                  ...usersSearchListCupertino(
+                    context,
+                    status: state.query.trim().isEmpty ? UsersSearchStatus.idle : state.globalStatus,
+                    results: state.globalResults,
+                    onTap: (member) => context.push('/profile/${member.id}'),
+                  ),
+                  if (registered.isEmpty && invitable.isEmpty && cloud.isEmpty && state.globalStatus == UsersSearchStatus.idle)
                     Padding(
                       padding: const EdgeInsets.only(top: 60),
                       child: Center(child: Text(context.t.screenContacts.empty)),
