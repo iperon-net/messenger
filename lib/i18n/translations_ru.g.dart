@@ -1156,12 +1156,15 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get callsEncryption => 'Сквозное шифрование';
 	@override String get callsEncryptionNote => 'Голос и видео шифруются на устройствах собеседников — сервер не может их расшифровать. Работает, если сквозное шифрование включено у обоих; иначе звонок идёт без него.';
 	@override String get birthday => 'День рождения';
+	@override String get birthdayPreviewHidden => 'День рождения не виден';
 	@override String get whoCanSeeBirthday => 'Кто может видеть мой день рождения';
 	@override String get hideBirthYear => 'Скрывать год рождения';
 	@override String get hideBirthYearNote => 'Контакты увидят только день и месяц — без года рождения и возраста.';
 	@override String get hideReadTime => 'Скрывать время прочтения';
 	@override String get hideReadTimeNote => 'Те, кому не видно ваше время захода, не узнают, когда вы прочитали их сообщения (галочки останутся). Взаимно: вы тоже не будете видеть время прочтения других.';
 	@override String get aboutMe => 'О себе';
+	@override String get aboutMePreviewHidden => '«О себе» не видно';
+	@override String get aboutMePreviewSample => 'Люблю горы и хороший кофе ☕';
 	@override String get whoCanSeeAboutMe => 'Кто может видеть моё «О себе»';
 	@override String get lastSeen => 'Время захода';
 	@override String get whoCanSeeLastSeen => 'Кто может видеть время моего захода';
@@ -2558,12 +2561,15 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.callsEncryption' => 'Сквозное шифрование',
 			'sessionsPrivacyAndSecurity.callsEncryptionNote' => 'Голос и видео шифруются на устройствах собеседников — сервер не может их расшифровать. Работает, если сквозное шифрование включено у обоих; иначе звонок идёт без него.',
 			'sessionsPrivacyAndSecurity.birthday' => 'День рождения',
+			'sessionsPrivacyAndSecurity.birthdayPreviewHidden' => 'День рождения не виден',
 			'sessionsPrivacyAndSecurity.whoCanSeeBirthday' => 'Кто может видеть мой день рождения',
 			'sessionsPrivacyAndSecurity.hideBirthYear' => 'Скрывать год рождения',
 			'sessionsPrivacyAndSecurity.hideBirthYearNote' => 'Контакты увидят только день и месяц — без года рождения и возраста.',
 			'sessionsPrivacyAndSecurity.hideReadTime' => 'Скрывать время прочтения',
 			'sessionsPrivacyAndSecurity.hideReadTimeNote' => 'Те, кому не видно ваше время захода, не узнают, когда вы прочитали их сообщения (галочки останутся). Взаимно: вы тоже не будете видеть время прочтения других.',
 			'sessionsPrivacyAndSecurity.aboutMe' => 'О себе',
+			'sessionsPrivacyAndSecurity.aboutMePreviewHidden' => '«О себе» не видно',
+			'sessionsPrivacyAndSecurity.aboutMePreviewSample' => 'Люблю горы и хороший кофе ☕',
 			'sessionsPrivacyAndSecurity.whoCanSeeAboutMe' => 'Кто может видеть моё «О себе»',
 			'sessionsPrivacyAndSecurity.lastSeen' => 'Время захода',
 			'sessionsPrivacyAndSecurity.whoCanSeeLastSeen' => 'Кто может видеть время моего захода',
@@ -2778,11 +2784,11 @@ extension on TranslationsRu {
 			'screenAuthModerationApplicationStore.sentConfirmationCodeToNumber' => ({required Object phoneNumber}) => 'Мы отправили код подтверждения на номер ${phoneNumber}',
 			'screenAuthModerationApplicationStore.signatureVerificationFailed' => 'Не удалось проверить подпись',
 			'screenAuthCallpasswordConfirmation.weAreExpectingYourCallWithin' => ({required Object duration}) => 'Мы ждём вашего звонка в течение ${duration}',
+			_ => null,
+		} ?? switch (path) {
 			'screenAuthCallpasswordConfirmation.confirmYourNumberDetail' => ({required Object confirmationPhoneNumberRu}) => 'Позвоните на номер ${confirmationPhoneNumberRu} с указанного вами номера телефона и дождитесь сброса вызова.',
 			'screenAuthCallpasswordConfirmation.callForFree' => 'Позвонить бесплатно',
 			'screenAuthCallpasswordConfirmation.signatureVerificationFailed' => 'Не удалось проверить подпись',
-			_ => null,
-		} ?? switch (path) {
 			'grpcError.errorConnectingServer' => 'Ошибка подключения к серверу',
 			'grpcError.unauthenticated' => 'Неавторизован',
 			'grpcError.unableConnectServer' => 'Не удалось подключиться к серверу',

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
+import 'settings_privacy_preview_common.dart';
 
 /// Детейл-экран приватности «О себе» (drill-down с «Конфиденциальности»): выбор
 /// аудитории «кто может видеть моё „О себе“» + секция «Исключения» (allow-list
@@ -95,6 +96,22 @@ class SettingsPrivacyAboutMeMaterial extends StatelessWidget {
           body: SafeArea(
             child: ListView(
               children: [
+                // Как другие видят моё «О себе». Пока настройка не загружена —
+                // без превью (не показываем дефолт).
+                if (!state.callsLoadError)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: AboutMePrivacyPreview(
+                      audience: state.aboutMeAudience,
+                      dark: Theme.of(context).brightness == Brightness.dark,
+                      colors: PrivacyPreviewColors(
+                        card: Theme.of(context).colorScheme.surface,
+                        text: Theme.of(context).colorScheme.onSurface,
+                        secondary: Theme.of(context).colorScheme.onSurfaceVariant,
+                        accent: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                   child: Text(

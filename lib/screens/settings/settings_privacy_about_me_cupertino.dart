@@ -7,6 +7,7 @@ import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
+import 'settings_privacy_preview_common.dart';
 
 /// Детейл-экран приватности «О себе» (drill-down с «Конфиденциальности»): выбор
 /// аудитории «кто может видеть моё „О себе“» + секция «Исключения» (allow-list
@@ -114,6 +115,22 @@ class SettingsPrivacyAboutMeCupertino extends StatelessWidget {
           child: SafeArea(
             child: ListView(
               children: [
+                // Как другие видят моё «О себе». Пока настройка не загружена —
+                // без превью (не показываем дефолт).
+                if (!state.callsLoadError)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: AboutMePrivacyPreview(
+                      audience: state.aboutMeAudience,
+                      dark: CupertinoTheme.brightnessOf(context) == Brightness.dark,
+                      colors: PrivacyPreviewColors(
+                        card: ThemesCupertino.groupedCard.resolveFrom(context),
+                        text: CupertinoColors.label.resolveFrom(context),
+                        secondary: CupertinoColors.secondaryLabel.resolveFrom(context),
+                        accent: CupertinoDynamicColor.resolve(CupertinoTheme.of(context).primaryColor, context),
+                      ),
+                    ),
+                  ),
                 CupertinoListSection.insetGrouped(
                   header: Text(
                     context.t.sessionsPrivacyAndSecurity.whoCanSeeAboutMe,

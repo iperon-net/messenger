@@ -2737,6 +2737,9 @@ class Translations$sessionsPrivacyAndSecurity$en {
 	/// en: 'Birthday'
 	String get birthday => 'Birthday';
 
+	/// en: 'Birthday is hidden'
+	String get birthdayPreviewHidden => 'Birthday is hidden';
+
 	/// en: 'Who can see my birthday'
 	String get whoCanSeeBirthday => 'Who can see my birthday';
 
@@ -2754,6 +2757,12 @@ class Translations$sessionsPrivacyAndSecurity$en {
 
 	/// en: 'About me'
 	String get aboutMe => 'About me';
+
+	/// en: 'About me is hidden'
+	String get aboutMePreviewHidden => 'About me is hidden';
+
+	/// en: 'I love mountains and good coffee ☕'
+	String get aboutMePreviewSample => 'I love mountains and good coffee ☕';
 
 	/// en: 'Who can see my About me'
 	String get whoCanSeeAboutMe => 'Who can see my About me';
@@ -4881,12 +4890,15 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.callsEncryption' => 'End-to-end encryption',
 			'sessionsPrivacyAndSecurity.callsEncryptionNote' => 'Voice and video are encrypted on the participants\' devices — the server can\'t decrypt them. Works when both sides have end-to-end encryption on; otherwise the call goes without it.',
 			'sessionsPrivacyAndSecurity.birthday' => 'Birthday',
+			'sessionsPrivacyAndSecurity.birthdayPreviewHidden' => 'Birthday is hidden',
 			'sessionsPrivacyAndSecurity.whoCanSeeBirthday' => 'Who can see my birthday',
 			'sessionsPrivacyAndSecurity.hideBirthYear' => 'Hide birth year',
 			'sessionsPrivacyAndSecurity.hideBirthYearNote' => 'Contacts will see only the day and month — no birth year or age.',
 			'sessionsPrivacyAndSecurity.hideReadTime' => 'Hide read time',
 			'sessionsPrivacyAndSecurity.hideReadTimeNote' => 'People who can\'t see your last seen won\'t know when you read their messages (the checkmarks stay). This works both ways: you won\'t see other people\'s read time either.',
 			'sessionsPrivacyAndSecurity.aboutMe' => 'About me',
+			'sessionsPrivacyAndSecurity.aboutMePreviewHidden' => 'About me is hidden',
+			'sessionsPrivacyAndSecurity.aboutMePreviewSample' => 'I love mountains and good coffee ☕',
 			'sessionsPrivacyAndSecurity.whoCanSeeAboutMe' => 'Who can see my About me',
 			'sessionsPrivacyAndSecurity.lastSeen' => 'Last seen',
 			'sessionsPrivacyAndSecurity.whoCanSeeLastSeen' => 'Who can see my last seen',
@@ -5101,11 +5113,11 @@ extension on Translations {
 			'screenAuthModerationApplicationStore.sentConfirmationCodeToNumber' => ({required Object phoneNumber}) => 'We sent a confirmation code to the number ${phoneNumber}',
 			'screenAuthModerationApplicationStore.signatureVerificationFailed' => 'Signature verification failed',
 			'screenAuthCallpasswordConfirmation.weAreExpectingYourCallWithin' => ({required Object duration}) => 'We are expecting your call within ${duration}',
+			_ => null,
+		} ?? switch (path) {
 			'screenAuthCallpasswordConfirmation.confirmYourNumberDetail' => ({required Object confirmationPhoneNumberRu}) => 'Call ${confirmationPhoneNumberRu} from the phone number you provided and wait for the call to be disconnected.',
 			'screenAuthCallpasswordConfirmation.callForFree' => 'Call for free',
 			'screenAuthCallpasswordConfirmation.signatureVerificationFailed' => 'Signature verification failed',
-			_ => null,
-		} ?? switch (path) {
 			'grpcError.errorConnectingServer' => 'Error connecting to the server',
 			'grpcError.unauthenticated' => 'Unauthenticated',
 			'grpcError.unableConnectServer' => 'Unable to connect to the server',

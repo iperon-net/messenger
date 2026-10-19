@@ -7,7 +7,7 @@ import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
-import 'settings_privacy_last_seen_common.dart';
+import 'settings_privacy_preview_common.dart';
 
 /// Детейл-экран приватности последнего посещения (drill-down с
 /// «Конфиденциальности»): выбор аудитории «кто может видеть моё время посещения»
@@ -130,10 +130,12 @@ class SettingsPrivacyLastSeenCupertino extends StatelessWidget {
                     child: LastSeenPrivacyPreview(
                       audience: state.lastSeenAudience,
                       dark: CupertinoTheme.brightnessOf(context) == Brightness.dark,
-                      card: ThemesCupertino.groupedCard.resolveFrom(context),
-                      text: CupertinoColors.label.resolveFrom(context),
-                      secondary: CupertinoColors.secondaryLabel.resolveFrom(context),
-                      online: CupertinoDynamicColor.resolve(CupertinoTheme.of(context).primaryColor, context),
+                      colors: PrivacyPreviewColors(
+                        card: ThemesCupertino.groupedCard.resolveFrom(context),
+                        text: CupertinoColors.label.resolveFrom(context),
+                        secondary: CupertinoColors.secondaryLabel.resolveFrom(context),
+                        accent: CupertinoDynamicColor.resolve(CupertinoTheme.of(context).primaryColor, context),
+                      ),
                     ),
                   ),
                 CupertinoListSection.insetGrouped(
