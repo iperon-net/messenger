@@ -36,8 +36,8 @@ class ChatType extends $pb.ProtobufEnum {
 }
 
 /// Роль участника группы (docs/plans/chats-groups.md). Владелец — создатель:
-/// не снимается, удаляет группу. В срезе 3.1 — только OWNER и WRITER
-/// (остальные роли и права админа — подэтап 3.2).
+/// не снимается, удаляет группу, передаёт владение. READER только читает,
+/// WRITER пишет, ADMIN — права ChatAdminRights (подэтап 3.2).
 class ChatRole extends $pb.ProtobufEnum {
   static const ChatRole CHAT_ROLE_NONE = ChatRole._(0, _omitEnumNames ? '' : 'CHAT_ROLE_NONE');
   static const ChatRole CHAT_ROLE_READER = ChatRole._(1, _omitEnumNames ? '' : 'CHAT_ROLE_READER');
@@ -91,6 +91,7 @@ class MessageChatAction_Kind extends $pb.ProtobufEnum {
   static const MessageChatAction_Kind TITLE_CHANGED = MessageChatAction_Kind._(5, _omitEnumNames ? '' : 'TITLE_CHANGED');
   static const MessageChatAction_Kind PHOTO_CHANGED = MessageChatAction_Kind._(6, _omitEnumNames ? '' : 'PHOTO_CHANGED');
   static const MessageChatAction_Kind PHOTO_REMOVED = MessageChatAction_Kind._(7, _omitEnumNames ? '' : 'PHOTO_REMOVED');
+  static const MessageChatAction_Kind OWNER_CHANGED = MessageChatAction_Kind._(8, _omitEnumNames ? '' : 'OWNER_CHANGED');
 
   static const $core.List<MessageChatAction_Kind> values = <MessageChatAction_Kind>[
     CREATED,
@@ -101,9 +102,10 @@ class MessageChatAction_Kind extends $pb.ProtobufEnum {
     TITLE_CHANGED,
     PHOTO_CHANGED,
     PHOTO_REMOVED,
+    OWNER_CHANGED,
   ];
 
-  static final $core.List<MessageChatAction_Kind?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 7);
+  static final $core.List<MessageChatAction_Kind?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 8);
   static MessageChatAction_Kind? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageChatAction_Kind._(super.value, super.name);

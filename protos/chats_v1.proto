@@ -27,8 +27,8 @@ enum ChatType {
 }
 
 // Роль участника группы (docs/plans/chats-groups.md). Владелец — создатель:
-// не снимается, удаляет группу. В срезе 3.1 — только OWNER и WRITER
-// (остальные роли и права админа — подэтап 3.2).
+// не снимается, удаляет группу, передаёт владение. READER только читает,
+// WRITER пишет, ADMIN — права ChatAdminRights (подэтап 3.2).
 enum ChatRole {
   CHAT_ROLE_NONE = 0;    // не участник
   CHAT_ROLE_READER = 1;
@@ -55,6 +55,30 @@ message ChatInfo {
   // Текущий pts журнала чата.
   int64 pts = 9;
   int64 createdAt = 10; // unix millis
+  // Роль вступающих / добавленных (READER или WRITER; по умолчанию WRITER).
+  ChatRole defaultRole = 11;
+}
+
+// Права админа (как chatAdminRights в Telegram) — раздельные галочки при
+// назначении. Выдать можно только не шире своих (у владельца — все всегда).
+// postMessages / editMessages — для каналов (срез 4), в группе не значат.
+message ChatAdminRights {
+  // Название, описание, фото и настройки группы (в т.ч. роль по умолчанию).
+  bool changeInfo = 1;
+  bool postMessages = 2;
+  bool editMessages = 3;
+  // Удалять чужие сообщения у всех.
+  bool deleteMessages = 4;
+  // Исключать и блокировать участников, менять роль READER / WRITER.
+  bool banUsers = 5;
+  // Приглашать участников (ссылки и заявки — подэтап 3.3).
+  bool inviteUsers = 6;
+  // Закреплять сообщения у всех.
+  bool pinMessages = 7;
+  bool manageCalls = 8;
+  bool anonymous = 9;
+  // Назначать админов (с правами не шире своих) и снимать назначенных собой.
+  bool addAdmins = 10;
 }
 
 // Участник группы.
@@ -64,6 +88,20 @@ message ChatMember {
   int64 joinedAt = 3; // unix millis
   // Кто добавил (пусто — создатель или вступил сам).
   bytes inviterUserID = 4;
+  // ADMIN — его права (у OWNER — пусто: все); остальным — пусто.
+  ChatAdminRights rights = 5;
+  // «Звание» админа / владельца (подпись в пузыре), ≤ 16 символов.
+  string rank = 6;
+  // Кто назначил админом (ADMIN) — для сведения в «Права админа».
+  bytes promotedByUserID = 7;
+}
+
+// Заблокированный в группе (список «Заблокированные»).
+message ChatBannedMember {
+  bytes userID = 1;
+  // Кто заблокировал и когда.
+  bytes bannedByUserID = 2;
+  int64 date = 3; // unix millis
 }
 
 // Служебное действие в группе (только от сервера; при отправке — отказ), как
@@ -74,10 +112,11 @@ message MessageChatAction {
     ADDED = 1;          // добавил userIDs
     JOINED = 2;         // вступил сам (подэтап 3.3)
     LEFT = 3;           // вышел
-    REMOVED = 4;        // исключил userIDs (подэтап 3.2)
+    REMOVED = 4;        // исключил userIDs
     TITLE_CHANGED = 5;  // сменил название на title
     PHOTO_CHANGED = 6;  // сменил фото
     PHOTO_REMOVED = 7;  // удалил фото
+    OWNER_CHANGED = 8;  // передал владение userIDs[0]
   }
 
   Kind kind = 1;
@@ -360,6 +399,9 @@ message Dialog {
   // участник (✓✓, как в Telegram).
   ChatInfo chat = 19;
   ChatRole role = 20;
+  // Мои права в группе (ADMIN; у OWNER — все, у остальных — пусто) и звание.
+  ChatAdminRights rights = 21;
+  string rank = 22;
 }
 
 // Отложенное сообщение — моё, ещё не отправленное (как scheduled messages в
@@ -532,6 +574,9 @@ message Update {
     repeated ChatMember added = 2;
     repeated bytes removedUserIDs = 3;
     int32 membersCount = 4;
+    // Изменились роль / права / звание (назначили или сняли админа, сменили
+    // READER / WRITER, передали владение) — участник целиком, текущий.
+    repeated ChatMember updated = 5;
   }
 
   // У меня появился диалог группы (создал, добавили, вступил) — журнал
@@ -805,23 +850,28 @@ message Chats {
     Updates updates = 3;
   }
 
-  // Изменить группу (владелец; права админа — подэтап 3.2): отсутствующее
-  // поле — не менять; avatarCdnID пустой — удалить фото. Смена названия /
-  // фото — служебное в ленту; всем — Update.chatInfo. Без изменений — без
-  // обновлений.
+  // Изменить группу (владелец или админ с changeInfo, иначе
+  // PERMISSION_DENIED): отсутствующее поле — не менять; avatarCdnID пустой —
+  // удалить фото; defaultRole — READER или WRITER (иначе INVALID_ARGUMENT),
+  // касается вступающих после. Смена названия / фото — служебное в ленту;
+  // всем — Update.chatInfo. Без изменений — без обновлений.
   message EditChat {
     bytes chatID = 1;
     optional string title = 2;
     optional string about = 3;
     optional bytes avatarCdnID = 4;
+    optional ChatRole defaultRole = 5;
   }
 
   message EditChatResult {
     Updates updates = 1;
   }
 
-  // Добавить участников (≤ 200 за раз; пока — любой участник, права — 3.2).
-  // Уже состоящие пропускаются; кому нельзя по приватности — restrictedUserIDs.
+  // Добавить участников (≤ 200 за раз) с ролью по умолчанию: любой участник
+  // (способы вступления — 3.3). Уже состоящие пропускаются; кому нельзя по
+  // приватности — restrictedUserIDs. Заблокированных в группе может добавить
+  // только админ с banUsers (они разблокируются), остальным — restricted.
+  // Группа заполнена (200 000) — FAILED_PRECONDITION «membersLimit».
   message AddMembers {
     bytes chatID = 1;
     repeated bytes userIDs = 2;
@@ -905,6 +955,100 @@ message Chats {
     Dialog dialog = 5;
   }
 
+  // Сменить роль участника READER ⇄ WRITER (владелец или админ с banUsers;
+  // админа / владельца так не меняют — PERMISSION_DENIED). Правила прав — общая
+  // таблица тестов клиента и сервера (group_rights_cases.json). Участнику —
+  // Update.dialogSettings (его роль), всем — chatMembers.updated.
+  message SetMemberRole {
+    bytes chatID = 1;
+    bytes userID = 2;
+    ChatRole role = 3;
+  }
+
+  message SetMemberRoleResult {
+    Updates updates = 1;
+  }
+
+  // Исключить участника (ban — ещё и заблокировать: не вернётся, пока не
+  // разблокируют). Владелец или админ с banUsers; только READER / WRITER —
+  // админа сначала снимают (RemoveAdmin), владельца — никто (PERMISSION_DENIED).
+  // В ленте — служебное REMOVED; исключённому — dialogDeleted.
+  message RemoveMember {
+    bytes chatID = 1;
+    bytes userID = 2;
+    bool ban = 3;
+  }
+
+  message RemoveMemberResult {
+    Updates updates = 1;
+  }
+
+  // Заблокированные в группе — страница (новые сверху); видят владелец и
+  // админы с banUsers. profiles — как в Members.
+  message Banned {
+    bytes chatID = 1;
+    bytes offset = 2;
+    int32 limit = 3;
+  }
+
+  message BannedResult {
+    repeated ChatBannedMember banned = 1;
+    repeated Profile.Response profiles = 2;
+    bytes nextOffset = 3;
+    int32 total = 4;
+  }
+
+  // Разблокировать (в группу не возвращает — только снимает блокировку).
+  message Unban {
+    bytes chatID = 1;
+    bytes userID = 2;
+  }
+
+  message UnbanResult {}
+
+  // Назначить админом / изменить права и звание (владелец или админ с
+  // addAdmins; права — не шире своих, иначе PERMISSION_DENIED
+  // «rightsTooWide»; владельца — нельзя). rank ≤ 16 символов («rankInvalid»).
+  // Права уже существующего админа меняет владелец или админ, чьи права не уже
+  // его. Участнику —
+  // Update.dialogSettings, всем — chatMembers.updated.
+  message SetAdmin {
+    bytes chatID = 1;
+    bytes userID = 2;
+    ChatAdminRights rights = 3;
+    string rank = 4;
+  }
+
+  message SetAdminResult {
+    Updates updates = 1;
+  }
+
+  // Снять админа — станет участником с ролью по умолчанию группы. Может
+  // владелец или админ с addAdmins, чьи права не уже снимаемого.
+  message RemoveAdmin {
+    bytes chatID = 1;
+    bytes userID = 2;
+  }
+
+  message RemoveAdminResult {
+    Updates updates = 1;
+  }
+
+  // Передать владение участнику userID (только владелец): он — OWNER, я —
+  // ADMIN со всеми правами. Подтверждение облачным паролем — pwHash как в
+  // CloudPasswordVerify; облачного пароля нет — FAILED_PRECONDITION
+  // «cloudPasswordRequired», неверный — PERMISSION_DENIED «passwordInvalid».
+  // Служебное OWNER_CHANGED, всем — chatInfo и chatMembers.updated.
+  message TransferOwnership {
+    bytes chatID = 1;
+    bytes userID = 2;
+    bytes pwHash = 3;
+  }
+
+  message TransferOwnershipResult {
+    Updates updates = 1;
+  }
+
   message Request {
     oneof request {
       List list = 1;
@@ -931,6 +1075,13 @@ message Chats {
       Members members = 22;
       GetChatsState getChatsState = 23;
       GetChatDifference getChatDifference = 24;
+      SetMemberRole setMemberRole = 25;
+      RemoveMember removeMember = 26;
+      Banned banned = 27;
+      Unban unban = 28;
+      SetAdmin setAdmin = 29;
+      RemoveAdmin removeAdmin = 30;
+      TransferOwnership transferOwnership = 31;
     }
   }
 
@@ -960,6 +1111,13 @@ message Chats {
       MembersResult members = 22;
       GetChatsStateResult getChatsState = 23;
       GetChatDifferenceResult getChatDifference = 24;
+      SetMemberRoleResult setMemberRole = 25;
+      RemoveMemberResult removeMember = 26;
+      BannedResult banned = 27;
+      UnbanResult unban = 28;
+      SetAdminResult setAdmin = 29;
+      RemoveAdminResult removeAdmin = 30;
+      TransferOwnershipResult transferOwnership = 31;
     }
   }
 }
@@ -1066,8 +1224,9 @@ message Messages {
     Updates updates = 1;
   }
 
-  // Удалить: forEveryone — у всех (в личном чате — и чужие, как в Telegram),
-  // иначе только у себя.
+  // Удалить: forEveryone — у всех (в личном чате — и чужие, как в Telegram;
+  // в группе чужие — владелец или админ с deleteMessages), иначе только у
+  // себя.
   message Delete {
     bytes chatID = 1;
     repeated int64 messageIDs = 2;
@@ -1092,6 +1251,9 @@ message Messages {
   // появляется служебное MessagePin); собеседник ограничил, кто может ему
   // писать, — закрепится только у себя. Открепление с forEveryone — у обоих,
   // без — только у себя (служебного нет). Служебные сообщения не закрепляются.
+  // В группе forEveryone — владелец или админ с pinMessages (иначе
+  // PERMISSION_DENIED): закреп общий для всех участников (Update.pinnedMessages
+  // с shared — журналом чата).
   message Pin {
     bytes chatID = 1;
     int64 messageID = 2;

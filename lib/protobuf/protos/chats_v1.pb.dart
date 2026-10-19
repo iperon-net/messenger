@@ -39,6 +39,7 @@ class ChatInfo extends $pb.GeneratedMessage {
     $core.List<$core.int>? ownerUserID,
     $fixnum.Int64? pts,
     $fixnum.Int64? createdAt,
+    ChatRole? defaultRole,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -51,6 +52,7 @@ class ChatInfo extends $pb.GeneratedMessage {
     if (ownerUserID != null) result.ownerUserID = ownerUserID;
     if (pts != null) result.pts = pts;
     if (createdAt != null) result.createdAt = createdAt;
+    if (defaultRole != null) result.defaultRole = defaultRole;
     return result;
   }
 
@@ -73,6 +75,7 @@ class ChatInfo extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(8, _omitFieldNames ? '' : 'ownerUserID', $pb.PbFieldType.OY, protoName: 'ownerUserID')
     ..aInt64(9, _omitFieldNames ? '' : 'pts')
     ..aInt64(10, _omitFieldNames ? '' : 'createdAt', protoName: 'createdAt')
+    ..aE<ChatRole>(11, _omitFieldNames ? '' : 'defaultRole', protoName: 'defaultRole', enumValues: ChatRole.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -185,6 +188,181 @@ class ChatInfo extends $pb.GeneratedMessage {
   $core.bool hasCreatedAt() => $_has(9);
   @$pb.TagNumber(10)
   void clearCreatedAt() => $_clearField(10);
+
+  /// Роль вступающих / добавленных (READER или WRITER; по умолчанию WRITER).
+  @$pb.TagNumber(11)
+  ChatRole get defaultRole => $_getN(10);
+  @$pb.TagNumber(11)
+  set defaultRole(ChatRole value) => $_setField(11, value);
+  @$pb.TagNumber(11)
+  $core.bool hasDefaultRole() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearDefaultRole() => $_clearField(11);
+}
+
+/// Права админа (как chatAdminRights в Telegram) — раздельные галочки при
+/// назначении. Выдать можно только не шире своих (у владельца — все всегда).
+/// postMessages / editMessages — для каналов (срез 4), в группе не значат.
+class ChatAdminRights extends $pb.GeneratedMessage {
+  factory ChatAdminRights({
+    $core.bool? changeInfo,
+    $core.bool? postMessages,
+    $core.bool? editMessages,
+    $core.bool? deleteMessages,
+    $core.bool? banUsers,
+    $core.bool? inviteUsers,
+    $core.bool? pinMessages,
+    $core.bool? manageCalls,
+    $core.bool? anonymous,
+    $core.bool? addAdmins,
+  }) {
+    final result = create();
+    if (changeInfo != null) result.changeInfo = changeInfo;
+    if (postMessages != null) result.postMessages = postMessages;
+    if (editMessages != null) result.editMessages = editMessages;
+    if (deleteMessages != null) result.deleteMessages = deleteMessages;
+    if (banUsers != null) result.banUsers = banUsers;
+    if (inviteUsers != null) result.inviteUsers = inviteUsers;
+    if (pinMessages != null) result.pinMessages = pinMessages;
+    if (manageCalls != null) result.manageCalls = manageCalls;
+    if (anonymous != null) result.anonymous = anonymous;
+    if (addAdmins != null) result.addAdmins = addAdmins;
+    return result;
+  }
+
+  ChatAdminRights._();
+
+  factory ChatAdminRights.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ChatAdminRights.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ChatAdminRights',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'changeInfo', protoName: 'changeInfo')
+    ..aOB(2, _omitFieldNames ? '' : 'postMessages', protoName: 'postMessages')
+    ..aOB(3, _omitFieldNames ? '' : 'editMessages', protoName: 'editMessages')
+    ..aOB(4, _omitFieldNames ? '' : 'deleteMessages', protoName: 'deleteMessages')
+    ..aOB(5, _omitFieldNames ? '' : 'banUsers', protoName: 'banUsers')
+    ..aOB(6, _omitFieldNames ? '' : 'inviteUsers', protoName: 'inviteUsers')
+    ..aOB(7, _omitFieldNames ? '' : 'pinMessages', protoName: 'pinMessages')
+    ..aOB(8, _omitFieldNames ? '' : 'manageCalls', protoName: 'manageCalls')
+    ..aOB(9, _omitFieldNames ? '' : 'anonymous')
+    ..aOB(10, _omitFieldNames ? '' : 'addAdmins', protoName: 'addAdmins')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ChatAdminRights clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ChatAdminRights copyWith(void Function(ChatAdminRights) updates) =>
+      super.copyWith((message) => updates(message as ChatAdminRights)) as ChatAdminRights;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ChatAdminRights create() => ChatAdminRights._();
+  @$core.override
+  ChatAdminRights createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ChatAdminRights getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ChatAdminRights>(create);
+  static ChatAdminRights? _defaultInstance;
+
+  /// Название, описание, фото и настройки группы (в т.ч. роль по умолчанию).
+  @$pb.TagNumber(1)
+  $core.bool get changeInfo => $_getBF(0);
+  @$pb.TagNumber(1)
+  set changeInfo($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChangeInfo() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChangeInfo() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.bool get postMessages => $_getBF(1);
+  @$pb.TagNumber(2)
+  set postMessages($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasPostMessages() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearPostMessages() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get editMessages => $_getBF(2);
+  @$pb.TagNumber(3)
+  set editMessages($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasEditMessages() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearEditMessages() => $_clearField(3);
+
+  /// Удалять чужие сообщения у всех.
+  @$pb.TagNumber(4)
+  $core.bool get deleteMessages => $_getBF(3);
+  @$pb.TagNumber(4)
+  set deleteMessages($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasDeleteMessages() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearDeleteMessages() => $_clearField(4);
+
+  /// Исключать и блокировать участников, менять роль READER / WRITER.
+  @$pb.TagNumber(5)
+  $core.bool get banUsers => $_getBF(4);
+  @$pb.TagNumber(5)
+  set banUsers($core.bool value) => $_setBool(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasBanUsers() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearBanUsers() => $_clearField(5);
+
+  /// Приглашать участников (ссылки и заявки — подэтап 3.3).
+  @$pb.TagNumber(6)
+  $core.bool get inviteUsers => $_getBF(5);
+  @$pb.TagNumber(6)
+  set inviteUsers($core.bool value) => $_setBool(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasInviteUsers() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearInviteUsers() => $_clearField(6);
+
+  /// Закреплять сообщения у всех.
+  @$pb.TagNumber(7)
+  $core.bool get pinMessages => $_getBF(6);
+  @$pb.TagNumber(7)
+  set pinMessages($core.bool value) => $_setBool(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasPinMessages() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearPinMessages() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.bool get manageCalls => $_getBF(7);
+  @$pb.TagNumber(8)
+  set manageCalls($core.bool value) => $_setBool(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasManageCalls() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearManageCalls() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.bool get anonymous => $_getBF(8);
+  @$pb.TagNumber(9)
+  set anonymous($core.bool value) => $_setBool(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasAnonymous() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearAnonymous() => $_clearField(9);
+
+  /// Назначать админов (с правами не шире своих) и снимать назначенных собой.
+  @$pb.TagNumber(10)
+  $core.bool get addAdmins => $_getBF(9);
+  @$pb.TagNumber(10)
+  set addAdmins($core.bool value) => $_setBool(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasAddAdmins() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearAddAdmins() => $_clearField(10);
 }
 
 /// Участник группы.
@@ -194,12 +372,18 @@ class ChatMember extends $pb.GeneratedMessage {
     ChatRole? role,
     $fixnum.Int64? joinedAt,
     $core.List<$core.int>? inviterUserID,
+    ChatAdminRights? rights,
+    $core.String? rank,
+    $core.List<$core.int>? promotedByUserID,
   }) {
     final result = create();
     if (userID != null) result.userID = userID;
     if (role != null) result.role = role;
     if (joinedAt != null) result.joinedAt = joinedAt;
     if (inviterUserID != null) result.inviterUserID = inviterUserID;
+    if (rights != null) result.rights = rights;
+    if (rank != null) result.rank = rank;
+    if (promotedByUserID != null) result.promotedByUserID = promotedByUserID;
     return result;
   }
 
@@ -216,6 +400,9 @@ class ChatMember extends $pb.GeneratedMessage {
     ..aE<ChatRole>(2, _omitFieldNames ? '' : 'role', enumValues: ChatRole.values)
     ..aInt64(3, _omitFieldNames ? '' : 'joinedAt', protoName: 'joinedAt')
     ..a<$core.List<$core.int>>(4, _omitFieldNames ? '' : 'inviterUserID', $pb.PbFieldType.OY, protoName: 'inviterUserID')
+    ..aOM<ChatAdminRights>(5, _omitFieldNames ? '' : 'rights', subBuilder: ChatAdminRights.create)
+    ..aOS(6, _omitFieldNames ? '' : 'rank')
+    ..a<$core.List<$core.int>>(7, _omitFieldNames ? '' : 'promotedByUserID', $pb.PbFieldType.OY, protoName: 'promotedByUserID')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -270,6 +457,112 @@ class ChatMember extends $pb.GeneratedMessage {
   $core.bool hasInviterUserID() => $_has(3);
   @$pb.TagNumber(4)
   void clearInviterUserID() => $_clearField(4);
+
+  /// ADMIN — его права (у OWNER — пусто: все); остальным — пусто.
+  @$pb.TagNumber(5)
+  ChatAdminRights get rights => $_getN(4);
+  @$pb.TagNumber(5)
+  set rights(ChatAdminRights value) => $_setField(5, value);
+  @$pb.TagNumber(5)
+  $core.bool hasRights() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearRights() => $_clearField(5);
+  @$pb.TagNumber(5)
+  ChatAdminRights ensureRights() => $_ensure(4);
+
+  /// «Звание» админа / владельца (подпись в пузыре), ≤ 16 символов.
+  @$pb.TagNumber(6)
+  $core.String get rank => $_getSZ(5);
+  @$pb.TagNumber(6)
+  set rank($core.String value) => $_setString(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasRank() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearRank() => $_clearField(6);
+
+  /// Кто назначил админом (ADMIN) — для сведения в «Права админа».
+  @$pb.TagNumber(7)
+  $core.List<$core.int> get promotedByUserID => $_getN(6);
+  @$pb.TagNumber(7)
+  set promotedByUserID($core.List<$core.int> value) => $_setBytes(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasPromotedByUserID() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearPromotedByUserID() => $_clearField(7);
+}
+
+/// Заблокированный в группе (список «Заблокированные»).
+class ChatBannedMember extends $pb.GeneratedMessage {
+  factory ChatBannedMember({
+    $core.List<$core.int>? userID,
+    $core.List<$core.int>? bannedByUserID,
+    $fixnum.Int64? date,
+  }) {
+    final result = create();
+    if (userID != null) result.userID = userID;
+    if (bannedByUserID != null) result.bannedByUserID = bannedByUserID;
+    if (date != null) result.date = date;
+    return result;
+  }
+
+  ChatBannedMember._();
+
+  factory ChatBannedMember.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ChatBannedMember.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ChatBannedMember',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY, protoName: 'userID')
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'bannedByUserID', $pb.PbFieldType.OY, protoName: 'bannedByUserID')
+    ..aInt64(3, _omitFieldNames ? '' : 'date')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ChatBannedMember clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ChatBannedMember copyWith(void Function(ChatBannedMember) updates) =>
+      super.copyWith((message) => updates(message as ChatBannedMember)) as ChatBannedMember;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ChatBannedMember create() => ChatBannedMember._();
+  @$core.override
+  ChatBannedMember createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ChatBannedMember getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ChatBannedMember>(create);
+  static ChatBannedMember? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get userID => $_getN(0);
+  @$pb.TagNumber(1)
+  set userID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUserID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUserID() => $_clearField(1);
+
+  /// Кто заблокировал и когда.
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get bannedByUserID => $_getN(1);
+  @$pb.TagNumber(2)
+  set bannedByUserID($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasBannedByUserID() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearBannedByUserID() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get date => $_getI64(2);
+  @$pb.TagNumber(3)
+  set date($fixnum.Int64 value) => $_setInt64(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasDate() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearDate() => $_clearField(3);
 }
 
 /// Служебное действие в группе (только от сервера; при отправке — отказ), как
@@ -1781,6 +2074,8 @@ class Dialog extends $pb.GeneratedMessage {
     $core.bool? noForwardsMine,
     ChatInfo? chat,
     ChatRole? role,
+    ChatAdminRights? rights,
+    $core.String? rank,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -1803,6 +2098,8 @@ class Dialog extends $pb.GeneratedMessage {
     if (noForwardsMine != null) result.noForwardsMine = noForwardsMine;
     if (chat != null) result.chat = chat;
     if (role != null) result.role = role;
+    if (rights != null) result.rights = rights;
+    if (rank != null) result.rank = rank;
     return result;
   }
 
@@ -1835,6 +2132,8 @@ class Dialog extends $pb.GeneratedMessage {
     ..aOB(18, _omitFieldNames ? '' : 'noForwardsMine', protoName: 'noForwardsMine')
     ..aOM<ChatInfo>(19, _omitFieldNames ? '' : 'chat', subBuilder: ChatInfo.create)
     ..aE<ChatRole>(20, _omitFieldNames ? '' : 'role', enumValues: ChatRole.values)
+    ..aOM<ChatAdminRights>(21, _omitFieldNames ? '' : 'rights', subBuilder: ChatAdminRights.create)
+    ..aOS(22, _omitFieldNames ? '' : 'rank')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2054,6 +2353,27 @@ class Dialog extends $pb.GeneratedMessage {
   $core.bool hasRole() => $_has(19);
   @$pb.TagNumber(20)
   void clearRole() => $_clearField(20);
+
+  /// Мои права в группе (ADMIN; у OWNER — все, у остальных — пусто) и звание.
+  @$pb.TagNumber(21)
+  ChatAdminRights get rights => $_getN(20);
+  @$pb.TagNumber(21)
+  set rights(ChatAdminRights value) => $_setField(21, value);
+  @$pb.TagNumber(21)
+  $core.bool hasRights() => $_has(20);
+  @$pb.TagNumber(21)
+  void clearRights() => $_clearField(21);
+  @$pb.TagNumber(21)
+  ChatAdminRights ensureRights() => $_ensure(20);
+
+  @$pb.TagNumber(22)
+  $core.String get rank => $_getSZ(21);
+  @$pb.TagNumber(22)
+  set rank($core.String value) => $_setString(21, value);
+  @$pb.TagNumber(22)
+  $core.bool hasRank() => $_has(21);
+  @$pb.TagNumber(22)
+  void clearRank() => $_clearField(22);
 }
 
 /// Отложенное сообщение — моё, ещё не отправленное (как scheduled messages в
@@ -3341,12 +3661,14 @@ class Update_ChatMembersChanged extends $pb.GeneratedMessage {
     $core.Iterable<ChatMember>? added,
     $core.Iterable<$core.List<$core.int>>? removedUserIDs,
     $core.int? membersCount,
+    $core.Iterable<ChatMember>? updated,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
     if (added != null) result.added.addAll(added);
     if (removedUserIDs != null) result.removedUserIDs.addAll(removedUserIDs);
     if (membersCount != null) result.membersCount = membersCount;
+    if (updated != null) result.updated.addAll(updated);
     return result;
   }
 
@@ -3364,6 +3686,7 @@ class Update_ChatMembersChanged extends $pb.GeneratedMessage {
     ..pPM<ChatMember>(2, _omitFieldNames ? '' : 'added', subBuilder: ChatMember.create)
     ..p<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'removedUserIDs', $pb.PbFieldType.PY, protoName: 'removedUserIDs')
     ..aI(4, _omitFieldNames ? '' : 'membersCount', protoName: 'membersCount')
+    ..pPM<ChatMember>(5, _omitFieldNames ? '' : 'updated', subBuilder: ChatMember.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -3407,6 +3730,11 @@ class Update_ChatMembersChanged extends $pb.GeneratedMessage {
   $core.bool hasMembersCount() => $_has(3);
   @$pb.TagNumber(4)
   void clearMembersCount() => $_clearField(4);
+
+  /// Изменились роль / права / звание (назначили или сняли админа, сменили
+  /// READER / WRITER, передали владение) — участник целиком, текущий.
+  @$pb.TagNumber(5)
+  $pb.PbList<ChatMember> get updated => $_getList(4);
 }
 
 /// У меня появился диалог группы (создал, добавили, вступил) — журнал
@@ -5919,22 +6247,25 @@ class Chats_CreateGroupResult extends $pb.GeneratedMessage {
   Updates ensureUpdates() => $_ensure(2);
 }
 
-/// Изменить группу (владелец; права админа — подэтап 3.2): отсутствующее
-/// поле — не менять; avatarCdnID пустой — удалить фото. Смена названия /
-/// фото — служебное в ленту; всем — Update.chatInfo. Без изменений — без
-/// обновлений.
+/// Изменить группу (владелец или админ с changeInfo, иначе
+/// PERMISSION_DENIED): отсутствующее поле — не менять; avatarCdnID пустой —
+/// удалить фото; defaultRole — READER или WRITER (иначе INVALID_ARGUMENT),
+/// касается вступающих после. Смена названия / фото — служебное в ленту;
+/// всем — Update.chatInfo. Без изменений — без обновлений.
 class Chats_EditChat extends $pb.GeneratedMessage {
   factory Chats_EditChat({
     $core.List<$core.int>? chatID,
     $core.String? title,
     $core.String? about,
     $core.List<$core.int>? avatarCdnID,
+    ChatRole? defaultRole,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
     if (title != null) result.title = title;
     if (about != null) result.about = about;
     if (avatarCdnID != null) result.avatarCdnID = avatarCdnID;
+    if (defaultRole != null) result.defaultRole = defaultRole;
     return result;
   }
 
@@ -5951,6 +6282,7 @@ class Chats_EditChat extends $pb.GeneratedMessage {
     ..aOS(2, _omitFieldNames ? '' : 'title')
     ..aOS(3, _omitFieldNames ? '' : 'about')
     ..a<$core.List<$core.int>>(4, _omitFieldNames ? '' : 'avatarCdnID', $pb.PbFieldType.OY, protoName: 'avatarCdnID')
+    ..aE<ChatRole>(5, _omitFieldNames ? '' : 'defaultRole', protoName: 'defaultRole', enumValues: ChatRole.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -6005,6 +6337,15 @@ class Chats_EditChat extends $pb.GeneratedMessage {
   $core.bool hasAvatarCdnID() => $_has(3);
   @$pb.TagNumber(4)
   void clearAvatarCdnID() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  ChatRole get defaultRole => $_getN(4);
+  @$pb.TagNumber(5)
+  set defaultRole(ChatRole value) => $_setField(5, value);
+  @$pb.TagNumber(5)
+  $core.bool hasDefaultRole() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearDefaultRole() => $_clearField(5);
 }
 
 class Chats_EditChatResult extends $pb.GeneratedMessage {
@@ -6057,8 +6398,11 @@ class Chats_EditChatResult extends $pb.GeneratedMessage {
   Updates ensureUpdates() => $_ensure(0);
 }
 
-/// Добавить участников (≤ 200 за раз; пока — любой участник, права — 3.2).
-/// Уже состоящие пропускаются; кому нельзя по приватности — restrictedUserIDs.
+/// Добавить участников (≤ 200 за раз) с ролью по умолчанию: любой участник
+/// (способы вступления — 3.3). Уже состоящие пропускаются; кому нельзя по
+/// приватности — restrictedUserIDs. Заблокированных в группе может добавить
+/// только админ с banUsers (они разблокируются), остальным — restricted.
+/// Группа заполнена (200 000) — FAILED_PRECONDITION «membersLimit».
 class Chats_AddMembers extends $pb.GeneratedMessage {
   factory Chats_AddMembers({
     $core.List<$core.int>? chatID,
@@ -6843,6 +7187,881 @@ class Chats_GetChatDifferenceResult extends $pb.GeneratedMessage {
   Dialog ensureDialog() => $_ensure(4);
 }
 
+/// Сменить роль участника READER ⇄ WRITER (владелец или админ с banUsers;
+/// админа / владельца так не меняют — PERMISSION_DENIED). Правила прав — общая
+/// таблица тестов клиента и сервера (group_rights_cases.json). Участнику —
+/// Update.dialogSettings (его роль), всем — chatMembers.updated.
+class Chats_SetMemberRole extends $pb.GeneratedMessage {
+  factory Chats_SetMemberRole({
+    $core.List<$core.int>? chatID,
+    $core.List<$core.int>? userID,
+    ChatRole? role,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (userID != null) result.userID = userID;
+    if (role != null) result.role = role;
+    return result;
+  }
+
+  Chats_SetMemberRole._();
+
+  factory Chats_SetMemberRole.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_SetMemberRole.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.SetMemberRole',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY, protoName: 'userID')
+    ..aE<ChatRole>(3, _omitFieldNames ? '' : 'role', enumValues: ChatRole.values)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SetMemberRole clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SetMemberRole copyWith(void Function(Chats_SetMemberRole) updates) =>
+      super.copyWith((message) => updates(message as Chats_SetMemberRole)) as Chats_SetMemberRole;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_SetMemberRole create() => Chats_SetMemberRole._();
+  @$core.override
+  Chats_SetMemberRole createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_SetMemberRole getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_SetMemberRole>(create);
+  static Chats_SetMemberRole? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get userID => $_getN(1);
+  @$pb.TagNumber(2)
+  set userID($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasUserID() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearUserID() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  ChatRole get role => $_getN(2);
+  @$pb.TagNumber(3)
+  set role(ChatRole value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasRole() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearRole() => $_clearField(3);
+}
+
+class Chats_SetMemberRoleResult extends $pb.GeneratedMessage {
+  factory Chats_SetMemberRoleResult({
+    Updates? updates,
+  }) {
+    final result = create();
+    if (updates != null) result.updates = updates;
+    return result;
+  }
+
+  Chats_SetMemberRoleResult._();
+
+  factory Chats_SetMemberRoleResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_SetMemberRoleResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.SetMemberRoleResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Updates>(1, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SetMemberRoleResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SetMemberRoleResult copyWith(void Function(Chats_SetMemberRoleResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_SetMemberRoleResult)) as Chats_SetMemberRoleResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_SetMemberRoleResult create() => Chats_SetMemberRoleResult._();
+  @$core.override
+  Chats_SetMemberRoleResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_SetMemberRoleResult getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_SetMemberRoleResult>(create);
+  static Chats_SetMemberRoleResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Updates get updates => $_getN(0);
+  @$pb.TagNumber(1)
+  set updates(Updates value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUpdates() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUpdates() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Updates ensureUpdates() => $_ensure(0);
+}
+
+/// Исключить участника (ban — ещё и заблокировать: не вернётся, пока не
+/// разблокируют). Владелец или админ с banUsers; только READER / WRITER —
+/// админа сначала снимают (RemoveAdmin), владельца — никто (PERMISSION_DENIED).
+/// В ленте — служебное REMOVED; исключённому — dialogDeleted.
+class Chats_RemoveMember extends $pb.GeneratedMessage {
+  factory Chats_RemoveMember({
+    $core.List<$core.int>? chatID,
+    $core.List<$core.int>? userID,
+    $core.bool? ban,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (userID != null) result.userID = userID;
+    if (ban != null) result.ban = ban;
+    return result;
+  }
+
+  Chats_RemoveMember._();
+
+  factory Chats_RemoveMember.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_RemoveMember.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.RemoveMember',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY, protoName: 'userID')
+    ..aOB(3, _omitFieldNames ? '' : 'ban')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_RemoveMember clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_RemoveMember copyWith(void Function(Chats_RemoveMember) updates) =>
+      super.copyWith((message) => updates(message as Chats_RemoveMember)) as Chats_RemoveMember;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_RemoveMember create() => Chats_RemoveMember._();
+  @$core.override
+  Chats_RemoveMember createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_RemoveMember getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_RemoveMember>(create);
+  static Chats_RemoveMember? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get userID => $_getN(1);
+  @$pb.TagNumber(2)
+  set userID($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasUserID() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearUserID() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get ban => $_getBF(2);
+  @$pb.TagNumber(3)
+  set ban($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasBan() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearBan() => $_clearField(3);
+}
+
+class Chats_RemoveMemberResult extends $pb.GeneratedMessage {
+  factory Chats_RemoveMemberResult({
+    Updates? updates,
+  }) {
+    final result = create();
+    if (updates != null) result.updates = updates;
+    return result;
+  }
+
+  Chats_RemoveMemberResult._();
+
+  factory Chats_RemoveMemberResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_RemoveMemberResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.RemoveMemberResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Updates>(1, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_RemoveMemberResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_RemoveMemberResult copyWith(void Function(Chats_RemoveMemberResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_RemoveMemberResult)) as Chats_RemoveMemberResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_RemoveMemberResult create() => Chats_RemoveMemberResult._();
+  @$core.override
+  Chats_RemoveMemberResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_RemoveMemberResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_RemoveMemberResult>(create);
+  static Chats_RemoveMemberResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Updates get updates => $_getN(0);
+  @$pb.TagNumber(1)
+  set updates(Updates value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUpdates() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUpdates() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Updates ensureUpdates() => $_ensure(0);
+}
+
+/// Заблокированные в группе — страница (новые сверху); видят владелец и
+/// админы с banUsers. profiles — как в Members.
+class Chats_Banned extends $pb.GeneratedMessage {
+  factory Chats_Banned({
+    $core.List<$core.int>? chatID,
+    $core.List<$core.int>? offset,
+    $core.int? limit,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (offset != null) result.offset = offset;
+    if (limit != null) result.limit = limit;
+    return result;
+  }
+
+  Chats_Banned._();
+
+  factory Chats_Banned.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_Banned.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.Banned',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'offset', $pb.PbFieldType.OY)
+    ..aI(3, _omitFieldNames ? '' : 'limit')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_Banned clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_Banned copyWith(void Function(Chats_Banned) updates) =>
+      super.copyWith((message) => updates(message as Chats_Banned)) as Chats_Banned;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_Banned create() => Chats_Banned._();
+  @$core.override
+  Chats_Banned createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_Banned getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_Banned>(create);
+  static Chats_Banned? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get offset => $_getN(1);
+  @$pb.TagNumber(2)
+  set offset($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasOffset() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearOffset() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get limit => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set limit($core.int value) => $_setSignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasLimit() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearLimit() => $_clearField(3);
+}
+
+class Chats_BannedResult extends $pb.GeneratedMessage {
+  factory Chats_BannedResult({
+    $core.Iterable<ChatBannedMember>? banned,
+    $core.Iterable<$1.Profile_Response>? profiles,
+    $core.List<$core.int>? nextOffset,
+    $core.int? total,
+  }) {
+    final result = create();
+    if (banned != null) result.banned.addAll(banned);
+    if (profiles != null) result.profiles.addAll(profiles);
+    if (nextOffset != null) result.nextOffset = nextOffset;
+    if (total != null) result.total = total;
+    return result;
+  }
+
+  Chats_BannedResult._();
+
+  factory Chats_BannedResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_BannedResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.BannedResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..pPM<ChatBannedMember>(1, _omitFieldNames ? '' : 'banned', subBuilder: ChatBannedMember.create)
+    ..pPM<$1.Profile_Response>(2, _omitFieldNames ? '' : 'profiles', subBuilder: $1.Profile_Response.create)
+    ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'nextOffset', $pb.PbFieldType.OY, protoName: 'nextOffset')
+    ..aI(4, _omitFieldNames ? '' : 'total')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_BannedResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_BannedResult copyWith(void Function(Chats_BannedResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_BannedResult)) as Chats_BannedResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_BannedResult create() => Chats_BannedResult._();
+  @$core.override
+  Chats_BannedResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_BannedResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_BannedResult>(create);
+  static Chats_BannedResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<ChatBannedMember> get banned => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<$1.Profile_Response> get profiles => $_getList(1);
+
+  @$pb.TagNumber(3)
+  $core.List<$core.int> get nextOffset => $_getN(2);
+  @$pb.TagNumber(3)
+  set nextOffset($core.List<$core.int> value) => $_setBytes(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasNextOffset() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearNextOffset() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get total => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set total($core.int value) => $_setSignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasTotal() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearTotal() => $_clearField(4);
+}
+
+/// Разблокировать (в группу не возвращает — только снимает блокировку).
+class Chats_Unban extends $pb.GeneratedMessage {
+  factory Chats_Unban({
+    $core.List<$core.int>? chatID,
+    $core.List<$core.int>? userID,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (userID != null) result.userID = userID;
+    return result;
+  }
+
+  Chats_Unban._();
+
+  factory Chats_Unban.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_Unban.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.Unban',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY, protoName: 'userID')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_Unban clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_Unban copyWith(void Function(Chats_Unban) updates) => super.copyWith((message) => updates(message as Chats_Unban)) as Chats_Unban;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_Unban create() => Chats_Unban._();
+  @$core.override
+  Chats_Unban createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_Unban getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_Unban>(create);
+  static Chats_Unban? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get userID => $_getN(1);
+  @$pb.TagNumber(2)
+  set userID($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasUserID() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearUserID() => $_clearField(2);
+}
+
+class Chats_UnbanResult extends $pb.GeneratedMessage {
+  factory Chats_UnbanResult() => create();
+
+  Chats_UnbanResult._();
+
+  factory Chats_UnbanResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_UnbanResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.UnbanResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_UnbanResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_UnbanResult copyWith(void Function(Chats_UnbanResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_UnbanResult)) as Chats_UnbanResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_UnbanResult create() => Chats_UnbanResult._();
+  @$core.override
+  Chats_UnbanResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_UnbanResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_UnbanResult>(create);
+  static Chats_UnbanResult? _defaultInstance;
+}
+
+/// Назначить админом / изменить права и звание (владелец или админ с
+/// addAdmins; права — не шире своих, иначе PERMISSION_DENIED
+/// «rightsTooWide»; владельца — нельзя). rank ≤ 16 символов («rankInvalid»).
+/// Права уже существующего админа меняет владелец или админ, чьи права не уже
+/// его. Участнику —
+/// Update.dialogSettings, всем — chatMembers.updated.
+class Chats_SetAdmin extends $pb.GeneratedMessage {
+  factory Chats_SetAdmin({
+    $core.List<$core.int>? chatID,
+    $core.List<$core.int>? userID,
+    ChatAdminRights? rights,
+    $core.String? rank,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (userID != null) result.userID = userID;
+    if (rights != null) result.rights = rights;
+    if (rank != null) result.rank = rank;
+    return result;
+  }
+
+  Chats_SetAdmin._();
+
+  factory Chats_SetAdmin.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_SetAdmin.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.SetAdmin',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY, protoName: 'userID')
+    ..aOM<ChatAdminRights>(3, _omitFieldNames ? '' : 'rights', subBuilder: ChatAdminRights.create)
+    ..aOS(4, _omitFieldNames ? '' : 'rank')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SetAdmin clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SetAdmin copyWith(void Function(Chats_SetAdmin) updates) =>
+      super.copyWith((message) => updates(message as Chats_SetAdmin)) as Chats_SetAdmin;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_SetAdmin create() => Chats_SetAdmin._();
+  @$core.override
+  Chats_SetAdmin createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_SetAdmin getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_SetAdmin>(create);
+  static Chats_SetAdmin? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get userID => $_getN(1);
+  @$pb.TagNumber(2)
+  set userID($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasUserID() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearUserID() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  ChatAdminRights get rights => $_getN(2);
+  @$pb.TagNumber(3)
+  set rights(ChatAdminRights value) => $_setField(3, value);
+  @$pb.TagNumber(3)
+  $core.bool hasRights() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearRights() => $_clearField(3);
+  @$pb.TagNumber(3)
+  ChatAdminRights ensureRights() => $_ensure(2);
+
+  @$pb.TagNumber(4)
+  $core.String get rank => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set rank($core.String value) => $_setString(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasRank() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearRank() => $_clearField(4);
+}
+
+class Chats_SetAdminResult extends $pb.GeneratedMessage {
+  factory Chats_SetAdminResult({
+    Updates? updates,
+  }) {
+    final result = create();
+    if (updates != null) result.updates = updates;
+    return result;
+  }
+
+  Chats_SetAdminResult._();
+
+  factory Chats_SetAdminResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_SetAdminResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.SetAdminResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Updates>(1, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SetAdminResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SetAdminResult copyWith(void Function(Chats_SetAdminResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_SetAdminResult)) as Chats_SetAdminResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_SetAdminResult create() => Chats_SetAdminResult._();
+  @$core.override
+  Chats_SetAdminResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_SetAdminResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_SetAdminResult>(create);
+  static Chats_SetAdminResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Updates get updates => $_getN(0);
+  @$pb.TagNumber(1)
+  set updates(Updates value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUpdates() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUpdates() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Updates ensureUpdates() => $_ensure(0);
+}
+
+/// Снять админа — станет участником с ролью по умолчанию группы. Может
+/// владелец или админ с addAdmins, чьи права не уже снимаемого.
+class Chats_RemoveAdmin extends $pb.GeneratedMessage {
+  factory Chats_RemoveAdmin({
+    $core.List<$core.int>? chatID,
+    $core.List<$core.int>? userID,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (userID != null) result.userID = userID;
+    return result;
+  }
+
+  Chats_RemoveAdmin._();
+
+  factory Chats_RemoveAdmin.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_RemoveAdmin.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.RemoveAdmin',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY, protoName: 'userID')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_RemoveAdmin clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_RemoveAdmin copyWith(void Function(Chats_RemoveAdmin) updates) =>
+      super.copyWith((message) => updates(message as Chats_RemoveAdmin)) as Chats_RemoveAdmin;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_RemoveAdmin create() => Chats_RemoveAdmin._();
+  @$core.override
+  Chats_RemoveAdmin createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_RemoveAdmin getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_RemoveAdmin>(create);
+  static Chats_RemoveAdmin? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get userID => $_getN(1);
+  @$pb.TagNumber(2)
+  set userID($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasUserID() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearUserID() => $_clearField(2);
+}
+
+class Chats_RemoveAdminResult extends $pb.GeneratedMessage {
+  factory Chats_RemoveAdminResult({
+    Updates? updates,
+  }) {
+    final result = create();
+    if (updates != null) result.updates = updates;
+    return result;
+  }
+
+  Chats_RemoveAdminResult._();
+
+  factory Chats_RemoveAdminResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_RemoveAdminResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.RemoveAdminResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Updates>(1, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_RemoveAdminResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_RemoveAdminResult copyWith(void Function(Chats_RemoveAdminResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_RemoveAdminResult)) as Chats_RemoveAdminResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_RemoveAdminResult create() => Chats_RemoveAdminResult._();
+  @$core.override
+  Chats_RemoveAdminResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_RemoveAdminResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_RemoveAdminResult>(create);
+  static Chats_RemoveAdminResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Updates get updates => $_getN(0);
+  @$pb.TagNumber(1)
+  set updates(Updates value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUpdates() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUpdates() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Updates ensureUpdates() => $_ensure(0);
+}
+
+/// Передать владение участнику userID (только владелец): он — OWNER, я —
+/// ADMIN со всеми правами. Подтверждение облачным паролем — pwHash как в
+/// CloudPasswordVerify; облачного пароля нет — FAILED_PRECONDITION
+/// «cloudPasswordRequired», неверный — PERMISSION_DENIED «passwordInvalid».
+/// Служебное OWNER_CHANGED, всем — chatInfo и chatMembers.updated.
+class Chats_TransferOwnership extends $pb.GeneratedMessage {
+  factory Chats_TransferOwnership({
+    $core.List<$core.int>? chatID,
+    $core.List<$core.int>? userID,
+    $core.List<$core.int>? pwHash,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (userID != null) result.userID = userID;
+    if (pwHash != null) result.pwHash = pwHash;
+    return result;
+  }
+
+  Chats_TransferOwnership._();
+
+  factory Chats_TransferOwnership.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_TransferOwnership.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.TransferOwnership',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY, protoName: 'userID')
+    ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'pwHash', $pb.PbFieldType.OY, protoName: 'pwHash')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_TransferOwnership clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_TransferOwnership copyWith(void Function(Chats_TransferOwnership) updates) =>
+      super.copyWith((message) => updates(message as Chats_TransferOwnership)) as Chats_TransferOwnership;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_TransferOwnership create() => Chats_TransferOwnership._();
+  @$core.override
+  Chats_TransferOwnership createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_TransferOwnership getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_TransferOwnership>(create);
+  static Chats_TransferOwnership? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get userID => $_getN(1);
+  @$pb.TagNumber(2)
+  set userID($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasUserID() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearUserID() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.List<$core.int> get pwHash => $_getN(2);
+  @$pb.TagNumber(3)
+  set pwHash($core.List<$core.int> value) => $_setBytes(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasPwHash() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearPwHash() => $_clearField(3);
+}
+
+class Chats_TransferOwnershipResult extends $pb.GeneratedMessage {
+  factory Chats_TransferOwnershipResult({
+    Updates? updates,
+  }) {
+    final result = create();
+    if (updates != null) result.updates = updates;
+    return result;
+  }
+
+  Chats_TransferOwnershipResult._();
+
+  factory Chats_TransferOwnershipResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_TransferOwnershipResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.TransferOwnershipResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Updates>(1, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_TransferOwnershipResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_TransferOwnershipResult copyWith(void Function(Chats_TransferOwnershipResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_TransferOwnershipResult)) as Chats_TransferOwnershipResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_TransferOwnershipResult create() => Chats_TransferOwnershipResult._();
+  @$core.override
+  Chats_TransferOwnershipResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_TransferOwnershipResult getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_TransferOwnershipResult>(create);
+  static Chats_TransferOwnershipResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Updates get updates => $_getN(0);
+  @$pb.TagNumber(1)
+  set updates(Updates value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUpdates() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUpdates() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Updates ensureUpdates() => $_ensure(0);
+}
+
 enum Chats_Request_Request {
   list,
   openPrivate,
@@ -6868,6 +8087,13 @@ enum Chats_Request_Request {
   members,
   getChatsState,
   getChatDifference,
+  setMemberRole,
+  removeMember,
+  banned,
+  unban,
+  setAdmin,
+  removeAdmin,
+  transferOwnership,
   notSet
 }
 
@@ -6897,6 +8123,13 @@ class Chats_Request extends $pb.GeneratedMessage {
     Chats_Members? members,
     Chats_GetChatsState? getChatsState,
     Chats_GetChatDifference? getChatDifference,
+    Chats_SetMemberRole? setMemberRole,
+    Chats_RemoveMember? removeMember,
+    Chats_Banned? banned,
+    Chats_Unban? unban,
+    Chats_SetAdmin? setAdmin,
+    Chats_RemoveAdmin? removeAdmin,
+    Chats_TransferOwnership? transferOwnership,
   }) {
     final result = create();
     if (list != null) result.list = list;
@@ -6923,6 +8156,13 @@ class Chats_Request extends $pb.GeneratedMessage {
     if (members != null) result.members = members;
     if (getChatsState != null) result.getChatsState = getChatsState;
     if (getChatDifference != null) result.getChatDifference = getChatDifference;
+    if (setMemberRole != null) result.setMemberRole = setMemberRole;
+    if (removeMember != null) result.removeMember = removeMember;
+    if (banned != null) result.banned = banned;
+    if (unban != null) result.unban = unban;
+    if (setAdmin != null) result.setAdmin = setAdmin;
+    if (removeAdmin != null) result.removeAdmin = removeAdmin;
+    if (transferOwnership != null) result.transferOwnership = transferOwnership;
     return result;
   }
 
@@ -6958,11 +8198,18 @@ class Chats_Request extends $pb.GeneratedMessage {
     22: Chats_Request_Request.members,
     23: Chats_Request_Request.getChatsState,
     24: Chats_Request_Request.getChatDifference,
+    25: Chats_Request_Request.setMemberRole,
+    26: Chats_Request_Request.removeMember,
+    27: Chats_Request_Request.banned,
+    28: Chats_Request_Request.unban,
+    29: Chats_Request_Request.setAdmin,
+    30: Chats_Request_Request.removeAdmin,
+    31: Chats_Request_Request.transferOwnership,
     0: Chats_Request_Request.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31])
     ..aOM<Chats_List>(1, _omitFieldNames ? '' : 'list', subBuilder: Chats_List.create)
     ..aOM<Chats_OpenPrivate>(2, _omitFieldNames ? '' : 'openPrivate', protoName: 'openPrivate', subBuilder: Chats_OpenPrivate.create)
     ..aOM<Chats_ReadHistory>(3, _omitFieldNames ? '' : 'readHistory', protoName: 'readHistory', subBuilder: Chats_ReadHistory.create)
@@ -6992,6 +8239,15 @@ class Chats_Request extends $pb.GeneratedMessage {
         protoName: 'getChatsState', subBuilder: Chats_GetChatsState.create)
     ..aOM<Chats_GetChatDifference>(24, _omitFieldNames ? '' : 'getChatDifference',
         protoName: 'getChatDifference', subBuilder: Chats_GetChatDifference.create)
+    ..aOM<Chats_SetMemberRole>(25, _omitFieldNames ? '' : 'setMemberRole',
+        protoName: 'setMemberRole', subBuilder: Chats_SetMemberRole.create)
+    ..aOM<Chats_RemoveMember>(26, _omitFieldNames ? '' : 'removeMember', protoName: 'removeMember', subBuilder: Chats_RemoveMember.create)
+    ..aOM<Chats_Banned>(27, _omitFieldNames ? '' : 'banned', subBuilder: Chats_Banned.create)
+    ..aOM<Chats_Unban>(28, _omitFieldNames ? '' : 'unban', subBuilder: Chats_Unban.create)
+    ..aOM<Chats_SetAdmin>(29, _omitFieldNames ? '' : 'setAdmin', protoName: 'setAdmin', subBuilder: Chats_SetAdmin.create)
+    ..aOM<Chats_RemoveAdmin>(30, _omitFieldNames ? '' : 'removeAdmin', protoName: 'removeAdmin', subBuilder: Chats_RemoveAdmin.create)
+    ..aOM<Chats_TransferOwnership>(31, _omitFieldNames ? '' : 'transferOwnership',
+        protoName: 'transferOwnership', subBuilder: Chats_TransferOwnership.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -7035,6 +8291,13 @@ class Chats_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(22)
   @$pb.TagNumber(23)
   @$pb.TagNumber(24)
+  @$pb.TagNumber(25)
+  @$pb.TagNumber(26)
+  @$pb.TagNumber(27)
+  @$pb.TagNumber(28)
+  @$pb.TagNumber(29)
+  @$pb.TagNumber(30)
+  @$pb.TagNumber(31)
   Chats_Request_Request whichRequest() => _Chats_Request_RequestByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -7060,6 +8323,13 @@ class Chats_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(22)
   @$pb.TagNumber(23)
   @$pb.TagNumber(24)
+  @$pb.TagNumber(25)
+  @$pb.TagNumber(26)
+  @$pb.TagNumber(27)
+  @$pb.TagNumber(28)
+  @$pb.TagNumber(29)
+  @$pb.TagNumber(30)
+  @$pb.TagNumber(31)
   void clearRequest() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -7325,6 +8595,83 @@ class Chats_Request extends $pb.GeneratedMessage {
   void clearGetChatDifference() => $_clearField(24);
   @$pb.TagNumber(24)
   Chats_GetChatDifference ensureGetChatDifference() => $_ensure(23);
+
+  @$pb.TagNumber(25)
+  Chats_SetMemberRole get setMemberRole => $_getN(24);
+  @$pb.TagNumber(25)
+  set setMemberRole(Chats_SetMemberRole value) => $_setField(25, value);
+  @$pb.TagNumber(25)
+  $core.bool hasSetMemberRole() => $_has(24);
+  @$pb.TagNumber(25)
+  void clearSetMemberRole() => $_clearField(25);
+  @$pb.TagNumber(25)
+  Chats_SetMemberRole ensureSetMemberRole() => $_ensure(24);
+
+  @$pb.TagNumber(26)
+  Chats_RemoveMember get removeMember => $_getN(25);
+  @$pb.TagNumber(26)
+  set removeMember(Chats_RemoveMember value) => $_setField(26, value);
+  @$pb.TagNumber(26)
+  $core.bool hasRemoveMember() => $_has(25);
+  @$pb.TagNumber(26)
+  void clearRemoveMember() => $_clearField(26);
+  @$pb.TagNumber(26)
+  Chats_RemoveMember ensureRemoveMember() => $_ensure(25);
+
+  @$pb.TagNumber(27)
+  Chats_Banned get banned => $_getN(26);
+  @$pb.TagNumber(27)
+  set banned(Chats_Banned value) => $_setField(27, value);
+  @$pb.TagNumber(27)
+  $core.bool hasBanned() => $_has(26);
+  @$pb.TagNumber(27)
+  void clearBanned() => $_clearField(27);
+  @$pb.TagNumber(27)
+  Chats_Banned ensureBanned() => $_ensure(26);
+
+  @$pb.TagNumber(28)
+  Chats_Unban get unban => $_getN(27);
+  @$pb.TagNumber(28)
+  set unban(Chats_Unban value) => $_setField(28, value);
+  @$pb.TagNumber(28)
+  $core.bool hasUnban() => $_has(27);
+  @$pb.TagNumber(28)
+  void clearUnban() => $_clearField(28);
+  @$pb.TagNumber(28)
+  Chats_Unban ensureUnban() => $_ensure(27);
+
+  @$pb.TagNumber(29)
+  Chats_SetAdmin get setAdmin => $_getN(28);
+  @$pb.TagNumber(29)
+  set setAdmin(Chats_SetAdmin value) => $_setField(29, value);
+  @$pb.TagNumber(29)
+  $core.bool hasSetAdmin() => $_has(28);
+  @$pb.TagNumber(29)
+  void clearSetAdmin() => $_clearField(29);
+  @$pb.TagNumber(29)
+  Chats_SetAdmin ensureSetAdmin() => $_ensure(28);
+
+  @$pb.TagNumber(30)
+  Chats_RemoveAdmin get removeAdmin => $_getN(29);
+  @$pb.TagNumber(30)
+  set removeAdmin(Chats_RemoveAdmin value) => $_setField(30, value);
+  @$pb.TagNumber(30)
+  $core.bool hasRemoveAdmin() => $_has(29);
+  @$pb.TagNumber(30)
+  void clearRemoveAdmin() => $_clearField(30);
+  @$pb.TagNumber(30)
+  Chats_RemoveAdmin ensureRemoveAdmin() => $_ensure(29);
+
+  @$pb.TagNumber(31)
+  Chats_TransferOwnership get transferOwnership => $_getN(30);
+  @$pb.TagNumber(31)
+  set transferOwnership(Chats_TransferOwnership value) => $_setField(31, value);
+  @$pb.TagNumber(31)
+  $core.bool hasTransferOwnership() => $_has(30);
+  @$pb.TagNumber(31)
+  void clearTransferOwnership() => $_clearField(31);
+  @$pb.TagNumber(31)
+  Chats_TransferOwnership ensureTransferOwnership() => $_ensure(30);
 }
 
 enum Chats_Response_Response {
@@ -7352,6 +8699,13 @@ enum Chats_Response_Response {
   members,
   getChatsState,
   getChatDifference,
+  setMemberRole,
+  removeMember,
+  banned,
+  unban,
+  setAdmin,
+  removeAdmin,
+  transferOwnership,
   notSet
 }
 
@@ -7381,6 +8735,13 @@ class Chats_Response extends $pb.GeneratedMessage {
     Chats_MembersResult? members,
     Chats_GetChatsStateResult? getChatsState,
     Chats_GetChatDifferenceResult? getChatDifference,
+    Chats_SetMemberRoleResult? setMemberRole,
+    Chats_RemoveMemberResult? removeMember,
+    Chats_BannedResult? banned,
+    Chats_UnbanResult? unban,
+    Chats_SetAdminResult? setAdmin,
+    Chats_RemoveAdminResult? removeAdmin,
+    Chats_TransferOwnershipResult? transferOwnership,
   }) {
     final result = create();
     if (list != null) result.list = list;
@@ -7407,6 +8768,13 @@ class Chats_Response extends $pb.GeneratedMessage {
     if (members != null) result.members = members;
     if (getChatsState != null) result.getChatsState = getChatsState;
     if (getChatDifference != null) result.getChatDifference = getChatDifference;
+    if (setMemberRole != null) result.setMemberRole = setMemberRole;
+    if (removeMember != null) result.removeMember = removeMember;
+    if (banned != null) result.banned = banned;
+    if (unban != null) result.unban = unban;
+    if (setAdmin != null) result.setAdmin = setAdmin;
+    if (removeAdmin != null) result.removeAdmin = removeAdmin;
+    if (transferOwnership != null) result.transferOwnership = transferOwnership;
     return result;
   }
 
@@ -7442,11 +8810,18 @@ class Chats_Response extends $pb.GeneratedMessage {
     22: Chats_Response_Response.members,
     23: Chats_Response_Response.getChatsState,
     24: Chats_Response_Response.getChatDifference,
+    25: Chats_Response_Response.setMemberRole,
+    26: Chats_Response_Response.removeMember,
+    27: Chats_Response_Response.banned,
+    28: Chats_Response_Response.unban,
+    29: Chats_Response_Response.setAdmin,
+    30: Chats_Response_Response.removeAdmin,
+    31: Chats_Response_Response.transferOwnership,
     0: Chats_Response_Response.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31])
     ..aOM<Chats_ListResult>(1, _omitFieldNames ? '' : 'list', subBuilder: Chats_ListResult.create)
     ..aOM<Chats_OpenPrivateResult>(2, _omitFieldNames ? '' : 'openPrivate',
         protoName: 'openPrivate', subBuilder: Chats_OpenPrivateResult.create)
@@ -7486,6 +8861,17 @@ class Chats_Response extends $pb.GeneratedMessage {
         protoName: 'getChatsState', subBuilder: Chats_GetChatsStateResult.create)
     ..aOM<Chats_GetChatDifferenceResult>(24, _omitFieldNames ? '' : 'getChatDifference',
         protoName: 'getChatDifference', subBuilder: Chats_GetChatDifferenceResult.create)
+    ..aOM<Chats_SetMemberRoleResult>(25, _omitFieldNames ? '' : 'setMemberRole',
+        protoName: 'setMemberRole', subBuilder: Chats_SetMemberRoleResult.create)
+    ..aOM<Chats_RemoveMemberResult>(26, _omitFieldNames ? '' : 'removeMember',
+        protoName: 'removeMember', subBuilder: Chats_RemoveMemberResult.create)
+    ..aOM<Chats_BannedResult>(27, _omitFieldNames ? '' : 'banned', subBuilder: Chats_BannedResult.create)
+    ..aOM<Chats_UnbanResult>(28, _omitFieldNames ? '' : 'unban', subBuilder: Chats_UnbanResult.create)
+    ..aOM<Chats_SetAdminResult>(29, _omitFieldNames ? '' : 'setAdmin', protoName: 'setAdmin', subBuilder: Chats_SetAdminResult.create)
+    ..aOM<Chats_RemoveAdminResult>(30, _omitFieldNames ? '' : 'removeAdmin',
+        protoName: 'removeAdmin', subBuilder: Chats_RemoveAdminResult.create)
+    ..aOM<Chats_TransferOwnershipResult>(31, _omitFieldNames ? '' : 'transferOwnership',
+        protoName: 'transferOwnership', subBuilder: Chats_TransferOwnershipResult.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -7529,6 +8915,13 @@ class Chats_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(22)
   @$pb.TagNumber(23)
   @$pb.TagNumber(24)
+  @$pb.TagNumber(25)
+  @$pb.TagNumber(26)
+  @$pb.TagNumber(27)
+  @$pb.TagNumber(28)
+  @$pb.TagNumber(29)
+  @$pb.TagNumber(30)
+  @$pb.TagNumber(31)
   Chats_Response_Response whichResponse() => _Chats_Response_ResponseByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -7554,6 +8947,13 @@ class Chats_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(22)
   @$pb.TagNumber(23)
   @$pb.TagNumber(24)
+  @$pb.TagNumber(25)
+  @$pb.TagNumber(26)
+  @$pb.TagNumber(27)
+  @$pb.TagNumber(28)
+  @$pb.TagNumber(29)
+  @$pb.TagNumber(30)
+  @$pb.TagNumber(31)
   void clearResponse() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -7819,6 +9219,83 @@ class Chats_Response extends $pb.GeneratedMessage {
   void clearGetChatDifference() => $_clearField(24);
   @$pb.TagNumber(24)
   Chats_GetChatDifferenceResult ensureGetChatDifference() => $_ensure(23);
+
+  @$pb.TagNumber(25)
+  Chats_SetMemberRoleResult get setMemberRole => $_getN(24);
+  @$pb.TagNumber(25)
+  set setMemberRole(Chats_SetMemberRoleResult value) => $_setField(25, value);
+  @$pb.TagNumber(25)
+  $core.bool hasSetMemberRole() => $_has(24);
+  @$pb.TagNumber(25)
+  void clearSetMemberRole() => $_clearField(25);
+  @$pb.TagNumber(25)
+  Chats_SetMemberRoleResult ensureSetMemberRole() => $_ensure(24);
+
+  @$pb.TagNumber(26)
+  Chats_RemoveMemberResult get removeMember => $_getN(25);
+  @$pb.TagNumber(26)
+  set removeMember(Chats_RemoveMemberResult value) => $_setField(26, value);
+  @$pb.TagNumber(26)
+  $core.bool hasRemoveMember() => $_has(25);
+  @$pb.TagNumber(26)
+  void clearRemoveMember() => $_clearField(26);
+  @$pb.TagNumber(26)
+  Chats_RemoveMemberResult ensureRemoveMember() => $_ensure(25);
+
+  @$pb.TagNumber(27)
+  Chats_BannedResult get banned => $_getN(26);
+  @$pb.TagNumber(27)
+  set banned(Chats_BannedResult value) => $_setField(27, value);
+  @$pb.TagNumber(27)
+  $core.bool hasBanned() => $_has(26);
+  @$pb.TagNumber(27)
+  void clearBanned() => $_clearField(27);
+  @$pb.TagNumber(27)
+  Chats_BannedResult ensureBanned() => $_ensure(26);
+
+  @$pb.TagNumber(28)
+  Chats_UnbanResult get unban => $_getN(27);
+  @$pb.TagNumber(28)
+  set unban(Chats_UnbanResult value) => $_setField(28, value);
+  @$pb.TagNumber(28)
+  $core.bool hasUnban() => $_has(27);
+  @$pb.TagNumber(28)
+  void clearUnban() => $_clearField(28);
+  @$pb.TagNumber(28)
+  Chats_UnbanResult ensureUnban() => $_ensure(27);
+
+  @$pb.TagNumber(29)
+  Chats_SetAdminResult get setAdmin => $_getN(28);
+  @$pb.TagNumber(29)
+  set setAdmin(Chats_SetAdminResult value) => $_setField(29, value);
+  @$pb.TagNumber(29)
+  $core.bool hasSetAdmin() => $_has(28);
+  @$pb.TagNumber(29)
+  void clearSetAdmin() => $_clearField(29);
+  @$pb.TagNumber(29)
+  Chats_SetAdminResult ensureSetAdmin() => $_ensure(28);
+
+  @$pb.TagNumber(30)
+  Chats_RemoveAdminResult get removeAdmin => $_getN(29);
+  @$pb.TagNumber(30)
+  set removeAdmin(Chats_RemoveAdminResult value) => $_setField(30, value);
+  @$pb.TagNumber(30)
+  $core.bool hasRemoveAdmin() => $_has(29);
+  @$pb.TagNumber(30)
+  void clearRemoveAdmin() => $_clearField(30);
+  @$pb.TagNumber(30)
+  Chats_RemoveAdminResult ensureRemoveAdmin() => $_ensure(29);
+
+  @$pb.TagNumber(31)
+  Chats_TransferOwnershipResult get transferOwnership => $_getN(30);
+  @$pb.TagNumber(31)
+  set transferOwnership(Chats_TransferOwnershipResult value) => $_setField(31, value);
+  @$pb.TagNumber(31)
+  $core.bool hasTransferOwnership() => $_has(30);
+  @$pb.TagNumber(31)
+  void clearTransferOwnership() => $_clearField(31);
+  @$pb.TagNumber(31)
+  Chats_TransferOwnershipResult ensureTransferOwnership() => $_ensure(30);
 }
 
 /// CHATS — диалоги.
@@ -8818,8 +10295,9 @@ class Messages_EditResult extends $pb.GeneratedMessage {
   Updates ensureUpdates() => $_ensure(0);
 }
 
-/// Удалить: forEveryone — у всех (в личном чате — и чужие, как в Telegram),
-/// иначе только у себя.
+/// Удалить: forEveryone — у всех (в личном чате — и чужие, как в Telegram;
+/// в группе чужие — владелец или админ с deleteMessages), иначе только у
+/// себя.
 class Messages_Delete extends $pb.GeneratedMessage {
   factory Messages_Delete({
     $core.List<$core.int>? chatID,
@@ -9047,6 +10525,9 @@ class Messages_ReadContentsResult extends $pb.GeneratedMessage {
 /// появляется служебное MessagePin); собеседник ограничил, кто может ему
 /// писать, — закрепится только у себя. Открепление с forEveryone — у обоих,
 /// без — только у себя (служебного нет). Служебные сообщения не закрепляются.
+/// В группе forEveryone — владелец или админ с pinMessages (иначе
+/// PERMISSION_DENIED): закреп общий для всех участников (Update.pinnedMessages
+/// с shared — журналом чата).
 class Messages_Pin extends $pb.GeneratedMessage {
   factory Messages_Pin({
     $core.List<$core.int>? chatID,
