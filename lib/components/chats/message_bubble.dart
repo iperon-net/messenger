@@ -16,6 +16,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../dust_effect.dart';
 import 'media_viewer.dart';
+import 'message_double_tap.dart';
 import 'message_text.dart';
 import 'spoiler_dust.dart';
 import 'swipe_to_reply.dart';
@@ -29,14 +30,6 @@ const failedStatusColor = Color(0xFFFF3B30);
 /// Пузырь для превью меню сообщения с предельной шириной [maxWidth], без
 /// жестов. [selectableText] — обёртка текста, которую оставляют живой (iOS:
 /// выделить фрагмент и «Цитировать»), остальное пузыря жесты не получает.
-/// Двойной тап по пузырю (быстрая реакция). Ловит обёртка меню
-/// ([MessageBubble.menuWrapper]): на iOS `CupertinoContextMenu` уже на касании
-/// прячет пузырь в ленте и поднимает его копию в оверлей («нажатие»), и без
-/// отмены пузырь пропадает, пока эта анимация не откатится.
-class MessageDoubleTapNotification extends Notification {
-  const MessageDoubleTapNotification();
-}
-
 typedef MessageBubblePreview = Widget Function(double maxWidth, {Widget Function(Widget text)? selectableText});
 
 /// Платформенное оформление окна чата (см. `chat_cupertino.dart` /
@@ -1020,19 +1013,12 @@ class MessageBubble extends StatelessWidget {
     // [MessageBubblePreview]; в превью меню у пузыря своих жестов нет.
     Widget body(double maxWidth, {bool preview = false, Widget Function(Widget text)? selectableText}) => ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth),
-      child: Builder(
-        builder: (context) => GestureDetector(
+      child: MessageDoubleTap(
+        messageID: m.id,
+        onDoubleTap: preview ? null : onDoubleTap,
+        child: GestureDetector(
           // С обёрткой (iOS-меню) long-press ловит `CupertinoContextMenu`.
           onLongPress: menuWrapper == null && !preview ? onLongPress : null,
-          onDoubleTap: onDoubleTap == null || preview
-              ? null
-              : () {
-                  HapticFeedback.lightImpact();
-                  // Контекст — под обёрткой меню: она гасит начатое касанием
-                  // «нажатие» (см. [MessageDoubleTapNotification]).
-                  const MessageDoubleTapNotification().dispatch(context);
-                  onDoubleTap!();
-                },
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: bigEmoji > 0 ? null : (out ? style.outgoing : style.incoming),
