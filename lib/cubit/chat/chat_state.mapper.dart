@@ -39,6 +39,8 @@ class ChatCommentsBlockMapper extends EnumMapper<ChatCommentsBlock> {
         return ChatCommentsBlock.privacy;
       case r'blocked':
         return ChatCommentsBlock.blocked;
+      case r'readOnly':
+        return ChatCommentsBlock.readOnly;
       default:
         throw MapperException.unknownEnumValue(value);
     }
@@ -59,6 +61,8 @@ class ChatCommentsBlockMapper extends EnumMapper<ChatCommentsBlock> {
         return r'privacy';
       case ChatCommentsBlock.blocked:
         return r'blocked';
+      case ChatCommentsBlock.readOnly:
+        return r'readOnly';
     }
   }
 }
@@ -307,6 +311,13 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: const [],
   );
+  static bool _$bannedLoadFailed(ChatState v) => v.bannedLoadFailed;
+  static const Field<ChatState, bool> _f$bannedLoadFailed = Field(
+    'bannedLoadFailed',
+    _$bannedLoadFailed,
+    opt: true,
+    def: false,
+  );
   static int _$slowModeLeft(ChatState v) => v.slowModeLeft;
   static const Field<ChatState, int> _f$slowModeLeft = Field(
     'slowModeLeft',
@@ -389,6 +400,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #membersTotal: _f$membersTotal,
     #memberQuery: _f$memberQuery,
     #banned: _f$banned,
+    #bannedLoadFailed: _f$bannedLoadFailed,
     #slowModeLeft: _f$slowModeLeft,
     #floodLeft: _f$floodLeft,
     #commentsClosedIDs: _f$commentsClosedIDs,
@@ -432,6 +444,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       membersTotal: data.dec(_f$membersTotal),
       memberQuery: data.dec(_f$memberQuery),
       banned: data.dec(_f$banned),
+      bannedLoadFailed: data.dec(_f$bannedLoadFailed),
       slowModeLeft: data.dec(_f$slowModeLeft),
       floodLeft: data.dec(_f$floodLeft),
       commentsClosedIDs: data.dec(_f$commentsClosedIDs),
@@ -594,6 +607,7 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     int? membersTotal,
     String? memberQuery,
     List<models.ChatMember>? banned,
+    bool? bannedLoadFailed,
     int? slowModeLeft,
     int? floodLeft,
     List<String>? commentsClosedIDs,
@@ -779,6 +793,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     int? membersTotal,
     String? memberQuery,
     List<models.ChatMember>? banned,
+    bool? bannedLoadFailed,
     int? slowModeLeft,
     int? floodLeft,
     List<String>? commentsClosedIDs,
@@ -821,6 +836,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (membersTotal != null) #membersTotal: membersTotal,
       if (memberQuery != null) #memberQuery: memberQuery,
       if (banned != null) #banned: banned,
+      if (bannedLoadFailed != null) #bannedLoadFailed: bannedLoadFailed,
       if (slowModeLeft != null) #slowModeLeft: slowModeLeft,
       if (floodLeft != null) #floodLeft: floodLeft,
       if (commentsClosedIDs != null) #commentsClosedIDs: commentsClosedIDs,
@@ -870,6 +886,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     membersTotal: data.get(#membersTotal, or: $value.membersTotal),
     memberQuery: data.get(#memberQuery, or: $value.memberQuery),
     banned: data.get(#banned, or: $value.banned),
+    bannedLoadFailed: data.get(#bannedLoadFailed, or: $value.bannedLoadFailed),
     slowModeLeft: data.get(#slowModeLeft, or: $value.slowModeLeft),
     floodLeft: data.get(#floodLeft, or: $value.floodLeft),
     commentsClosedIDs: data.get(

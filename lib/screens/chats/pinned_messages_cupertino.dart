@@ -44,13 +44,20 @@ class PinnedMessagesCupertino extends StatelessWidget {
         },
         child: Text(t.goToMessage),
       ),
-      if (canUnpin)
+      // Общий закреп группы снимает только тот, у кого есть право.
+      if (canUnpin && cubit.canTogglePin(message))
         CupertinoContextMenuAction(
           trailingIcon: CupertinoIcons.pin_slash,
           isDestructiveAction: true,
           onPressed: () async {
             close();
-            final forEveryone = await askPinScopeCupertino(context, chat, pin: false, shared: !message.pinnedOnlyMe);
+            final forEveryone = await askPinScopeCupertino(
+              context,
+              chat,
+              pin: false,
+              shared: !message.pinnedOnlyMe,
+              canForAll: cubit.canPinForEveryone,
+            );
             if (forEveryone != null) await cubit.setPinned(message, false, forEveryone: forEveryone);
           },
           child: Text(t.unpin),
@@ -61,7 +68,14 @@ class PinnedMessagesCupertino extends StatelessWidget {
   /// [shared] — среди закреплённых есть общие (иначе выбора нет).
   Future<void> _unpinAll(BuildContext context, models.Chat chat, int count, {required bool shared}) async {
     final cubit = context.read<ChatCubit>();
-    final forEveryone = await askPinScopeCupertino(context, chat, pin: false, allCount: count, shared: shared);
+    final forEveryone = await askPinScopeCupertino(
+      context,
+      chat,
+      pin: false,
+      allCount: count,
+      shared: shared,
+      canForAll: cubit.canPinForEveryone,
+    );
     if (forEveryone != null) await cubit.unpinAll(forEveryone: forEveryone);
   }
 

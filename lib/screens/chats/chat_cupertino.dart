@@ -315,7 +315,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
         unawaited(_jumpTo(pinned[index].id));
         setState(() => _pinIndex = (index + 1) % pinned.length);
       },
-      onUnpin: chat.type == models.ChatType.channel ? null : () => _pin(chat, pinned[index]),
+      onUnpin: chat.type == models.ChatType.channel || !_cubit.canTogglePin(pinned[index]) ? null : () => _pin(chat, pinned[index]),
       onList: () => _openPinned(context),
     );
   }
@@ -348,7 +348,13 @@ class _ChatCupertinoState extends State<ChatCupertino> {
   /// только у меня (см. [askPinScopeCupertino]).
   Future<void> _pin(models.Chat chat, models.Message message) async {
     final pinned = !message.pinned;
-    final forEveryone = await askPinScopeCupertino(context, chat, pin: pinned, shared: !message.pinnedOnlyMe);
+    final forEveryone = await askPinScopeCupertino(
+      context,
+      chat,
+      pin: pinned,
+      shared: !message.pinnedOnlyMe,
+      canForAll: _cubit.canPinForEveryone,
+    );
     if (forEveryone != null) await _cubit.setPinned(message, pinned, forEveryone: forEveryone);
   }
 
@@ -834,7 +840,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
         action(chatMediaSaveLabel(context.t, message), CupertinoIcons.arrow_down_to_line, () => saveChatMedia(context, message)),
         action(t.shareMedia, CupertinoIcons.share, () => shareChatMedia(context, message)),
       ],
-      if (canWrite && features.pinnedMessages && _pinnable(message))
+      if (canWrite && features.pinnedMessages && _pinnable(message) && _cubit.canTogglePin(message))
         action(message.pinned ? t.unpin : t.pin, message.pinned ? CupertinoIcons.pin_slash : CupertinoIcons.pin, () async {
           // Личный — меню «У меня» / «У меня и собеседника»; в остальных и у
           // закреплённого только у меня выбора нет (см. [askPinScopeCupertino]).
@@ -851,7 +857,8 @@ class _ChatCupertinoState extends State<ChatCupertino> {
       // Пересланное не правится (как в Telegram).
       if (message.outgoing && message.kind == models.MessageKind.text && message.forward == null)
         action(t.edit, CupertinoIcons.pencil, () => _cubit.startEdit(message)),
-      if (message.outgoing || chat.type == models.ChatType.private) ...[
+      // В группе чужие — с правом удалять сообщения (у всех).
+      if (_cubit.canDelete(message)) ...[
         action(t.delete, CupertinoIcons.delete, () async {
           // Личный — меню «У меня» / «У меня и собеседника»; остальные — алерт.
           if (!chatDeleteScoped(chat)) return _confirmDelete(context, chat, message);
@@ -1354,6 +1361,8 @@ class _CommentsBlockedBar extends StatelessWidget {
               child: Text(t.screenChat.unblock),
             ),
             ChatCommentsBlock.privacy => note(CupertinoIcons.lock, t.screenChat.privacyRestricted),
+            // Группа, роль «Чтение».
+            ChatCommentsBlock.readOnly => note(CupertinoIcons.eye, t.screenChat.readOnly),
             _ => note(CupertinoIcons.lock, t.screenChat.commentsClosed),
           },
         ),

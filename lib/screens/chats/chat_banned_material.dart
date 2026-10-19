@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -8,6 +10,8 @@ import 'chats_new_material.dart';
 
 /// «Заблокированные» (Android) — профиль группы → админ.
 Future<void> showChatBannedMaterial(BuildContext context, ChatCubit cubit) {
+  // Список — только с сервера: освежаем при открытии (без сети — пометка).
+  unawaited(cubit.loadMembers());
   return Navigator.of(context).push<void>(
     FullSwipeBackRoute(
       builder: (_) => BlocProvider.value(value: cubit, child: const ChatBannedMaterial()),
@@ -36,7 +40,7 @@ class ChatBannedMaterial extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(32, 32, 32, 8),
                     child: Text(
-                      t.screenChatInfo.bannedEmpty,
+                      state.bannedLoadFailed ? t.screenChatInfo.bannedLoadFailed : t.screenChatInfo.bannedEmpty,
                       textAlign: TextAlign.center,
                       style: TextStyle(color: scheme.onSurfaceVariant),
                     ),

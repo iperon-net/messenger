@@ -1208,6 +1208,24 @@ class Translations$screenChatAdmins$en {
 	/// en: '{name} will become the owner and you will remain an admin with all rights. Only the new owner can undo this.'
 	String transferMessage({required Object name}) => '${name} will become the owner and you will remain an admin with all rights. Only the new owner can undo this.';
 
+	/// en: 'Cloud password'
+	String get transferPasswordTitle => 'Cloud password';
+
+	/// en: 'Enter your cloud password to transfer ownership.'
+	String get transferPasswordMessage => 'Enter your cloud password to transfer ownership.';
+
+	/// en: 'Password'
+	String get passwordHint => 'Password';
+
+	/// en: 'Cloud password required'
+	String get cloudPasswordRequiredTitle => 'Cloud password required';
+
+	/// en: 'Ownership can only be transferred with a cloud password. Turn it on in privacy settings first.'
+	String get cloudPasswordRequiredMessage => 'Ownership can only be transferred with a cloud password. Turn it on in privacy settings first.';
+
+	/// en: 'Turn on'
+	String get cloudPasswordSetup => 'Turn on';
+
 	/// en: 'Choose a Member'
 	String get pickMember => 'Choose a Member';
 
@@ -1666,6 +1684,9 @@ class Translations$screenChat$en {
 
 	/// en: 'You can't message this chat.'
 	String get privacyRestricted => 'You can\'t message this chat.';
+
+	/// en: 'Read-only: you can't post in this group.'
+	String get readOnly => 'Read-only: you can\'t post in this group.';
 
 	/// en: 'You blocked this user'
 	String get blockedNote => 'You blocked this user';
@@ -2314,6 +2335,9 @@ class Translations$screenChatInfo$en {
 
 	/// en: 'Banned users can't join via invite links. Adding them manually unbans them.'
 	String get bannedFooter => 'Banned users can\'t join via invite links. Adding them manually unbans them.';
+
+	/// en: 'Couldn't load the list: no connection.'
+	String get bannedLoadFailed => 'Couldn\'t load the list: no connection.';
 
 	/// en: 'Unban'
 	String get unban => 'Unban';
@@ -3895,6 +3919,30 @@ class Translations$chatAction$en {
 
 	/// en: 'Groups are unavailable right now.'
 	String get groupsDisabled => 'Groups are unavailable right now.';
+
+	/// en: 'You transferred group ownership: {names}'
+	String ownerYou({required Object names}) => 'You transferred group ownership: ${names}';
+
+	/// en: '{name} transferred group ownership: {names}'
+	String owner({required Object name, required Object names}) => '${name} transferred group ownership: ${names}';
+
+	/// en: 'You can't grant rights you don't have.'
+	String get rightsTooWide => 'You can\'t grant rights you don\'t have.';
+
+	/// en: 'The title must be 16 characters or fewer.'
+	String get rankInvalid => 'The title must be 16 characters or fewer.';
+
+	/// en: 'The group has reached the member limit.'
+	String get membersLimit => 'The group has reached the member limit.';
+
+	/// en: 'You can only read this group.'
+	String get chatWriteForbidden => 'You can only read this group.';
+
+	/// en: 'Wrong cloud password.'
+	String get passwordInvalid => 'Wrong cloud password.';
+
+	/// en: 'You don't have permission for this action.'
+	String get permissionDenied => 'You don\'t have permission for this action.';
 }
 
 // Path: chatTtl
@@ -4527,6 +4575,12 @@ extension on Translations {
 			'screenChatAdmins.transfer' => 'Transfer Ownership',
 			'screenChatAdmins.transferTitle' => ({required Object name}) => 'Transfer ownership to ${name}?',
 			'screenChatAdmins.transferMessage' => ({required Object name}) => '${name} will become the owner and you will remain an admin with all rights. Only the new owner can undo this.',
+			'screenChatAdmins.transferPasswordTitle' => 'Cloud password',
+			'screenChatAdmins.transferPasswordMessage' => 'Enter your cloud password to transfer ownership.',
+			'screenChatAdmins.passwordHint' => 'Password',
+			'screenChatAdmins.cloudPasswordRequiredTitle' => 'Cloud password required',
+			'screenChatAdmins.cloudPasswordRequiredMessage' => 'Ownership can only be transferred with a cloud password. Turn it on in privacy settings first.',
+			'screenChatAdmins.cloudPasswordSetup' => 'Turn on',
 			'screenChatAdmins.pickMember' => 'Choose a Member',
 			'screenChatAdmins.noCandidates' => 'Nobody to promote — everyone is already an admin.',
 			'screenPoll.newPoll' => 'New Poll',
@@ -4669,6 +4723,7 @@ extension on Translations {
 			'screenChat.floodWait' => ({required Object time}) => 'You are sending messages too often. You can send the next one in ${time}.',
 			'screenChat.floodNewChats' => ({required Object time}) => 'You are starting new chats too often. Try again in ${time}.',
 			'screenChat.privacyRestricted' => 'You can\'t message this chat.',
+			'screenChat.readOnly' => 'Read-only: you can\'t post in this group.',
 			'screenChat.blockedNote' => 'You blocked this user',
 			'screenChat.unblock' => 'Unblock',
 			'screenChat.retrySend' => 'Send again',
@@ -4689,6 +4744,8 @@ extension on Translations {
 			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Forward ${n} message', other: 'Forward ${n} messages', ), 
 			'screenChat.deleteSelectedTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Delete ${n} message?', other: 'Delete ${n} messages?', ), 
 			'screenChat.deleteSelectedMessage' => 'Messages will be deleted for everyone in the chat.',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.deleteMessageSelf' => 'The message will be deleted from Saved Messages.',
 			'screenChat.deleteSelectedMessageSelf' => 'The messages will be deleted from Saved Messages.',
 			'screenChat.voiceSlideToCancel' => 'Slide to cancel',
@@ -4696,8 +4753,6 @@ extension on Translations {
 			'screenChat.micDeniedTitle' => 'No microphone access',
 			'screenChat.micDeniedMessage' => 'Allow microphone access in Settings to record voice messages.',
 			'screenChat.openSettings' => 'Settings',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.hideWithSpoiler' => 'Hide with spoiler',
 			'screenChat.removeSpoiler' => 'Remove spoiler',
 			'screenChat.videoHdOn' => 'HD video: 1080p',
@@ -4869,6 +4924,7 @@ extension on Translations {
 			'screenChatInfo.banned' => 'Banned',
 			'screenChatInfo.bannedEmpty' => 'No banned users',
 			'screenChatInfo.bannedFooter' => 'Banned users can\'t join via invite links. Adding them manually unbans them.',
+			'screenChatInfo.bannedLoadFailed' => 'Couldn\'t load the list: no connection.',
 			'screenChatInfo.unban' => 'Unban',
 			'screenChatInfo.reactions' => 'Reactions',
 			'screenChatInfo.reactionsAll' => 'All reactions',
@@ -5202,6 +5258,8 @@ extension on Translations {
 			'screenAuth.enterYourMobilePhoneNumber' => 'Enter your mobile phone number',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Currently, we only support phone numbers from Russian mobile operators',
 			'screenAuth.insertDebugPhone' => 'Insert debug phone',
+			_ => null,
+		} ?? switch (path) {
 			'screenAuth.callForFree' => 'Call for free',
 			'screenAuth.weAreExpectingYourCallWithin' => ({required Object duration}) => 'We are expecting your call within ${duration}',
 			'screenAuth.signInWith' => 'Sign in with',
@@ -5210,8 +5268,6 @@ extension on Translations {
 			'screenAuthModerationApplicationStore.verificationCodeMismatch' => 'Verification code mismatch',
 			'screenAuthModerationApplicationStore.moderationApplicationStoreSessionNotFound' => 'Moderation application store session not found',
 			'screenAuthModerationApplicationStore.invalidPublicSharedKey' => 'Invalid public shared key',
-			_ => null,
-		} ?? switch (path) {
 			'screenAuthModerationApplicationStore.invalidPublicSaltKey' => 'Invalid public salt key',
 			'screenAuthModerationApplicationStore.enterTheCode' => 'Enter the code',
 			'screenAuthModerationApplicationStore.sentConfirmationCodeToNumber' => ({required Object phoneNumber}) => 'We sent a confirmation code to the number ${phoneNumber}',
@@ -5327,6 +5383,14 @@ extension on Translations {
 			'chatAction.failed' => 'Couldn\'t complete the action. Please try again.',
 			'chatAction.titleInvalid' => 'The group name must be 1 to 128 characters.',
 			'chatAction.groupsDisabled' => 'Groups are unavailable right now.',
+			'chatAction.ownerYou' => ({required Object names}) => 'You transferred group ownership: ${names}',
+			'chatAction.owner' => ({required Object name, required Object names}) => '${name} transferred group ownership: ${names}',
+			'chatAction.rightsTooWide' => 'You can\'t grant rights you don\'t have.',
+			'chatAction.rankInvalid' => 'The title must be 16 characters or fewer.',
+			'chatAction.membersLimit' => 'The group has reached the member limit.',
+			'chatAction.chatWriteForbidden' => 'You can only read this group.',
+			'chatAction.passwordInvalid' => 'Wrong cloud password.',
+			'chatAction.permissionDenied' => 'You don\'t have permission for this action.',
 			'chatTtl.title' => 'Auto-delete',
 			'chatTtl.titleLong' => 'Auto-delete messages',
 			'chatTtl.off' => 'Off',

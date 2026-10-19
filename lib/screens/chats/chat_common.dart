@@ -421,6 +421,12 @@ void showChatsFailed(BuildContext context, String error) {
     _showNotice(context, switch (error) {
       'titleInvalid' => t.titleInvalid,
       'groupsDisabled' => t.groupsDisabled,
+      'rightsTooWide' => t.rightsTooWide,
+      'rankInvalid' => t.rankInvalid,
+      'membersLimit' => t.membersLimit,
+      'chatWriteForbidden' => t.chatWriteForbidden,
+      'passwordInvalid' => t.passwordInvalid,
+      'permissionDenied' => t.permissionDenied,
       _ => t.failed,
     }),
   );

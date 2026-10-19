@@ -31,10 +31,16 @@ class ChatsFeatures {
   /// Группы: «Новое» → «Группа», группы в списке (сервер — флаг «Группы»).
   final bool groups;
 
-  /// Расширенное в группах: реакции, закреп у всех, опросы, упоминания,
-  /// права и роли, ссылки-приглашения, заявки, баны, медленный режим (демо;
-  /// на сервере — подэтапы 3.2–3.4). `false` — в группе это скрыто, а
-  /// «Изменить» — только название, описание и фото.
+  /// Роли и права в группе (подэтап 3.2): «Чтение» / «Запись», админы с
+  /// правами и званием, исключение и блокировка, «Заблокированные», роль по
+  /// умолчанию в «Изменить», закреп у всех и удаление чужих — по праву.
+  final bool groupRoles;
+
+  /// Расширенное в группах: реакции, опросы, упоминания, ссылки-приглашения,
+  /// заявки, медленный режим, «новички», «скрыть участников», username (демо;
+  /// на сервере — подэтапы 3.3–3.4). `false` — в группе это скрыто, а
+  /// «Изменить» — только название, описание, фото (и роль по умолчанию — с
+  /// [groupRoles]).
   final bool groupExtras;
 
   const ChatsFeatures({
@@ -43,10 +49,18 @@ class ChatsFeatures {
     required this.forward,
     required this.scheduled,
     this.groups = false,
+    this.groupRoles = false,
     this.groupExtras = false,
   });
 
-  const ChatsFeatures.all() : reactions = true, pinnedMessages = true, forward = true, scheduled = true, groups = true, groupExtras = true;
+  const ChatsFeatures.all()
+    : reactions = true,
+      pinnedMessages = true,
+      forward = true,
+      scheduled = true,
+      groups = true,
+      groupRoles = true,
+      groupExtras = true;
 
   const ChatsFeatures.none()
     : reactions = false,
@@ -54,18 +68,20 @@ class ChatsFeatures {
       forward = false,
       scheduled = false,
       groups = false,
+      groupRoles = false,
       groupExtras = false;
 
-  /// Доступное в чате [chat]: в группе без [groupExtras] — без реакций и
-  /// закрепа.
+  /// Доступное в чате [chat]: в группе без [groupExtras] — без реакций, а
+  /// закреп — только с [groupRoles] (у всех — по праву pinMessages).
   ChatsFeatures forChat(models.Chat? chat) {
     if (groupExtras || chat == null || chat.type == models.ChatType.private) return this;
     return ChatsFeatures(
       reactions: false,
-      pinnedMessages: false,
+      pinnedMessages: pinnedMessages && groupRoles,
       forward: forward,
       scheduled: scheduled,
       groups: groups,
+      groupRoles: groupRoles,
       groupExtras: groupExtras,
     );
   }
@@ -284,21 +300,28 @@ abstract class ChatsDataSource {
 
   Future<void> unbanMember(String chatID, String userID);
 
-  /// Админ: добавить контакты [userIDs] (с ролью по умолчанию; заблокированные
-  /// при этом разблокируются).
+  /// Добавить контакты [userIDs] (с ролью по умолчанию). Заблокированных в
+  /// группе разблокирует только админ с правом блокировать — у остальных они
+  /// не добавятся (как запретившие приватностью).
   Future<void> addMembers(String chatID, List<String> userIDs);
 
   /// Назначить админом / изменить права и «звание» админа (у владельца и
   /// админов сообщества в его чате — нельзя).
   Future<void> setAdmin(String chatID, String userID, {required models.ChatAdminRights rights, String rank = ''});
 
-  /// Снять админа (останется участником с правом писать).
+  /// Снять админа (останется участником с ролью по умолчанию группы).
   Future<void> removeAdmin(String chatID, String userID);
 
   /// Владелец: передать владение — [userID] станет владельцем, мы — админом со
-  /// всеми правами. На сервере — с подтверждением облачным паролем. У чата
-  /// сообщества нельзя — владение передаётся всего сообщества.
-  Future<void> transferOwnership(String chatID, String userID);
+  /// всеми правами. На сервере — с подтверждением облачным паролем
+  /// [password] (см. [transferNeedsPassword]): его нет —
+  /// `ChatsRequestException` «cloudPasswordRequired», неверный —
+  /// «passwordInvalid». У чата сообщества нельзя — владение передаётся всего
+  /// сообщества.
+  Future<void> transferOwnership(String chatID, String userID, {String password = ''});
+
+  /// Передача владения подтверждается облачным паролем (сервер; в демо — нет).
+  bool get transferNeedsPassword;
 
   /// Реакции группы/канала (профиль чата → «Реакции», админ): все /
   /// выбранные [reactions] / никаких; у канала — ещё [maxReactions] (сколько

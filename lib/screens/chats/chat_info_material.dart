@@ -242,11 +242,11 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
     final cubit = context.read<ChatCubit>();
     final error = Theme.of(context).colorScheme.error;
     final members = cubit.state.members;
-    // Роли, исключение и админы — расширенное в группах (на сервере — 3.2).
-    final extras = cubit.features.groupExtras;
-    final manage = extras && canRestrictMember(chat, members, member);
-    final promote = extras && canPromoteMember(chat, members, member);
-    final ban = extras && canBanMember(chat, members, member);
+    // Роли, исключение и админы — демо и группы на сервере (подэтап 3.2).
+    final roles = chatRolesEnabled(cubit.features);
+    final manage = roles && canRestrictMember(chat, members, member);
+    final promote = roles && canPromoteMember(chat, members, member);
+    final ban = roles && canBanMember(chat, members, member);
     final action = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
@@ -378,7 +378,9 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
         // У сообщества — обложка под AppBar: он прозрачный, «назад» и
         // «Изменить» — «стёкла» поверх обложки, пока она видна.
         final onCover = community && _overCover;
-        final canEdit = chat != null && chat.canManage && chat.type != models.ChatType.private;
+        final canEdit = chat != null && chatInfoCanEdit(chat, state.members);
+        // Ссылки, заявки, реакции, медленный режим — демо (на сервере — 3.3–3.4).
+        final extras = context.read<ChatCubit>().features.groupExtras;
         return Scaffold(
           backgroundColor: scheme.surfaceContainerLow,
           extendBodyBehindAppBar: community,
@@ -561,7 +563,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                             ),
                           ),
                         if (community && chat.isMember) CommunityChatsMaterial(community: chat, chats: state.communityChats, card: card),
-                        if (chat.canManage && chat.type != models.ChatType.private && context.read<ChatCubit>().features.groupExtras)
+                        if (chat.canManage && chat.type != models.ChatType.private && chatRolesEnabled(context.read<ChatCubit>().features))
                           Card(
                             margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
                             color: card,
@@ -570,33 +572,35 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                               children: [
                                 // У чатов сообщества своих ссылок и блокировок нет —
                                 // вступают и блокируются через сообщество.
-                                if (!chat.inCommunity)
+                                // Ссылки, заявки, реакции и медленный режим — на сервере в 3.3–3.4.
+                                if (extras && !chat.inCommunity)
                                   ListTile(
                                     leading: HugeIcon(icon: HugeIcons.strokeRoundedLink01, color: scheme.onSurfaceVariant),
                                     title: Text(t.screenChatInvites.inviteLinks),
                                     onTap: () => showChatInviteLinksMaterial(context, chat.id),
                                   ),
-                                if (!chat.inCommunity || chat.joinMode == models.ChatJoinMode.request)
+                                if (extras && (!chat.inCommunity || chat.joinMode == models.ChatJoinMode.request))
                                   ListTile(
                                     leading: HugeIcon(icon: HugeIcons.strokeRoundedUserAdd01, color: scheme.onSurfaceVariant),
                                     title: Text(t.screenChatInvites.joinRequests),
                                     trailing: chat.pendingRequests > 0 ? Badge(label: Text('${chat.pendingRequests}')) : null,
                                     onTap: () => showChatJoinRequestsMaterial(context, chat.id),
                                   ),
-                                ListTile(
-                                  leading: HugeIcon(icon: HugeIcons.strokeRoundedSmile, color: scheme.onSurfaceVariant),
-                                  title: Text(t.screenChatInfo.reactions),
-                                  trailing: Text(reactionsSummary(t, chat), style: TextStyle(color: scheme.onSurfaceVariant)),
-                                  onTap: () => Navigator.of(context).push(
-                                    FullSwipeBackRoute<void>(
-                                      builder: (_) => BlocProvider.value(
-                                        value: context.read<ChatCubit>(),
-                                        child: const ChatReactionsSettingsMaterial(),
+                                if (extras)
+                                  ListTile(
+                                    leading: HugeIcon(icon: HugeIcons.strokeRoundedSmile, color: scheme.onSurfaceVariant),
+                                    title: Text(t.screenChatInfo.reactions),
+                                    trailing: Text(reactionsSummary(t, chat), style: TextStyle(color: scheme.onSurfaceVariant)),
+                                    onTap: () => Navigator.of(context).push(
+                                      FullSwipeBackRoute<void>(
+                                        builder: (_) => BlocProvider.value(
+                                          value: context.read<ChatCubit>(),
+                                          child: const ChatReactionsSettingsMaterial(),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                if (chat.type == models.ChatType.group || chat.type == models.ChatType.community)
+                                if (extras && (chat.type == models.ChatType.group || chat.type == models.ChatType.community))
                                   ListTile(
                                     leading: HugeIcon(icon: HugeIcons.strokeRoundedTimer02, color: scheme.onSurfaceVariant),
                                     title: Text(t.screenChatInfo.slowMode),
@@ -619,7 +623,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                                   ),
                                   onTap: () => showChatAdminsMaterial(context, context.read<ChatCubit>()),
                                 ),
-                                if ((chat.type == models.ChatType.group || chat.type == models.ChatType.community) && !chat.inCommunity)
+                                if (chatInfoShowsBanned(chat, state.members))
                                   ListTile(
                                     leading: HugeIcon(icon: HugeIcons.strokeRoundedUserBlock01, color: scheme.onSurfaceVariant),
                                     title: Text(t.screenChatInfo.banned),

@@ -1085,7 +1085,10 @@ class ChatsDemoDataSource implements ChatsDataSource {
   }
 
   @override
-  Future<void> transferOwnership(String chatID, String userID) async {
+  bool get transferNeedsPassword => false;
+
+  @override
+  Future<void> transferOwnership(String chatID, String userID, {String password = ''}) async {
     final chat = _chat(chatID);
     // Владелец чата сообщества — всегда владелец сообщества: владение
     // передаётся только у всего сообщества (вместе со всеми его чатами).

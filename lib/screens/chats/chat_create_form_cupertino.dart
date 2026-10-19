@@ -360,6 +360,20 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                             ),
                           ],
                         ),
+                      // Сервер (3.2): в «Изменить» группы — и роль вступающих.
+                      if (state.basic && state.basicDefaultRole && state.isEdit && type == models.ChatType.group && !state.inCommunity)
+                        section(
+                          header: createHeaderCupertino(t.screenNewChat.defaultRoleHeader),
+                          footer: createNoteCupertino(defaultRoleFooter(t, state.defaultRole)),
+                          children: [
+                            for (final role in const [models.ChatRole.reader, models.ChatRole.writer])
+                              CupertinoListTile(
+                                title: Text(defaultRoleLabel(t, role), style: const TextStyle(fontSize: AppFontSizes.body)),
+                                trailing: state.defaultRole == role ? Icon(CupertinoIcons.checkmark_alt, color: primary) : null,
+                                onTap: () => context.read<ChatCreateCubit>().setDefaultRole(role),
+                              ),
+                          ],
+                        ),
                       if (showJoin) ...[
                         section(
                           header: createHeaderCupertino(

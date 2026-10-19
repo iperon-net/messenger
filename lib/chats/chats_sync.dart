@@ -548,7 +548,7 @@ class ChatsSync {
         await _store.transaction((tx) async {
           await tx.markChatHistoryStale(userID: user, chatID: chatID);
           await tx.upsertDialog(userID: user, dialog: diff.dialog);
-          if (diff.dialog.hasChat()) await tx.upsertGroup(userID: user, info: diff.dialog.chat, role: diff.dialog.role, resetPts: true);
+          if (diff.dialog.hasChat()) await tx.upsertGroup(userID: user, dialog: diff.dialog, resetPts: true);
         });
         _noOlder.remove(key);
         return;
@@ -744,6 +744,16 @@ class ChatsSync {
           );
           await tx.setServerDraft(userID: user, chatID: dialog.chatID, draft: dialog.draft);
         }
+        // Группа: моя роль / права / звание (назначили или сняли админа,
+        // «Чтение» ⇄ «Запись», передали владение).
+        if (dialog.type == pb.ChatType.CHAT_TYPE_GROUP && dialog.role != pb.ChatRole.CHAT_ROLE_NONE) {
+          if (dialog.hasChat()) {
+            await tx.upsertGroup(userID: user, dialog: dialog);
+          } else if (await tx.group(userID: user, chatID: dialog.chatID) != null) {
+            await tx.setGroupRole(userID: user, chatID: dialog.chatID, role: dialog.role, rights: dialog.rights, rank: dialog.rank);
+          }
+          followUps.membersChanged.add(idHex(dialog.chatID));
+        }
 
       case pb.Update_Update.dialogDeleted:
         _logger.info('chats: dialog deleted ${idHex(update.dialogDeleted.chatID)} pts=${update.pts}');
@@ -815,8 +825,13 @@ class ChatsSync {
         final group = await tx.group(userID: user, chatID: chatID);
         if (group == null) return;
         await tx.upsertGroupMembers(userID: user, chatID: chatID, members: changed.added);
+        // Роль / права / звание (админы, «Чтение» ⇄ «Запись», владение).
+        await tx.upsertGroupMembers(userID: user, chatID: chatID, members: changed.updated);
         await tx.removeGroupMembers(userID: user, chatID: chatID, memberUserIDs: changed.removedUserIDs);
-        await tx.setGroupInfo(userID: user, info: group.info.deepCopy()..membersCount = changed.membersCount);
+        // Только смена ролей (updated) может прийти без числа участников.
+        if (changed.membersCount > 0 || changed.added.isNotEmpty || changed.removedUserIDs.isNotEmpty) {
+          await tx.setGroupInfo(userID: user, info: group.info.deepCopy()..membersCount = changed.membersCount);
+        }
         followUps.membersChanged.add(idHex(chatID));
 
       case pb.Update_Update.notSet:

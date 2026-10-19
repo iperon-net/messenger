@@ -251,11 +251,11 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
     final t = context.t.screenChatInfo;
     final cubit = context.read<ChatCubit>();
     final members = cubit.state.members;
-    // Роли, исключение и админы — расширенное в группах (на сервере — 3.2).
-    final extras = cubit.features.groupExtras;
-    final manage = extras && canRestrictMember(chat, members, member);
-    final promote = extras && canPromoteMember(chat, members, member);
-    final ban = extras && canBanMember(chat, members, member);
+    // Роли, исключение и админы — демо и группы на сервере (подэтап 3.2).
+    final roles = chatRolesEnabled(cubit.features);
+    final manage = roles && canRestrictMember(chat, members, member);
+    final promote = roles && canPromoteMember(chat, members, member);
+    final ban = roles && canBanMember(chat, members, member);
     Future<bool> confirm(String title, String message, String label) async =>
         await showCupertinoDialog<bool>(
           context: context,
@@ -349,7 +349,9 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
         // панель с названием. Фон панели чуть прозрачный — контент всегда под
         // ней, и раскладка не прыгает.
         final onCover = community && _overCover;
-        final canEdit = chat != null && chat.canManage && chat.type != models.ChatType.private;
+        final canEdit = chat != null && chatInfoCanEdit(chat, state.members);
+        // Ссылки, заявки, реакции, медленный режим — демо (на сервере — 3.3–3.4).
+        final extras = context.read<ChatCubit>().features.groupExtras;
         final navBar = CupertinoNavigationBar(
           previousPageTitle: '',
           automaticBackgroundVisibility: false,
@@ -523,11 +525,14 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                   ),
                                 ),
                               if (community && chat.isMember) CommunityChatsCupertino(community: chat, chats: state.communityChats),
-                              if (chat.canManage && chat.type != models.ChatType.private && context.read<ChatCubit>().features.groupExtras)
+                              if (chat.canManage &&
+                                  chat.type != models.ChatType.private &&
+                                  chatRolesEnabled(context.read<ChatCubit>().features))
                                 _section(context, [
                                   // У чатов сообщества своих ссылок и блокировок нет —
                                   // вступают и блокируются через сообщество.
-                                  if (!chat.inCommunity)
+                                  // Ссылки, заявки, реакции и медленный режим — на сервере в 3.3–3.4.
+                                  if (extras && !chat.inCommunity)
                                     CupertinoListTileIcon(
                                       color: const Color(0xFF049A40),
                                       hugeIcon: HugeIcons.strokeRoundedLink01,
@@ -535,7 +540,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                       isTrailing: true,
                                       onTab: () => showChatInviteLinksCupertino(context, chat.id),
                                     ),
-                                  if (!chat.inCommunity || chat.joinMode == models.ChatJoinMode.request)
+                                  if (extras && (!chat.inCommunity || chat.joinMode == models.ChatJoinMode.request))
                                     CupertinoListTileIcon(
                                       color: const Color(0xFF1368E6),
                                       hugeIcon: HugeIcons.strokeRoundedUserAdd01,
@@ -558,22 +563,23 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                       isTrailing: true,
                                       onTab: () => showChatJoinRequestsCupertino(context, chat.id),
                                     ),
-                                  CupertinoListTileIcon(
-                                    color: const Color(0xFFFF9500),
-                                    hugeIcon: HugeIcons.strokeRoundedSmile,
-                                    title: Text(t.screenChatInfo.reactions),
-                                    additionalInfo: Text(reactionsSummary(t, chat)),
-                                    isTrailing: true,
-                                    onTab: () => Navigator.of(context).push(
-                                      FullSwipeBackRoute<void>(
-                                        builder: (_) => BlocProvider.value(
-                                          value: context.read<ChatCubit>(),
-                                          child: const ChatReactionsSettingsCupertino(),
+                                  if (extras)
+                                    CupertinoListTileIcon(
+                                      color: const Color(0xFFFF9500),
+                                      hugeIcon: HugeIcons.strokeRoundedSmile,
+                                      title: Text(t.screenChatInfo.reactions),
+                                      additionalInfo: Text(reactionsSummary(t, chat)),
+                                      isTrailing: true,
+                                      onTab: () => Navigator.of(context).push(
+                                        FullSwipeBackRoute<void>(
+                                          builder: (_) => BlocProvider.value(
+                                            value: context.read<ChatCubit>(),
+                                            child: const ChatReactionsSettingsCupertino(),
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  if (chat.type == models.ChatType.group || chat.type == models.ChatType.community)
+                                  if (extras && (chat.type == models.ChatType.group || chat.type == models.ChatType.community))
                                     CupertinoListTileIcon(
                                       color: const Color(0xFF34AADC),
                                       hugeIcon: HugeIcons.strokeRoundedTimer02,
@@ -599,7 +605,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                                     isTrailing: true,
                                     onTab: () => showChatAdminsCupertino(context, context.read<ChatCubit>()),
                                   ),
-                                  if ((chat.type == models.ChatType.group || chat.type == models.ChatType.community) && !chat.inCommunity)
+                                  if (chatInfoShowsBanned(chat, state.members))
                                     CupertinoListTileIcon(
                                       color: const Color(0xFFFF3B30),
                                       hugeIcon: HugeIcons.strokeRoundedUserBlock01,

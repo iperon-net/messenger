@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -9,6 +11,8 @@ import 'chats_new_cupertino.dart';
 
 /// «Заблокированные» (iOS) — профиль группы → админ.
 Future<void> showChatBannedCupertino(BuildContext context, ChatCubit cubit) {
+  // Список — только с сервера: освежаем при открытии (без сети — пометка).
+  unawaited(cubit.loadMembers());
   return Navigator.of(context).push<void>(
     FullSwipeBackRoute(
       builder: (_) => BlocProvider.value(value: cubit, child: const ChatBannedCupertino()),
@@ -42,7 +46,7 @@ class ChatBannedCupertino extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(32, 40, 32, 8),
                     child: Text(
-                      t.screenChatInfo.bannedEmpty,
+                      state.bannedLoadFailed ? t.screenChatInfo.bannedLoadFailed : t.screenChatInfo.bannedEmpty,
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: AppFontSizes.body, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
                     ),

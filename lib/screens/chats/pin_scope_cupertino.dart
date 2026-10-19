@@ -8,14 +8,23 @@ import '../../models.dart' as models;
 /// иначе закреп сразу (в «Избранном» — у себя), открепление — с
 /// подтверждением. Открепление закреплённого только у меня ([shared] —
 /// false; у «Открепить все» — ни одного общего) — сразу, без выбора.
+/// Группа: у всех — только с правом [canForAll] (иначе только у себя).
 /// Результат — forEveryone, `null` — отмена.
-Future<bool?> askPinScopeCupertino(BuildContext context, models.Chat chat, {required bool pin, int? allCount, bool shared = true}) async {
+Future<bool?> askPinScopeCupertino(
+  BuildContext context,
+  models.Chat chat, {
+  required bool pin,
+  int? allCount,
+  bool shared = true,
+  bool canForAll = true,
+}) async {
   final t = context.t.screenChat;
   final private = chat.type == models.ChatType.private && !chat.isSelf;
-  if (pin && !private) return !chat.isSelf;
+  final group = chat.type == models.ChatType.group;
+  if (pin && !private) return !chat.isSelf && (!group || canForAll);
   if (!pin && private && !shared) return false;
   final title = pin ? t.pinTitle : (allCount != null ? t.unpinAllTitle : t.unpinTitle);
-  return showCupertinoDialog<bool>(
+  final confirmed = await showCupertinoDialog<bool>(
     context: context,
     builder: (dialogContext) => CupertinoAlertDialog(
       title: Text(title),
@@ -38,4 +47,7 @@ Future<bool?> askPinScopeCupertino(BuildContext context, models.Chat chat, {requ
       ],
     ),
   );
+  // Группа: общий закреп снимается у всех (с правом), свой — только у себя.
+  if (confirmed == null || !group) return confirmed;
+  return shared && canForAll;
 }

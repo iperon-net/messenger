@@ -527,6 +527,12 @@ class _Translations$screenChatAdmins$ru extends Translations$screenChatAdmins$en
 	@override String get transfer => 'Передать владение';
 	@override String transferTitle({required Object name}) => 'Передать владение ${name}?';
 	@override String transferMessage({required Object name}) => '${name} станет владельцем, а вы — админом со всеми правами. Отменить это сможет только новый владелец.';
+	@override String get transferPasswordTitle => 'Облачный пароль';
+	@override String get transferPasswordMessage => 'Введите облачный пароль, чтобы передать владение.';
+	@override String get passwordHint => 'Пароль';
+	@override String get cloudPasswordRequiredTitle => 'Нужен облачный пароль';
+	@override String get cloudPasswordRequiredMessage => 'Передать владение можно только с облачным паролем. Сначала включите его в настройках конфиденциальности.';
+	@override String get cloudPasswordSetup => 'Включить';
 	@override String get pickMember => 'Выберите участника';
 	@override String get noCandidates => 'Некого назначить — все участники уже админы.';
 }
@@ -712,6 +718,7 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String floodWait({required Object time}) => 'Вы отправляете сообщения слишком часто. Следующее можно отправить через ${time}.';
 	@override String floodNewChats({required Object time}) => 'Вы начинаете новые чаты слишком часто. Попробуйте через ${time}.';
 	@override String get privacyRestricted => 'Вы не можете написать в этот чат.';
+	@override String get readOnly => 'Только чтение: писать в эту группу нельзя.';
 	@override String get blockedNote => 'Вы заблокировали этого пользователя';
 	@override String get unblock => 'Разблокировать';
 	@override String get retrySend => 'Отправить ещё раз';
@@ -970,6 +977,7 @@ class _Translations$screenChatInfo$ru extends Translations$screenChatInfo$en {
 	@override String get banned => 'Заблокированные';
 	@override String get bannedEmpty => 'Заблокированных нет';
 	@override String get bannedFooter => 'Заблокированные не могут вступить по ссылкам-приглашениям. Если добавить вручную — блокировка снимется.';
+	@override String get bannedLoadFailed => 'Не удалось загрузить список: нет соединения.';
 	@override String get unban => 'Разблокировать';
 	@override String get reactions => 'Реакции';
 	@override String get reactionsAll => 'Все реакции';
@@ -1644,6 +1652,14 @@ class _Translations$chatAction$ru extends Translations$chatAction$en {
 	@override String get failed => 'Не удалось выполнить действие. Попробуйте ещё раз.';
 	@override String get titleInvalid => 'Название группы — от 1 до 128 символов.';
 	@override String get groupsDisabled => 'Группы сейчас недоступны.';
+	@override String ownerYou({required Object names}) => 'Вы передали владение группой: ${names}';
+	@override String owner({required Object name, required Object names}) => '${name} передал(а) владение группой: ${names}';
+	@override String get rightsTooWide => 'Нельзя выдать права, которых нет у вас.';
+	@override String get rankInvalid => 'Звание — не длиннее 16 символов.';
+	@override String get membersLimit => 'В группе уже максимальное число участников.';
+	@override String get chatWriteForbidden => 'В этой группе вы можете только читать.';
+	@override String get passwordInvalid => 'Неверный облачный пароль.';
+	@override String get permissionDenied => 'Недостаточно прав для этого действия.';
 }
 
 // Path: chatTtl
@@ -2144,6 +2160,12 @@ extension on TranslationsRu {
 			'screenChatAdmins.transfer' => 'Передать владение',
 			'screenChatAdmins.transferTitle' => ({required Object name}) => 'Передать владение ${name}?',
 			'screenChatAdmins.transferMessage' => ({required Object name}) => '${name} станет владельцем, а вы — админом со всеми правами. Отменить это сможет только новый владелец.',
+			'screenChatAdmins.transferPasswordTitle' => 'Облачный пароль',
+			'screenChatAdmins.transferPasswordMessage' => 'Введите облачный пароль, чтобы передать владение.',
+			'screenChatAdmins.passwordHint' => 'Пароль',
+			'screenChatAdmins.cloudPasswordRequiredTitle' => 'Нужен облачный пароль',
+			'screenChatAdmins.cloudPasswordRequiredMessage' => 'Передать владение можно только с облачным паролем. Сначала включите его в настройках конфиденциальности.',
+			'screenChatAdmins.cloudPasswordSetup' => 'Включить',
 			'screenChatAdmins.pickMember' => 'Выберите участника',
 			'screenChatAdmins.noCandidates' => 'Некого назначить — все участники уже админы.',
 			'screenPoll.newPoll' => 'Новый опрос',
@@ -2286,6 +2308,7 @@ extension on TranslationsRu {
 			'screenChat.floodWait' => ({required Object time}) => 'Вы отправляете сообщения слишком часто. Следующее можно отправить через ${time}.',
 			'screenChat.floodNewChats' => ({required Object time}) => 'Вы начинаете новые чаты слишком часто. Попробуйте через ${time}.',
 			'screenChat.privacyRestricted' => 'Вы не можете написать в этот чат.',
+			'screenChat.readOnly' => 'Только чтение: писать в эту группу нельзя.',
 			'screenChat.blockedNote' => 'Вы заблокировали этого пользователя',
 			'screenChat.unblock' => 'Разблокировать',
 			'screenChat.retrySend' => 'Отправить ещё раз',
@@ -2306,6 +2329,8 @@ extension on TranslationsRu {
 			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Переслать ${n} сообщение', few: 'Переслать ${n} сообщения', many: 'Переслать ${n} сообщений', other: 'Переслать ${n} сообщения', ), 
 			'screenChat.deleteSelectedTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Удалить ${n} сообщение?', few: 'Удалить ${n} сообщения?', many: 'Удалить ${n} сообщений?', other: 'Удалить ${n} сообщения?', ), 
 			'screenChat.deleteSelectedMessage' => 'Сообщения будут удалены у всех участников чата.',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.deleteMessageSelf' => 'Сообщение будет удалено из «Избранного».',
 			'screenChat.deleteSelectedMessageSelf' => 'Сообщения будут удалены из «Избранного».',
 			'screenChat.voiceSlideToCancel' => 'Влево — отмена',
@@ -2313,8 +2338,6 @@ extension on TranslationsRu {
 			'screenChat.micDeniedTitle' => 'Нет доступа к микрофону',
 			'screenChat.micDeniedMessage' => 'Разрешите доступ к микрофону в настройках, чтобы записывать голосовые сообщения.',
 			'screenChat.openSettings' => 'Настройки',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.hideWithSpoiler' => 'Скрыть под спойлер',
 			'screenChat.removeSpoiler' => 'Убрать спойлер',
 			'screenChat.videoHdOn' => 'Видео в HD: 1080p',
@@ -2486,6 +2509,7 @@ extension on TranslationsRu {
 			'screenChatInfo.banned' => 'Заблокированные',
 			'screenChatInfo.bannedEmpty' => 'Заблокированных нет',
 			'screenChatInfo.bannedFooter' => 'Заблокированные не могут вступить по ссылкам-приглашениям. Если добавить вручную — блокировка снимется.',
+			'screenChatInfo.bannedLoadFailed' => 'Не удалось загрузить список: нет соединения.',
 			'screenChatInfo.unban' => 'Разблокировать',
 			'screenChatInfo.reactions' => 'Реакции',
 			'screenChatInfo.reactionsAll' => 'Все реакции',
@@ -2819,6 +2843,8 @@ extension on TranslationsRu {
 			'screenAuth.enterYourMobilePhoneNumber' => 'Введите номер мобильного телефона',
 			'screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators' => 'Сейчас мы поддерживаем только номера российских мобильных операторов',
 			'screenAuth.insertDebugPhone' => 'Вставить тестовый номер',
+			_ => null,
+		} ?? switch (path) {
 			'screenAuth.callForFree' => 'Позвонить бесплатно',
 			'screenAuth.weAreExpectingYourCallWithin' => ({required Object duration}) => 'Мы ждём вашего звонка в течение ${duration}',
 			'screenAuth.signInWith' => 'Войти через',
@@ -2827,8 +2853,6 @@ extension on TranslationsRu {
 			'screenAuthModerationApplicationStore.verificationCodeMismatch' => 'Неверный код подтверждения',
 			'screenAuthModerationApplicationStore.moderationApplicationStoreSessionNotFound' => 'Сессия не найдена',
 			'screenAuthModerationApplicationStore.invalidPublicSharedKey' => 'Неверный публичный общий ключ',
-			_ => null,
-		} ?? switch (path) {
 			'screenAuthModerationApplicationStore.invalidPublicSaltKey' => 'Неверный публичный ключ соли',
 			'screenAuthModerationApplicationStore.enterTheCode' => 'Введите код',
 			'screenAuthModerationApplicationStore.sentConfirmationCodeToNumber' => ({required Object phoneNumber}) => 'Мы отправили код подтверждения на номер ${phoneNumber}',
@@ -2944,6 +2968,14 @@ extension on TranslationsRu {
 			'chatAction.failed' => 'Не удалось выполнить действие. Попробуйте ещё раз.',
 			'chatAction.titleInvalid' => 'Название группы — от 1 до 128 символов.',
 			'chatAction.groupsDisabled' => 'Группы сейчас недоступны.',
+			'chatAction.ownerYou' => ({required Object names}) => 'Вы передали владение группой: ${names}',
+			'chatAction.owner' => ({required Object name, required Object names}) => '${name} передал(а) владение группой: ${names}',
+			'chatAction.rightsTooWide' => 'Нельзя выдать права, которых нет у вас.',
+			'chatAction.rankInvalid' => 'Звание — не длиннее 16 символов.',
+			'chatAction.membersLimit' => 'В группе уже максимальное число участников.',
+			'chatAction.chatWriteForbidden' => 'В этой группе вы можете только читать.',
+			'chatAction.passwordInvalid' => 'Неверный облачный пароль.',
+			'chatAction.permissionDenied' => 'Недостаточно прав для этого действия.',
 			'chatTtl.title' => 'Автоудаление',
 			'chatTtl.titleLong' => 'Автоудаление сообщений',
 			'chatTtl.off' => 'Выкл',

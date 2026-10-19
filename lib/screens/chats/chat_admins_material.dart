@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../components.dart';
 import '../../cubit.dart';
@@ -240,8 +241,15 @@ class _ChatAdminRightsMaterial extends State<ChatAdminRightsMaterial> {
   Future<void> _save() async {
     if (_saving) return;
     setState(() => _saving = true);
-    await context.read<ChatCubit>().setAdmin(widget.member, _rights, _rankController.text);
-    if (mounted) Navigator.of(context).pop();
+    // Не сохранилось (нет сети, отказ сервера — объяснит окно чата) —
+    // остаёмся на экране.
+    final saved = await context.read<ChatCubit>().setAdmin(widget.member, _rights, _rankController.text);
+    if (!mounted) return;
+    if (saved) {
+      Navigator.of(context).pop();
+    } else {
+      setState(() => _saving = false);
+    }
   }
 
   Future<void> _dismiss() async {
@@ -253,8 +261,7 @@ class _ChatAdminRightsMaterial extends State<ChatAdminRightsMaterial> {
         ? await _confirm(t.dismissModeratorTitle(name: name), t.dismissModeratorMessage, t.dismissModerator)
         : await _confirm(t.dismissTitle(name: name), t.dismissMessage, t.dismiss);
     if (!confirmed) return;
-    await cubit.removeAdmin(widget.member);
-    if (mounted) Navigator.of(context).pop();
+    if (await cubit.removeAdmin(widget.member) && mounted) Navigator.of(context).pop();
   }
 
   Future<void> _transfer() async {
@@ -262,8 +269,79 @@ class _ChatAdminRightsMaterial extends State<ChatAdminRightsMaterial> {
     final cubit = context.read<ChatCubit>();
     final name = widget.member.name;
     if (!await _confirm(t.transferTitle(name: name), t.transferMessage(name: name), t.transfer)) return;
-    await cubit.transferOwnership(widget.member);
-    if (mounted) Navigator.of(context).pop();
+    // Сервер подтверждает облачным паролем (демо — без пароля).
+    var password = '';
+    if (cubit.transferNeedsPassword) {
+      password = await _askPassword() ?? '';
+      if (password.isEmpty) return;
+    }
+    final result = await cubit.transferOwnership(widget.member, password: password);
+    if (!mounted) return;
+    switch (result) {
+      case ChatTransferResult.done:
+        Navigator.of(context).pop();
+      case ChatTransferResult.passwordRequired:
+        await _passwordRequired();
+      case ChatTransferResult.failed:
+        // Нет сети / неверный пароль — объяснит окно чата.
+        break;
+    }
+  }
+
+  /// Облачный пароль для передачи владения; `null` — отмена.
+  Future<String?> _askPassword() async {
+    final t = context.t.screenChatAdmins;
+    final controller = TextEditingController();
+    final password = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.transferPasswordTitle),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(t.transferPasswordMessage),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              obscureText: true,
+              autofocus: true,
+              autocorrect: false,
+              enableSuggestions: false,
+              decoration: InputDecoration(labelText: t.passwordHint, floatingLabelBehavior: FloatingLabelBehavior.always),
+              onSubmitted: (value) => Navigator.of(dialogContext).pop(value),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.cancel)),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Theme.of(dialogContext).colorScheme.error),
+            onPressed: () => Navigator.of(dialogContext).pop(controller.text),
+            child: Text(t.transfer),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return password == null || password.isEmpty ? null : password;
+  }
+
+  /// Облачного пароля нет — предложить включить (настройки конфиденциальности).
+  Future<void> _passwordRequired() async {
+    final t = context.t.screenChatAdmins;
+    final setup = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.cloudPasswordRequiredTitle),
+        content: Text(t.cloudPasswordRequiredMessage),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.cloudPasswordSetup)),
+        ],
+      ),
+    );
+    if ((setup ?? false) && mounted) await context.push('/settings/privacy_and_security/cloud_password');
   }
 
   @override
@@ -279,7 +357,8 @@ class _ChatAdminRightsMaterial extends State<ChatAdminRightsMaterial> {
         final owner = chat.myRole == models.ChatRole.owner;
         // Владелец чата сообщества — всегда владелец сообщества: владение
         // передаётся только у всего сообщества.
-        final canTransfer = owner && !chat.inCommunity;
+        final canTransfer = owner && !chat.inCommunity && canTransferOwnership(chat, widget.member);
+        final canDismiss = canRemoveAdmin(chat, state.members, widget.member);
         final status = contactStatus(t, widget.member);
         return Scaffold(
           backgroundColor: scheme.surfaceContainerLow,
@@ -345,7 +424,7 @@ class _ChatAdminRightsMaterial extends State<ChatAdminRightsMaterial> {
                   ),
                 ]),
                 createNoteMaterial(context, tc.rankFooter),
-                if (_isAdmin || canTransfer) ...[
+                if (canDismiss || canTransfer) ...[
                   const SizedBox(height: 8),
                   _card([
                     if (canTransfer)
@@ -353,7 +432,7 @@ class _ChatAdminRightsMaterial extends State<ChatAdminRightsMaterial> {
                         title: Text(tc.transfer, style: TextStyle(color: scheme.error)),
                         onTap: _transfer,
                       ),
-                    if (_isAdmin)
+                    if (canDismiss)
                       ListTile(
                         title: Text(chat.inCommunity ? tc.dismissModerator : tc.dismiss, style: TextStyle(color: scheme.error)),
                         onTap: _dismiss,

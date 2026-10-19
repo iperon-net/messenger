@@ -123,11 +123,15 @@ class ChatCreateState with ChatCreateStateMappable {
   /// описание — без ссылок, способа вступления, ролей и настроек.
   final bool basic;
 
+  /// В [basic]-форме «Изменить» группы есть и роль вступающих (подэтап 3.2).
+  final bool basicDefaultRole;
+
   const ChatCreateState({
     this.restrictedCount = 0,
     this.failNotice = 0,
     this.failError = '',
     this.basic = false,
+    this.basicDefaultRole = false,
     this.status = Status.initialization,
     this.offlineNotice = 0,
     this.floodNotice = 0,

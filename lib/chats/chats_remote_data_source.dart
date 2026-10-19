@@ -10,6 +10,7 @@ import 'package:path/path.dart' as p;
 import '../api.dart';
 import '../auth.dart';
 import '../cdn.dart';
+import '../crypto/cloud_password.dart';
 import '../di.dart';
 import '../utils.dart';
 import '../logger.dart';
@@ -43,8 +44,9 @@ import 'read_receipts.dart';
 ///
 /// Группы — срез 3.1 (флаг «Группы», docs/plans/chats-groups.md): создать,
 /// переписка, служебные, «Изменить» (название, описание, фото), участники,
-/// выйти / удалить. Роли и права, ссылки, заявки, баны, реакции групп,
-/// каналы, сообщества, опросы — следующие срезы: их действия бросают
+/// выйти / удалить; 3.2 — роли и права админа, исключение и блокировка,
+/// передача владения, роль по умолчанию, закреп у всех. Ссылки, заявки,
+/// реакции групп, каналы, сообщества, опросы — следующие срезы: их действия бросают
 /// [UnsupportedError], а то, что экраны читают при открытии любого чата
 /// (ссылки, заявки), отдаёт пустое.
 class ChatsRemoteDataSource implements ChatsDataSource {
@@ -89,9 +91,15 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   static Never _unsupported(String what) => throw UnsupportedError('$what — пока только в демо (личные чаты — первый срез)');
 
   /// Закреплённые, реакции, пересылка и отложенные — есть; группы — по флагу
-  /// «Группы», без расширенного (роли, реакции, закреп у всех — 3.2–3.4).
+  /// «Группы», с ролями и правами (3.2), без расширенного (ссылки, реакции,
+  /// опросы … — 3.3–3.4).
   @override
-  ChatsFeatures get features => ChatsFeatures(reactions: true, pinnedMessages: true, forward: true, scheduled: true, groups: _sync.groups);
+  ChatsFeatures get features =>
+      ChatsFeatures(reactions: true, pinnedMessages: true, forward: true, scheduled: true, groups: _sync.groups, groupRoles: true);
+
+  /// Передачу владения сервер подтверждает облачным паролем.
+  @override
+  bool get transferNeedsPassword => true;
 
   // --- список чатов ---
 
@@ -304,7 +312,10 @@ class ChatsRemoteDataSource implements ChatsDataSource {
             avatarPath: await _groupAvatar(group.info),
             membersCount: group.info.membersCount,
             myRole: roleFromPb(group.role),
-            defaultRole: models.ChatRole.writer,
+            // Права — у админа (владельцу — все, см. myChatRights).
+            myRights: rightsFromPb(group.rights),
+            myRank: group.rank,
+            defaultRole: roleFromPb(group.info.defaultRole),
             // Ссылок-приглашений в 3.1 нет — добавляют участники.
             joinMode: models.ChatJoinMode.admins,
             lastMessage: lastMessage,
@@ -821,13 +832,16 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final chat = idBytes(chatID);
     final group = await _store.group(userID: _sync.me, chatID: chat);
     if (group == null) _unsupported('Каналы и сообщества');
-    // В 3.1 меняются название, описание и фото; остальное — следующие срезы.
+    // Меняются название, описание, фото и роль вступающих (3.2); остальное —
+    // следующие срезы.
     final info = group.info;
     final currentAvatar = await _avatarPath(info.avatarCdnID);
     final avatarChanged = avatarPath != currentAvatar && !(avatarPath.isEmpty && info.avatarCdnID.isEmpty);
     final titleChanged = title != info.title;
     final aboutChanged = about != info.about;
-    if (!titleChanged && !aboutChanged && !avatarChanged) return;
+    final roleChanged =
+        (defaultRole == models.ChatRole.reader || defaultRole == models.ChatRole.writer) && defaultRole != roleFromPb(info.defaultRole);
+    if (!titleChanged && !aboutChanged && !avatarChanged && !roleChanged) return;
     await _requireNetwork();
     final avatar = !avatarChanged ? null : (avatarPath.isEmpty ? Uint8List(0) : await _uploadChatAvatar(avatarPath));
     final response = await _sync.chats(
@@ -837,6 +851,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           title: titleChanged ? title : null,
           about: aboutChanged ? about : null,
           avatarCdnID: avatar,
+          defaultRole: roleChanged ? roleToPb(defaultRole) : null,
         ),
       ),
     );
@@ -943,6 +958,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           name: sameID(r.userID, me) ? t.screenChat.you : peers.of(r.userID).title,
           username: peers.of(r.userID).profile?.username ?? '',
           role: roleFromPb(r.role),
+          rights: rightsFromPb(r.rights),
+          rank: r.rank,
           isSelf: sameID(r.userID, me),
           online: !sameID(r.userID, me) && ChatsPresence.instance.isOnline(idHex(r.userID)),
           lastSeen: peers.of(r.userID).profile?.lastSeenAt,
@@ -972,7 +989,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
 
     if (query.trim().isNotEmpty || !await _sync.hasNetwork()) return cached();
     try {
-      final before = {for (final r in await _store.groupMembers(userID: me, chatID: chat)) '${idHex(r.userID)}:${r.role.value}'};
+      final before = {for (final r in await _store.groupMembers(userID: me, chatID: chat)) _memberKey(r)};
       final response = await _sync.chats(
         pb.Chats_Request(
           members: pb.Chats_Members(chatID: chat, offset: cursor.isEmpty ? null : base64Decode(cursor), limit: limit),
@@ -990,18 +1007,10 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           await tx.upsertGroupMembers(userID: me, chatID: chat, members: page.members);
         }
       });
-      final after = {for (final r in await _store.groupMembers(userID: me, chatID: chat)) '${idHex(r.userID)}:${r.role.value}'};
+      final after = {for (final r in await _store.groupMembers(userID: me, chatID: chat)) _memberKey(r)};
       // Кэш известных изменился — «известные» ([members]) перечитаются.
       if (!setEquals(before, after)) _sync.notifyMembersChanged(chatID);
-      final rows = [
-        for (final m in page.members)
-          ChatGroupMemberRow(
-            userID: Uint8List.fromList(m.userID),
-            role: m.role,
-            joinedAt: m.joinedAt.toInt(),
-            inviterUserID: m.inviterUserID.isEmpty ? null : Uint8List.fromList(m.inviterUserID),
-          ),
-      ];
+      final rows = [for (final m in page.members) ChatGroupMemberRow.fromPb(m)];
       return ChatMembersPage(
         members: await _membersFrom(rows),
         nextCursor: page.nextOffset.isEmpty ? '' : base64Encode(page.nextOffset),
@@ -1015,23 +1024,94 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     }
   }
 
+  /// Что в участнике видно в списках: роль, права, звание.
+  static String _memberKey(ChatGroupMemberRow r) => '${idHex(r.userID)}:${r.role.value}:${idHex(r.rights.writeToBuffer())}:${r.rank}';
+
   @override
   Stream<void> watchMembersChanged(String chatID) => _sync.membersChanged.where((id) => id == chatID).map((_) {});
 
-  @override
-  Future<void> setMemberRole(String chatID, String userID, models.ChatRole role) async => _unsupported('Участники групп');
+  /// Действие над участником группы на сервере: без сети —
+  /// [ChatsOfflineException], отказ (нет права, «rightsTooWide» …) —
+  /// `ChatsRequestException`; обновления ответа — в кэш сразу.
+  Future<void> _memberAction(pb.Chats_Request request, pb.Updates Function(pb.Chats_Response response) updates) async {
+    await _requireNetwork();
+    final response = await _sync.chats(request);
+    await _sync.applyUpdates(updates(response));
+  }
 
   @override
-  Future<void> removeMember(String chatID, String userID, {bool ban = false}) async => _unsupported('Участники групп');
+  Future<void> setMemberRole(String chatID, String userID, models.ChatRole role) => _memberAction(
+    pb.Chats_Request(
+      setMemberRole: pb.Chats_SetMemberRole(chatID: idBytes(chatID), userID: idBytes(userID), role: roleToPb(role)),
+    ),
+    (response) => response.setMemberRole.updates,
+  );
 
   @override
-  Future<List<models.ChatMember>> banned(String chatID) async => const [];
+  Future<void> removeMember(String chatID, String userID, {bool ban = false}) => _memberAction(
+    pb.Chats_Request(
+      removeMember: pb.Chats_RemoveMember(chatID: idBytes(chatID), userID: idBytes(userID), ban: ban),
+    ),
+    (response) => response.removeMember.updates,
+  );
+
+  /// Сколько заблокированных читать за раз и сколько страниц максимум.
+  static const _bannedPage = 100;
+  static const _bannedPages = 20;
+
+  /// «Заблокированные» — только с сервера (список для админа, без кэша): без
+  /// сети — [ChatsOfflineException], экран покажет, что не загрузилось.
+  @override
+  Future<List<models.ChatMember>> banned(String chatID) async {
+    await _requireNetwork();
+    final chat = idBytes(chatID);
+    final api = getIt.get<API>();
+    final rows = <pb.ChatBannedMember>[];
+    var offset = <int>[];
+    for (var page = 0; page < _bannedPages; page++) {
+      final response = await _sync.chats(
+        pb.Chats_Request(
+          banned: pb.Chats_Banned(chatID: chat, offset: offset.isEmpty ? null : offset, limit: _bannedPage),
+        ),
+      );
+      final result = response.banned;
+      for (final profile in result.profiles) {
+        await api.cacheProfile(profile, waitAvatar: false);
+      }
+      rows.addAll(result.banned);
+      if (result.nextOffset.isEmpty) break;
+      offset = result.nextOffset;
+    }
+    if (rows.isEmpty) return const [];
+    final peers = _Peers(await _loadPeers([for (final r in rows) Uint8List.fromList(r.userID)]));
+    return [
+      for (final r in rows)
+        models.ChatMember(
+          id: idHex(r.userID),
+          name: peers.of(r.userID).title,
+          username: peers.of(r.userID).profile?.username ?? '',
+          role: models.ChatRole.reader,
+          lastSeen: peers.of(r.userID).profile?.lastSeenAt,
+        ),
+    ];
+  }
 
   @override
-  Future<void> unbanMember(String chatID, String userID) async => _unsupported('Участники групп');
+  Future<void> unbanMember(String chatID, String userID) async {
+    await _requireNetwork();
+    await _sync.chats(
+      pb.Chats_Request(
+        unban: pb.Chats_Unban(chatID: idBytes(chatID), userID: idBytes(userID)),
+      ),
+    );
+    // Журнала у списка нет — экраны перечитают «Заблокированные».
+    _sync.notifyMembersChanged(chatID);
+  }
 
-  /// Любой участник (права — 3.2). Кому нельзя по приватности — сервер
-  /// пропускает, а мы сообщаем ([ChatsMembersRestrictedException]).
+  /// Любой участник (способы вступления — 3.3). Кому нельзя по приватности
+  /// (и заблокированных в группе — без права блокировать) сервер пропускает,
+  /// а мы сообщаем ([ChatsMembersRestrictedException]); группа заполнена —
+  /// `ChatsRequestException` «membersLimit».
   @override
   Future<void> addMembers(String chatID, List<String> userIDs) async {
     final ids = [
@@ -1051,14 +1131,33 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   }
 
   @override
-  Future<void> setAdmin(String chatID, String userID, {required models.ChatAdminRights rights, String rank = ''}) async =>
-      _unsupported('Админы групп');
+  Future<void> setAdmin(String chatID, String userID, {required models.ChatAdminRights rights, String rank = ''}) => _memberAction(
+    pb.Chats_Request(
+      setAdmin: pb.Chats_SetAdmin(chatID: idBytes(chatID), userID: idBytes(userID), rights: rightsToPb(rights), rank: rank),
+    ),
+    (response) => response.setAdmin.updates,
+  );
 
   @override
-  Future<void> removeAdmin(String chatID, String userID) async => _unsupported('Админы групп');
+  Future<void> removeAdmin(String chatID, String userID) => _memberAction(
+    pb.Chats_Request(
+      removeAdmin: pb.Chats_RemoveAdmin(chatID: idBytes(chatID), userID: idBytes(userID)),
+    ),
+    (response) => response.removeAdmin.updates,
+  );
 
+  /// Пароль уходит pre-hash'ем, как в CloudPasswordVerify ([cloudPasswordHash]).
   @override
-  Future<void> transferOwnership(String chatID, String userID) async => _unsupported('Передача владения');
+  Future<void> transferOwnership(String chatID, String userID, {String password = ''}) async {
+    await _requireNetwork();
+    final pwHash = password.isEmpty ? Uint8List(0) : await cloudPasswordHash(password);
+    await _memberAction(
+      pb.Chats_Request(
+        transferOwnership: pb.Chats_TransferOwnership(chatID: idBytes(chatID), userID: idBytes(userID), pwHash: pwHash),
+      ),
+      (response) => response.transferOwnership.updates,
+    );
+  }
 
   @override
   Future<void> setChatReactions(String chatID, models.ChatReactionsMode mode, List<String> reactions, {int? maxReactions}) async =>

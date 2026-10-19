@@ -9,9 +9,14 @@ part 'chat_state.mapper.dart';
 /// канал «только подписчики», а мы не подписаны, или подписаны меньше
 /// `Chat.commentsMinSubscription`; [privacy] — личный чат, собеседник
 /// ограничил, кто может ему писать; [blocked] — личный чат, собеседник у меня
-/// в «Заблокированных» (вместо поля ввода — «Разблокировать»).
+/// в «Заблокированных» (вместо поля ввода — «Разблокировать»); [readOnly] —
+/// группа, наша роль «Чтение» (READER).
 @MappableEnum()
-enum ChatCommentsBlock { none, closed, subscribe, wait, privacy, blocked }
+enum ChatCommentsBlock { none, closed, subscribe, wait, privacy, blocked, readOnly }
+
+/// Чем кончилась передача владения: [passwordRequired] — у нас нет облачного
+/// пароля (сервер «cloudPasswordRequired»): экран предлагает его включить.
+enum ChatTransferResult { done, failed, passwordRequired }
 
 /// Состояние окна чата: сам чат (шапка, «печатает…»), его сообщения и режим
 /// поля ввода (ответ / редактирование).
@@ -97,6 +102,10 @@ class ChatState with ChatStateMappable {
   /// Заблокированные в группе — для админа (профиль → «Заблокированные»).
   final List<models.ChatMember> banned;
 
+  /// «Заблокированные» не загрузились (нет сети): экран говорит об этом, а не
+  /// показывает пустой список как настоящий.
+  final bool bannedLoadFailed;
+
   /// Медленный режим: секунд до следующего сообщения (0 — можно отправлять);
   /// тикает раз в секунду, вместо кнопки отправки — обратный отсчёт.
   final int slowModeLeft;
@@ -170,6 +179,7 @@ class ChatState with ChatStateMappable {
     this.membersTotal = 0,
     this.memberQuery = '',
     this.banned = const [],
+    this.bannedLoadFailed = false,
     this.slowModeLeft = 0,
     this.floodLeft = 0,
     this.commentsClosedIDs = const [],

@@ -8,12 +8,15 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../calls.dart';
 import '../../chats/chats_data_source.dart';
 import '../../chats/chats_mapping.dart';
+import '../../chats/group_rights.dart';
 import '../../chats/message_formatting.dart';
 import '../../chats/reactions.dart';
 import '../../components.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+
+export '../../chats/group_rights.dart';
 
 /// Общее для профиля чата (`chat_info_{cupertino,material}.dart`): вкладки
 /// «Участники / Медиа / Файлы / Ссылки / Голосовые», присутствие собеседника,
@@ -62,6 +65,20 @@ bool chatInfoDeletes(models.Chat chat) =>
 /// — любой участник.
 bool canAddMembers(models.Chat chat, ChatsFeatures features) =>
     chat.canManage || (!features.groupExtras && chat.type == models.ChatType.group && chat.isMember);
+
+/// «Изменить» в профиле чата: админ / владелец; в группе с известными правами
+/// (сервер) — право менять сведения (changeInfo).
+bool chatInfoCanEdit(models.Chat chat, List<models.ChatMember> members) =>
+    chat.type != models.ChatType.private && chat.canManage && (chat.myRights == null || canEditChatInfo(chat, members));
+
+/// Роли участников, админы и блокировки доступны в этом чате (демо — всё; в
+/// группе на сервере — подэтап 3.2).
+bool chatRolesEnabled(ChatsFeatures features) => features.groupExtras || features.groupRoles;
+
+/// «Заблокированные» в профиле: у групп и сообществ (не их чатов) — с правом
+/// блокировать.
+bool chatInfoShowsBanned(models.Chat chat, List<models.ChatMember> members) =>
+    (chat.type == models.ChatType.group || chat.type == models.ChatType.community) && !chat.inCommunity && canUnbanMembers(chat, members);
 
 /// «Удалить чат» / «Покинуть группу / канал / сообщество» / «Удалить группу…».
 String chatLeaveLabel(Translations t, models.Chat chat) => switch (chat.type) {
@@ -206,31 +223,6 @@ String? chatRoleLabel(Translations t, models.ChatRole role) => switch (role) {
   models.ChatRole.reader => t.screenChatInfo.roleReader,
   models.ChatRole.writer => null,
 };
-
-/// Наши права в чате: владелец — все, админ — по участнику «Вы».
-models.ChatAdminRights myChatRights(models.Chat chat, List<models.ChatMember> members) {
-  if (chat.myRole == models.ChatRole.owner) return models.ChatAdminRights.all;
-  if (chat.myRole != models.ChatRole.admin) return const models.ChatAdminRights();
-  return members.where((m) => m.isSelf).firstOrNull?.effectiveRights ?? const models.ChatAdminRights();
-}
-
-/// Можно менять роль / исключить / заблокировать [target] (только «Чтение» и
-/// «Запись»; нужно право блокировать).
-bool canRestrictMember(models.Chat chat, List<models.ChatMember> members, models.ChatMember target) =>
-    !target.isSelf &&
-    (target.role == models.ChatRole.reader || target.role == models.ChatRole.writer) &&
-    myChatRights(chat, members).banUsers;
-
-/// Можно назначить [target] админом или изменить его права: нужно право
-/// назначать админов; чужого админа — только если наши права не уже его
-/// (владелец — любого). Владельца и админов сообщества в его чате — нельзя
-/// (их права меняются в сообществе).
-bool canPromoteMember(models.Chat chat, List<models.ChatMember> members, models.ChatMember target) {
-  if (target.isSelf || target.role == models.ChatRole.owner || target.fromCommunity) return false;
-  final mine = myChatRights(chat, members);
-  if (!mine.addAdmins) return false;
-  return target.role != models.ChatRole.admin || chat.myRole == models.ChatRole.owner || mine.covers(target.rights);
-}
 
 /// Права админа, которые показываются для типа чата.
 enum ChatAdminRight {

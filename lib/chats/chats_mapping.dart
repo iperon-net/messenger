@@ -144,6 +144,7 @@ String chatActionText(
     pb.MessageChatAction_Kind.TITLE_CHANGED => outgoing ? a.titleYou(title: action.title) : a.title(name: actor, title: action.title),
     pb.MessageChatAction_Kind.PHOTO_CHANGED => outgoing ? a.photoYou : a.photo(name: actor),
     pb.MessageChatAction_Kind.PHOTO_REMOVED => outgoing ? a.photoRemovedYou : a.photoRemoved(name: actor),
+    pb.MessageChatAction_Kind.OWNER_CHANGED => outgoing ? a.ownerYou(names: who) : a.owner(name: actor, names: who),
     _ => '',
   };
 }
@@ -403,11 +404,46 @@ pb.ChatFolder folderToPb(models.ChatFolder folder) {
   );
 }
 
-/// Роль в группе с сервера → модель (в 3.1 приходят только владелец и
-/// «Запись»; неизвестная — «Запись»).
+/// Роль в группе с сервера → модель (неизвестная / не задана — «Запись»: так
+/// и роль по умолчанию группы без `defaultRole`).
 models.ChatRole roleFromPb(pb.ChatRole role) => switch (role) {
   pb.ChatRole.CHAT_ROLE_OWNER => models.ChatRole.owner,
   pb.ChatRole.CHAT_ROLE_ADMIN => models.ChatRole.admin,
   pb.ChatRole.CHAT_ROLE_READER => models.ChatRole.reader,
   _ => models.ChatRole.writer,
 };
+
+/// Роль модели → сервер.
+pb.ChatRole roleToPb(models.ChatRole role) => switch (role) {
+  models.ChatRole.owner => pb.ChatRole.CHAT_ROLE_OWNER,
+  models.ChatRole.admin => pb.ChatRole.CHAT_ROLE_ADMIN,
+  models.ChatRole.reader => pb.ChatRole.CHAT_ROLE_READER,
+  models.ChatRole.writer => pb.ChatRole.CHAT_ROLE_WRITER,
+};
+
+/// Права админа сервера → модель (и обратно).
+models.ChatAdminRights rightsFromPb(pb.ChatAdminRights r) => models.ChatAdminRights(
+  changeInfo: r.changeInfo,
+  postMessages: r.postMessages,
+  editMessages: r.editMessages,
+  deleteMessages: r.deleteMessages,
+  banUsers: r.banUsers,
+  inviteUsers: r.inviteUsers,
+  pinMessages: r.pinMessages,
+  manageCalls: r.manageCalls,
+  anonymous: r.anonymous,
+  addAdmins: r.addAdmins,
+);
+
+pb.ChatAdminRights rightsToPb(models.ChatAdminRights r) => pb.ChatAdminRights(
+  changeInfo: r.changeInfo,
+  postMessages: r.postMessages,
+  editMessages: r.editMessages,
+  deleteMessages: r.deleteMessages,
+  banUsers: r.banUsers,
+  inviteUsers: r.inviteUsers,
+  pinMessages: r.pinMessages,
+  manageCalls: r.manageCalls,
+  anonymous: r.anonymous,
+  addAdmins: r.addAdmins,
+);

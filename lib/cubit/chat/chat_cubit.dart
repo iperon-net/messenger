@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
+import 'package:grpc/grpc.dart' show StatusCode;
 
 import '../../api.dart';
 import '../../constants.dart';
@@ -19,6 +20,7 @@ import '../../chats/chats_mapping.dart';
 import '../../chats/chats_presence.dart';
 import '../../chats/chats_sync.dart';
 import '../../chats/chats_typing.dart';
+import '../../chats/group_rights.dart';
 import '../../models.dart' as models;
 import '../../privacy_blocks.dart';
 import '../../repositories/repositories.dart';
@@ -403,6 +405,11 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   (ChatCommentsBlock, DateTime?) _commentsBlock(models.Chat? chat, DateTime now) {
     if (_peerBlocked) return (ChatCommentsBlock.blocked, null);
     if (_writeRestricted) return (ChatCommentsBlock.privacy, null);
+    // Группа, роль «Чтение» — вместо поля ввода плашка (сервер всё равно
+    // ответит «chatWriteForbidden»).
+    if (chat != null && chat.type == models.ChatType.group && chat.isMember && !canSendInGroup(chat.myRole)) {
+      return (ChatCommentsBlock.readOnly, null);
+    }
     if (chat == null || !chat.isThread) return (ChatCommentsBlock.none, null);
     if (chat.commentsClosed(now)) return (ChatCommentsBlock.closed, null);
     final channel = _channel;
@@ -716,8 +723,24 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   void emitDust({required List<models.Message> messages, required List<String> vanishingIDs}) =>
       emit(state.copyWith(messages: messages, vanishingIDs: vanishingIDs));
 
-  /// Удалить можно свои, а в личном чате — любые (как одиночное удаление).
-  bool canDelete(models.Message message) => message.outgoing || state.chat?.type == models.ChatType.private;
+  /// Удалить можно свои, в личном чате — любые, в группе чужие — с правом
+  /// удалять сообщения (у всех).
+  bool canDelete(models.Message message) {
+    final chat = state.chat;
+    if (message.outgoing || chat?.type == models.ChatType.private) return true;
+    return chat != null && chat.type == models.ChatType.group && !message.service && canDeleteOthers(chat, state.members);
+  }
+
+  /// Закрепить / открепить «у всех» в группе — с правом (без него — только у
+  /// себя); в остальных чатах выбор — как раньше (см. `askPinScope*`).
+  bool get canPinForEveryone {
+    final chat = state.chat;
+    return chat == null || chat.type != models.ChatType.group || canPinForAll(chat, state.members);
+  }
+
+  /// Пункт «Закрепить» / «Открепить» у [message]: в группе общий закреп
+  /// снимает только тот, у кого есть право.
+  bool canTogglePin(models.Message message) => !message.pinned || message.pinnedOnlyMe || canPinForEveryone;
 
   /// `false` — не удалось (нет сети), остальные не пробовали.
   Future<bool> deleteSelected({bool forEveryone = true}) async {
@@ -788,6 +811,8 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
           (c) =>
               c.type != models.ChatType.channel &&
               c.type != models.ChatType.community &&
+              // «Чтение» в группе — писать (и пересылать) туда нельзя.
+              (c.type != models.ChatType.group || canSendInGroup(c.myRole)) &&
               !c.isThread &&
               (!c.inCommunity || c.isMember) &&
               !(c.type == models.ChatType.private && hidden.containsKey(c.peerUserID)),
@@ -877,26 +902,52 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     final source = _source;
     if (source == null) return;
     final members = await source.members(_chatID);
-    final banned = state.chat?.canManage ?? false ? await source.banned(_chatID) : const <models.ChatMember>[];
-    if (!isClosed) emit(state.copyWith(members: members, banned: banned));
+    final chat = state.chat;
+    // «Заблокированные» — владельцу и админам с правом блокировать; список
+    // только с сервера: нет сети — помечаем, а не показываем пустой.
+    var banned = const <models.ChatMember>[];
+    var bannedFailed = false;
+    if (chat != null && chat.type != models.ChatType.private && chat.canManage && canUnbanMembers(chat, members)) {
+      try {
+        banned = await source.banned(_chatID);
+      } on ChatsOfflineException {
+        banned = state.banned;
+        bannedFailed = true;
+      } on ChatsRequestException catch (error) {
+        getIt.get<Logger>().warning('chat: banned not loaded: $error');
+        banned = state.banned;
+        bannedFailed = true;
+      }
+    }
+    if (!isClosed) emit(state.copyWith(members: members, banned: banned, bannedLoadFailed: bannedFailed));
+  }
+
+  /// Действие над участником (роль, исключение, админ …): без сети — «Нет
+  /// соединения», отказ сервера — объяснение ([ChatState.failNotice]); затем
+  /// участники перечитываются. false — не выполнено.
+  Future<bool> _memberAction(Future<void>? Function() action) async {
+    var done = false;
+    await _online(() async {
+      try {
+        await action();
+        done = true;
+      } on ChatsRequestException catch (error) {
+        _failed(error);
+      }
+    });
+    if (!isClosed) await loadMembers();
+    return done;
   }
 
   /// Админ: «Чтение» ⇄ «Запись» у участника.
-  Future<void> setMemberRole(models.ChatMember member, models.ChatRole role) async {
-    await _source?.setMemberRole(_chatID, member.id, role);
-    await loadMembers();
-  }
+  Future<bool> setMemberRole(models.ChatMember member, models.ChatRole role) =>
+      _memberAction(() => _source?.setMemberRole(_chatID, member.id, role));
 
   /// Админ: исключить ([ban] — и заблокировать).
-  Future<void> removeMember(models.ChatMember member, {bool ban = false}) async {
-    await _source?.removeMember(_chatID, member.id, ban: ban);
-    await loadMembers();
-  }
+  Future<bool> removeMember(models.ChatMember member, {bool ban = false}) =>
+      _memberAction(() => _source?.removeMember(_chatID, member.id, ban: ban));
 
-  Future<void> unbanMember(models.ChatMember member) async {
-    await _source?.unbanMember(_chatID, member.id);
-    await loadMembers();
-  }
+  Future<bool> unbanMember(models.ChatMember member) => _memberAction(() => _source?.unbanMember(_chatID, member.id));
 
   /// Добавить участников: без сети — «Нет соединения»; кого нельзя по
   /// приватности — пояснение ([ChatState.restrictedNotice]).
@@ -914,25 +965,42 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   }
 
   /// Сервер отклонил действие — экран объясняет ([ChatState.failNotice]).
+  /// Отказ в правах без своего ключа — «Недостаточно прав».
   void _failed(ChatsRequestException error) {
-    if (!isClosed) emit(state.copyWith(failNotice: state.failNotice + 1, failError: error.error));
+    final key = error.statusCode == StatusCode.permissionDenied && !_knownErrors.contains(error.error) ? 'permissionDenied' : error.error;
+    if (!isClosed) emit(state.copyWith(failNotice: state.failNotice + 1, failError: key));
   }
 
-  /// Назначить админом / изменить права и «звание».
-  Future<void> setAdmin(models.ChatMember member, models.ChatAdminRights rights, String rank) async {
-    await _source?.setAdmin(_chatID, member.id, rights: rights, rank: rank.trim());
-    await loadMembers();
-  }
+  /// Ключи отказов сервера, у которых есть свой текст (`showChatsFailed`).
+  static const _knownErrors = {'rightsTooWide', 'rankInvalid', 'chatWriteForbidden', 'passwordInvalid', 'privacyRestricted'};
 
-  Future<void> removeAdmin(models.ChatMember member) async {
-    await _source?.removeAdmin(_chatID, member.id);
-    await loadMembers();
-  }
+  /// Назначить админом / изменить права и «звание». false — не сохранено.
+  Future<bool> setAdmin(models.ChatMember member, models.ChatAdminRights rights, String rank) =>
+      _memberAction(() => _source?.setAdmin(_chatID, member.id, rights: rights, rank: rank.trim()));
 
-  /// Владелец: передать владение [member].
-  Future<void> transferOwnership(models.ChatMember member) async {
-    await _source?.transferOwnership(_chatID, member.id);
-    await loadMembers();
+  Future<bool> removeAdmin(models.ChatMember member) => _memberAction(() => _source?.removeAdmin(_chatID, member.id));
+
+  /// Передача владения подтверждается облачным паролем (сервер).
+  bool get transferNeedsPassword => _source?.transferNeedsPassword ?? false;
+
+  /// Владелец: передать владение [member] ([password] — облачный пароль, см.
+  /// [transferNeedsPassword]). Облачного пароля нет — [ChatTransferResult.passwordRequired].
+  Future<ChatTransferResult> transferOwnership(models.ChatMember member, {String password = ''}) async {
+    var result = ChatTransferResult.failed;
+    await _online(() async {
+      try {
+        await _source?.transferOwnership(_chatID, member.id, password: password);
+        result = ChatTransferResult.done;
+      } on ChatsRequestException catch (error) {
+        if (error.error == 'cloudPasswordRequired') {
+          result = ChatTransferResult.passwordRequired;
+        } else {
+          _failed(error);
+        }
+      }
+    });
+    if (!isClosed) await loadMembers();
+    return result;
   }
 
   /// Отправить опрос (скрепка → «Опрос»).

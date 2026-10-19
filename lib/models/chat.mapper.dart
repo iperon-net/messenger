@@ -1702,6 +1702,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       ChatRoleMapper.ensureInitialized();
       ChatCommentsWhoMapper.ensureInitialized();
       ChatInheritedSettingMapper.ensureInitialized();
+      ChatAdminRightsMapper.ensureInitialized();
       SecretChatStatusMapper.ensureInitialized();
     }
     return _instance!;
@@ -2073,6 +2074,19 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: ChatRole.writer,
   );
+  static ChatAdminRights? _$myRights(Chat v) => v.myRights;
+  static const Field<Chat, ChatAdminRights> _f$myRights = Field(
+    'myRights',
+    _$myRights,
+    opt: true,
+  );
+  static String _$myRank(Chat v) => v.myRank;
+  static const Field<Chat, String> _f$myRank = Field(
+    'myRank',
+    _$myRank,
+    opt: true,
+    def: '',
+  );
   static SecretChatStatus? _$secretStatus(Chat v) => v.secretStatus;
   static const Field<Chat, SecretChatStatus> _f$secretStatus = Field(
     'secretStatus',
@@ -2156,6 +2170,8 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #overrides: _f$overrides,
     #membersCount: _f$membersCount,
     #myRole: _f$myRole,
+    #myRights: _f$myRights,
+    #myRank: _f$myRank,
     #secretStatus: _f$secretStatus,
     #online: _f$online,
     #lastSeen: _f$lastSeen,
@@ -2219,6 +2235,8 @@ class ChatMapper extends ClassMapperBase<Chat> {
       overrides: data.dec(_f$overrides),
       membersCount: data.dec(_f$membersCount),
       myRole: data.dec(_f$myRole),
+      myRights: data.dec(_f$myRights),
+      myRank: data.dec(_f$myRank),
       secretStatus: data.dec(_f$secretStatus),
       online: data.dec(_f$online),
       lastSeen: data.dec(_f$lastSeen),
@@ -2283,6 +2301,7 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     ObjectCopyWith<$R, ChatInheritedSetting, ChatInheritedSetting>
   >
   get overrides;
+  ChatAdminRightsCopyWith<$R, ChatAdminRights, ChatAdminRights>? get myRights;
   $R call({
     String? id,
     ChatType? type,
@@ -2339,6 +2358,8 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     List<ChatInheritedSetting>? overrides,
     int? membersCount,
     ChatRole? myRole,
+    ChatAdminRights? myRights,
+    String? myRank,
     SecretChatStatus? secretStatus,
     bool? online,
     DateTime? lastSeen,
@@ -2382,6 +2403,9 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     (v, t) => ObjectCopyWith(v, $identity, t),
     (v) => call(overrides: v),
   );
+  @override
+  ChatAdminRightsCopyWith<$R, ChatAdminRights, ChatAdminRights>? get myRights =>
+      $value.myRights?.copyWith.$chain((v) => call(myRights: v));
   @override
   $R call({
     String? id,
@@ -2439,6 +2463,8 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     List<ChatInheritedSetting>? overrides,
     int? membersCount,
     ChatRole? myRole,
+    Object? myRights = $none,
+    String? myRank,
     Object? secretStatus = $none,
     bool? online,
     Object? lastSeen = $none,
@@ -2501,6 +2527,8 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (overrides != null) #overrides: overrides,
       if (membersCount != null) #membersCount: membersCount,
       if (myRole != null) #myRole: myRole,
+      if (myRights != $none) #myRights: myRights,
+      if (myRank != null) #myRank: myRank,
       if (secretStatus != $none) #secretStatus: secretStatus,
       if (online != null) #online: online,
       if (lastSeen != $none) #lastSeen: lastSeen,
@@ -2576,6 +2604,8 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     overrides: data.get(#overrides, or: $value.overrides),
     membersCount: data.get(#membersCount, or: $value.membersCount),
     myRole: data.get(#myRole, or: $value.myRole),
+    myRights: data.get(#myRights, or: $value.myRights),
+    myRank: data.get(#myRank, or: $value.myRank),
     secretStatus: data.get(#secretStatus, or: $value.secretStatus),
     online: data.get(#online, or: $value.online),
     lastSeen: data.get(#lastSeen, or: $value.lastSeen),

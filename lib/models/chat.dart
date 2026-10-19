@@ -479,6 +479,12 @@ class Chat with ChatMappable {
   /// Наша роль в группе/канале (в личном чате не важна).
   final ChatRole myRole;
 
+  /// Наши права админа ([ChatRole.admin]) и «звание» — с сервера (диалог
+  /// группы). `null` — источник их не знает (демо): права — по участнику «Вы»
+  /// (см. `myChatRights`).
+  final ChatAdminRights? myRights;
+  final String myRank;
+
   /// Секретный чат (E2EE, только на этом устройстве; id — `secret:<hex>`):
   /// его состояние. `null` — обычный чат.
   final SecretChatStatus? secretStatus;
@@ -547,6 +553,8 @@ class Chat with ChatMappable {
     this.overrides = const [],
     this.membersCount = 0,
     this.myRole = ChatRole.writer,
+    this.myRights,
+    this.myRank = '',
     this.secretStatus,
     this.online = false,
     this.lastSeen,

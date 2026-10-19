@@ -114,6 +114,13 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     opt: true,
     def: false,
   );
+  static bool _$basicDefaultRole(ChatCreateState v) => v.basicDefaultRole;
+  static const Field<ChatCreateState, bool> _f$basicDefaultRole = Field(
+    'basicDefaultRole',
+    _$basicDefaultRole,
+    opt: true,
+    def: false,
+  );
   static Status _$status(ChatCreateState v) => v.status;
   static const Field<ChatCreateState, Status> _f$status = Field(
     'status',
@@ -373,6 +380,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     #failNotice: _f$failNotice,
     #failError: _f$failError,
     #basic: _f$basic,
+    #basicDefaultRole: _f$basicDefaultRole,
     #status: _f$status,
     #offlineNotice: _f$offlineNotice,
     #floodNotice: _f$floodNotice,
@@ -417,6 +425,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
       failNotice: data.dec(_f$failNotice),
       failError: data.dec(_f$failError),
       basic: data.dec(_f$basic),
+      basicDefaultRole: data.dec(_f$basicDefaultRole),
       status: data.dec(_f$status),
       offlineNotice: data.dec(_f$offlineNotice),
       floodNotice: data.dec(_f$floodNotice),
@@ -541,6 +550,7 @@ abstract class ChatCreateStateCopyWith<$R, $In extends ChatCreateState, $Out>
     int? failNotice,
     String? failError,
     bool? basic,
+    bool? basicDefaultRole,
     Status? status,
     int? offlineNotice,
     int? floodNotice,
@@ -630,6 +640,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     int? failNotice,
     String? failError,
     bool? basic,
+    bool? basicDefaultRole,
     Status? status,
     int? offlineNotice,
     int? floodNotice,
@@ -672,6 +683,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
       if (failNotice != null) #failNotice: failNotice,
       if (failError != null) #failError: failError,
       if (basic != null) #basic: basic,
+      if (basicDefaultRole != null) #basicDefaultRole: basicDefaultRole,
       if (status != null) #status: status,
       if (offlineNotice != null) #offlineNotice: offlineNotice,
       if (floodNotice != null) #floodNotice: floodNotice,
@@ -717,6 +729,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     failNotice: data.get(#failNotice, or: $value.failNotice),
     failError: data.get(#failError, or: $value.failError),
     basic: data.get(#basic, or: $value.basic),
+    basicDefaultRole: data.get(#basicDefaultRole, or: $value.basicDefaultRole),
     status: data.get(#status, or: $value.status),
     offlineNotice: data.get(#offlineNotice, or: $value.offlineNotice),
     floodNotice: data.get(#floodNotice, or: $value.floodNotice),

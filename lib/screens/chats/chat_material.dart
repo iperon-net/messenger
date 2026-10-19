@@ -338,7 +338,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
         unawaited(_jumpTo(pinned[index].id));
         setState(() => _pinIndex = (index + 1) % pinned.length);
       },
-      onUnpin: chat.type == models.ChatType.channel ? null : () => _pin(chat, pinned[index]),
+      onUnpin: chat.type == models.ChatType.channel || !_cubit.canTogglePin(pinned[index]) ? null : () => _pin(chat, pinned[index]),
       onList: () => _openPinned(context),
     );
   }
@@ -371,7 +371,13 @@ class _ChatMaterialState extends State<ChatMaterial> {
   /// только у меня (см. [askPinScopeMaterial]).
   Future<void> _pin(models.Chat chat, models.Message message) async {
     final pinned = !message.pinned;
-    final forEveryone = await askPinScopeMaterial(context, chat, pin: pinned, shared: !message.pinnedOnlyMe);
+    final forEveryone = await askPinScopeMaterial(
+      context,
+      chat,
+      pin: pinned,
+      shared: !message.pinnedOnlyMe,
+      canForAll: _cubit.canPinForEveryone,
+    );
     if (forEveryone != null) await _cubit.setPinned(message, pinned, forEveryone: forEveryone);
   }
 
@@ -817,7 +823,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                   onTap: () => Navigator.of(sheetContext).pop('shareMedia'),
                 ),
               ],
-              if (canWrite && features.pinnedMessages && _pinnable(message))
+              if (canWrite && features.pinnedMessages && _pinnable(message) && _cubit.canTogglePin(message))
                 ListTile(
                   leading: Icon(message.pinned ? Icons.push_pin : Icons.push_pin_outlined),
                   title: Text(message.pinned ? t.unpin : t.pin),
@@ -836,7 +842,8 @@ class _ChatMaterialState extends State<ChatMaterial> {
                   title: Text(t.edit),
                   onTap: () => Navigator.of(sheetContext).pop('edit'),
                 ),
-              if (message.outgoing || chat.type == models.ChatType.private)
+              // В группе чужие — с правом удалять сообщения (у всех).
+              if (_cubit.canDelete(message))
                 ListTile(
                   leading: Icon(Icons.delete_outline, color: error),
                   title: Text(t.delete, style: TextStyle(color: error)),
@@ -1339,6 +1346,8 @@ class _CommentsBlockedBar extends StatelessWidget {
             // Собеседник у меня в «Заблокированных» — писать нельзя, пока не разблокирую.
             ChatCommentsBlock.blocked => TextButton(onPressed: context.read<ChatCubit>().unblockPeer, child: Text(t.screenChat.unblock)),
             ChatCommentsBlock.privacy => note(Icons.lock_outline, t.screenChat.privacyRestricted),
+            // Группа, роль «Чтение».
+            ChatCommentsBlock.readOnly => note(Icons.visibility_outlined, t.screenChat.readOnly),
             _ => note(Icons.lock_outline, t.screenChat.commentsClosed),
           },
         ),

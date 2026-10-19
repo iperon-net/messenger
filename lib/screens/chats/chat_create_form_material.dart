@@ -362,6 +362,28 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                         ]),
                         if (!state.isEdit) createNoteMaterial(context, createDescriptionFooter(t, type)),
                       ],
+                      // Сервер (3.2): в «Изменить» группы — и роль вступающих.
+                      if (state.basic && state.basicDefaultRole && state.isEdit && type == models.ChatType.group && !state.inCommunity) ...[
+                        createHeaderMaterial(context, t.screenNewChat.defaultRoleHeader),
+                        card([
+                          Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: SegmentedButton<models.ChatRole>(
+                                showSelectedIcon: false,
+                                segments: [
+                                  for (final role in const [models.ChatRole.reader, models.ChatRole.writer])
+                                    ButtonSegment(value: role, label: Text(defaultRoleLabel(t, role))),
+                                ],
+                                selected: {state.defaultRole},
+                                onSelectionChanged: (value) => context.read<ChatCreateCubit>().setDefaultRole(value.first),
+                              ),
+                            ),
+                          ),
+                        ]),
+                        createNoteMaterial(context, defaultRoleFooter(t, state.defaultRole)),
+                      ],
                       if (showJoin) ...[
                         createHeaderMaterial(context, joinList ? t.screenNewChat.joinHeader : t.screenNewChat.type),
                         if (joinList)

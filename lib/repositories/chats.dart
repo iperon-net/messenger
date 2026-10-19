@@ -73,38 +73,71 @@ class ChatDialogRow {
 }
 
 /// Строка `chatGroups` — группа, в которой я состою (миграция 35): общие
-/// сведения ([info] — `ChatInfo` с сервера), моя роль и pts журнала ЧАТА.
+/// сведения ([info] — `ChatInfo` с сервера), моя роль и pts журнала ЧАТА; с
+/// миграции 36 — мои права админа и звание (`Dialog.rights / rank`).
 class ChatGroupRow {
   final Uint8List chatID;
   final pb.ChatInfo info;
   final pb.ChatRole role;
   final int pts;
+  final pb.ChatAdminRights rights;
+  final String rank;
 
-  const ChatGroupRow({required this.chatID, required this.info, required this.role, required this.pts});
+  ChatGroupRow({
+    required this.chatID,
+    required this.info,
+    required this.role,
+    required this.pts,
+    pb.ChatAdminRights? rights,
+    this.rank = '',
+  }) : rights = rights ?? pb.ChatAdminRights();
 
   factory ChatGroupRow._fromRow(Map<String, dynamic> row) => ChatGroupRow(
     chatID: Uint8List.fromList(row['chatID'] as List<int>),
     info: pb.ChatInfo.fromBuffer(row['info'] as List<int>),
     role: pb.ChatRole.valueOf(row['role'] as int) ?? pb.ChatRole.CHAT_ROLE_WRITER,
     pts: row['pts'] as int,
+    rights: row['rights'] == null ? null : pb.ChatAdminRights.fromBuffer(row['rights'] as List<int>),
+    rank: row['rank'] as String? ?? '',
   );
 }
 
 /// Строка `chatGroupMembers` — известный участник группы (пришёл в
-/// `Chats.Members` или `Update.chatMembers`).
+/// `Chats.Members` или `Update.chatMembers`): роль, права админа и звание.
 class ChatGroupMemberRow {
   final Uint8List userID;
   final pb.ChatRole role;
   final int joinedAt;
   final Uint8List? inviterUserID;
+  final pb.ChatAdminRights rights;
+  final String rank;
 
-  const ChatGroupMemberRow({required this.userID, required this.role, required this.joinedAt, this.inviterUserID});
+  ChatGroupMemberRow({
+    required this.userID,
+    required this.role,
+    required this.joinedAt,
+    this.inviterUserID,
+    pb.ChatAdminRights? rights,
+    this.rank = '',
+  }) : rights = rights ?? pb.ChatAdminRights();
+
+  /// Участник из ответа сервера (страница `Chats.Members`).
+  factory ChatGroupMemberRow.fromPb(pb.ChatMember m) => ChatGroupMemberRow(
+    userID: Uint8List.fromList(m.userID),
+    role: m.role,
+    joinedAt: m.joinedAt.toInt(),
+    inviterUserID: m.inviterUserID.isEmpty ? null : Uint8List.fromList(m.inviterUserID),
+    rights: m.hasRights() ? m.rights : null,
+    rank: m.rank,
+  );
 
   factory ChatGroupMemberRow._fromRow(Map<String, dynamic> row) => ChatGroupMemberRow(
     userID: Uint8List.fromList(row['memberUserID'] as List<int>),
     role: pb.ChatRole.valueOf(row['role'] as int) ?? pb.ChatRole.CHAT_ROLE_WRITER,
     joinedAt: row['joinedAt'] as int,
     inviterUserID: row['inviterUserID'] == null ? null : Uint8List.fromList(row['inviterUserID'] as List<int>),
+    rights: row['rights'] == null ? null : pb.ChatAdminRights.fromBuffer(row['rights'] as List<int>),
+    rank: row['rank'] as String? ?? '',
   );
 }
 
@@ -366,7 +399,7 @@ class ChatsRepository {
     );
     if (top != null) await upsertMessage(userID: userID, message: top);
     // Группа: сведения, моя роль и pts журнала чата (догон — от него).
-    if (dialog.hasChat()) await upsertGroup(userID: userID, info: dialog.chat, role: dialog.role);
+    if (dialog.hasChat()) await upsertGroup(userID: userID, dialog: dialog);
   }
 
   /// Пустой диалог, о котором сервер ещё не рассказал (сообщение пришло раньше
@@ -1021,31 +1054,59 @@ class ChatsRepository {
 
   // --- группы ---
 
+  static const _groupColumns = 'chatID, info, role, pts, rights, rank';
+
   Future<List<ChatGroupRow>> groups({required List<int> userID}) async {
-    final rows = await ctx.getAll('SELECT chatID, info, role, pts FROM chatGroups WHERE userID = ?;', [userID]);
+    final rows = await ctx.getAll('SELECT $_groupColumns FROM chatGroups WHERE userID = ?;', [userID]);
     return rows.map(ChatGroupRow._fromRow).toList(growable: false);
   }
 
   Future<ChatGroupRow?> group({required List<int> userID, required List<int> chatID}) async {
-    final row = await ctx.getOptional('SELECT chatID, info, role, pts FROM chatGroups WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+    final row = await ctx.getOptional('SELECT $_groupColumns FROM chatGroups WHERE userID = ? AND chatID = ?;', [userID, chatID]);
     return row == null ? null : ChatGroupRow._fromRow(row);
   }
 
-  /// Сведения о группе с сервера (диалог группы, dialogNew). pts журнала чата
-  /// не уменьшается: обновления, уже применённые после этого снимка, второй
-  /// раз не применяем. [resetPts] — журнал обрезан (tooLong): pts — как в
-  /// снимке.
-  Future<void> upsertGroup({required List<int> userID, required pb.ChatInfo info, required pb.ChatRole role, bool resetPts = false}) async {
+  /// Сведения о группе с сервера (диалог группы — `Dialog.chat`, моя роль,
+  /// права и звание; dialogNew). pts журнала чата не уменьшается: обновления,
+  /// уже применённые после этого снимка, второй раз не применяем. [resetPts]
+  /// — журнал обрезан (tooLong): pts — как в снимке.
+  Future<void> upsertGroup({required List<int> userID, required pb.Dialog dialog, bool resetPts = false}) async {
+    final info = dialog.chat;
     await ctx.execute(
       '''
-      INSERT INTO chatGroups (userID, chatID, info, role, pts) VALUES (?, ?, ?, ?, ?)
+      INSERT INTO chatGroups (userID, chatID, info, role, pts, rights, rank) VALUES (?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(userID, chatID) DO UPDATE SET
         info = excluded.info,
         role = excluded.role,
+        rights = excluded.rights,
+        rank = excluded.rank,
         pts = ${resetPts ? 'excluded.pts' : 'MAX(chatGroups.pts, excluded.pts)'};
       ''',
-      [userID, info.chatID, info.writeToBuffer(), role.value, info.pts.toInt()],
+      [userID, info.chatID, info.writeToBuffer(), dialog.role.value, info.pts.toInt(), _rightsColumn(dialog.rights), dialog.rank],
     );
+  }
+
+  /// Моя роль / права / звание изменились (Update.dialogSettings группы).
+  Future<void> setGroupRole({
+    required List<int> userID,
+    required List<int> chatID,
+    required pb.ChatRole role,
+    required pb.ChatAdminRights rights,
+    required String rank,
+  }) async {
+    await ctx.execute('UPDATE chatGroups SET role = ?, rights = ?, rank = ? WHERE userID = ? AND chatID = ?;', [
+      role.value,
+      _rightsColumn(rights),
+      rank,
+      userID,
+      chatID,
+    ]);
+  }
+
+  /// Права админа → колонка: без единого права — NULL.
+  static Uint8List? _rightsColumn(pb.ChatAdminRights rights) {
+    final bytes = rights.writeToBuffer();
+    return bytes.isEmpty ? null : bytes;
   }
 
   /// Сведения изменились (Update.chatInfo) — pts журнала ведёт [setGroupPts].
@@ -1070,8 +1131,19 @@ class ChatsRepository {
   Future<void> upsertGroupMembers({required List<int> userID, required List<int> chatID, required List<pb.ChatMember> members}) async {
     for (final m in members) {
       await ctx.execute(
-        'INSERT OR REPLACE INTO chatGroupMembers (userID, chatID, memberUserID, role, joinedAt, inviterUserID) VALUES (?, ?, ?, ?, ?, ?);',
-        [userID, chatID, m.userID, m.role.value, m.joinedAt.toInt(), m.inviterUserID.isEmpty ? null : m.inviterUserID],
+        'INSERT OR REPLACE INTO chatGroupMembers (userID, chatID, memberUserID, role, joinedAt, inviterUserID, rights, rank, promotedByUserID) '
+        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);',
+        [
+          userID,
+          chatID,
+          m.userID,
+          m.role.value,
+          m.joinedAt.toInt(),
+          m.inviterUserID.isEmpty ? null : m.inviterUserID,
+          _rightsColumn(m.rights),
+          m.rank,
+          m.promotedByUserID.isEmpty ? null : m.promotedByUserID,
+        ],
       );
     }
   }

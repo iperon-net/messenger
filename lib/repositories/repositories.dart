@@ -784,6 +784,20 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(36, (tx) async {
+        // Роли и права в группах (подэтап 3.2): мои права админа и звание
+        // (Dialog.rights / rank) и то же у известных участников
+        // (ChatMember.rights / rank / promotedByUserID). Права — BLOB
+        // `ChatAdminRights`, пусто — нет.
+        await tx.execute('ALTER TABLE chatGroups ADD COLUMN rights BLOB;');
+        await tx.execute("ALTER TABLE chatGroups ADD COLUMN rank TEXT NOT NULL DEFAULT '';");
+        await tx.execute('ALTER TABLE chatGroupMembers ADD COLUMN rights BLOB;');
+        await tx.execute("ALTER TABLE chatGroupMembers ADD COLUMN rank TEXT NOT NULL DEFAULT '';");
+        await tx.execute('ALTER TABLE chatGroupMembers ADD COLUMN promotedByUserID BLOB;');
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

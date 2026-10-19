@@ -82,6 +82,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
       state.copyWith(
         status: Status.success,
         basic: !(_source?.features.groupExtras ?? true),
+        basicDefaultRole: _source?.features.groupRoles ?? false,
         type: chat.type,
         chatID: chat.id,
         communityID: chat.communityID,

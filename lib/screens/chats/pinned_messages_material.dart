@@ -43,7 +43,8 @@ class PinnedMessagesMaterial extends StatelessWidget {
               title: Text(t.goToMessage),
               onTap: () => Navigator.of(sheetContext).pop('go'),
             ),
-            if (canUnpin)
+            // Общий закреп группы снимает только тот, у кого есть право.
+            if (canUnpin && cubit.canTogglePin(message))
               ListTile(
                 leading: const Icon(Icons.push_pin_outlined),
                 title: Text(t.unpin),
@@ -58,7 +59,13 @@ class PinnedMessagesMaterial extends StatelessWidget {
       case 'go':
         _goTo(context, message);
       case 'unpin':
-        final forEveryone = await askPinScopeMaterial(context, chat, pin: false, shared: !message.pinnedOnlyMe);
+        final forEveryone = await askPinScopeMaterial(
+          context,
+          chat,
+          pin: false,
+          shared: !message.pinnedOnlyMe,
+          canForAll: cubit.canPinForEveryone,
+        );
         if (forEveryone != null) await cubit.setPinned(message, false, forEveryone: forEveryone);
     }
   }
@@ -66,7 +73,14 @@ class PinnedMessagesMaterial extends StatelessWidget {
   /// [shared] — среди закреплённых есть общие (иначе выбора нет).
   Future<void> _unpinAll(BuildContext context, models.Chat chat, int count, {required bool shared}) async {
     final cubit = context.read<ChatCubit>();
-    final forEveryone = await askPinScopeMaterial(context, chat, pin: false, allCount: count, shared: shared);
+    final forEveryone = await askPinScopeMaterial(
+      context,
+      chat,
+      pin: false,
+      allCount: count,
+      shared: shared,
+      canForAll: cubit.canPinForEveryone,
+    );
     if (forEveryone != null) await cubit.unpinAll(forEveryone: forEveryone);
   }
 
