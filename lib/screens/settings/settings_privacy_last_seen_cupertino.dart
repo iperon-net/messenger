@@ -7,6 +7,7 @@ import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
+import 'settings_privacy_last_seen_common.dart';
 
 /// Детейл-экран приватности последнего посещения (drill-down с
 /// «Конфиденциальности»): выбор аудитории «кто может видеть моё время посещения»
@@ -121,6 +122,20 @@ class SettingsPrivacyLastSeenCupertino extends StatelessWidget {
           child: SafeArea(
             child: ListView(
               children: [
+                // Как другие видят моё «в сети». Пока настройка не загружена —
+                // без превью (не показываем дефолт).
+                if (!state.callsLoadError)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: LastSeenPrivacyPreview(
+                      audience: state.lastSeenAudience,
+                      dark: CupertinoTheme.brightnessOf(context) == Brightness.dark,
+                      card: ThemesCupertino.groupedCard.resolveFrom(context),
+                      text: CupertinoColors.label.resolveFrom(context),
+                      secondary: CupertinoColors.secondaryLabel.resolveFrom(context),
+                      online: CupertinoDynamicColor.resolve(CupertinoTheme.of(context).primaryColor, context),
+                    ),
+                  ),
                 CupertinoListSection.insetGrouped(
                   header: Text(
                     context.t.sessionsPrivacyAndSecurity.whoCanSeeLastSeen,

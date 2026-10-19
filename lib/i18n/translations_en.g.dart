@@ -2764,6 +2764,15 @@ class Translations$sessionsPrivacyAndSecurity$en {
 	/// en: 'Who can see my last seen'
 	String get whoCanSeeLastSeen => 'Who can see my last seen';
 
+	/// en: 'How everyone sees you'
+	String get lastSeenPreviewAll => 'How everyone sees you';
+
+	/// en: 'How your contacts see you'
+	String get lastSeenPreviewContacts => 'How your contacts see you';
+
+	/// en: 'How everyone else sees you'
+	String get lastSeenPreviewOthers => 'How everyone else sees you';
+
 	/// en: 'If you choose Nobody, you won't see others' last seen or online status either.'
 	String get lastSeenReciprocityNote => 'If you choose Nobody, you won\'t see others\' last seen or online status either.';
 
@@ -4881,6 +4890,9 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.whoCanSeeAboutMe' => 'Who can see my About me',
 			'sessionsPrivacyAndSecurity.lastSeen' => 'Last seen',
 			'sessionsPrivacyAndSecurity.whoCanSeeLastSeen' => 'Who can see my last seen',
+			'sessionsPrivacyAndSecurity.lastSeenPreviewAll' => 'How everyone sees you',
+			'sessionsPrivacyAndSecurity.lastSeenPreviewContacts' => 'How your contacts see you',
+			'sessionsPrivacyAndSecurity.lastSeenPreviewOthers' => 'How everyone else sees you',
 			'sessionsPrivacyAndSecurity.lastSeenReciprocityNote' => 'If you choose Nobody, you won\'t see others\' last seen or online status either.',
 			'sessionsPrivacyAndSecurity.messages' => 'Messages',
 			'sessionsPrivacyAndSecurity.whoCanMessage' => 'Who can message me',
@@ -5092,11 +5104,11 @@ extension on Translations {
 			'screenAuthCallpasswordConfirmation.confirmYourNumberDetail' => ({required Object confirmationPhoneNumberRu}) => 'Call ${confirmationPhoneNumberRu} from the phone number you provided and wait for the call to be disconnected.',
 			'screenAuthCallpasswordConfirmation.callForFree' => 'Call for free',
 			'screenAuthCallpasswordConfirmation.signatureVerificationFailed' => 'Signature verification failed',
+			_ => null,
+		} ?? switch (path) {
 			'grpcError.errorConnectingServer' => 'Error connecting to the server',
 			'grpcError.unauthenticated' => 'Unauthenticated',
 			'grpcError.unableConnectServer' => 'Unable to connect to the server',
-			_ => null,
-		} ?? switch (path) {
 			'grpcError.internalServerError' => 'Internal server error',
 			'grpcError.unknownError' => 'Unknown error',
 			'dateTime.relativeDateTimeToday' => ({required Object time}) => 'today at ${time}',

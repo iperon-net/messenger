@@ -1165,6 +1165,9 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get whoCanSeeAboutMe => 'Кто может видеть моё «О себе»';
 	@override String get lastSeen => 'Время захода';
 	@override String get whoCanSeeLastSeen => 'Кто может видеть время моего захода';
+	@override String get lastSeenPreviewAll => 'Так вас видят все';
+	@override String get lastSeenPreviewContacts => 'Так вас видят контакты';
+	@override String get lastSeenPreviewOthers => 'Так вас видят остальные';
 	@override String get lastSeenReciprocityNote => 'Если выбрано «Никто», вы тоже не будете видеть время захода и статус других.';
 	@override String get messages => 'Сообщения';
 	@override String get whoCanMessage => 'Кто может мне писать';
@@ -2564,6 +2567,9 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.whoCanSeeAboutMe' => 'Кто может видеть моё «О себе»',
 			'sessionsPrivacyAndSecurity.lastSeen' => 'Время захода',
 			'sessionsPrivacyAndSecurity.whoCanSeeLastSeen' => 'Кто может видеть время моего захода',
+			'sessionsPrivacyAndSecurity.lastSeenPreviewAll' => 'Так вас видят все',
+			'sessionsPrivacyAndSecurity.lastSeenPreviewContacts' => 'Так вас видят контакты',
+			'sessionsPrivacyAndSecurity.lastSeenPreviewOthers' => 'Так вас видят остальные',
 			'sessionsPrivacyAndSecurity.lastSeenReciprocityNote' => 'Если выбрано «Никто», вы тоже не будете видеть время захода и статус других.',
 			'sessionsPrivacyAndSecurity.messages' => 'Сообщения',
 			'sessionsPrivacyAndSecurity.whoCanMessage' => 'Кто может мне писать',
@@ -2775,11 +2781,11 @@ extension on TranslationsRu {
 			'screenAuthCallpasswordConfirmation.confirmYourNumberDetail' => ({required Object confirmationPhoneNumberRu}) => 'Позвоните на номер ${confirmationPhoneNumberRu} с указанного вами номера телефона и дождитесь сброса вызова.',
 			'screenAuthCallpasswordConfirmation.callForFree' => 'Позвонить бесплатно',
 			'screenAuthCallpasswordConfirmation.signatureVerificationFailed' => 'Не удалось проверить подпись',
+			_ => null,
+		} ?? switch (path) {
 			'grpcError.errorConnectingServer' => 'Ошибка подключения к серверу',
 			'grpcError.unauthenticated' => 'Неавторизован',
 			'grpcError.unableConnectServer' => 'Не удалось подключиться к серверу',
-			_ => null,
-		} ?? switch (path) {
 			'grpcError.internalServerError' => 'Внутренняя ошибка сервера',
 			'grpcError.unknownError' => 'Unknown error',
 			'dateTime.relativeDateTimeToday' => ({required Object time}) => 'сегодня в ${time}',

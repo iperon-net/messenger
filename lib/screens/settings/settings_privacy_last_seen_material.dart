@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
+import 'settings_privacy_last_seen_common.dart';
 
 /// Детейл-экран приватности последнего посещения (drill-down с
 /// «Конфиденциальности»): выбор аудитории «кто может видеть моё время посещения»
@@ -105,6 +106,20 @@ class SettingsPrivacyLastSeenMaterial extends StatelessWidget {
           body: SafeArea(
             child: ListView(
               children: [
+                // Как другие видят моё «в сети». Пока настройка не загружена —
+                // без превью (не показываем дефолт).
+                if (!state.callsLoadError)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: LastSeenPrivacyPreview(
+                      audience: state.lastSeenAudience,
+                      dark: Theme.of(context).brightness == Brightness.dark,
+                      card: Theme.of(context).colorScheme.surface,
+                      text: Theme.of(context).colorScheme.onSurface,
+                      secondary: Theme.of(context).colorScheme.onSurfaceVariant,
+                      online: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
                   child: Text(
