@@ -63,10 +63,11 @@ void main() {
           searchText TEXT NOT NULL DEFAULT '',
           reactions BLOB NULL,
           reactionsUnread INTEGER NOT NULL DEFAULT 0,
-          expireAt INTEGER NOT NULL DEFAULT 0,
+          expireAt INTEGER NOT NULL DEFAULT 0, poll BLOB NULL,
           PRIMARY KEY (userID, chatID, messageID)
         );
       ''');
+      await db.execute(ChatsRepository.mentionsSchema);
       await db.execute('''
         CREATE TABLE chatPinned (
           userID BLOB NOT NULL,

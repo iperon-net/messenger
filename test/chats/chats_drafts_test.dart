@@ -32,7 +32,7 @@ void main() {
         readInboxMaxID INTEGER NOT NULL DEFAULT 0,
         readOutboxMaxID INTEGER NOT NULL DEFAULT 0,
         unreadCount INTEGER NOT NULL DEFAULT 0,
-        unreadReactions INTEGER NOT NULL DEFAULT 0,
+        unreadReactions INTEGER NOT NULL DEFAULT 0, unreadMentions INTEGER NOT NULL DEFAULT 0,
         pinned INTEGER NOT NULL DEFAULT 0,
         archived INTEGER NOT NULL DEFAULT 0,
         markedUnread INTEGER NOT NULL DEFAULT 0,

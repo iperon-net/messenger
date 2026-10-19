@@ -1,0 +1,58 @@
+[
+  {
+    "text": "Привет, как дела?",
+    "linkFree": true
+  },
+  {
+    "text": "Заходи на example.com/promo",
+    "linkFree": false
+  },
+  {
+    "text": "смотри www.spam.ru",
+    "linkFree": false
+  },
+  {
+    "text": "скидки на сайт.рф",
+    "linkFree": false
+  },
+  {
+    "text": "пишу на node.js, т.е. быстро; версия 1.2",
+    "linkFree": true
+  },
+  {
+    "text": "почта a@b.com — не ссылка",
+    "linkFree": true
+  },
+  {
+    "text": "https://t.me/x",
+    "linkFree": false
+  },
+  {
+    "text": "http://example.org",
+    "linkFree": false
+  },
+  {
+    "text": "Купи на PROMO.RU сейчас",
+    "linkFree": false
+  },
+  {
+    "text": "файл report.pdf и main.dart",
+    "linkFree": true
+  },
+  {
+    "text": "жмите",
+    "entities": [
+      {
+        "type": "TEXT_URL",
+        "offset": 0,
+        "length": 5,
+        "url": "https://spam.ru"
+      }
+    ],
+    "linkFree": false
+  },
+  {
+    "text": "",
+    "linkFree": true
+  }
+]

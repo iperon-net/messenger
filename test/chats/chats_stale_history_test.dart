@@ -35,7 +35,7 @@ void main() {
         readInboxMaxID INTEGER NOT NULL DEFAULT 0,
         readOutboxMaxID INTEGER NOT NULL DEFAULT 0,
         unreadCount INTEGER NOT NULL DEFAULT 0,
-        unreadReactions INTEGER NOT NULL DEFAULT 0,
+        unreadReactions INTEGER NOT NULL DEFAULT 0, unreadMentions INTEGER NOT NULL DEFAULT 0,
         pinned INTEGER NOT NULL DEFAULT 0,
         archived INTEGER NOT NULL DEFAULT 0,
         markedUnread INTEGER NOT NULL DEFAULT 0,
@@ -64,10 +64,11 @@ void main() {
         searchText TEXT NOT NULL DEFAULT '',
         reactions BLOB NULL,
         reactionsUnread INTEGER NOT NULL DEFAULT 0,
-        expireAt INTEGER NOT NULL DEFAULT 0,
+        expireAt INTEGER NOT NULL DEFAULT 0, poll BLOB NULL,
         PRIMARY KEY (userID, chatID, messageID)
       );
     ''');
+    await db.execute(ChatsRepository.mentionsSchema);
     await db.execute('''
       CREATE TABLE chatPinned (
         userID BLOB NOT NULL, chatID BLOB NOT NULL, messageID INTEGER NOT NULL, message BLOB NOT NULL,
