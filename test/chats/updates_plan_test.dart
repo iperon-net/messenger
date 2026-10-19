@@ -146,9 +146,9 @@ void main() {
       expect(chatActionText(t, photo, outgoing: false, actor: 'Анна'), 'Анна удалил(а) фото группы');
     });
 
-    test('служебное группы — плашка и считается непрочитанным', () {
+    test('служебное группы — плашка и не считается непрочитанным (как на сервере)', () {
       final content = pb.MessageContent(chatAction: pb.MessageChatAction(kind: pb.MessageChatAction_Kind.LEFT));
-      expect(skipsUnread(content), isFalse);
+      expect(skipsUnread(content), isTrue);
       final message = messageFromPb(
         pb.ChatMessage(messageID: Int64(2), fromUserID: List<int>.filled(12, 2), content: content),
         chatID: 'g',

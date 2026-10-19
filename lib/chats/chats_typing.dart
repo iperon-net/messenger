@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 import '../api.dart';
+import '../auth.dart';
 import '../di.dart';
 import '../logger.dart';
 import '../models.dart' as models;
@@ -76,6 +77,8 @@ class ChatsTyping {
     final chatID = idHex(signal.chatID);
     final userID = idHex(signal.userID);
     if (chatID.isEmpty || userID.isEmpty) return;
+    // В группе сервер рассылает сигнал всем в subject чата — и нам самим.
+    if (userID == idHex(getIt.get<Auth>().session.userID)) return;
     final activity = _activityOf(signal.action);
     if (activity == null) {
       if (_remove(chatID, userID)) _changed.add(null);

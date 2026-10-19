@@ -119,9 +119,9 @@ bool _isPrivateService(pb.MessageContent content) =>
 bool _isService(pb.MessageContent content) => _isPrivateService(content) || content.hasChatAction();
 
 /// Входящее, которое не считается непрочитанным: звонок, кроме пропущенного,
-/// и «закрепил сообщение» (как на сервере, `noUnread`). Служебные группы
-/// считаются (как в Telegram).
-bool skipsUnread(pb.MessageContent content) => _isPrivateService(content) || (content.hasCall() && callFromPb(content)?.unanswered != true);
+/// служебные («закрепил сообщение», группы: «создал», «добавил», «вышел» …) —
+/// как на сервере (`noUnread`), иначе счётчик разойдётся с серверным.
+bool skipsUnread(pb.MessageContent content) => _isService(content) || (content.hasCall() && callFromPb(content)?.unanswered != true);
 
 /// Текст служебного группы ([pb.MessageChatAction]) — плашка в ленте и превью
 /// в списке. [outgoing] — сделал я («Вы …»), [actor] — имя сделавшего,
