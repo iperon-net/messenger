@@ -6,12 +6,19 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build
+import android.os.PersistableBundle
 import android.provider.ContactsContract
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
+import androidx.core.content.LocusIdCompat
+import androidx.core.content.pm.ShortcutInfoCompat
+import androidx.core.content.pm.ShortcutManagerCompat
+import androidx.core.graphics.drawable.IconCompat
 
 /// Показ зашифрованных push-уведомлений (FCM data `{p}` от конвейера
 /// уведомлений сервера) — нативно, без Flutter-движка: расшифровка
@@ -23,6 +30,11 @@ import androidx.core.app.Person
 /// прочих — id уведомления (повтор доставки заменяет, а не дублирует). У
 /// реакций id — `reaction:<chatHex>:<messageID>:<кто>`: по нему [clearChat]
 /// снимает их вместе с сообщениями чата.
+///
+/// Сообщения и реакции — conversation-уведомления (MessagingStyle +
+/// long-lived шорткат беседы с id = тег чата): слева аватар собеседника или
+/// группы, иконка приложения — маленьким значком в углу. Аватары — копии,
+/// которые отдало приложение ([PushAvatars]); нет копии — круг с инициалом.
 object MessagePushHandler {
     private const val LOG_TAG = "IperonPush"
 
@@ -38,6 +50,10 @@ object MessagePushHandler {
     // messageID сообщений MessagingStyle (в том же порядке) — в extras самого
     // уведомления: по ним READ_HISTORY / MESSAGE_DELETED снимают только своё.
     private const val EXTRA_MESSAGE_IDS = "iperon_message_ids"
+
+    // hex(userID) собеседника в extras шортката личного чата — чтобы снять
+    // шорткаты скрытых профилей ([removeShortcuts]).
+    private const val SHORTCUT_USER = "user"
 
     fun handle(context: Context, encrypted: String) {
         val payload = try {
@@ -114,37 +130,37 @@ object MessagePushHandler {
                 .setContentTitle(appName)
                 .setContentText(context.getString(R.string.push_fallback_body))
 
-            isMessage -> {
-                val sender = Person.Builder().setName(payload.title.ifEmpty { appName }).build()
-                val text = if (secret) {
-                    context.getString(R.string.push_secret_message)
+            isChat -> {
+                val senderName = payload.title.ifEmpty { appName }
+                val senderAvatar = PushAvatars.user(context, payload.fromUserID)
+                val sender = Person.Builder()
+                    .setName(senderName)
+                    .setKey(hex(payload.fromUserID).ifEmpty { null })
+                    .setIcon(IconCompat.createWithBitmap(senderAvatar ?: PushAvatars.placeholder(senderName, payload.fromUserID)))
+                    .build()
+                if (isMessage) {
+                    messageStyle(context, builder, payload, tag, sender, appName)
                 } else {
-                    payload.body.ifEmpty { context.getString(R.string.push_message_no_preview) }
+                    // Реакция: отдельное уведомление (свой тег), но в той же беседе.
+                    val text = reactionText(context, payload)
+                    builder.setStyle(
+                        NotificationCompat.MessagingStyle(Person.Builder().setName(appName).build())
+                            .addMessage(text, payload.date.takeIf { it > 0 } ?: System.currentTimeMillis(), sender),
+                    ).setContentTitle(senderName).setContentText(text)
                 }
-                val active = activeNotification(context, tag)
-                val style = active?.let { NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(it) }
-                    ?: NotificationCompat.MessagingStyle(Person.Builder().setName(appName).build())
-                val ids = messageIDs(active, style.messages.size)
-                style.addMessage(text, payload.date.takeIf { it > 0 } ?: System.currentTimeMillis(), sender)
-                ids += payload.messageID
-                while (style.messages.size > MAX_STYLE_MESSAGES) {
-                    style.messages.removeAt(0)
-                    ids.removeAt(0)
-                }
-                // Группа: название — заголовком беседы, отправитель — у каждого
-                // сообщения («Имя: текст»).
-                val group = payload.chatTitle.isNotEmpty()
-                if (group) style.setConversationTitle(payload.chatTitle).setGroupConversation(true)
-                builder.setStyle(style)
-                    .setContentTitle(if (group) payload.chatTitle else payload.title.ifEmpty { appName })
-                    .setContentText(if (group && payload.title.isNotEmpty()) "${payload.title}: $text" else text)
-                    .addExtras(android.os.Bundle().apply { putLongArray(EXTRA_MESSAGE_IDS, ids.toLongArray()) })
+                // В реакции нет названия группы — шорткат беседы не трогаем,
+                // если он уже есть (иначе группа «переименуется» в отправителя).
+                conversation(context, builder, payload, sender, senderName, senderAvatar, keepExisting = !isMessage)
             }
 
             else -> {
                 val (title, text) = textFor(context, payload, appName)
                 builder.setContentTitle(title).setContentText(text)
                     .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+                // Пропущенный звонок / «контакт в Iperon» — аватар человека.
+                if (payload.fromUserID.isNotEmpty()) {
+                    builder.setLargeIcon(PushAvatars.user(context, payload.fromUserID) ?: PushAvatars.placeholder(title, payload.fromUserID))
+                }
             }
         }
 
@@ -153,6 +169,106 @@ object MessagePushHandler {
         } catch (error: SecurityException) {
             // POST_NOTIFICATIONS отозван между проверкой и показом.
             Log.w(LOG_TAG, "push: notify denied", error)
+        }
+    }
+
+    /// Новое сообщение дописывается в MessagingStyle уже показанного
+    /// уведомления чата [tag] (последние [MAX_STYLE_MESSAGES]).
+    private fun messageStyle(
+        context: Context,
+        builder: NotificationCompat.Builder,
+        payload: PushPayload,
+        tag: String,
+        sender: Person,
+        appName: String,
+    ) {
+        val secret = payload.kind == PushPayload.KIND_SECRET_MESSAGE
+        val text = if (secret) {
+            context.getString(R.string.push_secret_message)
+        } else {
+            payload.body.ifEmpty { context.getString(R.string.push_message_no_preview) }
+        }
+        val active = activeNotification(context, tag)
+        val style = active?.let { NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(it) }
+            ?: NotificationCompat.MessagingStyle(Person.Builder().setName(appName).build())
+        val ids = messageIDs(active, style.messages.size)
+        style.addMessage(text, payload.date.takeIf { it > 0 } ?: System.currentTimeMillis(), sender)
+        ids += payload.messageID
+        while (style.messages.size > MAX_STYLE_MESSAGES) {
+            style.messages.removeAt(0)
+            ids.removeAt(0)
+        }
+        // Группа: название — заголовком беседы, отправитель — у каждого
+        // сообщения («Имя: текст»).
+        val group = payload.chatTitle.isNotEmpty()
+        if (group) style.setConversationTitle(payload.chatTitle).setGroupConversation(true)
+        builder.setStyle(style)
+            .setContentTitle(if (group) payload.chatTitle else payload.title.ifEmpty { appName })
+            .setContentText(if (group && payload.title.isNotEmpty()) "${payload.title}: $text" else text)
+            .addExtras(android.os.Bundle().apply { putLongArray(EXTRA_MESSAGE_IDS, ids.toLongArray()) })
+    }
+
+    /// Делает уведомление беседой: шорткат чата (имя и аватар собеседника или
+    /// группы) + [NotificationCompat.Builder.setShortcutId]. До Android 11
+    /// бесед нет — тот же аватар large icon'ом.
+    private fun conversation(
+        context: Context,
+        builder: NotificationCompat.Builder,
+        payload: PushPayload,
+        sender: Person,
+        senderName: String,
+        senderAvatar: Bitmap?,
+        keepExisting: Boolean,
+    ) {
+        val group = payload.chatTitle.isNotEmpty()
+        val name = if (group) payload.chatTitle else senderName
+        val avatar = (if (group) PushAvatars.chat(context, payload.chatID) else senderAvatar)
+            ?: PushAvatars.placeholder(name, if (group) payload.chatID else payload.fromUserID)
+        val id = chatTag(payload)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) builder.setLargeIcon(avatar)
+        try {
+            if (keepExisting && hasShortcut(context, id)) {
+                builder.setShortcutId(id).setLocusId(LocusIdCompat(id))
+                return
+            }
+            // Тап по шорткату (лаунчер, «Поделиться») — в чат, как тап по пушу.
+            val intent = Intent(context, MainActivity::class.java).apply {
+                action = ACTION_PUSH_TAP
+                putExtra(EXTRA_KIND, if (payload.kind == PushPayload.KIND_SECRET_MESSAGE) payload.kind else PushPayload.KIND_MESSAGE)
+                putExtra(EXTRA_ID, "")
+                putExtra(EXTRA_CHAT_ID, hex(payload.chatID))
+                putExtra(EXTRA_FROM_USER_ID, hex(payload.fromUserID))
+            }
+            val shortcut = ShortcutInfoCompat.Builder(context, id)
+                .setShortLabel(name)
+                .setLongLived(true)
+                .setLocusId(LocusIdCompat(id))
+                .setIcon(IconCompat.createWithBitmap(avatar))
+                .setIntent(intent)
+                .setExtras(PersistableBundle().apply { if (!group) putString(SHORTCUT_USER, hex(payload.fromUserID)) })
+            if (!group) shortcut.setPerson(sender)
+            ShortcutManagerCompat.pushDynamicShortcut(context, shortcut.build())
+            builder.setShortcutId(id).setLocusId(LocusIdCompat(id))
+        } catch (error: Exception) {
+            Log.w(LOG_TAG, "push: conversation shortcut failed", error)
+        }
+    }
+
+    private fun hasShortcut(context: Context, id: String): Boolean =
+        ShortcutManagerCompat.getShortcuts(context, ShortcutManagerCompat.FLAG_MATCH_DYNAMIC or ShortcutManagerCompat.FLAG_MATCH_CACHED)
+            .any { it.id == id }
+
+    /// Снимает шорткаты бесед: все (разлогин, включён код-пароль — в них имена)
+    /// или только личных чатов с [users] (hex userID скрытых профилей).
+    fun removeShortcuts(context: Context, users: Set<String>? = null) {
+        try {
+            val flags = ShortcutManagerCompat.FLAG_MATCH_DYNAMIC or ShortcutManagerCompat.FLAG_MATCH_CACHED
+            val ids = ShortcutManagerCompat.getShortcuts(context, flags)
+                .filter { users == null || it.extras?.getString(SHORTCUT_USER)?.let { user -> user in users } == true }
+                .map { it.id }
+            if (ids.isNotEmpty()) ShortcutManagerCompat.removeLongLivedShortcuts(context, ids)
+        } catch (error: Exception) {
+            Log.w(LOG_TAG, "push: remove shortcuts failed", error)
         }
     }
 

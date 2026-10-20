@@ -283,6 +283,8 @@ class MainActivity : FlutterFragmentActivity() {
                     }
                     "clearPushKeys" -> {
                         PushKeyStore.clear(applicationContext)
+                        PushAvatars.clear(applicationContext)
+                        MessagePushHandler.removeShortcuts(applicationContext)
                         result.success(null)
                     }
                     // Прочитано / удалено (обновление из стрима) — снять показанное.
@@ -297,12 +299,27 @@ class MainActivity : FlutterFragmentActivity() {
                         result.success(null)
                     }
                     "setPasscodeEnabled" -> {
-                        PushKeyStore.setPasscodeEnabled(applicationContext, call.arguments as? Boolean ?: false)
+                        val enabled = call.arguments as? Boolean ?: false
+                        PushKeyStore.setPasscodeEnabled(applicationContext, enabled)
+                        // В шорткатах бесед — имена и аватары.
+                        if (enabled) MessagePushHandler.removeShortcuts(applicationContext)
                         result.success(null)
                     }
                     // Локально скрытые профили — их пуши без имени и текста.
                     "setHiddenUsers" -> {
-                        PushKeyStore.setHiddenUsers(applicationContext, (call.arguments as? List<*>).orEmpty().filterIsInstance<String>())
+                        val users = (call.arguments as? List<*>).orEmpty().filterIsInstance<String>()
+                        PushKeyStore.setHiddenUsers(applicationContext, users)
+                        if (users.isNotEmpty()) MessagePushHandler.removeShortcuts(applicationContext, users.map { it.lowercase() }.toSet())
+                        result.success(null)
+                    }
+                    // Снимок скачанных аватаров для уведомлений: [{key, id, path}].
+                    "syncAvatars" -> {
+                        val entries = (call.arguments as? List<*>).orEmpty().mapNotNull { entry ->
+                            (entry as? Map<*, *>)?.entries
+                                ?.mapNotNull { (k, v) -> if (k is String && v is String) k to v else null }
+                                ?.toMap()
+                        }
+                        PushAvatars.sync(applicationContext, entries)
                         result.success(null)
                     }
                     // Dart готов принимать тапы; заодно забирает отложенный тап
