@@ -1800,12 +1800,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       _windowChanged.add(chatID);
       return;
     }
-    final pb.Messages_HistoryResult page;
-    try {
-      page = await _sync.historyPage(chat, aroundID: id, limit: _windowStep);
-    } on ChatsOfflineException {
-      return;
-    }
+    // Без сети — ChatsOfflineException наверх: экран скажет «Нет соединения».
+    final page = await _sync.historyPage(chat, aroundID: id, limit: _windowStep);
     final ids = [for (final m in page.messages) m.messageID.toInt()];
     final older = [
       for (final i in ids)

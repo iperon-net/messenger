@@ -649,8 +649,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     final source = _source;
     if (source == null) return null;
     final id = await source.nextUnreadMention(_chatID);
-    if (id == null || isClosed) return null;
-    await _reveal(id);
+    if (id == null || isClosed || !await _reveal(id)) return null;
     unawaited(source.readMentions(_chatID, [id]));
     return id;
   }
@@ -670,8 +669,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     final source = _source;
     if (source == null) return null;
     final id = await source.nextUnreadReaction(_chatID);
-    if (id == null || isClosed) return null;
-    await _reveal(id);
+    if (id == null || isClosed || !await _reveal(id)) return null;
     unawaited(source.readReactions(_chatID, [id]));
     return id;
   }
@@ -843,7 +841,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   /// есть ещё — заранее догружаем следующую страницу.
   Future<void> _showResult(int index) async {
     final id = state.searchResults[index];
-    await _reveal(id);
+    if (!await _reveal(id)) return;
     if (!isClosed && state.searchResults.length > index && state.searchResults[index] == id) {
       emit(state.copyWith(searchIndex: index));
     }
@@ -853,15 +851,22 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   }
 
   /// Перейти к сообщению [id] (плашка закреплённых, «закрепил «…»»): старое,
-  /// за окном истории, — сначала расширить ленту до него.
-  Future<void> reveal(String id) => _reveal(id);
+  /// за окном истории, — сначала расширить ленту до него. false — без сети
+  /// не дотянуться (уже показано «Нет соединения»), переходить некуда.
+  Future<bool> reveal(String id) => _reveal(id);
 
   /// Сообщения [id] ещё нет в ленте (старое, за окном истории) — расширить
-  /// ленту до него и дождаться, пока оно придёт.
-  Future<void> _reveal(String id) async {
+  /// ленту до него и дождаться, пока оно придёт. Его нужно взять с сервера, а
+  /// сети нет — «Нет соединения» (`offlineNotice`) и false.
+  Future<bool> _reveal(String id) async {
     final source = _source;
-    if (source == null || state.messages.any((m) => m.id == id)) return;
-    await source.revealMessage(_chatID, id);
+    if (source == null || state.messages.any((m) => m.id == id)) return true;
+    try {
+      await source.revealMessage(_chatID, id);
+    } on ChatsOfflineException {
+      if (!isClosed) emit(state.copyWith(offlineNotice: state.offlineNotice + 1));
+      return false;
+    }
     try {
       await stream.firstWhere((s) => s.messages.any((m) => m.id == id)).timeout(const Duration(seconds: 3));
     } on TimeoutException {
@@ -869,6 +874,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     } on StateError {
       // cubit закрыт.
     }
+    return true;
   }
 
   /// Ответить на [message]; [quote] — на его фрагмент («Цитировать»).

@@ -341,8 +341,8 @@ class _ChatCupertinoState extends State<ChatCupertino> {
 
   /// К сообщению [id]: старое, за окном ленты, — сначала подгрузить до него.
   Future<void> _jumpTo(String id) async {
-    await _cubit.reveal(id);
-    if (mounted) await _tracker.jumpTo(id);
+    // Без сети до старого не дотянуться — «Нет соединения» уже показан.
+    if (await _cubit.reveal(id) && mounted) await _tracker.jumpTo(id);
   }
 
   /// Кнопка ❤️ — к самому старому нашему сообщению с непрочитанными реакциями.
