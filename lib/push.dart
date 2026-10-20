@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 
 import 'api.dart';
 import 'auth.dart';
+import 'cdn.dart';
 import 'di.dart';
 import 'logger.dart';
 import 'protobuf.dart';
@@ -42,8 +43,8 @@ import 'repositories.dart';
 /// `protos/push_payload_v1.proto`). Расшифровывает и показывает их натив без
 /// Flutter-движка: на Android — FCM-сервис, на iOS — Notification Service
 /// Extension. Поэтому ключ расшифровки (HKDF от sharedKey сессии), флаг
-/// код-пароля и скрытые профили отдаём в натив ([_syncPushKey],
-/// [setPasscodeEnabled], [_syncHiddenUsers]) по каналу
+/// код-пароля, скрытые профили и скачанные аватары отдаём в натив
+/// ([_syncPushKey], [setPasscodeEnabled], [_syncHiddenUsers], [_syncAvatars]) по каналу
 /// `net.iperon.messenger/push` (Android — хранилище на Keystore, iOS — общий с
 /// NSE Keychain); тот же канал приносит тапы по уведомлениям ([onRoute]).
 ///
@@ -84,6 +85,15 @@ class PushManager {
 
   StreamSubscription<String>? _fcmRefreshSub;
   StreamSubscription<void>? _hiddenSub;
+  final _avatarSubs = <StreamSubscription<void>>[];
+  Timer? _avatarsTimer;
+  // Подпись последнего отданного нативу снимка аватаров — без изменений не шлём.
+  String? _avatarsSent;
+  static const _avatarsDebounce = Duration(seconds: 2);
+  // hex(cdnID) → путь к расшифрованному файлу: снимок пересобирается на
+  // каждое изменение `downloads` (и прогресс вложений), а файл по cdnID
+  // неизменен — в кэш скачиваний за ним не ходим повторно.
+  final _avatarPaths = <String, String>{};
   Timer? _apnsRetryTimer;
   bool _started = false;
 
@@ -113,8 +123,17 @@ class PushManager {
         _channel.setMethodCallHandler(_onNativeCall);
         unawaited(setPasscodeEnabled(passcodeEnabled));
         // Локально скрытые профили: их пуши натив показывает без имени и текста.
-        _hiddenSub = repositories.hiddenProfiles.changes.listen((_) => unawaited(_syncHiddenUsers()));
+        _hiddenSub = repositories.hiddenProfiles.changes.listen((_) {
+          unawaited(_syncHiddenUsers());
+          _scheduleAvatars();
+        });
         unawaited(_syncHiddenUsers());
+        // Аватары для уведомлений: сменился у собеседника, скачался файл,
+        // изменились группы.
+        _avatarSubs
+          ..add(repositories.profiles.avatarChanges.listen((_) => _scheduleAvatars()))
+          ..add(repositories.db.onChange(const [ChatsRepository.groupsTable, 'downloads']).listen((_) => _scheduleAvatars()));
+        _scheduleAvatars();
         unawaited(_takeInitialTap());
       }
 
@@ -152,6 +171,7 @@ class PushManager {
 
   void _onAuthChanged() {
     unawaited(_syncPushKey());
+    if (_hasNativePush) _scheduleAvatars();
     if (!auth.isAuthorized) return;
     unawaited(syncTokens());
   }
@@ -203,6 +223,53 @@ class PushManager {
     try {
       final hidden = await repositories.hiddenProfiles.hashByHex();
       await _channel.invokeMethod<void>('setHiddenUsers', hidden.keys.toList());
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  void _scheduleAvatars() {
+    _avatarsTimer?.cancel();
+    _avatarsTimer = Timer(_avatarsDebounce, () => unawaited(_syncAvatars()));
+  }
+
+  /// Отдаёт нативу уже скачанные аватары собеседников (`u<userID>`) и групп
+  /// (`c<chatID>`): уведомление показывает их вместо иконки приложения, а она
+  /// становится маленьким значком в углу (iOS — Communication Notifications,
+  /// Android — беседы). Сам натив их скачать не может (файлы на CDN
+  /// зашифрованы), поэтому только то, что уже есть в кэше. Снимок полный:
+  /// натив копирует (уменьшив) новые и сменившиеся, удаляет пропавшие.
+  /// Скрытые профили не отдаём, разлогинились — пустой снимок.
+  Future<void> _syncAvatars() async {
+    try {
+      final avatars = <String, ({String id, String path})>{};
+      if (auth.isAuthorized) {
+        final cdn = getIt.get<CDNManager>();
+        final hidden = await repositories.hiddenProfiles.hashByHex();
+        Future<void> add(String key, List<int> cdnID) async {
+          final id = _hex(cdnID);
+          final path = _avatarPaths[id] ?? (await cdn.cachedFile(Uint8List.fromList(cdnID)))?.path;
+          if (path == null) return;
+          _avatarPaths[id] = path;
+          avatars[key] = (id: id, path: path);
+        }
+
+        for (final row in await repositories.profiles.readyAvatars()) {
+          final user = _hex(row.userID);
+          if (!hidden.containsKey(user)) await add('u$user', row.cdnID);
+        }
+        for (final group in await repositories.chats.groups(userID: auth.session.userID)) {
+          if (group.info.avatarCdnID.isNotEmpty) await add('c${_hex(group.chatID)}', group.info.avatarCdnID);
+        }
+      }
+
+      final keys = avatars.keys.toList()..sort();
+      final signature = [for (final key in keys) '$key=${avatars[key]!.id}'].join(',');
+      if (signature == _avatarsSent) return;
+      await _channel.invokeMethod<void>('syncAvatars', [
+        for (final key in keys) {'key': key, 'id': avatars[key]!.id, 'path': avatars[key]!.path},
+      ]);
+      _avatarsSent = signature;
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     }
@@ -446,5 +513,11 @@ class PushManager {
     _fcmRefreshSub = null;
     await _hiddenSub?.cancel();
     _hiddenSub = null;
+    _avatarsTimer?.cancel();
+    _avatarsTimer = null;
+    for (final sub in _avatarSubs) {
+      await sub.cancel();
+    }
+    _avatarSubs.clear();
   }
 }

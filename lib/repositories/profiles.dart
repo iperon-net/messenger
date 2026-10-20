@@ -125,6 +125,20 @@ class Profiles {
     _avatarChanges.add(Uint8List.fromList(userID));
   }
 
+  /// Привязанные аватары, которые уже скачаны (строка `downloads` в статусе
+  /// ready): их уменьшенные копии натив показывает в уведомлениях
+  /// (`PushManager._syncAvatars`).
+  Future<List<({Uint8List userID, Uint8List cdnID})>> readyAvatars() async {
+    final rows = await db.execute(
+      "SELECT p.userID, p.avatarCdnID FROM profiles p JOIN downloads d ON d.cdnID = p.avatarCdnID WHERE d.status = ?;",
+      [models.DownloadStatus.ready.name],
+    );
+    return [
+      for (final row in rows)
+        (userID: Uint8List.fromList(row["userID"] as List<int>), cdnID: Uint8List.fromList(row["avatarCdnID"] as List<int>)),
+    ];
+  }
+
   /// Аватар снят (в ответе PROFILE его нет) — отвязываем, чтобы не показывать
   /// прежний. Событие — только если что-то было привязано.
   Future<void> clearAvatar({required List<int> userID}) async {
