@@ -451,7 +451,7 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                             hint.text,
                             color: hint.error ? scheme.error : (hint.ok ? const Color(0xFF2E7D32) : null),
                           ),
-                        ] else if (state.joinMode != models.ChatJoinMode.admins && !state.inCommunity) ...[
+                        ] else if (!state.inCommunity) ...[
                           createHeaderMaterial(context, t.screenNewChat.inviteLink),
                           card([
                             // Код выдаёт сервер — до сохранения его ещё нет.

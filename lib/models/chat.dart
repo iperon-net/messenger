@@ -570,9 +570,10 @@ class Chat with ChatMappable {
   bool get canManage => myRole == ChatRole.admin || myRole == ChatRole.owner;
 
   /// Путь ссылки на чат после `iperon.net/`: публичный [username] или
-  /// [inviteLink] (если по ссылкам можно вступить); пусто — ссылки нет.
+  /// [inviteLink] (основная ссылка — она есть и в режиме «Только админы»: ею
+  /// приглашают админы, участникам сервер её не отдаёт); пусто — ссылки нет.
   /// У чатов сообщества своих ссылок нет — вступают через сообщество.
-  String get linkPath => inCommunity ? '' : (username.isNotEmpty ? username : (joinMode == ChatJoinMode.admins ? '' : inviteLink));
+  String get linkPath => inCommunity ? '' : (username.isNotEmpty ? username : inviteLink);
 
   /// Группа / канал внутри сообщества.
   bool get inCommunity => communityID.isNotEmpty;

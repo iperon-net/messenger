@@ -108,6 +108,9 @@ class ChatMessagesView extends StatelessWidget {
 
   /// Тап по реакции под сообщением; двойной тап по пузырю — быстрая реакция.
   final void Function(models.Message message, String emoji)? onReaction;
+
+  /// Долгое нажатие на реакцию под сообщением — «кто поставил» (группа).
+  final void Function(models.Message message, String emoji)? onReactionLongPress;
   final ValueChanged<models.Message>? onDoubleTap;
 
   /// Свайп сообщения влево — ответить; `null` — нельзя (канал, поиск).
@@ -180,6 +183,10 @@ class ChatMessagesView extends StatelessWidget {
   /// флаг, уже будучи на экране.
   final ValueChanged<models.Message>? onReactionsShown;
 
+  /// Группа: подпись справа от имени отправителя по его userID (звание /
+  /// «владелец» / «админ», см. `senderBadges`) — из кэша участников.
+  final Map<String, String> senderBadges;
+
   const ChatMessagesView({
     super.key,
     required this.messages,
@@ -194,6 +201,7 @@ class ChatMessagesView extends StatelessWidget {
     this.keyFor,
     this.onCancelUpload,
     this.onReaction,
+    this.onReactionLongPress,
     this.onDoubleTap,
     this.onReply,
     this.onReplyTap,
@@ -218,6 +226,7 @@ class ChatMessagesView extends StatelessWidget {
     this.onPollVoters,
     this.onCallTap,
     this.onReactionsShown,
+    this.senderBadges = const {},
   });
 
   static bool _sameDay(DateTime a, DateTime b) {
@@ -335,6 +344,7 @@ class ChatMessagesView extends StatelessWidget {
                                   style: style,
                                   tail: !groupedWithNewer,
                                   showSender: group && !m.outgoing && !groupedWithOlder,
+                                  senderBadge: senderBadges[m.senderUserID] ?? '',
                                   avatar: group && !m.outgoing
                                       ? (groupedWithNewer
                                             ? const SizedBox(width: 34)
@@ -347,6 +357,7 @@ class ChatMessagesView extends StatelessWidget {
                                   mark: m.id == flashID ? flashRange : null,
                                   onCancelUpload: onCancelUpload == null ? null : () => onCancelUpload!(m),
                                   onReaction: onReaction == null ? null : (emoji) => onReaction!(m, emoji),
+                                  onReactionLongPress: onReactionLongPress == null ? null : (emoji) => onReactionLongPress!(m, emoji),
                                   onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(m),
                                   onReplyTap: onReplyTap == null ? null : () => onReplyTap!(m),
                                   onForwardTap: onForwardTap == null ? null : () => onForwardTap!(m),
@@ -635,6 +646,10 @@ class MessageBubble extends StatelessWidget {
   final bool tail;
   final bool showSender;
 
+  /// Подпись справа от имени отправителя (группа): звание / «владелец» /
+  /// «админ», см. `senderBadge`; пусто — нет.
+  final String senderBadge;
+
   /// Колонка аватара слева (входящие в группе); `null` — без неё.
   final Widget? avatar;
   final VoidCallback onLongPress;
@@ -654,6 +669,9 @@ class MessageBubble extends StatelessWidget {
 
   /// Тап по реакции под сообщением (поставить/снять свою).
   final ValueChanged<String>? onReaction;
+
+  /// Долгое нажатие на реакцию — «кто поставил».
+  final ValueChanged<String>? onReactionLongPress;
 
   /// Двойной тап по пузырю — быстрая реакция.
   final VoidCallback? onDoubleTap;
@@ -692,6 +710,7 @@ class MessageBubble extends StatelessWidget {
     required this.tail,
     required this.showSender,
     required this.onLongPress,
+    this.senderBadge = '',
     this.onMediaTap,
     this.avatar,
     this.highlight = '',
@@ -699,6 +718,7 @@ class MessageBubble extends StatelessWidget {
     this.mark,
     this.onCancelUpload,
     this.onReaction,
+    this.onReactionLongPress,
     this.onDoubleTap,
     this.onReplyTap,
     this.onForwardTap,
@@ -861,13 +881,28 @@ class MessageBubble extends StatelessWidget {
       final content = <Widget>[];
       Widget? textBlock;
       if (showSender && m.senderName.isNotEmpty) {
+        final name = Text(
+          m.senderName,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: style.textStyle.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: senderColor(m.senderName)),
+        );
         content.add(
           Padding(
             padding: EdgeInsets.fromLTRB(captionInset, captionInset / 2, captionInset, 2),
-            child: Text(
-              m.senderName,
-              style: style.textStyle.copyWith(fontSize: 14, fontWeight: FontWeight.w600, color: senderColor(m.senderName)),
-            ),
+            // Звание — серым мелким справа от имени (как в Telegram).
+            child: senderBadge.isEmpty
+                ? name
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Flexible(child: name),
+                      const SizedBox(width: 8),
+                      Text(senderBadge, maxLines: 1, style: style.textStyle.copyWith(fontSize: 12, color: style.incomingMeta)),
+                    ],
+                  ),
           ),
         );
       }
@@ -982,6 +1017,12 @@ class MessageBubble extends StatelessWidget {
                               : () {
                                   HapticFeedback.selectionClick();
                                   onReaction!(r.emoji);
+                                },
+                          onLongPress: onReactionLongPress == null
+                              ? null
+                              : () {
+                                  HapticFeedback.mediumImpact();
+                                  onReactionLongPress!(r.emoji);
                                 },
                         ),
                     ],
@@ -1733,13 +1774,17 @@ class _ReactionChip extends StatelessWidget {
     required this.chosenText,
     required this.textStyle,
     this.onTap,
+    this.onLongPress,
   });
+
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
     final chosen = reaction.chosen;
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),

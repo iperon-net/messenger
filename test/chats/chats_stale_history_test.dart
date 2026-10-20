@@ -292,4 +292,88 @@ void main() {
       expect(await feed(), [40, 50]);
     });
   });
+
+  // Окно «вокруг сообщения» (хвост 3.6): страницы окна лежат скрытыми из
+  // ленты, удалённое в их диапазоне удаляется, лента и граница сверенного не
+  // трогаются; дошло до ленты — окно становится её частью.
+  group('окно вокруг сообщения', () {
+    Future<List<int>> feed() async => [for (final m in await store.messages(userID: me, chatID: chat)) m.messageID.toInt()];
+    Future<List<int>> window(int from, int to) async => [
+      for (final m in await store.messagesBetween(userID: me, chatID: chat, from: from, to: to)) m.messageID.toInt(),
+    ];
+
+    setUp(() async {
+      // Лента: сверенная 100..110.
+      await store.applyHistoryPage(
+        userID: me,
+        chatID: chat,
+        messages: page([for (var id = 100; id <= 110; id++) id]),
+        offsetID: 0,
+        hasMore: true,
+      );
+    });
+
+    test('страница окна — скрыта из ленты, граница не уходит вниз', () async {
+      expect(await store.historyFloor(userID: me, chatID: chat), 100);
+      await store.applyWindowPage(userID: me, chatID: chat, messages: page([40, 41, 43, 44]), from: 40, to: 44);
+      expect(await feed(), [for (var id = 100; id <= 110; id++) id]);
+      expect(await window(40, 44), [40, 41, 43, 44]);
+      expect(await store.historyFloor(userID: me, chatID: chat), 100);
+
+      // Та же страница позже: 43 удалили на сервере — из окна тоже.
+      await store.applyWindowPage(userID: me, chatID: chat, messages: page([40, 41, 44]), from: 40, to: 44);
+      expect(await window(40, 44), [40, 41, 44]);
+
+      // Страница новее — свой диапазон, нижнее окно не трогается.
+      await store.applyWindowPage(userID: me, chatID: chat, messages: page([45, 47]), from: 45, to: 47);
+      expect(await window(40, 50), [40, 41, 44, 45, 47]);
+    });
+
+    test('окно дошло до ленты — становится её частью, граница — на начало окна', () async {
+      await store.applyWindowPage(userID: me, chatID: chat, messages: page([90, 91, 93]), from: 90, to: 93);
+      // Страница новее 93 дотянулась до ленты (99 удалено): всё окно — одной
+      // страницей истории.
+      final next = await store.joinWindow(
+        userID: me,
+        chatID: chat,
+        messages: [
+          ...page([94, 95, 96, 97, 98, 100, 101]),
+          ...page([90, 91, 93]),
+        ],
+        hasOlder: true,
+        reachesTop: false,
+      );
+      // Найденное окном сделало ниже ленты несверенное — граница на начале окна.
+      expect(next, 90);
+      expect(await feed(), [90, 91, 93, 94, 95, 96, 97, 98, for (var id = 100; id <= 110; id++) id]);
+      expect(await store.historyFloor(userID: me, chatID: chat), 90);
+    });
+
+    test('при несверенной ленте граница встаёт на начало окна', () async {
+      for (var id = 10; id <= 12; id++) {
+        await store.upsertMessage(userID: me, message: message(id));
+      }
+      await store.updateDialog(userID: me, chatID: chat, fields: {'historyStaleBelow': 100});
+      final next = await store.joinWindow(userID: me, chatID: chat, messages: page([60, 61, 99]), hasOlder: true, reachesTop: false);
+      expect(next, 60);
+      expect(await feed(), [10, 11, 12, 60, 61, 99, for (var id = 100; id <= 110; id++) id]);
+    });
+
+    test('окно дошло до самого нового — сверка до верха, удалённое удаляется', () async {
+      final next = await store.joinWindow(
+        userID: me,
+        chatID: chat,
+        messages: page([
+          80,
+          81,
+          ...[for (var id = 100; id <= 110; id++) id].where((id) => id != 105),
+        ]),
+        hasOlder: false,
+        reachesTop: true,
+      );
+      expect(next, 0);
+      expect((await feed()).contains(105), isFalse);
+      expect((await feed()).first, 80);
+    });
+  });
 }

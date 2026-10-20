@@ -1,4 +1,5 @@
 import '../models.dart' as models;
+import 'reactions_list.dart';
 import 'read_receipts.dart';
 
 /// Источник данных списка чатов. UI и cubit'ы работают только через него: сейчас
@@ -87,8 +88,13 @@ class ChatsFeatures {
   /// правила групп: по правам приглашать (см. `chatInfoShowsInvites`).
   final bool channels;
 
-  /// Опрос можно переслать (демо); на сервере — нет («pollForward»).
+  /// Опрос можно переслать (демо — куда угодно, сервер — см. [pollsGroupsOnly]).
   final bool forwardPolls;
+
+  /// Опросы — только в группах (сервер): пересланный опрос — тот же опрос
+  /// (голоса общие с исходным), и переслать его можно только в группу (в
+  /// личный чат сервер ответит «pollInvalid»).
+  final bool pollsGroupsOnly;
 
   const ChatsFeatures({
     required this.reactions,
@@ -101,6 +107,7 @@ class ChatsFeatures {
     this.groupExtras = false,
     this.channels = false,
     this.forwardPolls = false,
+    this.pollsGroupsOnly = false,
   });
 
   const ChatsFeatures.all()
@@ -113,7 +120,8 @@ class ChatsFeatures {
       groupJoining = true,
       groupExtras = true,
       channels = true,
-      forwardPolls = true;
+      forwardPolls = true,
+      pollsGroupsOnly = false;
 
   const ChatsFeatures.none()
     : reactions = false,
@@ -125,7 +133,8 @@ class ChatsFeatures {
       groupJoining = false,
       groupExtras = false,
       channels = false,
-      forwardPolls = false;
+      forwardPolls = false,
+      pollsGroupsOnly = false;
 
   /// Доступное в чате [chat]: в группе без [groupExtras] — без реакций, а
   /// закреп — только с [groupRoles] (у всех — по праву pinMessages).
@@ -142,6 +151,7 @@ class ChatsFeatures {
       groupExtras: groupExtras,
       channels: channels,
       forwardPolls: forwardPolls,
+      pollsGroupsOnly: pollsGroupsOnly,
     );
   }
 }
@@ -372,13 +382,21 @@ abstract class ChatsDataSource {
 
   Future<void> unbanMember(String chatID, String userID);
 
+  /// Админ с правом блокировать: «Заблокировать пользователя» в
+  /// «Заблокированных» — [user] может и не быть в группе (тогда он только
+  /// попадает в список и не вступит ни по ссылке, ни заявкой, ни по имени);
+  /// участник — исключается, как [removeMember] с `ban`. Сервер: без сети —
+  /// [ChatsOfflineException], отказ — `ChatsRequestException`.
+  Future<void> banUser(String chatID, models.ChatMember user);
+
   /// Добавить контакты [userIDs] (с ролью по умолчанию). Заблокированных в
   /// группе разблокирует только админ с правом блокировать — у остальных они
   /// не добавятся (как запретившие приватностью).
   Future<void> addMembers(String chatID, List<String> userIDs);
 
   /// Назначить админом / изменить права и «звание» админа (у владельца и
-  /// админов сообщества в его чате — нельзя).
+  /// админов сообщества в его чате — нельзя). Владелец на себя ([userID] —
+  /// мы) — только своё звание ([rights] не значат).
   Future<void> setAdmin(String chatID, String userID, {required models.ChatAdminRights rights, String rank = ''});
 
   /// Снять админа (останется участником с ролью по умолчанию группы).
@@ -430,10 +448,24 @@ abstract class ChatsDataSource {
   /// него). Не бросает: нет сети / не нужно — в [ServerSearchPage.status].
   Future<ServerSearchPage> searchMessagesOnServer(String chatID, String query, {String? offsetID});
 
-  /// Добавить в [watchMessages] всё от последнего до [messageID] (переход к
-  /// найденному, которого ещё нет в ленте): старше скачанной истории —
-  /// докачать страницы истории до него.
+  /// Показать в [watchMessages] сообщение [messageID] (переход к найденному,
+  /// к цитате, к закреплённому, которого ещё нет в ленте): уже скачанное —
+  /// расширить ленту до него; старше скачанного — окно вокруг него с сервера
+  /// (лента — только это окно, см. [historyDetached], пока прокрутка новее
+  /// не дойдёт до обычной ленты).
   Future<void> revealMessage(String chatID, String messageID);
+
+  /// Лента — окно «вокруг сообщения», а новее него есть ещё: внизу — не
+  /// самое новое ([loadNewerMessages], кнопка «вниз» — [showLatestMessages]).
+  bool historyDetached(String chatID);
+
+  /// Прокрутили к концу окна «вокруг сообщения»: добавить страницу новее (дошли
+  /// до обычной ленты — окно сливается с ней). false — новее нет. Без сети —
+  /// [ChatsOfflineException].
+  Future<bool> loadNewerMessages(String chatID);
+
+  /// Из окна «вокруг сообщения» — к самому новому (обычная лента).
+  Future<void> showLatestMessages(String chatID);
 
   /// Отправить сообщение: текст уже разобран в entities (см.
   /// `parseMarkdownShortcuts`), для медиа — [kind] + [localPath]/[fileName],
@@ -469,6 +501,12 @@ abstract class ChatsDataSource {
   /// `PollOption.voters` (мы — «Вы»). Сервер — по запросу (без сети —
   /// [ChatsOfflineException]); `null` — опроса нет.
   Future<models.MessagePoll?> pollVoters(String chatID, String messageID);
+
+  /// «Кто поставил реакцию» на сообщение группы: страница от поздних к ранним
+  /// ([emoji] пусто — все, [cursor] — `nextCursor` прошлой страницы). Сервер —
+  /// по запросу: без сети — [ChatsOfflineException], лимит —
+  /// [ChatsFloodException], отказ — `ChatsRequestException`.
+  Future<ReactionsListPage> reactionsList(String chatID, String messageID, {String emoji = '', String cursor = ''});
 
   /// Отложенные сообщения чата (отправка с [sendMessage] `scheduleDate`) — от
   /// ранних к поздним; в момент `scheduledDate` уходят в чат сами.

@@ -95,7 +95,7 @@ class ChatAdminsMaterial extends StatelessWidget {
                             subtitle: Text(memberRoleLabel(t, admin, chat) ?? ''),
                             onTap: canPromoteMember(chat, state.members, admin)
                                 ? () => showChatAdminRightsMaterial(context, context.read<ChatCubit>(), admin)
-                                : null,
+                                : (canSetOwnRank(chat, admin) ? () => _editOwnRank(context, admin) : null),
                           ),
                       ]),
                       createNoteMaterial(context, chatAdminsFooter(t, chat)),
@@ -110,6 +110,42 @@ class ChatAdminsMaterial extends StatelessWidget {
 
 /// Выбор участника для «Добавить админа / модератора»: недавно активные, а
 /// поиском — любой участник (в большом чате всех не перечислить).
+
+/// Владелец: своё звание (подпись рядом с именем в сообщениях и в списке
+/// участников). Не сохранилось (нет сети, отказ) — объяснит окно чата.
+Future<void> _editOwnRank(BuildContext context, models.ChatMember self) async {
+  final t = context.t.screenChatAdmins;
+  final cubit = context.read<ChatCubit>();
+  final controller = TextEditingController(text: self.rank);
+  final rank = await showDialog<String>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(t.ownRankTitle),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(t.ownRankMessage),
+          const SizedBox(height: 12),
+          TextField(
+            controller: controller,
+            autofocus: true,
+            maxLength: 16,
+            decoration: InputDecoration(hintText: t.ownRankHint),
+            onSubmitted: (value) => Navigator.of(dialogContext).pop(value),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.cancel)),
+        TextButton(onPressed: () => Navigator.of(dialogContext).pop(controller.text), child: Text(context.t.common.save)),
+      ],
+    ),
+  );
+  controller.dispose();
+  if (rank != null && rank.trim() != self.rank) await cubit.setOwnRank(self, rank);
+}
+
 class _PickMemberMaterial extends StatefulWidget {
   final List<models.ChatMember> candidates;
   final Future<List<models.ChatMember>> Function(String query) search;

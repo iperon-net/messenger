@@ -213,6 +213,13 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: const [],
   );
+  static bool _$hasNewer(ChatState v) => v.hasNewer;
+  static const Field<ChatState, bool> _f$hasNewer = Field(
+    'hasNewer',
+    _$hasNewer,
+    opt: true,
+    def: false,
+  );
   static List<models.Message> _$forwarding(ChatState v) => v.forwarding;
   static const Field<ChatState, List<models.Message>> _f$forwarding = Field(
     'forwarding',
@@ -414,6 +421,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #selecting: _f$selecting,
     #selectedIDs: _f$selectedIDs,
     #vanishingIDs: _f$vanishingIDs,
+    #hasNewer: _f$hasNewer,
     #forwarding: _f$forwarding,
     #searching: _f$searching,
     #searchQuery: _f$searchQuery,
@@ -462,6 +470,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       selecting: data.dec(_f$selecting),
       selectedIDs: data.dec(_f$selectedIDs),
       vanishingIDs: data.dec(_f$vanishingIDs),
+      hasNewer: data.dec(_f$hasNewer),
       forwarding: data.dec(_f$forwarding),
       searching: data.dec(_f$searching),
       searchQuery: data.dec(_f$searchQuery),
@@ -629,6 +638,7 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     bool? selecting,
     List<String>? selectedIDs,
     List<String>? vanishingIDs,
+    bool? hasNewer,
     List<models.Message>? forwarding,
     bool? searching,
     String? searchQuery,
@@ -819,6 +829,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     bool? selecting,
     List<String>? selectedIDs,
     List<String>? vanishingIDs,
+    bool? hasNewer,
     List<models.Message>? forwarding,
     bool? searching,
     String? searchQuery,
@@ -865,6 +876,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (selecting != null) #selecting: selecting,
       if (selectedIDs != null) #selectedIDs: selectedIDs,
       if (vanishingIDs != null) #vanishingIDs: vanishingIDs,
+      if (hasNewer != null) #hasNewer: hasNewer,
       if (forwarding != null) #forwarding: forwarding,
       if (searching != null) #searching: searching,
       if (searchQuery != null) #searchQuery: searchQuery,
@@ -914,6 +926,7 @@ class _ChatStateCopyWithImpl<$R, $Out>
     selecting: data.get(#selecting, or: $value.selecting),
     selectedIDs: data.get(#selectedIDs, or: $value.selectedIDs),
     vanishingIDs: data.get(#vanishingIDs, or: $value.vanishingIDs),
+    hasNewer: data.get(#hasNewer, or: $value.hasNewer),
     forwarding: data.get(#forwarding, or: $value.forwarding),
     searching: data.get(#searching, or: $value.searching),
     searchQuery: data.get(#searchQuery, or: $value.searchQuery),

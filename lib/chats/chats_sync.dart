@@ -1164,6 +1164,45 @@ class ChatsSync {
     );
   }
 
+  /// Страница истории с сервера как есть — для окна «вокруг сообщения»
+  /// (`HistoryWindow`): [aroundID] — окно вокруг него (половина — оно и
+  /// старше, половина — новее), иначе — старше [offsetID]. Без сети —
+  /// [ChatsOfflineException].
+  Future<pb.Messages_HistoryResult> historyPage(Uint8List chatID, {int offsetID = 0, int aroundID = 0, required int limit}) async {
+    if (!await hasNetwork()) throw const ChatsOfflineException();
+    final response = await messages(
+      pb.Messages_Request(
+        history: pb.Messages_History(chatID: chatID, offsetID: Int64(offsetID), aroundID: Int64(aroundID), limit: limit),
+      ),
+    );
+    return response.history;
+  }
+
+  /// Страница окна, оторванного от ленты, — в кэш скрытой из ленты
+  /// (`ChatsRepository.applyWindowPage`).
+  Future<void> applyWindowPage(Uint8List chatID, List<pb.ChatMessage> page, {required int from, required int to}) {
+    final user = me;
+    return _locked(
+      () => _store.transaction((tx) async {
+        if (await tx.dialog(userID: user, chatID: chatID) == null) return;
+        await tx.applyWindowPage(userID: user, chatID: chatID, messages: page, from: from, to: to);
+      }),
+    );
+  }
+
+  /// Окно дошло до ленты — оно становится её частью
+  /// (`ChatsRepository.joinWindow`).
+  Future<void> joinWindow(Uint8List chatID, List<pb.ChatMessage> window, {required bool hasOlder, required bool reachesTop}) async {
+    final user = me;
+    await _locked(
+      () => _store.transaction((tx) async {
+        if (await tx.dialog(userID: user, chatID: chatID) == null) return;
+        await tx.joinWindow(userID: user, chatID: chatID, messages: window, hasOlder: hasOlder, reachesTop: reachesTop);
+      }),
+    );
+    if (!hasOlder) _noOlder.add(idHex(chatID));
+  }
+
   /// История чата скачана до самого начала и сверена: сервер старше ничего
   /// не отдаст (поиск на сервере не нужен).
   Future<bool> historyComplete(Uint8List chatID) async {

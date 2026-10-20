@@ -90,6 +90,8 @@ void main() {
             'unban' => canUnbanMembers(chat, members),
             'addBanned' => canAddBanned(chat, members),
             'transferOwnership' => canTransferOwnership(chat, target!),
+            'setOwnRank' => canSetOwnRank(chat, target!),
+            'banNonMember' => canBanNonMember(chat, members),
             final action => throw ArgumentError('неизвестное действие $action'),
           };
           expect(got, c['expect'] as bool);

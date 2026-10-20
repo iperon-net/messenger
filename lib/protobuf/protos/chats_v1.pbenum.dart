@@ -63,8 +63,9 @@ class ChatRole extends $pb.ProtobufEnum {
 /// по username любой вступает сразу (единственный режим с username); LINK —
 /// частная, по ссылкам-приглашениям (у ссылки может быть одобрение заявок);
 /// REQUEST — по ссылке, но всегда через заявку, которую одобряет админ с
-/// inviteUsers; ADMINS — только админы с inviteUsers добавляют сами, ссылок
-/// нет, участники добавлять не могут.
+/// inviteUsers; ADMINS — только админы с inviteUsers добавляют сами или
+/// приглашают ссылками (ссылка — способ админа пригласить; основная тоже
+/// есть), участники добавлять не могут.
 class ChatJoinMode extends $pb.ProtobufEnum {
   static const ChatJoinMode CHAT_JOIN_LINK = ChatJoinMode._(0, _omitEnumNames ? '' : 'CHAT_JOIN_LINK');
   static const ChatJoinMode CHAT_JOIN_OPEN = ChatJoinMode._(1, _omitEnumNames ? '' : 'CHAT_JOIN_OPEN');

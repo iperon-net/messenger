@@ -15,6 +15,7 @@ import '../../chats/chats_remote_data_source.dart';
 import '../../chats/chats_sync.dart';
 import '../../chats/media_files.dart';
 import '../../chats/media_prepare.dart';
+import '../../chats/member_badge.dart';
 import '../../chats/message_formatting.dart';
 import '../../chats/message_quote.dart';
 import '../../chats/newcomer.dart';
@@ -65,7 +66,8 @@ bool canRetractVote(models.Message message) {
 /// сообщения, как на сервере), пока не завершён.
 bool canClosePoll(models.Chat chat, models.Message message, {List<models.ChatMember> members = const []}) {
   final poll = message.poll;
-  if (poll == null || poll.closed) return false;
+  // Пересланный опрос — тот же опрос: завершает только автор исходного.
+  if (poll == null || poll.closed || message.forward != null) return false;
   if (message.outgoing) return true;
   return chat.type == models.ChatType.group ? canDeleteOthers(chat, members) : chat.canManage;
 }
@@ -478,6 +480,13 @@ class ChatsGroupNoticeListener<B extends StateStreamable<S>, S> extends Stateles
 
 /// Тап по упоминанию по имени (без @username) — профиль человека.
 void openMentionName(BuildContext context, String userID) => openUserProfile(context, userID);
+
+/// Подписи отправителей в пузырях группы (звание / «владелец» / «админ») из
+/// известных участников; в личном чате и канале — нет.
+Map<String, String> chatSenderBadges(Translations t, models.Chat chat, List<models.ChatMember> members) {
+  if (chat.type != models.ChatType.group && chat.type != models.ChatType.community) return const {};
+  return senderBadges(members, owner: t.screenChatInfo.roleOwner, admin: t.screenChatInfo.roleAdmin);
+}
 
 /// Тап по человеку (участник, упоминание, «Переслано от») — его профиль. В
 /// демо у людей нет настоящих userID — сразу личный чат, как раньше.
@@ -1340,17 +1349,28 @@ Future<void> scrollToMessage(
 /// - кнопка «вниз» ([showDown]) со счётчиком новых входящих ниже экрана
 ///   ([unread]); после перехода по цитате она сначала возвращает к сообщению,
 ///   с которого перешли;
-/// - тап по цитате — к исходному сообщению с подсветкой ([flashID]);
-/// - своё новое сообщение — лента прокручивается вниз.
+/// - тап по цитате — к исходному сообщению с подсветкой ([flashID]); его
+///   нет в ленте (старое) — сначала [reveal] (окно вокруг него);
+/// - своё новое сообщение — лента прокручивается вниз;
+/// - лента — окно «вокруг сообщения» ([detached]): у его конца — [loadNewer]
+///   с удержанием места, «вниз» видна всегда и ведёт к самому новому
+///   ([toLatest]).
 class ChatScrollTracker extends ChangeNotifier {
   final ScrollController scroll;
   final GlobalKey Function(String id) keyFor;
+  final Future<void> Function(String id)? reveal;
+  final Future<void> Function()? toLatest;
+  final Future<bool> Function()? loadNewer;
 
-  ChatScrollTracker(this.scroll, this.keyFor) {
+  ChatScrollTracker(this.scroll, this.keyFor, {this.reveal, this.toLatest, this.loadNewer}) {
     scroll.addListener(_onScroll);
   }
 
   bool showDown = false;
+
+  /// Лента — окно «вокруг сообщения», новее есть ещё (`ChatState.hasNewer`).
+  bool detached = false;
+  bool _loadingNewer = false;
   int unread = 0;
   String? flashID;
 
@@ -1377,10 +1397,11 @@ class ChatScrollTracker extends ChangeNotifier {
   }
 
   void _onScroll() {
-    final show = scroll.hasClients && scroll.offset > 300;
+    final show = detached || (scroll.hasClients && scroll.offset > 300);
     var changed = show != showDown;
     showDown = show;
-    if (_atBottom) {
+    if (detached && scroll.hasClients && scroll.offset < 600) unawaited(_loadNewer());
+    if (_atBottom && !detached) {
       _returnTo.clear();
       changed |= _markSeen();
     }
@@ -1395,11 +1416,34 @@ class ChatScrollTracker extends ChangeNotifier {
     return changed;
   }
 
-  /// Новые сообщения / разделитель из [ChatState].
-  void update(List<models.Message> messages, String? unreadFromID) {
+  /// Конец окна «вокруг сообщения» — страница новее; лента остаётся на том
+  /// же сообщении (список перевёрнут: новое внизу сдвинуло бы экран).
+  Future<void> _loadNewer() async {
+    final load = loadNewer;
+    if (load == null || _loadingNewer || _messages.isEmpty) return;
+    _loadingNewer = true;
+    final anchor = _messages.last.id;
+    try {
+      if (!await load()) return;
+      await WidgetsBinding.instance.endOfFrame;
+      await scrollToMessage(scroll, keyFor(anchor), alignment: 1, duration: Duration.zero);
+    } finally {
+      _loadingNewer = false;
+    }
+  }
+
+  /// Новые сообщения / разделитель из [ChatState]; [detached] — лента — окно
+  /// «вокруг сообщения».
+  void update(List<models.Message> messages, String? unreadFromID, {bool detached = false}) {
     final previous = _messages;
+    final wasDetached = this.detached;
     _messages = messages;
-    if (messages.isEmpty) return;
+    this.detached = detached;
+    if (detached != wasDetached) {
+      showDown = detached || (scroll.hasClients && scroll.offset > 300);
+      notifyListeners();
+    }
+    if (messages.isEmpty || detached) return;
     _seenUntil ??= messages.last.date;
 
     if (!_unreadApplied && unreadFromID != null) {
@@ -1439,8 +1483,15 @@ class ChatScrollTracker extends ChangeNotifier {
   /// Тап по цитате ответа в [from] — к исходному сообщению.
   Future<void> jumpToReply(models.Message from) async {
     final reply = from.reply;
-    final original = _messages.where((m) => m.id == reply?.messageID).firstOrNull;
-    if (reply == null || original == null) return;
+    if (reply == null) return;
+    var original = _messages.where((m) => m.id == reply.messageID).firstOrNull;
+    // Старое, не в ленте, — окно вокруг него.
+    if (original == null && reveal != null) {
+      await reveal!(reply.messageID);
+      await WidgetsBinding.instance.endOfFrame;
+      original = _messages.where((m) => m.id == reply.messageID).firstOrNull;
+    }
+    if (original == null) return;
     _returnTo.add(from.id);
     final quote = reply.quote;
     await _jumpTo(original.id, range: quote == null ? null : locateQuote(original.text, quote));
@@ -1452,6 +1503,13 @@ class ChatScrollTracker extends ChangeNotifier {
     while (_returnTo.isNotEmpty) {
       final id = _returnTo.removeLast();
       if (_messages.any((m) => m.id == id)) return _jumpTo(id);
+    }
+    // Окно «вокруг сообщения» — к самому новому: снова обычная лента.
+    if (detached && toLatest != null) {
+      await toLatest!();
+      await WidgetsBinding.instance.endOfFrame;
+      if (scroll.hasClients) scroll.jumpTo(0);
+      return;
     }
     await jumpToBottom();
   }

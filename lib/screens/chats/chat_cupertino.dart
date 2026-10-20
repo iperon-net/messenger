@@ -20,6 +20,7 @@ import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_actions_cupertino.dart';
 import 'chat_common.dart';
+import 'reactions_list_common.dart';
 import 'chat_info_common.dart';
 import 'comments_limit.dart';
 import 'compose_format_menu.dart';
@@ -99,7 +100,13 @@ class _ChatCupertinoState extends State<ChatCupertino> {
   final _messageKeys = <String, GlobalKey>{};
   late final ChatCubit _cubit;
   StreamSubscription<List<String>>? _dustSubscription;
-  late final _tracker = ChatScrollTracker(_scroll, _keyFor);
+  late final _tracker = ChatScrollTracker(
+    _scroll,
+    _keyFor,
+    reveal: _cubit.reveal,
+    toLatest: _cubit.showLatest,
+    loadNewer: _cubit.loadNewer,
+  );
   String? _flashID;
 
   /// Какое закреплённое показано в плашке (по кругу от новых к старым).
@@ -133,7 +140,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
       if (_flashID != _tracker.flashID && mounted) setState(() => _flashID = _tracker.flashID);
     });
     // Сообщения могли прийти до подписки слушателя.
-    _tracker.update(_cubit.state.messages, _cubit.state.unreadFromID);
+    _tracker.update(_cubit.state.messages, _cubit.state.unreadFromID, detached: _cubit.state.hasNewer);
     // Чат (с черновиком) — тоже: переход «нет чата → есть» слушатель не увидит.
     _applyDraft(_cubit.state.chat?.draft ?? '');
     // «Печатает…» / «записывает аудио…» собеседнику.
@@ -445,8 +452,11 @@ class _ChatCupertinoState extends State<ChatCupertino> {
         error: (state) => state.failError,
         child: BlocListener<ChatCubit, ChatState>(
           // Новые сообщения / разделитель непрочитанных — в навигацию по ленте.
-          listenWhen: (previous, current) => previous.messages != current.messages || previous.unreadFromID != current.unreadFromID,
-          listener: (context, state) => _tracker.update(state.messages, state.unreadFromID),
+          listenWhen: (previous, current) =>
+              previous.messages != current.messages ||
+              previous.unreadFromID != current.unreadFromID ||
+              previous.hasNewer != current.hasNewer,
+          listener: (context, state) => _tracker.update(state.messages, state.unreadFromID, detached: state.hasNewer),
           child: BlocConsumer<ChatCubit, ChatState>(
             listenWhen: (previous, current) =>
                 previous.editing != current.editing ||
@@ -610,6 +620,12 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                                 // Опрос: голосовать — участникам (не подписавшимся — нет).
                                                 onPollVote: chat.isMember ? (message, options) => _cubit.votePoll(message, options) : null,
                                                 onPollVoters: _pollVoters,
+                                                onReactionLongPress: (message, emoji) {
+                                                  if (_cubit.canListReactions(message)) {
+                                                    showReactionsList(context, _cubit, message, emoji: emoji);
+                                                  }
+                                                },
+                                                senderBadges: chatSenderBadges(t, chat, state.members),
                                                 // Звонок в ленте — перезвонить тем же видом.
                                                 onCallTap: chat.type == models.ChatType.private && !chat.isSelf
                                                     ? (message) => chatInfoCall(chat, video: message.phoneCall?.video ?? false)
@@ -845,6 +861,9 @@ class _ChatCupertinoState extends State<ChatCupertino> {
             child: Text(readInfoLabel(menuContext.t, chat, info)),
           ),
         ),
+      // Кто поставил реакции (группа).
+      if (_cubit.canListReactions(message))
+        action(t.reactionsList, CupertinoIcons.heart, () => showReactionsList(context, _cubit, message)),
       if (message.status == models.MessageStatus.failed)
         action(t.retrySend, CupertinoIcons.arrow_clockwise, () => _cubit.retrySend(message)),
       if (canWrite)

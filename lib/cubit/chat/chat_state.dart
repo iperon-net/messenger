@@ -59,6 +59,11 @@ class ChatState with ChatStateMappable {
   /// местом своей высоты, потом плавно схлопывается (см. ChatCubit.vanish).
   final List<String> vanishingIDs;
 
+  /// Лента — окно «вокруг сообщения» (переход к старому), а новее есть ещё:
+  /// прокрутка вниз догружает ([ChatCubit.loadNewer]), «вниз» — к самому
+  /// новому ([ChatCubit.showLatest]).
+  final bool hasNewer;
+
   /// Пересылаемые в этот чат сообщения — плашка над полем ввода, уходят по
   /// «Отправить» (после текста, если он есть).
   final List<models.Message> forwarding;
@@ -179,6 +184,7 @@ class ChatState with ChatStateMappable {
     this.selecting = false,
     this.selectedIDs = const [],
     this.vanishingIDs = const [],
+    this.hasNewer = false,
     this.forwarding = const [],
     this.searching = false,
     this.searchQuery = '',

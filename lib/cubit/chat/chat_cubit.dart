@@ -13,6 +13,7 @@ import '../../chats/chats_data_source.dart';
 import '../../chats/message_formatting.dart';
 import '../../chats/newcomer.dart';
 import '../../chats/reactions.dart';
+import '../../chats/reactions_list.dart';
 import '../../chats/read_receipts.dart';
 import '../../chats/voice_player.dart';
 import '../../chats/chats_remote_data_source.dart';
@@ -219,7 +220,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     _messagesSubscription = source.watchMessages(chatID).listen((fresh) {
       if (isClosed) return;
       final messages = withDustRetained(fresh);
-      emit(state.copyWith(messages: messages));
+      emit(state.copyWith(messages: messages, hasNewer: source.historyDetached(chatID)));
       // Отмечено сервером (здесь или на другом устройстве) — больше не ждём.
       _reactionsSeen.removeWhere((id) => !messages.any((m) => m.id == id && m.reactionsUnread));
       _mentionsSeen.removeWhere((id) => !messages.any((m) => m.id == id && m.mentionUnread));
@@ -508,6 +509,51 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
       getIt.get<Logger>().handle(error, stackTrace);
     } finally {
       _loadingOlder = false;
+    }
+  }
+
+  bool _loadingNewer = false;
+
+  /// Окно «вокруг сообщения»: прокрутили к его концу — страница новее (дошли
+  /// до обычной ленты — окно сливается с ней). true — лента пополнилась (экран
+  /// удерживает прокрутку на прежнем месте). Нет сети — молча, попробуем при
+  /// следующей прокрутке.
+  Future<bool> loadNewer() async {
+    final source = _source;
+    if (source == null || _loadingNewer || !state.hasNewer) return false;
+    _loadingNewer = true;
+    final before = state.messages.length;
+    try {
+      await source.loadNewerMessages(_chatID);
+      await stream.firstWhere((s) => s.messages.length != before || !s.hasNewer).timeout(const Duration(seconds: 3));
+      return true;
+    } on ChatsOfflineException {
+      return false;
+    } on TimeoutException {
+      return false;
+    } on StateError {
+      // cubit закрыт.
+      return false;
+    } catch (error, stackTrace) {
+      getIt.get<Logger>().handle(error, stackTrace);
+      return false;
+    } finally {
+      _loadingNewer = false;
+    }
+  }
+
+  /// «Вниз» в окне «вокруг сообщения» — к самому новому (обычная лента);
+  /// дожидается её.
+  Future<void> showLatest() async {
+    final source = _source;
+    if (source == null || !state.hasNewer) return;
+    await source.showLatestMessages(_chatID);
+    try {
+      await stream.firstWhere((s) => !s.hasNewer).timeout(const Duration(seconds: 3));
+    } on TimeoutException {
+      // Перейдём как есть.
+    } on StateError {
+      // cubit закрыт.
     }
   }
 
@@ -918,7 +964,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   static bool forwardable(models.Message m) =>
       m.kind != models.MessageKind.call && m.status != models.MessageStatus.pending && m.status != models.MessageStatus.failed;
 
-  /// [forwardable] в этом источнике: опрос на сервере не пересылается.
+  /// [forwardable] в этом источнике (опрос — если источник его пересылает).
   bool canForward(models.Message m) => forwardable(m) && (m.kind != models.MessageKind.poll || features.forwardPolls);
 
   /// Отмеченные для пересылки, с автором оригинала — сейчас, пока известен
@@ -964,14 +1010,17 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   /// Куда можно переслать: все чаты, кроме каналов (писать в них нельзя),
   /// сообществ (своей ленты нет — только их группы, где мы участник) и личных
   /// с локально скрытыми профилями (см. HiddenProfiles) — «Избранное» первым,
-  /// архив в конце.
+  /// архив в конце. Пересылаем опрос, а опросы у источника только в группах
+  /// ([ChatsFeatures.pollsGroupsOnly]) — только группы.
   Future<List<models.Chat>> forwardTargets() async {
     final source = _source;
     if (source == null) return const [];
     final hidden = await getIt.get<Repositories>().hiddenProfiles.hashByHex();
+    final groupsOnly = features.pollsGroupsOnly && state.selectedMessages.any((m) => m.kind == models.MessageKind.poll);
     final chats = (await source.watchChats().first)
         .where(
           (c) =>
+              (!groupsOnly || c.type == models.ChatType.group) &&
               c.type != models.ChatType.channel &&
               c.type != models.ChatType.community &&
               // «Чтение» в группе — писать (и пересылать) туда нельзя.
@@ -1112,6 +1161,29 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
 
   Future<bool> unbanMember(models.ChatMember member) => _memberAction(() => _source?.unbanMember(_chatID, member.id));
 
+  /// «Заблокировать пользователя» в «Заблокированных»: кого можно — участники
+  /// «Чтение» / «Запись» и контакты (не мы, не уже заблокированные); по имени.
+  Future<List<models.ChatMember>> banCandidates() async {
+    final skip = {for (final m in state.banned) m.id};
+    final result = <models.ChatMember>[];
+    for (final m in state.members) {
+      if (m.isSelf || m.fromCommunity || (m.role != models.ChatRole.reader && m.role != models.ChatRole.writer)) {
+        skip.add(m.id);
+      } else if (skip.add(m.id)) {
+        result.add(m);
+      }
+    }
+    for (final contact in await _source?.contacts() ?? const <models.ChatMember>[]) {
+      if (!contact.isSelf && skip.add(contact.id)) result.add(contact);
+    }
+    result.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return result;
+  }
+
+  /// Заблокировать [user] (участника — с исключением, не участника — только в
+  /// список). Без сети — «Нет соединения», отказ — объяснение.
+  Future<bool> banUser(models.ChatMember user) => _memberAction(() => _source?.banUser(_chatID, user));
+
   /// Добавить участников: без сети — «Нет соединения»; кого нельзя по
   /// приватности — пояснение ([ChatState.restrictedNotice]).
   Future<void> addMembers(List<models.ChatMember> members) async {
@@ -1153,6 +1225,10 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   /// Назначить админом / изменить права и «звание». false — не сохранено.
   Future<bool> setAdmin(models.ChatMember member, models.ChatAdminRights rights, String rank) =>
       _memberAction(() => _source?.setAdmin(_chatID, member.id, rights: rights, rank: rank.trim()));
+
+  /// Владелец: звание себе (пусто — снова «владелец»). false — не сохранено.
+  Future<bool> setOwnRank(models.ChatMember self, String rank) =>
+      _memberAction(() => _source?.setAdmin(_chatID, self.id, rights: const models.ChatAdminRights(), rank: rank.trim()));
 
   Future<bool> removeAdmin(models.ChatMember member) => _memberAction(() => _source?.removeAdmin(_chatID, member.id));
 
@@ -1200,6 +1276,19 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     await _serverAction(() async => poll = await _source?.pollVoters(_chatID, message.id));
     return poll;
   }
+
+  /// «Кто поставил реакцию» — страница списка; ошибки источника (нет сети,
+  /// отказ) — экрану списка: он пишет о них сам, на месте списка.
+  Future<ReactionsListPage> reactionsPage(models.Message message, {String emoji = '', String cursor = ''}) async =>
+      await _source?.reactionsList(_chatID, message.id, emoji: emoji, cursor: cursor) ?? const ReactionsListPage(reactors: []);
+
+  /// Список «кто поставил» — у сообщения группы с реакциями (в личном чате
+  /// и так видно, чьи они).
+  bool canListReactions(models.Message message) =>
+      features.reactions &&
+      message.reactions.isNotEmpty &&
+      (state.chat?.type == models.ChatType.group || state.chat?.type == models.ChatType.community) &&
+      !message.service;
 
   /// Серверное действие: без сети — `offlineNotice`, отказ или лимит
   /// частоты — `failNotice`. false — не выполнено.

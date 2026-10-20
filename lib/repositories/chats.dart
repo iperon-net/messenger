@@ -878,6 +878,86 @@ class ChatsRepository {
     return added;
   }
 
+  /// Нижняя граница сверенной непрерывной части ленты: `historyStaleBelow`, а
+  /// без неё — самое старое в ленте (0 — кэш пуст).
+  Future<int> historyFloor({required List<int> userID, required List<int> chatID}) async {
+    final stale = await historyStaleBelow(userID: userID, chatID: chatID);
+    return stale > 0 ? stale : oldestMessageID(userID: userID, chatID: chatID);
+  }
+
+  /// Сообщения [from]..[to] от старых к новым — вместе со скрытыми из ленты
+  /// (`searchHit`): лента окна «вокруг сообщения» (см. `HistoryWindow`).
+  Future<List<pb.ChatMessage>> messagesBetween({
+    required List<int> userID,
+    required List<int> chatID,
+    required int from,
+    required int to,
+  }) async {
+    final rows = await ctx.getAll(
+      'SELECT * FROM chatMessages WHERE userID = ? AND chatID = ? AND messageID BETWEEN ? AND ? ORDER BY messageID ASC;',
+      [userID, chatID, from, to],
+    );
+    return rows.map(_messageFromRow).toList(growable: false);
+  }
+
+  /// Страница окна «вокруг сообщения», оторванного от сверенной части ленты:
+  /// непрерывный кусок истории [from]..[to] с сервера ([messages] — по
+  /// убыванию). Кладётся как найденное поиском ([applySearchHits]: ниже
+  /// сверенной части — скрытым из ленты, граница вниз не сдвигается), а
+  /// найденные раньше в этом диапазоне, которых в ответе нет, — удалены на
+  /// сервере (или скрыты от меня) и удаляются.
+  Future<void> applyWindowPage({
+    required List<int> userID,
+    required List<int> chatID,
+    required List<pb.ChatMessage> messages,
+    required int from,
+    required int to,
+  }) async {
+    final ids = {for (final m in messages) m.messageID.toInt()};
+    final rows = await ctx.getAll(
+      'SELECT messageID FROM chatMessages WHERE userID = ? AND chatID = ? AND searchHit = 1 AND messageID BETWEEN ? AND ?;',
+      [userID, chatID, from, to],
+    );
+    await deleteMessages(
+      userID: userID,
+      chatID: chatID,
+      messageIDs: [
+        for (final row in rows)
+          if (!ids.contains(row['messageID'] as int)) row['messageID'] as int,
+      ],
+    );
+    await applySearchHits(userID: userID, chatID: chatID, messages: messages);
+  }
+
+  /// Окно «вокруг сообщения» дошло до сверенной части ленты (или до самого
+  /// нового, [reachesTop]): весь его непрерывный кусок ([messages] — по
+  /// убыванию, от начала окна до сверенной части) ложится обычной страницей
+  /// истории ([applyHistoryPage]) — найденное становится лентой, граница
+  /// несверенного — на начало окна. [hasOlder] — на сервере есть старше окна.
+  /// Возвращает новую границу (0 — всё сверено).
+  Future<int> joinWindow({
+    required List<int> userID,
+    required List<int> chatID,
+    required List<pb.ChatMessage> messages,
+    required bool hasOlder,
+    required bool reachesTop,
+  }) async {
+    final floor = await historyFloor(userID: userID, chatID: chatID);
+    if (reachesTop || floor == 0) {
+      return applyHistoryPage(userID: userID, chatID: chatID, messages: messages, offsetID: 0, hasMore: hasOlder);
+    }
+    return applyHistoryPage(
+      userID: userID,
+      chatID: chatID,
+      messages: [
+        for (final m in messages)
+          if (m.messageID.toInt() < floor) m,
+      ],
+      offsetID: floor,
+      hasMore: hasOlder,
+    );
+  }
+
   /// Сообщение лежит в кэше и видно в ленте (не только найдено поиском).
   Future<bool> inHistory({required List<int> userID, required List<int> chatID, required int messageID}) async {
     final row = await ctx.getOptional('SELECT 1 FROM chatMessages WHERE userID = ? AND chatID = ? AND messageID = ? AND searchHit = 0;', [

@@ -9,6 +9,7 @@ import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../chats/member_search.dart';
 import 'chats_new_material.dart';
+import 'forward_picker.dart';
 
 /// «Заблокированные» (Android) — профиль группы → админ.
 Future<void> showChatBannedMaterial(BuildContext context, ChatCubit cubit) {
@@ -47,6 +48,15 @@ class _ChatBannedMaterialState extends State<ChatBannedMaterial> {
             child: ListView(
               padding: const EdgeInsets.only(top: 8),
               children: [
+                Card(
+                  margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                  clipBehavior: Clip.antiAlias,
+                  child: ListTile(
+                    leading: HugeIcon(icon: HugeIcons.strokeRoundedUserBlock01, color: scheme.primary),
+                    title: Text(t.screenChatInfo.banUser, style: TextStyle(color: scheme.primary)),
+                    onTap: () => _banUser(context),
+                  ),
+                ),
                 if (state.banned.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
@@ -107,5 +117,34 @@ class _ChatBannedMaterialState extends State<ChatBannedMaterial> {
         );
       },
     );
+  }
+
+  /// «Заблокировать пользователя»: выбор из участников и контактов →
+  /// подтверждение → блок (не участник — только в список); без сети — «Нет
+  /// соединения» (offlineNotice профиля чата).
+  Future<void> _banUser(BuildContext context) async {
+    final cubit = context.read<ChatCubit>();
+    final t = context.t;
+    final candidates = await cubit.banCandidates();
+    if (!context.mounted) return;
+    final user = await showMemberPicker(
+      context,
+      title: t.screenChatInfo.banUserPick,
+      emptyText: t.screenChatInfo.banUserEmpty,
+      members: candidates,
+    );
+    if (user == null || !context.mounted) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.screenChatInfo.banMemberTitle(name: user.name)),
+        content: Text(t.screenChatInfo.banUserMessage),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(t.common.cancel)),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(t.screenChatInfo.banMember)),
+        ],
+      ),
+    );
+    if (confirmed ?? false) await cubit.banUser(user);
   }
 }

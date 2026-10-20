@@ -11,6 +11,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import '../../utils.dart';
+import 'chat_create_common.dart';
 
 /// «Переслать в…»: лист со списком чатов и поиском по названию. Возвращает
 /// выбранный чат или `null` (закрыли).
@@ -56,6 +57,24 @@ Future<PickerUser?> showUserPicker(BuildContext context, {required String title,
         cupertino: Platform.isIOS,
       ),
     );
+
+/// Выбор участника / контакта (тот же лист): аватар и имя участника.
+Future<models.ChatMember?> showMemberPicker(
+  BuildContext context, {
+  required String title,
+  required List<models.ChatMember> members,
+  String? emptyText,
+}) => _showPicker(
+  context,
+  _Picker<models.ChatMember>(
+    items: members,
+    title: (_) => title,
+    emptyText: emptyText,
+    label: (_, member) => member.name,
+    avatar: (context, member, _) => ContactAvatar(contact: member, size: 42),
+    cupertino: Platform.isIOS,
+  ),
+);
 
 Future<T?> _showPicker<T>(BuildContext context, _Picker<T> picker) {
   if (picker.cupertino) {

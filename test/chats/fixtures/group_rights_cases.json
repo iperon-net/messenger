@@ -1,5 +1,5 @@
 {
-  "_comment": "Общая таблица правил прав в группе (docs/plans/chats-groups.md, подэтап 3.2). Байт-в-байт одинакова в messenger (test/chats/fixtures/group_rights_cases.json) и iperon (internal/services/testdata/group_rights_cases.json); тесты обеих сторон прогоняют её целиком. Владелец имеет все права всегда. target \"self\" — сам актор. requested — права, которые выдают (setAdmin).",
+  "_comment": "Общая таблица правил прав в группе (docs/plans/chats-groups.md, подэтап 3.2). Байт-в-байт одинакова в messenger (test/chats/fixtures/group_rights_cases.json) и iperon (internal/services/testdata/group_rights_cases.json); тесты обеих сторон прогоняют её целиком. Владелец имеет все права всегда. target \"self\" — сам актор. requested — права, которые выдают (setAdmin). setOwnRank — звание себе (Chats.SetAdmin на себя); banNonMember — заблокировать того, кто не в группе (Chats.RemoveMember с ban).",
   "rights": [
     "changeInfo",
     "deleteMessages",
@@ -1039,6 +1039,99 @@
       },
       "expect": false,
       "target": "self"
+    },
+    {
+      "name": "setOwnRank: владелец задаёт себе звание",
+      "action": "setOwnRank",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": true,
+      "target": "self"
+    },
+    {
+      "name": "setOwnRank: админ со всеми правами себе — нет",
+      "action": "setOwnRank",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "deleteMessages",
+          "banUsers",
+          "inviteUsers",
+          "pinMessages",
+          "manageCalls",
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": "self"
+    },
+    {
+      "name": "setOwnRank: участник себе — нет",
+      "action": "setOwnRank",
+      "actor": {
+        "role": "writer",
+        "rights": []
+      },
+      "expect": false,
+      "target": "self"
+    },
+    {
+      "name": "setOwnRank: владелец — другому так нельзя",
+      "action": "setOwnRank",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "banNonMember: владелец",
+      "action": "banNonMember",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": true
+    },
+    {
+      "name": "banNonMember: админ с banUsers",
+      "action": "banNonMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "banNonMember: админ без banUsers",
+      "action": "banNonMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "banNonMember: участник",
+      "action": "banNonMember",
+      "actor": {
+        "role": "writer",
+        "rights": []
+      },
+      "expect": false
     }
   ]
 }

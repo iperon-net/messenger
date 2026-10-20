@@ -10,6 +10,7 @@ import '../../i18n/translations.g.dart';
 import '../../themes.dart';
 import '../../chats/member_search.dart';
 import 'chats_new_cupertino.dart';
+import 'forward_picker.dart';
 
 /// «Заблокированные» (iOS) — профиль группы → админ.
 Future<void> showChatBannedCupertino(BuildContext context, ChatCubit cubit) {
@@ -54,6 +55,21 @@ class _ChatBannedCupertinoState extends State<ChatBannedCupertino> {
           child: SafeArea(
             child: ListView(
               children: [
+                CupertinoListSection.insetGrouped(
+                  margin: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                  decoration: BoxDecoration(
+                    color: ThemesCupertino.groupedCard.resolveFrom(context),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                  ),
+                  children: [
+                    CupertinoListTile(
+                      leading: HugeIcon(icon: HugeIcons.strokeRoundedUserBlock01, size: 22, color: ThemesCupertino.actionColor(context)),
+                      title: Text(t.screenChatInfo.banUser, style: TextStyle(color: ThemesCupertino.actionColor(context))),
+                      onTap: () => _banUser(context),
+                    ),
+                  ],
+                ),
                 if (state.banned.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
@@ -120,5 +136,38 @@ class _ChatBannedCupertinoState extends State<ChatBannedCupertino> {
         );
       },
     );
+  }
+
+  /// «Заблокировать пользователя»: выбор из участников и контактов →
+  /// подтверждение → блок (не участник — только в список); без сети — «Нет
+  /// соединения» (offlineNotice профиля чата).
+  Future<void> _banUser(BuildContext context) async {
+    final cubit = context.read<ChatCubit>();
+    final t = context.t;
+    final candidates = await cubit.banCandidates();
+    if (!context.mounted) return;
+    final user = await showMemberPicker(
+      context,
+      title: t.screenChatInfo.banUserPick,
+      emptyText: t.screenChatInfo.banUserEmpty,
+      members: candidates,
+    );
+    if (user == null || !context.mounted) return;
+    final confirmed = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (dialogContext) => CupertinoAlertDialog(
+        title: Text(t.screenChatInfo.banMemberTitle(name: user.name)),
+        content: Text(t.screenChatInfo.banUserMessage),
+        actions: [
+          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(t.common.cancel)),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(t.screenChatInfo.banMember),
+          ),
+        ],
+      ),
+    );
+    if (confirmed ?? false) await cubit.banUser(user);
   }
 }

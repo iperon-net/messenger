@@ -10,6 +10,7 @@ import '../repositories.dart';
 import '../chats/member_search.dart';
 import '../chats/message_formatting.dart';
 import '../chats/reactions.dart';
+import '../chats/reactions_list.dart';
 import '../chats/read_receipts.dart';
 import '../models.dart' as models;
 
@@ -682,8 +683,9 @@ class ChatsDemoDataSource implements ChatsDataSource {
         joinMode: joinMode,
         username: open ? username : '',
         // Ссылка-приглашение сохраняется и у публичного — вернётся при
-        // переключении обратно; у «только админы» её нет.
-        inviteLink: joinMode == models.ChatJoinMode.admins ? '' : inviteLink,
+        // переключении обратно; у «только админы» она тоже есть — ссылкой
+        // приглашают админы (как на сервере).
+        inviteLink: inviteLink,
         defaultRole: defaultRole,
         commentsEnabled: chat.type == models.ChatType.channel && commentsEnabled,
         commentsTimeLimit: chat.type == models.ChatType.channel ? commentsTimeLimit : 0,
@@ -994,6 +996,15 @@ class ChatsDemoDataSource implements ChatsDataSource {
     _membersChanged(community?.id ?? chatID);
   }
 
+  @override
+  Future<void> banUser(String chatID, models.ChatMember user) async {
+    if (_allMembers(chatID).any((m) => m.id == user.id && !m.fromCommunity)) return removeMember(chatID, user.id, ban: true);
+    final scope = _banScope(chatID);
+    if ((_banned[scope] ?? const <models.ChatMember>[]).any((m) => m.id == user.id)) return;
+    _banned[scope] = [user.copyWith(role: models.ChatRole.writer, fromCommunity: false, isSelf: false), ...?_banned[scope]];
+    _membersChanged(scope);
+  }
+
   /// Убрать [member] из участников [chatID] (и в [_banned], если [ban]).
   /// Из сообщества — и из всех его чатов: выход из сообщества = выход из
   /// всех его групп.
@@ -1079,7 +1090,13 @@ class ChatsDemoDataSource implements ChatsDataSource {
     final granted = inCommunity ? rights.copyWith(addAdmins: false) : rights;
     _members[chatID] = [
       for (final m in _ownByID(chatID))
-        m.id == userID && m.role != models.ChatRole.owner ? m.copyWith(role: models.ChatRole.admin, rights: granted, rank: rank) : m,
+        if (m.id == userID && m.role != models.ChatRole.owner)
+          m.copyWith(role: models.ChatRole.admin, rights: granted, rank: rank)
+        // Владелец себе — только звание (как на сервере).
+        else if (m.id == userID && m.isSelf)
+          m.copyWith(rank: rank)
+        else
+          m,
     ];
     _membersChanged(chatID);
   }
@@ -1131,7 +1148,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     if (name.startsWith('+')) {
       // Ссылка-приглашение: основная (`Chat.inviteLink`) или живая доп. ссылка.
       final now = DateTime.now();
-      final byMain = _chats.where((c) => c.inviteLink == name && c.joinMode != models.ChatJoinMode.admins).firstOrNull;
+      final byMain = _chats.where((c) => c.inviteLink == name && !c.inCommunity).firstOrNull;
       if (byMain != null) return byMain.id;
       for (final entry in _links.entries) {
         if (entry.value.any((l) => l.link == name && l.isActive(now))) return entry.key;
@@ -1278,6 +1295,45 @@ class ChatsDemoDataSource implements ChatsDataSource {
         ),
       );
     });
+  }
+
+  /// Демо: вся история в памяти — окна «вокруг сообщения» нет.
+  @override
+  bool historyDetached(String chatID) => false;
+
+  @override
+  Future<bool> loadNewerMessages(String chatID) async => false;
+
+  @override
+  Future<void> showLatestMessages(String chatID) async {}
+
+  /// «Кто поставил реакцию» в демо: по числу каждой реакции — участники
+  /// группы (наша — «Вы»), одной страницей.
+  @override
+  Future<ReactionsListPage> reactionsList(String chatID, String messageID, {String emoji = '', String cursor = ''}) async {
+    final message = _history(chatID).where((m) => m.id == messageID).firstOrNull;
+    if (message == null || cursor.isNotEmpty) return const ReactionsListPage(reactors: []);
+    final random = Random(message.id.hashCode);
+    final others = _allMembers(chatID).where((m) => !m.isSelf).toList()..shuffle(random);
+    final reactors = <MessageReactor>[];
+    var next = 0;
+    for (final r in message.reactions) {
+      if (emoji.isNotEmpty && r.emoji != emoji) continue;
+      if (r.chosen) reactors.add(MessageReactor(userID: 'me', name: 'Вы', emoji: r.emoji, date: DateTime.now(), isSelf: true));
+      for (var i = 0; i < r.count - (r.chosen ? 1 : 0) && others.isNotEmpty; i++) {
+        final member = others[next++ % others.length];
+        reactors.add(
+          MessageReactor(
+            userID: member.id,
+            name: member.name,
+            emoji: r.emoji,
+            date: message.date.add(Duration(minutes: 1 + random.nextInt(120))),
+          ),
+        );
+      }
+    }
+    reactors.sort((a, b) => b.date.compareTo(a.date));
+    return ReactionsListPage(reactors: reactors);
   }
 
   /// Голоса демо уже в опросе (`PollOption.voters`).

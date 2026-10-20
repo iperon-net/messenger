@@ -313,10 +313,10 @@ models.ChatAdminRights withAdminRight(models.ChatAdminRights rights, ChatAdminRi
   ChatAdminRight.addAdmins => rights.copyWith(addAdmins: value),
 };
 
-/// Подпись роли в списке: «звание» админа, иначе «владелец» / «админ» /
-/// «только чтение».
+/// Подпись роли в списке: «звание» админа / владельца, иначе «владелец» /
+/// «админ» / «только чтение».
 String? memberRoleLabel(Translations t, models.ChatMember member, models.Chat chat) {
-  if (member.role == models.ChatRole.admin && member.rank.isNotEmpty) return member.rank;
+  if ((member.role == models.ChatRole.admin || member.role == models.ChatRole.owner) && member.rank.isNotEmpty) return member.rank;
   if (isTopicModerator(chat, member)) return t.screenChatInfo.roleModerator;
   // Владелец и админы сообщества в его чате.
   if (member.fromCommunity && member.role == models.ChatRole.owner) return t.screenChatInfo.roleCommunityOwner;

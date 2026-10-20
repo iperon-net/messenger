@@ -431,7 +431,7 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                               ),
                             ],
                           )
-                        else if (state.joinMode != models.ChatJoinMode.admins && !state.inCommunity)
+                        else if (!state.inCommunity)
                           section(
                             header: createHeaderCupertino(t.screenNewChat.inviteLink),
                             // Код выдаёт сервер — до сохранения его ещё нет.

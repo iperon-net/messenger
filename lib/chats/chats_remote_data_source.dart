@@ -29,6 +29,8 @@ import 'chats_media.dart';
 import 'chats_sync.dart';
 import 'message_search.dart';
 import 'reactions.dart';
+import 'history_window.dart';
+import 'reactions_list.dart';
 import 'read_receipts.dart';
 
 /// Настоящие чаты: SQLite-кэш ([ChatsRepository]) + сервер (chats_v1.proto).
@@ -96,7 +98,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   /// Закреплённые, реакции, пересылка и отложенные — есть; группы — по флагу
   /// «Группы», с ролями и правами (3.2), вступлением (3.3) и сообщениями в
   /// группе (3.4: реакции, опросы, упоминания …). Каналов и сообществ нет;
-  /// опрос не пересылается (сервер — «pollForward»).
+  /// опрос пересылается только в группу — тем же опросом (голоса общие).
   @override
   ChatsFeatures get features => ChatsFeatures(
     reactions: true,
@@ -107,6 +109,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     groupRoles: true,
     groupJoining: true,
     groupExtras: true,
+    forwardPolls: true,
+    pollsGroupsOnly: true,
   );
 
   /// Сервер удаляет отозванные ссылки только все сразу.
@@ -1506,6 +1510,15 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     (response) => response.removeMember.updates,
   );
 
+  /// Сервер блокирует и не участника (`RemoveMember` с `ban`): без
+  /// служебного сообщения, журнала у списка нет — экраны перечитают
+  /// «Заблокированные».
+  @override
+  Future<void> banUser(String chatID, models.ChatMember user) async {
+    await removeMember(chatID, user.id, ban: true);
+    _sync.notifyMembersChanged(chatID);
+  }
+
   /// Сколько заблокированных читать за раз и сколько страниц максимум.
   static const _bannedPage = 100;
   static const _bannedPages = 20;
@@ -1688,6 +1701,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         await refresh?.cancel();
         await uploads?.cancel();
         _windows.remove(chatID);
+        _detached.remove(chatID);
       },
     );
     return out.stream;
@@ -1699,10 +1713,10 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   static const _initialWindow = 200;
   static const _windowStep = 100;
 
-  /// Сколько страниц истории докачивать ради перехода к старому сообщению
-  /// (найденное поиском на сервере может быть очень старым; фоновая докачка
-  /// всё равно идёт до начала, [ChatsSync.backfill]).
-  static const _revealMaxPages = 50;
+  /// Окно «вокруг сообщения» ([HistoryWindow]): переход к старому, которого
+  /// нет в скачанной ленте, — лента показывает только его, пока прокрутка
+  /// новее не дойдёт до обычной ленты; сбрасывается, когда чат закрыли.
+  final _detached = <String, HistoryWindow>{};
   final _windowChanged = StreamController<String>.broadcast();
 
   @override
@@ -1761,29 +1775,113 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     );
   }
 
+  /// Уже в ленте (обычной — расширить её окно до него) — показать; иначе
+  /// (старше скачанного: закреплённое, найденное на сервере, цитата) — окно
+  /// вокруг него с сервера ([HistoryWindow], `History.aroundID`), а не
+  /// докачка всей истории сверху. Без сети — ничего (лента как есть).
   @override
   Future<void> revealMessage(String chatID, String messageID) async {
     final chat = idBytes(chatID);
     final id = int.tryParse(messageID);
-    if (chat.isEmpty || id == null || !_auth.isAuthorized) return;
-    // Старше скачанной истории (закреплённое, найденное на сервере) —
-    // докачать до него страницами истории: History не умеет «вокруг», а
-    // лента непрерывна. Найденное сервером лежит в кэше скрытым из ленты
-    // (`searchHit`) — страница, дошедшая до него, сделает его обычным.
-    for (var page = 0; page < _revealMaxPages; page++) {
-      if (await _store.inHistory(userID: _sync.me, chatID: chat, messageID: id)) break;
-      // Нижняя граница сверенной непрерывной истории: дошли до неё — дальше
-      // вниз его нет (удалено / скрыто).
-      final stale = await _store.historyStaleBelow(userID: _sync.me, chatID: chat);
-      final floor = stale > 0 ? stale : await _store.oldestMessageID(userID: _sync.me, chatID: chat);
-      if (floor == 0 || floor <= id) break;
-      final result = await _sync.loadOlder(chat);
-      if (result.loaded == 0) break;
+    if (chat.isEmpty || id == null || !_auth.isAuthorized || _previews.containsKey(chatID)) return;
+    if (_detached[chatID]?.contains(id) ?? false) return;
+    final me = _sync.me;
+    if (await _store.inHistory(userID: me, chatID: chat, messageID: id)) {
+      final wasDetached = _detached.remove(chatID) != null;
+      final needed = await _store.countMessagesFrom(userID: me, chatID: chat, messageID: id) + _windowStep ~/ 2;
+      if (needed <= (_windows[chatID] ?? _initialWindow) && !wasDetached) return;
+      _windows[chatID] = max(needed, _windows[chatID] ?? _initialWindow);
+      _windowChanged.add(chatID);
+      return;
     }
-    final needed = await _store.countMessagesFrom(userID: _sync.me, chatID: chat, messageID: id) + _windowStep ~/ 2;
-    if (needed <= (_windows[chatID] ?? _initialWindow)) return;
-    _windows[chatID] = needed;
+    final pb.Messages_HistoryResult page;
+    try {
+      page = await _sync.historyPage(chat, aroundID: id, limit: _windowStep);
+    } on ChatsOfflineException {
+      return;
+    }
+    final ids = [for (final m in page.messages) m.messageID.toInt()];
+    final older = [
+      for (final i in ids)
+        if (i <= id) i,
+    ];
+    final range = pageRange(older, hasOlder: page.hasMore);
+    final low = range?.from ?? id;
+    final high = ids.isEmpty ? id : max(ids.first, id);
+    await _placeWindow(
+      chatID,
+      chat,
+      page.messages,
+      window: HistoryWindow(low: low, high: high, older: page.hasMore, newer: page.hasNewer),
+    );
+  }
+
+  /// Новая страница окна [window] ([page] — по убыванию, уже в его
+  /// диапазоне): дошло до ленты — слить (всё окно — обычной страницей
+  /// истории, окно снимается), иначе — в кэш скрытым из ленты.
+  Future<void> _placeWindow(
+    String chatID,
+    Uint8List chat,
+    List<pb.ChatMessage> page, {
+    required HistoryWindow window,
+    HistoryWindow? previous,
+  }) async {
+    final me = _sync.me;
+    final floor = await _store.historyFloor(userID: me, chatID: chat);
+    if (windowJoins(high: window.high, newer: window.newer, floor: floor)) {
+      final cached = previous == null
+          ? const <pb.ChatMessage>[]
+          : await _store.messagesBetween(userID: me, chatID: chat, from: previous.low, to: previous.high);
+      final seen = {for (final m in page) m.messageID.toInt()};
+      final all = [
+        ...page,
+        for (final m in cached.reversed)
+          if (seen.add(m.messageID.toInt())) m,
+      ]..sort((a, b) => b.messageID.compareTo(a.messageID));
+      await _sync.joinWindow(chat, all, hasOlder: window.older, reachesTop: !window.newer);
+      _detached.remove(chatID);
+      final needed = await _store.countMessagesFrom(userID: me, chatID: chat, messageID: window.low) + _windowStep ~/ 2;
+      _windows[chatID] = max(needed, _windows[chatID] ?? _initialWindow);
+    } else {
+      // Диапазон страницы: у первой — всё окно, у страницы новее — от
+      // прежнего верха (ниже — уже лежит).
+      await _sync.applyWindowPage(chat, page, from: previous == null ? window.low : previous.high + 1, to: window.high);
+      _detached[chatID] = window;
+    }
     _windowChanged.add(chatID);
+  }
+
+  @override
+  bool historyDetached(String chatID) => _detached[chatID]?.newer ?? false;
+
+  /// Окно, оторванное от ленты: страница новее его верха (`History.aroundID`
+  /// = верх окна, берётся новая половина); дошли до ленты — окно сливается с
+  /// ней. Без сети — [ChatsOfflineException].
+  @override
+  Future<bool> loadNewerMessages(String chatID) async {
+    final window = _detached[chatID];
+    final chat = idBytes(chatID);
+    if (window == null || !window.newer || chat.isEmpty) return false;
+    final page = await _sync.historyPage(chat, aroundID: window.high, limit: _windowStep * 2);
+    final newer = [
+      for (final m in page.messages)
+        if (m.messageID.toInt() > window.high) m,
+    ];
+    final high = newer.isEmpty ? window.high : newer.first.messageID.toInt();
+    await _placeWindow(
+      chatID,
+      chat,
+      newer,
+      window: window.copyWith(high: high, newer: page.hasNewer),
+      previous: window,
+    );
+    return _detached[chatID]?.newer ?? false;
+  }
+
+  /// Кнопка «вниз» в окне «вокруг сообщения» — снова обычная лента.
+  @override
+  Future<void> showLatestMessages(String chatID) async {
+    if (_detached.remove(chatID) != null) _windowChanged.add(chatID);
   }
 
   @override
@@ -1792,6 +1890,18 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     if (chat.isEmpty || !_auth.isAuthorized) return false;
     if (_previews.containsKey(chatID) && await _store.dialog(userID: _sync.me, chatID: chat) == null) {
       return _loadPreviewHistory(chatID, older: true);
+    }
+    // Окно «вокруг сообщения» — старше его начала, с сервера.
+    final window = _detached[chatID];
+    if (window != null) {
+      if (!window.older) return false;
+      final page = await _sync.historyPage(chat, offsetID: window.low, limit: _windowStep);
+      final ids = [for (final m in page.messages) m.messageID.toInt()];
+      final range = pageRange(ids, hasOlder: page.hasMore, upper: window.low - 1);
+      if (range != null) await _sync.applyWindowPage(chat, page.messages, from: range.from, to: range.to);
+      _detached[chatID] = window.copyWith(low: range?.from ?? window.low, older: page.hasMore);
+      _windowChanged.add(chatID);
+      return page.hasMore;
     }
     final me = _sync.me;
     final shown = _windows[chatID] ?? _initialWindow;
@@ -1823,7 +1933,13 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final peer = row?.peerUserID;
     final isSelf = peer != null && sameID(peer, me);
     final peerName = peer == null || isSelf ? '' : _Peers(await _loadPeers([peer])).of(peer).title;
-    final history = preview?.history ?? await _store.messages(userID: me, chatID: chat, limit: _windows[chatID] ?? _initialWindow);
+    // Окно «вокруг сообщения» — только оно (и без неотправленного ниже).
+    final window = _detached[chatID];
+    final history =
+        preview?.history ??
+        (window != null
+            ? await _store.messagesBetween(userID: me, chatID: chat, from: window.low, to: window.high)
+            : await _store.messages(userID: me, chatID: chat, limit: _windows[chatID] ?? _initialWindow));
     final byID = {for (final m in history) m.messageID.toInt(): m};
     final pinnedIDs = {for (final m in await _store.pinned(userID: me, chatID: chat)) m.messageID.toInt()};
     final sharedPinnedIDs = await _store.sharedPinnedIDs(userID: me, chatID: chat);
@@ -1866,6 +1982,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     }
 
     final messages = [for (final m in history) await _withServerMedia(map(m), m.content, chatID, messageID: m.messageID.toInt())];
+    if (window != null) return _withForwardNames(messages);
     final pending = <models.Message>[];
     for (final queued in await _store.outbox(userID: me, chatID: chat)) {
       if (queued.isScheduled) continue;
@@ -2083,6 +2200,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   }) async {
     final chat = idBytes(chatID);
     if (chat.isEmpty) return;
+    // Отправили из окна «вокруг сообщения» — снова обычная лента (с новым).
+    unawaited(showLatestMessages(chatID));
     // Опрос — только в группе (в личном сервер откажет); текста у него нет.
     final isPoll = kind == models.MessageKind.poll || poll != null;
     if (isPoll && (poll == null || await _store.group(userID: _sync.me, chatID: chat) == null)) _unsupported('Опросы вне групп');
@@ -2236,6 +2355,50 @@ class ChatsRemoteDataSource implements ChatsDataSource {
             ],
           ),
       ],
+    );
+  }
+
+  /// Сколько реакций в странице «Кто поставил реакцию».
+  static const _reactionsPage = 50;
+
+  /// «Кто поставил реакцию» (`Messages.ReactionsList`, курсор — непрозрачный,
+  /// base64); имена — по общему правилу, неизвестные профили подтянутся.
+  @override
+  Future<ReactionsListPage> reactionsList(String chatID, String messageID, {String emoji = '', String cursor = ''}) async {
+    final id = serverMessageID(messageID);
+    final chat = idBytes(chatID);
+    if (id == null || chat.isEmpty) return const ReactionsListPage(reactors: []);
+    await _requireNetwork();
+    final response = await _sync.messages(
+      pb.Messages_Request(
+        reactionsList: pb.Messages_ReactionsList(
+          chatID: chat,
+          messageID: Int64(id),
+          emoji: emoji,
+          offset: cursor.isEmpty ? null : base64Decode(cursor),
+          limit: _reactionsPage,
+        ),
+      ),
+    );
+    final result = response.reactionsList;
+    final me = _sync.me;
+    final peers = _Peers(await _loadPeers([for (final r in result.reactions) Uint8List.fromList(r.userID)]));
+    _requestProfiles([
+      for (final r in result.reactions)
+        if (!sameID(r.userID, me)) (userID: Uint8List.fromList(r.userID), cached: peers.of(r.userID).profile != null),
+    ]);
+    return ReactionsListPage(
+      reactors: [
+        for (final r in result.reactions)
+          MessageReactor(
+            userID: idHex(r.userID),
+            name: sameID(r.userID, me) ? t.screenChat.you : peers.of(r.userID).title,
+            emoji: r.emoji,
+            date: DateTime.fromMillisecondsSinceEpoch(r.date.toInt()),
+            isSelf: sameID(r.userID, me),
+          ),
+      ],
+      nextCursor: result.nextOffset.isEmpty ? '' : base64Encode(result.nextOffset),
     );
   }
 
@@ -2538,6 +2701,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   Future<void> forwardMessages(String toChatID, List<models.Message> messages) async {
     final to = idBytes(toChatID);
     if (to.isEmpty || !_auth.isAuthorized) return;
+    unawaited(showLatestMessages(toChatID));
     final me = _sync.me;
     // Порядок outbox — по createdAt: у пачки он должен строго расти.
     final now = DateTime.now().millisecondsSinceEpoch;

@@ -66,6 +66,15 @@ bool canAddBanned(models.Chat chat, List<models.ChatMember> members) => myChatRi
 /// «Передать владение» [target]: только владелец и не себе.
 bool canTransferOwnership(models.Chat chat, models.ChatMember target) => chat.myRole == models.ChatRole.owner && !target.isSelf;
 
+/// Звание себе ([target] — мы): только владелец (админу звание задаёт
+/// назначивший), не в чате сообщества.
+bool canSetOwnRank(models.Chat chat, models.ChatMember target) =>
+    chat.myRole == models.ChatRole.owner && target.isSelf && !target.fromCommunity;
+
+/// «Заблокировать пользователя» в «Заблокированных» — и того, кто не в группе:
+/// право блокировать.
+bool canBanNonMember(models.Chat chat, List<models.ChatMember> members) => myChatRights(chat, members).banUsers;
+
 /// Можно писать в группу: роль не ниже «Запись» (READER только читает).
 bool canSendInGroup(models.ChatRole role) => role != models.ChatRole.reader;
 

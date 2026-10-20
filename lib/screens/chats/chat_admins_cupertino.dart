@@ -119,10 +119,12 @@ class ChatAdminsCupertino extends StatelessWidget {
                               leading: ContactAvatar(contact: admin),
                               title: Text(admin.isSelf ? t.screenChatInfo.you : admin.name),
                               subtitle: Text(memberRoleLabel(t, admin, chat) ?? ''),
-                              trailing: canPromoteMember(chat, state.members, admin) ? const CupertinoListTileChevron() : null,
+                              trailing: canPromoteMember(chat, state.members, admin) || canSetOwnRank(chat, admin)
+                                  ? const CupertinoListTileChevron()
+                                  : null,
                               onTap: canPromoteMember(chat, state.members, admin)
                                   ? () => showChatAdminRightsCupertino(context, context.read<ChatCubit>(), admin)
-                                  : null,
+                                  : (canSetOwnRank(chat, admin) ? () => _editOwnRank(context, admin) : null),
                             ),
                         ],
                       ),
@@ -133,6 +135,43 @@ class ChatAdminsCupertino extends StatelessWidget {
       },
     );
   }
+}
+
+/// Владелец: своё звание (подпись рядом с именем в сообщениях и в списке
+/// участников). Не сохранилось (нет сети, отказ) — объяснит окно чата.
+Future<void> _editOwnRank(BuildContext context, models.ChatMember self) async {
+  final t = context.t.screenChatAdmins;
+  final cubit = context.read<ChatCubit>();
+  final controller = TextEditingController(text: self.rank);
+  final rank = await showCupertinoDialog<String>(
+    context: context,
+    builder: (dialogContext) => CupertinoAlertDialog(
+      title: Text(t.ownRankTitle),
+      content: Column(
+        children: [
+          Text(t.ownRankMessage),
+          const SizedBox(height: 12),
+          CupertinoTextField(
+            controller: controller,
+            autofocus: true,
+            placeholder: t.ownRankHint,
+            maxLength: 16,
+            onSubmitted: (value) => Navigator.of(dialogContext).pop(value),
+          ),
+        ],
+      ),
+      actions: [
+        CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.cancel)),
+        CupertinoDialogAction(
+          isDefaultAction: true,
+          onPressed: () => Navigator.of(dialogContext).pop(controller.text),
+          child: Text(context.t.common.save),
+        ),
+      ],
+    ),
+  );
+  controller.dispose();
+  if (rank != null && rank.trim() != self.rank) await cubit.setOwnRank(self, rank);
 }
 
 /// Выбор участника для «Добавить админа / модератора»: недавно активные, а

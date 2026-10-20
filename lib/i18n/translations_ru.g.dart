@@ -408,7 +408,7 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get joinOpenFooter => 'Найти можно в поиске, вступить может любой.';
 	@override String get joinLinkFooter => 'Вступить можно только по ссылке-приглашению.';
 	@override String get joinRequestFooter => 'По ссылке-приглашению подаётся заявка — вступление после одобрения админом.';
-	@override String get joinAdminsFooter => 'Вступить самостоятельно нельзя — участников добавляют админы.';
+	@override String get joinAdminsFooter => 'Вступить самостоятельно нельзя — админы добавляют участников сами или приглашают ссылками.';
 	@override String get defaultRoleHeader => 'Новые участники';
 	@override String get roleReader => 'Только чтение';
 	@override String get roleWriter => 'Чтение и сообщения';
@@ -437,7 +437,7 @@ class _Translations$screenChatInvites$ru extends Translations$screenChatInvites$
 	@override String get primaryFooter => 'Любой, у кого есть ссылка, может вступить.';
 	@override String get primaryFooterChannel => 'Любой, у кого есть ссылка, может подписаться.';
 	@override String get primaryFooterRequest => 'По ссылке подаётся заявка на вступление — её одобряет админ.';
-	@override String get adminsOnlyNote => 'Сейчас участников добавляют только админы — по ссылкам вступить нельзя. Способ вступления меняется в «Изменить».';
+	@override String get adminsOnlyNote => 'Сейчас участников добавляют только админы — сами или ссылками ниже; участники не приглашают. Способ вступления меняется в «Изменить».';
 	@override String get copy => 'Копировать';
 	@override String get share => 'Поделиться';
 	@override String get replace => 'Заменить ссылку';
@@ -531,7 +531,10 @@ class _Translations$screenChatAdmins$ru extends Translations$screenChatAdmins$en
 	@override String get anonymousFooter => 'Сообщения анонимного админа подписываются названием группы.';
 	@override String get rankHeader => 'Звание';
 	@override String get rankHint => 'админ';
-	@override String get rankFooter => 'Показывается в списке участников вместо «админ».';
+	@override String get rankFooter => 'Показывается в списке участников и рядом с именем в сообщениях вместо «админ».';
+	@override String get ownRankTitle => 'Ваше звание';
+	@override String get ownRankMessage => 'Показывается в списке участников и рядом с вашим именем в сообщениях вместо «владелец». Пусто — «владелец».';
+	@override String get ownRankHint => 'владелец';
 	@override String get dismiss => 'Снять админа';
 	@override String dismissTitle({required Object name}) => 'Снять ${name} с админов?';
 	@override String get dismissMessage => 'Участник останется в чате без прав админа.';
@@ -652,6 +655,12 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get closePollTitle => 'Завершить опрос?';
 	@override String get closePollMessage => 'Голосовать больше будет нельзя, все увидят итоги.';
 	@override String get pollVoters => 'Голоса';
+	@override String get reactionsList => 'Реакции';
+	@override String get reactionsListAll => 'Все';
+	@override String get reactionsListEmpty => 'Реакций нет';
+	@override String get reactionsListOffline => 'Нет соединения — список не загрузился.';
+	@override String get reactionsListFailed => 'Не удалось загрузить список.';
+	@override String get reactionsListRetry => 'Повторить';
 	@override String get read => 'Прочитано';
 	@override String readAt({required Object date}) => 'Прочитано ${date}';
 	@override String readBy({required Object count}) => 'Прочитали: ${count}';
@@ -992,6 +1001,10 @@ class _Translations$screenChatInfo$ru extends Translations$screenChatInfo$en {
 	@override String get bannedFooter => 'Заблокированные не могут вступить по ссылкам-приглашениям. Если добавить вручную — блокировка снимется.';
 	@override String get bannedLoadFailed => 'Не удалось загрузить список: нет соединения.';
 	@override String get unban => 'Разблокировать';
+	@override String get banUser => 'Заблокировать пользователя';
+	@override String get banUserPick => 'Кого заблокировать';
+	@override String get banUserEmpty => 'Некого заблокировать: нет контактов и участников, которых можно заблокировать.';
+	@override String get banUserMessage => 'Не сможет вступить ни по ссылке, ни заявкой, ни по публичному имени. Если он в группе — будет исключён.';
 	@override String get reactions => 'Реакции';
 	@override String get reactionsAll => 'Все реакции';
 	@override String get reactionsSome => 'Некоторые';
@@ -2083,7 +2096,7 @@ extension on TranslationsRu {
 			'screenNewChat.joinOpenFooter' => 'Найти можно в поиске, вступить может любой.',
 			'screenNewChat.joinLinkFooter' => 'Вступить можно только по ссылке-приглашению.',
 			'screenNewChat.joinRequestFooter' => 'По ссылке-приглашению подаётся заявка — вступление после одобрения админом.',
-			'screenNewChat.joinAdminsFooter' => 'Вступить самостоятельно нельзя — участников добавляют админы.',
+			'screenNewChat.joinAdminsFooter' => 'Вступить самостоятельно нельзя — админы добавляют участников сами или приглашают ссылками.',
 			'screenNewChat.defaultRoleHeader' => 'Новые участники',
 			'screenNewChat.roleReader' => 'Только чтение',
 			'screenNewChat.roleWriter' => 'Чтение и сообщения',
@@ -2103,7 +2116,7 @@ extension on TranslationsRu {
 			'screenChatInvites.primaryFooter' => 'Любой, у кого есть ссылка, может вступить.',
 			'screenChatInvites.primaryFooterChannel' => 'Любой, у кого есть ссылка, может подписаться.',
 			'screenChatInvites.primaryFooterRequest' => 'По ссылке подаётся заявка на вступление — её одобряет админ.',
-			'screenChatInvites.adminsOnlyNote' => 'Сейчас участников добавляют только админы — по ссылкам вступить нельзя. Способ вступления меняется в «Изменить».',
+			'screenChatInvites.adminsOnlyNote' => 'Сейчас участников добавляют только админы — сами или ссылками ниже; участники не приглашают. Способ вступления меняется в «Изменить».',
 			'screenChatInvites.copy' => 'Копировать',
 			'screenChatInvites.share' => 'Поделиться',
 			'screenChatInvites.replace' => 'Заменить ссылку',
@@ -2188,7 +2201,10 @@ extension on TranslationsRu {
 			'screenChatAdmins.anonymousFooter' => 'Сообщения анонимного админа подписываются названием группы.',
 			'screenChatAdmins.rankHeader' => 'Звание',
 			'screenChatAdmins.rankHint' => 'админ',
-			'screenChatAdmins.rankFooter' => 'Показывается в списке участников вместо «админ».',
+			'screenChatAdmins.rankFooter' => 'Показывается в списке участников и рядом с именем в сообщениях вместо «админ».',
+			'screenChatAdmins.ownRankTitle' => 'Ваше звание',
+			'screenChatAdmins.ownRankMessage' => 'Показывается в списке участников и рядом с вашим именем в сообщениях вместо «владелец». Пусто — «владелец».',
+			'screenChatAdmins.ownRankHint' => 'владелец',
 			'screenChatAdmins.dismiss' => 'Снять админа',
 			'screenChatAdmins.dismissTitle' => ({required Object name}) => 'Снять ${name} с админов?',
 			'screenChatAdmins.dismissMessage' => 'Участник останется в чате без прав админа.',
@@ -2271,6 +2287,12 @@ extension on TranslationsRu {
 			'screenChat.closePollTitle' => 'Завершить опрос?',
 			'screenChat.closePollMessage' => 'Голосовать больше будет нельзя, все увидят итоги.',
 			'screenChat.pollVoters' => 'Голоса',
+			'screenChat.reactionsList' => 'Реакции',
+			'screenChat.reactionsListAll' => 'Все',
+			'screenChat.reactionsListEmpty' => 'Реакций нет',
+			'screenChat.reactionsListOffline' => 'Нет соединения — список не загрузился.',
+			'screenChat.reactionsListFailed' => 'Не удалось загрузить список.',
+			'screenChat.reactionsListRetry' => 'Повторить',
 			'screenChat.read' => 'Прочитано',
 			'screenChat.readAt' => ({required Object date}) => 'Прочитано ${date}',
 			'screenChat.readBy' => ({required Object count}) => 'Прочитали: ${count}',
@@ -2344,6 +2366,8 @@ extension on TranslationsRu {
 			'screenChat.floodTitle' => 'Слишком часто',
 			'screenChat.floodWait' => ({required Object time}) => 'Вы отправляете сообщения слишком часто. Следующее можно отправить через ${time}.',
 			'screenChat.floodNewChats' => ({required Object time}) => 'Вы начинаете новые чаты слишком часто. Попробуйте через ${time}.',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.privacyRestricted' => 'Вы не можете написать в этот чат.',
 			'screenChat.readOnly' => 'Только чтение: писать в эту группу нельзя.',
 			'screenChat.blockedNote' => 'Вы заблокировали этого пользователя',
@@ -2353,8 +2377,6 @@ extension on TranslationsRu {
 			'screenChat.scheduledTitle' => 'Отложенные сообщения',
 			'screenChat.schedule' => 'Запланировать',
 			'screenChat.sendNow' => 'Отправить сейчас',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.reschedule' => 'Изменить время',
 			'screenChat.deleteScheduledTitle' => 'Удалить отложенное сообщение?',
 			'screenChat.scheduledHint' => 'Отложенные сообщения',
@@ -2548,6 +2570,10 @@ extension on TranslationsRu {
 			'screenChatInfo.bannedFooter' => 'Заблокированные не могут вступить по ссылкам-приглашениям. Если добавить вручную — блокировка снимется.',
 			'screenChatInfo.bannedLoadFailed' => 'Не удалось загрузить список: нет соединения.',
 			'screenChatInfo.unban' => 'Разблокировать',
+			'screenChatInfo.banUser' => 'Заблокировать пользователя',
+			'screenChatInfo.banUserPick' => 'Кого заблокировать',
+			'screenChatInfo.banUserEmpty' => 'Некого заблокировать: нет контактов и участников, которых можно заблокировать.',
+			'screenChatInfo.banUserMessage' => 'Не сможет вступить ни по ссылке, ни заявкой, ни по публичному имени. Если он в группе — будет исключён.',
 			'screenChatInfo.reactions' => 'Реакции',
 			'screenChatInfo.reactionsAll' => 'Все реакции',
 			'screenChatInfo.reactionsSome' => 'Некоторые',
@@ -2854,6 +2880,8 @@ extension on TranslationsRu {
 			'screenCalls.emptyMissed' => 'Нет пропущенных звонков',
 			'screenCalls.permissionTitle' => 'Нужен доступ к микрофону',
 			'screenCalls.permissionMessage' => 'Разрешите доступ к микрофону, чтобы совершать и принимать звонки в Iperon.',
+			_ => null,
+		} ?? switch (path) {
 			'screenCalls.notificationPermissionTitle' => 'Включите уведомления о звонках',
 			'screenCalls.notificationPermissionMessage' => 'Разрешите уведомления, чтобы видеть входящие звонки, даже когда Iperon свёрнут.',
 			'screenCalls.permissionsTitle' => 'Настройка звонков',
@@ -2867,8 +2895,6 @@ extension on TranslationsRu {
 			'screenCalls.filterMissed' => 'Пропущенные',
 			'screenCalls.incoming' => 'Входящий',
 			'screenCalls.outgoing' => 'Исходящий',
-			_ => null,
-		} ?? switch (path) {
 			'screenCalls.missed' => 'Пропущенный',
 			'screenCalls.cancelled' => 'Отменённый',
 			'screenCalls.durationSec' => ({required Object s}) => '${s} сек',

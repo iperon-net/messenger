@@ -277,7 +277,9 @@ class ChatInfo extends $pb.GeneratedMessage {
   void clearNewcomerMediaDelay() => $_clearField(16);
 
   /// «Скрыть участников»: список участников видят только владелец и админы
-  /// (остальным Members отдаёт только админов).
+  /// (остальным Members отдаёт только админов). Не-админам не уходят и
+  /// изменения состава (Update.chatMembers — только о них самих), а служебные
+  /// «добавил / вступил / вышел / исключил» в ленту не пишутся вовсе.
   @$pb.TagNumber(17)
   $core.bool get membersHidden => $_getBF(16);
   @$pb.TagNumber(17)
@@ -932,7 +934,9 @@ class ChatMember extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   ChatAdminRights ensureRights() => $_ensure(4);
 
-  /// «Звание» админа / владельца (подпись в пузыре), ≤ 16 символов.
+  /// «Звание» админа / владельца (подпись в пузыре справа от имени), ≤ 16
+  /// символов. Пусто — клиент пишет «владелец» / «админ» по роли. Владелец
+  /// задаёт себе сам (Chats.SetAdmin с userID = свой).
   @$pb.TagNumber(6)
   $core.String get rank => $_getSZ(5);
   @$pb.TagNumber(6)
@@ -2011,7 +2015,10 @@ class ChatTyping extends $pb.GeneratedMessage {
 /// multiple. Верный вариант и пояснение сервер при выдаче из содержимого
 /// УБИРАЕТ (correctOption = -1, explanation пусто) — они приходят в
 /// PollResults тому, кто уже проголосовал, или всем после завершения.
-/// Пересылать опрос нельзя (INVALID_ARGUMENT «pollForward»), править — тоже.
+/// Править опрос нельзя. Пересылка (только в группу; в личный чат —
+/// INVALID_ARGUMENT «pollInvalid») — тот же опрос, как в Telegram: итоги у
+/// копии — исходного опроса, голос в копии идёт в исходный (голосует тот, кто
+/// видит пересланное), завершить копию нельзя (завершает автор оригинала).
 class MessagePoll extends $pb.GeneratedMessage {
   factory MessagePoll({
     $core.String? question,
@@ -8735,7 +8742,9 @@ class Chats_SetMemberRoleResult extends $pb.GeneratedMessage {
 /// Исключить участника (ban — ещё и заблокировать: не вернётся, пока не
 /// разблокируют). Владелец или админ с banUsers; только READER / WRITER —
 /// админа сначала снимают (RemoveAdmin), владельца — никто (PERMISSION_DENIED).
-/// В ленте — служебное REMOVED; исключённому — dialogDeleted.
+/// В ленте — служебное REMOVED; исключённому — dialogDeleted. ban у того, кто
+/// не в группе, — только блокировка (не вступит ни по ссылке, ни заявкой, ни
+/// по имени; добавить его может только админ с banUsers), без служебного.
 class Chats_RemoveMember extends $pb.GeneratedMessage {
   factory Chats_RemoveMember({
     $core.List<$core.int>? chatID,
@@ -9099,6 +9108,7 @@ class Chats_UnbanResult extends $pb.GeneratedMessage {
 /// Назначить админом / изменить права и звание (владелец или админ с
 /// addAdmins; права — не шире своих, иначе PERMISSION_DENIED
 /// «rightsTooWide»; владельца — нельзя). rank ≤ 16 символов («rankInvalid»).
+/// userID = свой у владельца — сменить себе звание (rights не значат).
 /// Права уже существующего админа меняет владелец или админ, чьи права не уже
 /// его. Участнику —
 /// Update.dialogSettings, всем — chatMembers.updated.
@@ -12490,16 +12500,22 @@ class Chats extends $pb.GeneratedMessage {
 /// (ChatPreview.canViewHistory), то же — Messages.Get. В группе со «Скрыть
 /// историю» вступивший после включения видит только сообщения после своего
 /// вступления (так же — Get, GetChatDifference, пересылка, закреплённые).
+///
+/// aroundID > 0 (offsetID при этом не значит) — окно вокруг сообщения
+/// (переход к найденному, к цитате): половина limit — оно и старше,
+/// половина — новее; hasMore — есть старше окна, hasNewer — новее.
 class Messages_History extends $pb.GeneratedMessage {
   factory Messages_History({
     $core.List<$core.int>? chatID,
     $fixnum.Int64? offsetID,
     $core.int? limit,
+    $fixnum.Int64? aroundID,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
     if (offsetID != null) result.offsetID = offsetID;
     if (limit != null) result.limit = limit;
+    if (aroundID != null) result.aroundID = aroundID;
     return result;
   }
 
@@ -12515,6 +12531,7 @@ class Messages_History extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
     ..aInt64(2, _omitFieldNames ? '' : 'offsetID', protoName: 'offsetID')
     ..aI(3, _omitFieldNames ? '' : 'limit')
+    ..aInt64(4, _omitFieldNames ? '' : 'aroundID', protoName: 'aroundID')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -12560,16 +12577,27 @@ class Messages_History extends $pb.GeneratedMessage {
   $core.bool hasLimit() => $_has(2);
   @$pb.TagNumber(3)
   void clearLimit() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $fixnum.Int64 get aroundID => $_getI64(3);
+  @$pb.TagNumber(4)
+  set aroundID($fixnum.Int64 value) => $_setInt64(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasAroundID() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearAroundID() => $_clearField(4);
 }
 
 class Messages_HistoryResult extends $pb.GeneratedMessage {
   factory Messages_HistoryResult({
     $core.Iterable<ChatMessage>? messages,
     $core.bool? hasMore,
+    $core.bool? hasNewer,
   }) {
     final result = create();
     if (messages != null) result.messages.addAll(messages);
     if (hasMore != null) result.hasMore = hasMore;
+    if (hasNewer != null) result.hasNewer = hasNewer;
     return result;
   }
 
@@ -12584,6 +12612,7 @@ class Messages_HistoryResult extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..pPM<ChatMessage>(1, _omitFieldNames ? '' : 'messages', subBuilder: ChatMessage.create)
     ..aOB(2, _omitFieldNames ? '' : 'hasMore', protoName: 'hasMore')
+    ..aOB(3, _omitFieldNames ? '' : 'hasNewer', protoName: 'hasNewer')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -12614,6 +12643,15 @@ class Messages_HistoryResult extends $pb.GeneratedMessage {
   $core.bool hasHasMore() => $_has(1);
   @$pb.TagNumber(2)
   void clearHasMore() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.bool get hasNewer => $_getBF(2);
+  @$pb.TagNumber(3)
+  set hasNewer($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasHasNewer() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearHasNewer() => $_clearField(3);
 }
 
 /// Отправить. Личный чат адресуется chatID (из OpenPrivate) или, если чата

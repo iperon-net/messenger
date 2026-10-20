@@ -887,8 +887,8 @@ class Translations$screenNewChat$en {
 	/// en: 'People with the invite link send a request; they join after an admin approves it.'
 	String get joinRequestFooter => 'People with the invite link send a request; they join after an admin approves it.';
 
-	/// en: 'Nobody can join on their own — admins add members.'
-	String get joinAdminsFooter => 'Nobody can join on their own — admins add members.';
+	/// en: 'Nobody can join on their own — admins add members or invite them with links.'
+	String get joinAdminsFooter => 'Nobody can join on their own — admins add members or invite them with links.';
 
 	/// en: 'New Members'
 	String get defaultRoleHeader => 'New Members';
@@ -956,8 +956,8 @@ class Translations$screenChatInvites$en {
 	/// en: 'People with the link send a join request that an admin approves.'
 	String get primaryFooterRequest => 'People with the link send a join request that an admin approves.';
 
-	/// en: 'Members are currently added by admins only — nobody can join via links. Change the joining method in Edit.'
-	String get adminsOnlyNote => 'Members are currently added by admins only — nobody can join via links. Change the joining method in Edit.';
+	/// en: 'Members are currently added by admins only — directly or with the links below; members can't invite. Change the joining method in Edit.'
+	String get adminsOnlyNote => 'Members are currently added by admins only — directly or with the links below; members can\'t invite. Change the joining method in Edit.';
 
 	/// en: 'Copy'
 	String get copy => 'Copy';
@@ -1220,8 +1220,17 @@ class Translations$screenChatAdmins$en {
 	/// en: 'admin'
 	String get rankHint => 'admin';
 
-	/// en: 'Shown instead of “admin” in the member list.'
-	String get rankFooter => 'Shown instead of “admin” in the member list.';
+	/// en: 'Shown instead of “admin” in the member list and next to the name in messages.'
+	String get rankFooter => 'Shown instead of “admin” in the member list and next to the name in messages.';
+
+	/// en: 'Your Title'
+	String get ownRankTitle => 'Your Title';
+
+	/// en: 'Shown instead of “owner” in the member list and next to your name in messages. Empty — “owner”.'
+	String get ownRankMessage => 'Shown instead of “owner” in the member list and next to your name in messages. Empty — “owner”.';
+
+	/// en: 'owner'
+	String get ownRankHint => 'owner';
 
 	/// en: 'Dismiss Admin'
 	String get dismiss => 'Dismiss Admin';
@@ -1498,6 +1507,24 @@ class Translations$screenChat$en {
 
 	/// en: 'Votes'
 	String get pollVoters => 'Votes';
+
+	/// en: 'Reactions'
+	String get reactionsList => 'Reactions';
+
+	/// en: 'All'
+	String get reactionsListAll => 'All';
+
+	/// en: 'No reactions'
+	String get reactionsListEmpty => 'No reactions';
+
+	/// en: 'No connection — the list didn't load.'
+	String get reactionsListOffline => 'No connection — the list didn\'t load.';
+
+	/// en: 'Couldn't load the list.'
+	String get reactionsListFailed => 'Couldn\'t load the list.';
+
+	/// en: 'Retry'
+	String get reactionsListRetry => 'Retry';
 
 	/// en: 'Read'
 	String get read => 'Read';
@@ -2380,6 +2407,18 @@ class Translations$screenChatInfo$en {
 
 	/// en: 'Unban'
 	String get unban => 'Unban';
+
+	/// en: 'Ban a User'
+	String get banUser => 'Ban a User';
+
+	/// en: 'Whom to Ban'
+	String get banUserPick => 'Whom to Ban';
+
+	/// en: 'Nobody to ban: no contacts or members that can be banned.'
+	String get banUserEmpty => 'Nobody to ban: no contacts or members that can be banned.';
+
+	/// en: 'They won't be able to join via links, requests or the public name. If they are in the group, they will be removed.'
+	String get banUserMessage => 'They won\'t be able to join via links, requests or the public name. If they are in the group, they will be removed.';
 
 	/// en: 'Reactions'
 	String get reactions => 'Reactions';
@@ -4546,7 +4585,7 @@ extension on Translations {
 			'screenNewChat.joinOpenFooter' => 'Anyone can find it in search and join.',
 			'screenNewChat.joinLinkFooter' => 'Only people with the invite link can join.',
 			'screenNewChat.joinRequestFooter' => 'People with the invite link send a request; they join after an admin approves it.',
-			'screenNewChat.joinAdminsFooter' => 'Nobody can join on their own — admins add members.',
+			'screenNewChat.joinAdminsFooter' => 'Nobody can join on their own — admins add members or invite them with links.',
 			'screenNewChat.defaultRoleHeader' => 'New Members',
 			'screenNewChat.roleReader' => 'Read Only',
 			'screenNewChat.roleWriter' => 'Can Send Messages',
@@ -4566,7 +4605,7 @@ extension on Translations {
 			'screenChatInvites.primaryFooter' => 'Anyone with the link can join.',
 			'screenChatInvites.primaryFooterChannel' => 'Anyone with the link can subscribe.',
 			'screenChatInvites.primaryFooterRequest' => 'People with the link send a join request that an admin approves.',
-			'screenChatInvites.adminsOnlyNote' => 'Members are currently added by admins only — nobody can join via links. Change the joining method in Edit.',
+			'screenChatInvites.adminsOnlyNote' => 'Members are currently added by admins only — directly or with the links below; members can\'t invite. Change the joining method in Edit.',
 			'screenChatInvites.copy' => 'Copy',
 			'screenChatInvites.share' => 'Share',
 			'screenChatInvites.replace' => 'Replace Link',
@@ -4651,7 +4690,10 @@ extension on Translations {
 			'screenChatAdmins.anonymousFooter' => 'An anonymous admin\'s messages are signed with the group name.',
 			'screenChatAdmins.rankHeader' => 'Custom Title',
 			'screenChatAdmins.rankHint' => 'admin',
-			'screenChatAdmins.rankFooter' => 'Shown instead of “admin” in the member list.',
+			'screenChatAdmins.rankFooter' => 'Shown instead of “admin” in the member list and next to the name in messages.',
+			'screenChatAdmins.ownRankTitle' => 'Your Title',
+			'screenChatAdmins.ownRankMessage' => 'Shown instead of “owner” in the member list and next to your name in messages. Empty — “owner”.',
+			'screenChatAdmins.ownRankHint' => 'owner',
 			'screenChatAdmins.dismiss' => 'Dismiss Admin',
 			'screenChatAdmins.dismissTitle' => ({required Object name}) => 'Dismiss ${name}?',
 			'screenChatAdmins.dismissMessage' => 'They will stay in the chat without admin rights.',
@@ -4734,6 +4776,12 @@ extension on Translations {
 			'screenChat.closePollTitle' => 'Stop the poll?',
 			'screenChat.closePollMessage' => 'Nobody will be able to vote anymore; everyone will see the results.',
 			'screenChat.pollVoters' => 'Votes',
+			'screenChat.reactionsList' => 'Reactions',
+			'screenChat.reactionsListAll' => 'All',
+			'screenChat.reactionsListEmpty' => 'No reactions',
+			'screenChat.reactionsListOffline' => 'No connection — the list didn\'t load.',
+			'screenChat.reactionsListFailed' => 'Couldn\'t load the list.',
+			'screenChat.reactionsListRetry' => 'Retry',
 			'screenChat.read' => 'Read',
 			'screenChat.readAt' => ({required Object date}) => 'Read ${date}',
 			'screenChat.readBy' => ({required Object count}) => 'Seen by ${count}',
@@ -4807,6 +4855,8 @@ extension on Translations {
 			'screenChat.floodTitle' => 'Too many requests',
 			'screenChat.floodWait' => ({required Object time}) => 'You are sending messages too often. You can send the next one in ${time}.',
 			'screenChat.floodNewChats' => ({required Object time}) => 'You are starting new chats too often. Try again in ${time}.',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.privacyRestricted' => 'You can\'t message this chat.',
 			'screenChat.readOnly' => 'Read-only: you can\'t post in this group.',
 			'screenChat.blockedNote' => 'You blocked this user',
@@ -4816,8 +4866,6 @@ extension on Translations {
 			'screenChat.scheduledTitle' => 'Scheduled messages',
 			'screenChat.schedule' => 'Schedule',
 			'screenChat.sendNow' => 'Send now',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.reschedule' => 'Reschedule',
 			'screenChat.deleteScheduledTitle' => 'Delete scheduled message?',
 			'screenChat.scheduledHint' => 'Scheduled messages',
@@ -5011,6 +5059,10 @@ extension on Translations {
 			'screenChatInfo.bannedFooter' => 'Banned users can\'t join via invite links. Adding them manually unbans them.',
 			'screenChatInfo.bannedLoadFailed' => 'Couldn\'t load the list: no connection.',
 			'screenChatInfo.unban' => 'Unban',
+			'screenChatInfo.banUser' => 'Ban a User',
+			'screenChatInfo.banUserPick' => 'Whom to Ban',
+			'screenChatInfo.banUserEmpty' => 'Nobody to ban: no contacts or members that can be banned.',
+			'screenChatInfo.banUserMessage' => 'They won\'t be able to join via links, requests or the public name. If they are in the group, they will be removed.',
 			'screenChatInfo.reactions' => 'Reactions',
 			'screenChatInfo.reactionsAll' => 'All reactions',
 			'screenChatInfo.reactionsSome' => 'Some reactions',
@@ -5317,6 +5369,8 @@ extension on Translations {
 			'screenCalls.emptyMissed' => 'No missed calls',
 			'screenCalls.permissionTitle' => 'Microphone access needed',
 			'screenCalls.permissionMessage' => 'Allow microphone access to make and receive calls on Iperon.',
+			_ => null,
+		} ?? switch (path) {
 			'screenCalls.notificationPermissionTitle' => 'Enable call notifications',
 			'screenCalls.notificationPermissionMessage' => 'Allow notifications so you can see incoming calls even when Iperon is in the background.',
 			'screenCalls.permissionsTitle' => 'Set up calls',
@@ -5330,8 +5384,6 @@ extension on Translations {
 			'screenCalls.filterMissed' => 'Missed',
 			'screenCalls.incoming' => 'Incoming',
 			'screenCalls.outgoing' => 'Outgoing',
-			_ => null,
-		} ?? switch (path) {
 			'screenCalls.missed' => 'Missed',
 			'screenCalls.cancelled' => 'Cancelled',
 			'screenCalls.durationSec' => ({required Object s}) => '${s} sec',
