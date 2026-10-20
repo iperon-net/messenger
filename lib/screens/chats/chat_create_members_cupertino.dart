@@ -88,7 +88,7 @@ class _ChatCreateMembersCupertino extends State<ChatCreateMembersCupertino> {
               children: [
                 if (state.selected.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
                     child: Wrap(
                       spacing: 6,
                       runSpacing: 6,
@@ -115,7 +115,7 @@ class _ChatCreateMembersCupertino extends State<ChatCreateMembersCupertino> {
                     ),
                   ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
                   child: SearchFieldCupertino(
                     controller: _searchController,
                     placeholder: t.screenNewChat.search,
@@ -132,7 +132,9 @@ class _ChatCreateMembersCupertino extends State<ChatCreateMembersCupertino> {
                     ),
                   )
                 else
+                  // Поля как у поиска: список людей во всю ширину, как у «Заблокированных».
                   CupertinoListSection.insetGrouped(
+                    margin: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                     backgroundColor: background,
                     decoration: BoxDecoration(color: card, borderRadius: const BorderRadius.all(Radius.circular(10))),
                     footer: state.selected.isEmpty && widget.onDone == null ? createNoteCupertino(t.screenNewChat.noMembersHint) : null,
