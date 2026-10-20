@@ -16,6 +16,10 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
   final bool passcodeForceLocked;
   final int passcodeBackgroundedAt;
 
+  /// С код-паролем уведомления по умолчанию без имени и текста (натив, см.
+  /// `PushManager.setPasscodeEnabled`); `true` — показывать их как без кода.
+  final bool passcodeNotificationContent;
+
   /// UX-демо чатов (экран «Разработчик»): вкладка «Чаты» на фейковых данных.
   final bool chatsDemo;
 
@@ -50,6 +54,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     this.passcodeAutoLock = 0,
     this.passcodeForceLocked = false,
     this.passcodeBackgroundedAt = 0,
+    this.passcodeNotificationContent = false,
     this.chatsDemo = false,
     this.chatsGroups = false,
     this.chatWallpaper = 'chat',
@@ -69,6 +74,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     final passcodeAutoLock = data['passcodeAutoLock'] ?? 0;
     final passcodeForceLocked = data['passcodeForceLocked'] ?? 0;
     final passcodeBackgroundedAt = data['passcodeBackgroundedAt'] ?? 0;
+    final passcodeNotificationContent = data['passcodeNotificationContent'] ?? 0;
     final chatsDemo = data['chatsDemo'] ?? 0;
     final chatsGroups = data['chatsGroups'] ?? 0;
     final chatWallpaper = data['chatWallpaper'] as String?;
@@ -126,6 +132,10 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
 
     if (passcodeBackgroundedAt > 0) {
       settingsDeviceModel = settingsDeviceModel.copyWith(passcodeBackgroundedAt: passcodeBackgroundedAt);
+    }
+
+    if (passcodeNotificationContent > 0) {
+      settingsDeviceModel = settingsDeviceModel.copyWith(passcodeNotificationContent: true);
     }
 
     if (chatsDemo > 0) {

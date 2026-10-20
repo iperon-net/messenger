@@ -1153,6 +1153,8 @@ class _Translations$screenSettingsPasscode$ru extends Translations$screenSetting
 		one: 'Через ${n} час',
 		other: 'Через ${n} часов',
 	);
+	@override String get notificationContent => 'Имя и текст в уведомлениях';
+	@override String get notificationContentNote => 'С код-паролем уведомления показываются без имени отправителя и текста. Включите, чтобы видеть их, как без кода.';
 	@override String get pleaseEnterPasscode => 'Введите код-пароль';
 	@override String get cancel => _root.common.cancel;
 }
@@ -2675,6 +2677,8 @@ extension on TranslationsRu {
 			'screenSettingsPasscode.autoLockOff' => 'Выключена',
 			'screenSettingsPasscode.autoLockMinutes' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Через ${n} минуту', other: 'Через ${n} минут', ), 
 			'screenSettingsPasscode.autoLockHours' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Через ${n} час', other: 'Через ${n} часов', ), 
+			'screenSettingsPasscode.notificationContent' => 'Имя и текст в уведомлениях',
+			'screenSettingsPasscode.notificationContentNote' => 'С код-паролем уведомления показываются без имени отправителя и текста. Включите, чтобы видеть их, как без кода.',
 			'screenSettingsPasscode.pleaseEnterPasscode' => 'Введите код-пароль',
 			'screenSettingsPasscode.cancel' => _root.common.cancel,
 			'settingsPasscodeCreate.pleaseEnterNewPasscode' => 'Введите новый код-пароль',
@@ -2882,10 +2886,10 @@ extension on TranslationsRu {
 			'screenContacts.editContact' => 'Изменить контакт',
 			'screenContacts.addToContacts' => 'Добавить в контакты',
 			'screenContacts.removeContact' => 'Удалить контакт',
-			'screenContacts.removeFailed' => 'Не удалось удалить контакт',
-			'screenCalls.title' => 'Звонки',
 			_ => null,
 		} ?? switch (path) {
+			'screenContacts.removeFailed' => 'Не удалось удалить контакт',
+			'screenCalls.title' => 'Звонки',
 			'screenCalls.empty' => 'Здесь появятся ваши звонки',
 			'screenCalls.emptyMissed' => 'Нет пропущенных звонков',
 			'screenCalls.permissionTitle' => 'Нужен доступ к микрофону',

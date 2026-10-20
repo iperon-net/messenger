@@ -85,6 +85,15 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
         opt: true,
         def: 0,
       );
+  static bool _$passcodeNotificationContent(SettingsDeviceModel v) =>
+      v.passcodeNotificationContent;
+  static const Field<SettingsDeviceModel, bool> _f$passcodeNotificationContent =
+      Field(
+        'passcodeNotificationContent',
+        _$passcodeNotificationContent,
+        opt: true,
+        def: false,
+      );
   static bool _$chatsDemo(SettingsDeviceModel v) => v.chatsDemo;
   static const Field<SettingsDeviceModel, bool> _f$chatsDemo = Field(
     'chatsDemo',
@@ -149,6 +158,7 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     #passcodeAutoLock: _f$passcodeAutoLock,
     #passcodeForceLocked: _f$passcodeForceLocked,
     #passcodeBackgroundedAt: _f$passcodeBackgroundedAt,
+    #passcodeNotificationContent: _f$passcodeNotificationContent,
     #chatsDemo: _f$chatsDemo,
     #chatsGroups: _f$chatsGroups,
     #chatWallpaper: _f$chatWallpaper,
@@ -169,6 +179,7 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
       passcodeAutoLock: data.dec(_f$passcodeAutoLock),
       passcodeForceLocked: data.dec(_f$passcodeForceLocked),
       passcodeBackgroundedAt: data.dec(_f$passcodeBackgroundedAt),
+      passcodeNotificationContent: data.dec(_f$passcodeNotificationContent),
       chatsDemo: data.dec(_f$chatsDemo),
       chatsGroups: data.dec(_f$chatsGroups),
       chatWallpaper: data.dec(_f$chatWallpaper),
@@ -260,6 +271,7 @@ abstract class SettingsDeviceModelCopyWith<
     int? passcodeAutoLock,
     bool? passcodeForceLocked,
     int? passcodeBackgroundedAt,
+    bool? passcodeNotificationContent,
     bool? chatsDemo,
     bool? chatsGroups,
     String? chatWallpaper,
@@ -299,6 +311,7 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     int? passcodeAutoLock,
     bool? passcodeForceLocked,
     int? passcodeBackgroundedAt,
+    bool? passcodeNotificationContent,
     bool? chatsDemo,
     bool? chatsGroups,
     String? chatWallpaper,
@@ -319,6 +332,8 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
         #passcodeForceLocked: passcodeForceLocked,
       if (passcodeBackgroundedAt != null)
         #passcodeBackgroundedAt: passcodeBackgroundedAt,
+      if (passcodeNotificationContent != null)
+        #passcodeNotificationContent: passcodeNotificationContent,
       if (chatsDemo != null) #chatsDemo: chatsDemo,
       if (chatsGroups != null) #chatsGroups: chatsGroups,
       if (chatWallpaper != null) #chatWallpaper: chatWallpaper,
@@ -348,6 +363,10 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     passcodeBackgroundedAt: data.get(
       #passcodeBackgroundedAt,
       or: $value.passcodeBackgroundedAt,
+    ),
+    passcodeNotificationContent: data.get(
+      #passcodeNotificationContent,
+      or: $value.passcodeNotificationContent,
     ),
     chatsDemo: data.get(#chatsDemo, or: $value.chatsDemo),
     chatsGroups: data.get(#chatsGroups, or: $value.chatsGroups),

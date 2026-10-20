@@ -909,6 +909,8 @@
   "autoLockHours(plural)":
     one: "Через {n} час"
     other: "Через {n} часов"
+  "notificationContent": "Имя и текст в уведомлениях"
+  "notificationContentNote": "С код-паролем уведомления показываются без имени отправителя и текста. Включите, чтобы видеть их, как без кода."
   "pleaseEnterPasscode": "Введите код-пароль"
   "cancel": "@:common.cancel"
 

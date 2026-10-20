@@ -885,6 +885,8 @@
   "autoLockHours(plural)":
     one: "After {n} hour"
     other: "After {n} hours"
+  "notificationContent": "Show names and text in notifications"
+  "notificationContentNote": "With a passcode, notifications hide the sender and the message text. Turn on to show them as without a passcode."
   "pleaseEnterPasscode": "Please enter passcode"
   "cancel": "@:common.cancel"
 

@@ -131,6 +131,26 @@ class _SettingsPasscodeMaterial extends State<SettingsPasscodeMaterial> {
                       ],
                     ),
                   ),
+                  Card(
+                    margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                    child: MaterialListTileIcon(
+                      title: Text(context.t.screenSettingsPasscode.notificationContent),
+                      color: const Color(0xFFFF3B30),
+                      icon: FontAwesomeIcons.solidBell,
+                      onTab: null,
+                      trailing: Switch(
+                        value: context.select((CommonCubit cubit) => cubit.state.settingsDevice.passcodeNotificationContent),
+                        onChanged: (bool value) async => await context.read<CommonCubit>().setPasscodeNotificationContent(value: value),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+                    child: Text(
+                      context.t.screenSettingsPasscode.notificationContentNote,
+                      style: TextStyle(fontSize: AppFontSizes.caption, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    ),
+                  ),
                 ] else ...[
                   Card(
                     margin: const EdgeInsets.all(12),

@@ -846,6 +846,13 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(40, (tx) async {
+        // «Имя и текст в уведомлениях» при код-пароле (по умолчанию скрыты).
+        await tx.execute('ALTER TABLE settingsDevice ADD COLUMN passcodeNotificationContent INTEGER NOT NULL DEFAULT 0;');
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

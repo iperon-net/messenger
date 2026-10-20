@@ -220,11 +220,20 @@ class CommonCubit extends Cubit<CommonState> {
 
   Future<void> setPasscode({required List<int> passcode}) async {
     final settingsDevice = state.settingsDevice.copyWith(passcode: passcode);
-    // С код-паролем уведомления показываются без имени и текста (натив).
-    unawaited(getIt.get<PushManager>().setPasscodeEnabled(passcode.isNotEmpty));
+    // С код-паролем уведомления показываются без имени и текста (натив),
+    // если пользователь не разрешил их явно.
+    unawaited(getIt.get<PushManager>().setPasscodeEnabled(passcode.isNotEmpty && !settingsDevice.passcodeNotificationContent));
     // Изменение passcode всегда происходит внутри разблокированного приложения,
     // так что экран блокировки после этого показывать не нужно.
     emit(state.copyWith(status: Status.success, settingsDevice: settingsDevice, isLocked: false));
+  }
+
+  /// «Имя и текст в уведомлениях» при включённом код-пароле.
+  Future<void> setPasscodeNotificationContent({required bool value}) async {
+    await repositories.settingsDevice.setPasscodeNotificationContent(value);
+    final settingsDevice = state.settingsDevice.copyWith(passcodeNotificationContent: value);
+    unawaited(getIt.get<PushManager>().setPasscodeEnabled(settingsDevice.passcode.isNotEmpty && !value));
+    emit(state.copyWith(settingsDevice: settingsDevice));
   }
 
   Future<void> setPasscodeAutoLockSeconds({required int seconds}) async {

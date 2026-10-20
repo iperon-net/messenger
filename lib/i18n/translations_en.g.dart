@@ -2762,6 +2762,12 @@ class Translations$screenSettingsPasscode$en {
 		other: 'After ${n} hours',
 	);
 
+	/// en: 'Show names and text in notifications'
+	String get notificationContent => 'Show names and text in notifications';
+
+	/// en: 'With a passcode, notifications hide the sender and the message text. Turn on to show them as without a passcode.'
+	String get notificationContentNote => 'With a passcode, notifications hide the sender and the message text. Turn on to show them as without a passcode.';
+
 	/// en: 'Please enter passcode'
 	String get pleaseEnterPasscode => 'Please enter passcode';
 
@@ -5172,6 +5178,8 @@ extension on Translations {
 			'screenSettingsPasscode.autoLockOff' => 'Off',
 			'screenSettingsPasscode.autoLockMinutes' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'After ${n} minute', other: 'After ${n} minutes', ), 
 			'screenSettingsPasscode.autoLockHours' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'After ${n} hour', other: 'After ${n} hours', ), 
+			'screenSettingsPasscode.notificationContent' => 'Show names and text in notifications',
+			'screenSettingsPasscode.notificationContentNote' => 'With a passcode, notifications hide the sender and the message text. Turn on to show them as without a passcode.',
 			'screenSettingsPasscode.pleaseEnterPasscode' => 'Please enter passcode',
 			'screenSettingsPasscode.cancel' => _root.common.cancel,
 			'settingsPasscodeCreate.pleaseEnterNewPasscode' => 'Please enter new passcode',
@@ -5379,10 +5387,10 @@ extension on Translations {
 			'screenContacts.editContact' => 'Edit Contact',
 			'screenContacts.addToContacts' => 'Add to Contacts',
 			'screenContacts.removeContact' => 'Delete Contact',
-			'screenContacts.removeFailed' => 'Couldn\'t delete the contact',
-			'screenCalls.title' => 'Calls',
 			_ => null,
 		} ?? switch (path) {
+			'screenContacts.removeFailed' => 'Couldn\'t delete the contact',
+			'screenCalls.title' => 'Calls',
 			'screenCalls.empty' => 'Your calls will appear here',
 			'screenCalls.emptyMissed' => 'No missed calls',
 			'screenCalls.permissionTitle' => 'Microphone access needed',

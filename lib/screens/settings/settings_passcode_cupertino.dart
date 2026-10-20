@@ -181,6 +181,32 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
                       ],
                     ],
                   ),
+                  CupertinoListSection.insetGrouped(
+                    backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                    decoration: BoxDecoration(
+                      color: ThemesCupertino.groupedCard.resolveFrom(context),
+                      borderRadius: const BorderRadius.all(Radius.circular(10)),
+                    ),
+                    footer: Padding(
+                      padding: const EdgeInsets.only(left: 13),
+                      child: Text(
+                        context.t.screenSettingsPasscode.notificationContentNote,
+                        style: TextStyle(fontSize: AppFontSizes.caption),
+                      ),
+                    ),
+                    children: [
+                      CupertinoListTileIcon(
+                        title: Text(context.t.screenSettingsPasscode.notificationContent),
+                        color: const Color(0xFFFF3B30),
+                        icon: FontAwesomeIcons.solidBell,
+                        onTab: null,
+                        trailing: CupertinoSwitch(
+                          value: context.select((CommonCubit cubit) => cubit.state.settingsDevice.passcodeNotificationContent),
+                          onChanged: (bool value) async => await context.read<CommonCubit>().setPasscodeNotificationContent(value: value),
+                        ),
+                      ),
+                    ],
+                  ),
                 ] else ...[
                   CupertinoListSection.insetGrouped(
                     backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
