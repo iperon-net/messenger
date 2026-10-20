@@ -260,7 +260,8 @@ abstract class ChatsDataSource {
   /// подписанные не меньше стольких секунд); [newcomerMediaDelay] —
   /// «Новичкам — без ссылок и медиа» (секунд, 0 — выключено). [historyHidden]
   /// — «Скрыть историю» группы (только частной): новые участники видят
-  /// сообщения с момента вступления.
+  /// сообщения с момента вступления. [noForwards] — «Запретить копирование»
+  /// (защита содержимого для всех участников, как `Chat.noForwards`).
   Future<void> updateChat(
     String chatID, {
     required String title,
@@ -283,6 +284,7 @@ abstract class ChatsDataSource {
     bool signMessages = false,
     bool membersHidden = false,
     bool historyHidden = false,
+    bool noForwards = false,
   });
 
   /// Ссылка `iperon.net/<path>` (публичное имя или `+код` приглашения) → id

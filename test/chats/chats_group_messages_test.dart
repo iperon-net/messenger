@@ -256,6 +256,31 @@ void main() {
       }
     });
 
+    test('«Запретить копирование»: из диалога в кэш, chatInfo журнала чата включает и выключает', () async {
+      await store.upsertDialog(userID: me, dialog: groupDialog(pts: 3)..chat.noForwards = true);
+      expect((await store.group(userID: me, chatID: groupChat))?.info.noForwards, isTrue);
+      await store.setPts(userID: me, pts: 10);
+      pb.ChatInfo info(bool noForwards) => (groupDialog(pts: 4).chat.deepCopy()..noForwards = noForwards);
+      await apply([
+        pb.Update(
+          chatPts: Int64(4),
+          chatID: groupChat,
+          chatInfo: pb.Update_ChatInfoChanged(chat: info(false)),
+        ),
+      ]);
+      expect((await store.group(userID: me, chatID: groupChat))?.info.noForwards, isFalse);
+      await apply([
+        pb.Update(
+          chatPts: Int64(5),
+          chatID: groupChat,
+          chatInfo: pb.Update_ChatInfoChanged(chat: info(true)),
+        ),
+      ]);
+      final group = await store.group(userID: me, chatID: groupChat);
+      expect(group?.info.noForwards, isTrue);
+      expect(group?.pts, 5);
+    });
+
     test('упоминания: из истории, Update.mentions, сверка страницей, удаление', () async {
       await store.upsertDialog(userID: me, dialog: groupDialog());
       await store.setPts(userID: me, pts: 10);

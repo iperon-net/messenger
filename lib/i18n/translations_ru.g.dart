@@ -397,6 +397,9 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get hideMembers => 'Скрыть участников';
 	@override String get hideSubscribers => 'Скрыть подписчиков';
 	@override String get hideMembersFooter => 'Список будут видеть только админы.';
+	@override String get noForwards => 'Запретить копирование';
+	@override String get noForwardsFooterGroup => 'Участники не смогут пересылать сообщения из группы, копировать текст, сохранять медиа и делать скриншоты.';
+	@override String get noForwardsFooterChannel => 'Подписчики не смогут пересылать сообщения из канала, копировать текст, сохранять медиа и делать скриншоты.';
 	@override String get historyHidden => 'Скрыть историю';
 	@override String get historyHiddenFooter => 'Новые участники не увидят сообщения, отправленные до их вступления.';
 	@override String get historyShownFooter => 'Новые участники увидят всю историю сообщений.';
@@ -2085,6 +2088,9 @@ extension on TranslationsRu {
 			'screenNewChat.hideMembers' => 'Скрыть участников',
 			'screenNewChat.hideSubscribers' => 'Скрыть подписчиков',
 			'screenNewChat.hideMembersFooter' => 'Список будут видеть только админы.',
+			'screenNewChat.noForwards' => 'Запретить копирование',
+			'screenNewChat.noForwardsFooterGroup' => 'Участники не смогут пересылать сообщения из группы, копировать текст, сохранять медиа и делать скриншоты.',
+			'screenNewChat.noForwardsFooterChannel' => 'Подписчики не смогут пересылать сообщения из канала, копировать текст, сохранять медиа и делать скриншоты.',
 			'screenNewChat.historyHidden' => 'Скрыть историю',
 			'screenNewChat.historyHiddenFooter' => 'Новые участники не увидят сообщения, отправленные до их вступления.',
 			'screenNewChat.historyShownFooter' => 'Новые участники увидят всю историю сообщений.',
@@ -2363,11 +2369,11 @@ extension on TranslationsRu {
 			'screenChat.sendLater' => 'Отправить позже',
 			'screenChat.slowMode' => 'Медленный режим',
 			'screenChat.slowModeWait' => ({required Object time}) => 'В этом чате включён медленный режим. Следующее сообщение можно отправить через ${time}.',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.floodTitle' => 'Слишком часто',
 			'screenChat.floodWait' => ({required Object time}) => 'Вы отправляете сообщения слишком часто. Следующее можно отправить через ${time}.',
 			'screenChat.floodNewChats' => ({required Object time}) => 'Вы начинаете новые чаты слишком часто. Попробуйте через ${time}.',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.privacyRestricted' => 'Вы не можете написать в этот чат.',
 			'screenChat.readOnly' => 'Только чтение: писать в эту группу нельзя.',
 			'screenChat.blockedNote' => 'Вы заблокировали этого пользователя',
@@ -2877,11 +2883,11 @@ extension on TranslationsRu {
 			'screenContacts.removeFailed' => 'Не удалось удалить контакт',
 			'screenCalls.title' => 'Звонки',
 			'screenCalls.empty' => 'Здесь появятся ваши звонки',
+			_ => null,
+		} ?? switch (path) {
 			'screenCalls.emptyMissed' => 'Нет пропущенных звонков',
 			'screenCalls.permissionTitle' => 'Нужен доступ к микрофону',
 			'screenCalls.permissionMessage' => 'Разрешите доступ к микрофону, чтобы совершать и принимать звонки в Iperon.',
-			_ => null,
-		} ?? switch (path) {
 			'screenCalls.notificationPermissionTitle' => 'Включите уведомления о звонках',
 			'screenCalls.notificationPermissionMessage' => 'Разрешите уведомления, чтобы видеть входящие звонки, даже когда Iperon свёрнут.',
 			'screenCalls.permissionsTitle' => 'Настройка звонков',

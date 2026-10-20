@@ -854,6 +854,15 @@ class Translations$screenNewChat$en {
 	/// en: 'Only admins will see the list.'
 	String get hideMembersFooter => 'Only admins will see the list.';
 
+	/// en: 'Restrict Saving Content'
+	String get noForwards => 'Restrict Saving Content';
+
+	/// en: 'Members won't be able to forward messages from this group, copy text, save media or take screenshots.'
+	String get noForwardsFooterGroup => 'Members won\'t be able to forward messages from this group, copy text, save media or take screenshots.';
+
+	/// en: 'Subscribers won't be able to forward messages from this channel, copy text, save media or take screenshots.'
+	String get noForwardsFooterChannel => 'Subscribers won\'t be able to forward messages from this channel, copy text, save media or take screenshots.';
+
 	/// en: 'Hide History'
 	String get historyHidden => 'Hide History';
 
@@ -4574,6 +4583,9 @@ extension on Translations {
 			'screenNewChat.hideMembers' => 'Hide Members',
 			'screenNewChat.hideSubscribers' => 'Hide Subscribers',
 			'screenNewChat.hideMembersFooter' => 'Only admins will see the list.',
+			'screenNewChat.noForwards' => 'Restrict Saving Content',
+			'screenNewChat.noForwardsFooterGroup' => 'Members won\'t be able to forward messages from this group, copy text, save media or take screenshots.',
+			'screenNewChat.noForwardsFooterChannel' => 'Subscribers won\'t be able to forward messages from this channel, copy text, save media or take screenshots.',
 			'screenNewChat.historyHidden' => 'Hide History',
 			'screenNewChat.historyHiddenFooter' => 'New members won\'t see messages sent before they joined.',
 			'screenNewChat.historyShownFooter' => 'New members will see the whole message history.',
@@ -4852,11 +4864,11 @@ extension on Translations {
 			'screenChat.sendLater' => 'Schedule message',
 			'screenChat.slowMode' => 'Slow mode',
 			'screenChat.slowModeWait' => ({required Object time}) => 'Slow mode is enabled in this chat. You can send your next message in ${time}.',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.floodTitle' => 'Too many requests',
 			'screenChat.floodWait' => ({required Object time}) => 'You are sending messages too often. You can send the next one in ${time}.',
 			'screenChat.floodNewChats' => ({required Object time}) => 'You are starting new chats too often. Try again in ${time}.',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.privacyRestricted' => 'You can\'t message this chat.',
 			'screenChat.readOnly' => 'Read-only: you can\'t post in this group.',
 			'screenChat.blockedNote' => 'You blocked this user',
@@ -5366,11 +5378,11 @@ extension on Translations {
 			'screenContacts.removeFailed' => 'Couldn\'t delete the contact',
 			'screenCalls.title' => 'Calls',
 			'screenCalls.empty' => 'Your calls will appear here',
+			_ => null,
+		} ?? switch (path) {
 			'screenCalls.emptyMissed' => 'No missed calls',
 			'screenCalls.permissionTitle' => 'Microphone access needed',
 			'screenCalls.permissionMessage' => 'Allow microphone access to make and receive calls on Iperon.',
-			_ => null,
-		} ?? switch (path) {
 			'screenCalls.notificationPermissionTitle' => 'Enable call notifications',
 			'screenCalls.notificationPermissionMessage' => 'Allow notifications so you can see incoming calls even when Iperon is in the background.',
 			'screenCalls.permissionsTitle' => 'Set up calls',

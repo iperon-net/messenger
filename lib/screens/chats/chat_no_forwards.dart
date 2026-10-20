@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart' as m;
 import 'package:screen_protector/screen_protector.dart';
 
 import '../../chats/chats_sync.dart';
+import '../../components/chats/message_text.dart' show ChatContentProtection;
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import 'chat_common.dart';
@@ -58,7 +59,8 @@ Future<void> _notice(BuildContext context, String text) async {
 /// Пока [enabled] (открыт чат с защитой содержимого) — экран не попадает на
 /// скриншоты и запись: Android — FLAG_SECURE окна, iOS — содержимое в
 /// «защищённом» слое (на снимке — пусто). Несколько экранов сразу — счётчик:
-/// защита снимается, когда закрылся последний.
+/// защита снимается, когда закрылся последний. Тексту сообщений ниже —
+/// [ChatContentProtection] (без «Копировать» у блока кода).
 class ChatScreenProtector extends StatefulWidget {
   final bool enabled;
   final Widget child;
@@ -103,5 +105,5 @@ class _ChatScreenProtectorState extends State<ChatScreenProtector> {
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) => ChatContentProtection(protected: widget.enabled, child: widget.child);
 }

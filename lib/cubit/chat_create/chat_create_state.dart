@@ -87,6 +87,10 @@ class ChatCreateState with ChatCreateStateMappable {
 
   /// Список участников / подписчиков — только админам («Изменить»).
   final bool membersHidden;
+
+  /// «Запретить копирование» («Изменить», как «Restrict saving content» в
+  /// Telegram): защита содержимого для всех участников.
+  final bool noForwards;
   final ChatUsernameStatus usernameStatus;
 
   /// Ссылка-приглашение частного чата (`+код`) — выдаётся сразу, при создании.
@@ -179,6 +183,7 @@ class ChatCreateState with ChatCreateStateMappable {
     this.commentsMinSubscription = 0,
     this.newcomerMediaDelay = 0,
     this.membersHidden = false,
+    this.noForwards = false,
     this.usernameStatus = ChatUsernameStatus.empty,
     this.inviteLink = '',
     this.creating = false,

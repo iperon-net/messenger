@@ -48,6 +48,7 @@ class ChatInfo extends $pb.GeneratedMessage {
     $core.bool? membersHidden,
     ChatReactionsMode? reactionsMode,
     $core.Iterable<$core.String>? reactions,
+    $core.bool? noForwards,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -69,6 +70,7 @@ class ChatInfo extends $pb.GeneratedMessage {
     if (membersHidden != null) result.membersHidden = membersHidden;
     if (reactionsMode != null) result.reactionsMode = reactionsMode;
     if (reactions != null) result.reactions.addAll(reactions);
+    if (noForwards != null) result.noForwards = noForwards;
     return result;
   }
 
@@ -100,6 +102,7 @@ class ChatInfo extends $pb.GeneratedMessage {
     ..aOB(17, _omitFieldNames ? '' : 'membersHidden', protoName: 'membersHidden')
     ..aE<ChatReactionsMode>(18, _omitFieldNames ? '' : 'reactionsMode', protoName: 'reactionsMode', enumValues: ChatReactionsMode.values)
     ..pPS(19, _omitFieldNames ? '' : 'reactions')
+    ..aOB(20, _omitFieldNames ? '' : 'noForwards', protoName: 'noForwards')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -301,6 +304,20 @@ class ChatInfo extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(19)
   $pb.PbList<$core.String> get reactions => $_getList(18);
+
+  /// «Запретить копирование» (как noforwards / «Restrict saving content» у
+  /// групп в Telegram, EditChat.noForwards): пересылка из группы (сервер
+  /// отказывает), копирование, сохранение медиа и скриншоты запрещены всем
+  /// участникам, включая админов и владельца, на всю историю; пуши — без
+  /// текста. Служебного в ленту нет — только Update.chatInfo.
+  @$pb.TagNumber(20)
+  $core.bool get noForwards => $_getBF(19);
+  @$pb.TagNumber(20)
+  set noForwards($core.bool value) => $_setBool(19, value);
+  @$pb.TagNumber(20)
+  $core.bool hasNoForwards() => $_has(19);
+  @$pb.TagNumber(20)
+  void clearNoForwards() => $_clearField(20);
 }
 
 /// Ссылка-приглашение (как chatInviteExported в Telegram). Путь ссылки —
@@ -3149,6 +3166,7 @@ class Dialog extends $pb.GeneratedMessage {
   /// пересылка (сервер отказывает), копирование, сохранение медиа и скриншоты
   /// в чате запрещены обоим участникам, а пуши — без текста. noForwardsMine —
   /// включил я (снять могу сам), иначе — собеседник (могу только попросить).
+  /// Группа — копия ChatInfo.noForwards (noForwardsMine всегда false).
   @$pb.TagNumber(17)
   $core.bool get noForwards => $_getBF(16);
   @$pb.TagNumber(17)
@@ -7056,7 +7074,8 @@ class Chats_SetTTLResult extends $pb.GeneratedMessage {
 }
 
 /// Защита содержимого в личном чате (как messages.toggleNoForwards в
-/// Telegram; «Избранное» — PERMISSION_DENIED). enabled = true — включить
+/// Telegram; «Избранное» и группы — PERMISSION_DENIED, у группы —
+/// EditChat.noForwards). enabled = true — включить
 /// (уже включено кем угодно — без изменений). enabled = false: включил я —
 /// выключить; включил собеседник — не выключается, а в ленту уходит запрос
 /// MessageNoForwardsRequest. requestID — ответ включившего на запрос
@@ -7515,6 +7534,9 @@ class Chats_CreateGroupResult extends $pb.GeneratedMessage {
 /// newcomerMediaDelay ≥ 0 (≤ 7 суток), membersHidden, reactions — режим и
 /// набор (SOME — 1..allChatReactions, без повторов, только из общего набора;
 /// иначе INVALID_ARGUMENT).
+///
+/// noForwards (право changeInfo) — защита содержимого группы, без запросов
+/// «разрешить» (они только в личных, Chats.SetNoForwards).
 class Chats_EditChat extends $pb.GeneratedMessage {
   factory Chats_EditChat({
     $core.List<$core.int>? chatID,
@@ -7529,6 +7551,7 @@ class Chats_EditChat extends $pb.GeneratedMessage {
     $core.int? newcomerMediaDelay,
     $core.bool? membersHidden,
     Chats_ChatReactionsSettings? reactions,
+    $core.bool? noForwards,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -7543,6 +7566,7 @@ class Chats_EditChat extends $pb.GeneratedMessage {
     if (newcomerMediaDelay != null) result.newcomerMediaDelay = newcomerMediaDelay;
     if (membersHidden != null) result.membersHidden = membersHidden;
     if (reactions != null) result.reactions = reactions;
+    if (noForwards != null) result.noForwards = noForwards;
     return result;
   }
 
@@ -7567,6 +7591,7 @@ class Chats_EditChat extends $pb.GeneratedMessage {
     ..aI(10, _omitFieldNames ? '' : 'newcomerMediaDelay', protoName: 'newcomerMediaDelay')
     ..aOB(11, _omitFieldNames ? '' : 'membersHidden', protoName: 'membersHidden')
     ..aOM<Chats_ChatReactionsSettings>(12, _omitFieldNames ? '' : 'reactions', subBuilder: Chats_ChatReactionsSettings.create)
+    ..aOB(13, _omitFieldNames ? '' : 'noForwards', protoName: 'noForwards')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -7695,6 +7720,16 @@ class Chats_EditChat extends $pb.GeneratedMessage {
   void clearReactions() => $_clearField(12);
   @$pb.TagNumber(12)
   Chats_ChatReactionsSettings ensureReactions() => $_ensure(11);
+
+  /// «Запретить копирование» (право changeInfo, ChatInfo.noForwards).
+  @$pb.TagNumber(13)
+  $core.bool get noForwards => $_getBF(12);
+  @$pb.TagNumber(13)
+  set noForwards($core.bool value) => $_setBool(12, value);
+  @$pb.TagNumber(13)
+  $core.bool hasNoForwards() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearNoForwards() => $_clearField(13);
 }
 
 class Chats_ChatReactionsSettings extends $pb.GeneratedMessage {
@@ -12764,7 +12799,7 @@ class Messages_Send extends $pb.GeneratedMessage {
   /// исходного сообщения (без ответа, с заголовком forward; пересланное
   /// остаётся «от» автора оригинала) — content клиент не заполняет. Доступ —
   /// через исходное сообщение, а не владение файлами вложений. Из чата с
-  /// защитой содержимого (Dialog.noForwards) — PERMISSION_DENIED
+  /// защитой содержимого (Dialog.noForwards / ChatInfo.noForwards) — PERMISSION_DENIED
   /// «forwardsRestricted».
   @$pb.TagNumber(6)
   Messages_ForwardFrom get forwardFrom => $_getN(5);

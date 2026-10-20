@@ -584,6 +584,23 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                           ],
                         ),
 
+                      // «Запретить копирование» (защита содержимого для всех,
+                      // как «Restrict saving content» в Telegram).
+                      if (state.isEdit && (type == models.ChatType.group || type == models.ChatType.channel))
+                        section(
+                          footer: createNoteCupertino(
+                            type == models.ChatType.channel
+                                ? t.screenNewChat.noForwardsFooterChannel
+                                : t.screenNewChat.noForwardsFooterGroup,
+                          ),
+                          children: [
+                            CupertinoListTile(
+                              title: Text(t.screenNewChat.noForwards, style: const TextStyle(fontSize: AppFontSizes.body)),
+                              trailing: CupertinoSwitch(value: state.noForwards, onChanged: context.read<ChatCreateCubit>().setNoForwards),
+                            ),
+                          ],
+                        ),
+
                       if (type == models.ChatType.group && !state.isEdit && !state.inCommunity)
                         state.selected.isEmpty
                             ? Padding(

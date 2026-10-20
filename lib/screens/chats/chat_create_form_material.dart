@@ -601,6 +601,23 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                         createNoteMaterial(context, t.screenNewChat.hideMembersFooter),
                       ],
 
+                      // «Запретить копирование» (защита содержимого для всех,
+                      // как «Restrict saving content» в Telegram).
+                      if (state.isEdit && (type == models.ChatType.group || type == models.ChatType.channel)) ...[
+                        const SizedBox(height: 16),
+                        card([
+                          SwitchListTile(
+                            title: Text(t.screenNewChat.noForwards),
+                            value: state.noForwards,
+                            onChanged: context.read<ChatCreateCubit>().setNoForwards,
+                          ),
+                        ]),
+                        createNoteMaterial(
+                          context,
+                          type == models.ChatType.channel ? t.screenNewChat.noForwardsFooterChannel : t.screenNewChat.noForwardsFooterGroup,
+                        ),
+                      ],
+
                       if (type == models.ChatType.group && !state.isEdit && !state.inCommunity)
                         if (state.selected.isEmpty)
                           createNoteMaterial(context, t.screenNewChat.noMembersHint)

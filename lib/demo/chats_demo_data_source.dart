@@ -650,6 +650,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     bool signMessages = false,
     bool membersHidden = false,
     bool historyHidden = false,
+    bool noForwards = false,
   }) async {
     final chat = _chat(chatID);
     if (chat == null) return;
@@ -696,6 +697,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
         membersHidden: membersHidden,
         // «Скрыть историю» — только у частной группы.
         historyHidden: chat.type == models.ChatType.group && !open && historyHidden,
+        noForwards: noForwards,
       ),
     );
     // Основная ссылка — та же, что в чате (форма могла выдать новую).

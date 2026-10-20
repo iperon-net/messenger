@@ -12,6 +12,20 @@ import '../../chats/message_formatting.dart';
 import '../../models.dart' as models;
 import 'spoiler_dust.dart';
 
+/// Защита содержимого чата (`Chat.noForwards`) для текста сообщений ниже по
+/// дереву: у блока кода нет кнопки «Копировать». Ставит экран чата
+/// (`ChatScreenProtector`).
+class ChatContentProtection extends InheritedWidget {
+  final bool protected;
+
+  const ChatContentProtection({super.key, required this.protected, required super.child});
+
+  static bool of(BuildContext context) => context.dependOnInheritedWidgetOfExactType<ChatContentProtection>()?.protected ?? false;
+
+  @override
+  bool updateShouldNotify(ChatContentProtection oldWidget) => protected != oldWidget.protected;
+}
+
 /// Цвета разметки текста сообщения — свои у входящего и исходящего пузыря.
 class MessageTextColors {
   final Color text;
@@ -458,26 +472,29 @@ class _CodeBlockState extends State<_CodeBlock> {
 
   @override
   Widget build(BuildContext context) {
+    // Защита содержимого — без «Копировать».
+    final copyable = !ChatContentProtection.of(context);
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 3),
-      padding: const EdgeInsets.fromLTRB(10, 8, 36, 8),
+      padding: EdgeInsets.fromLTRB(10, 8, copyable ? 36 : 10, 8),
       decoration: BoxDecoration(color: widget.colors.codeBackground, borderRadius: BorderRadius.circular(8)),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           widget.child,
-          Positioned(
-            top: -4,
-            right: -30,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _copy,
-              child: Padding(
-                padding: const EdgeInsets.all(4),
-                child: FaIcon(_copied ? FontAwesomeIcons.check : FontAwesomeIcons.copy, size: 15, color: widget.colors.link),
+          if (copyable)
+            Positioned(
+              top: -4,
+              right: -30,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _copy,
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: FaIcon(_copied ? FontAwesomeIcons.check : FontAwesomeIcons.copy, size: 15, color: widget.colors.link),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );

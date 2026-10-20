@@ -102,6 +102,12 @@ message ChatInfo {
   // Реакции группы: режим и набор (для SOME, порядок — порядок в полосе).
   ChatReactionsMode reactionsMode = 18;
   repeated string reactions = 19;
+  // «Запретить копирование» (как noforwards / «Restrict saving content» у
+  // групп в Telegram, EditChat.noForwards): пересылка из группы (сервер
+  // отказывает), копирование, сохранение медиа и скриншоты запрещены всем
+  // участникам, включая админов и владельца, на всю историю; пуши — без
+  // текста. Служебного в ленту нет — только Update.chatInfo.
+  bool noForwards = 20;
 }
 
 // Ссылка-приглашение (как chatInviteExported в Telegram). Путь ссылки —
@@ -544,6 +550,7 @@ message Dialog {
   // пересылка (сервер отказывает), копирование, сохранение медиа и скриншоты
   // в чате запрещены обоим участникам, а пуши — без текста. noForwardsMine —
   // включил я (снять могу сам), иначе — собеседник (могу только попросить).
+  // Группа — копия ChatInfo.noForwards (noForwardsMine всегда false).
   bool noForwards = 17;
   bool noForwardsMine = 18;
   // Группа: общее описание (название, аватар, участники, pts журнала чата) и
@@ -1000,7 +1007,8 @@ message Chats {
   }
 
   // Защита содержимого в личном чате (как messages.toggleNoForwards в
-  // Telegram; «Избранное» — PERMISSION_DENIED). enabled = true — включить
+  // Telegram; «Избранное» и группы — PERMISSION_DENIED, у группы —
+  // EditChat.noForwards). enabled = true — включить
   // (уже включено кем угодно — без изменений). enabled = false: включил я —
   // выключить; включил собеседник — не выключается, а в ленту уходит запрос
   // MessageNoForwardsRequest. requestID — ответ включившего на запрос
@@ -1084,6 +1092,9 @@ message Chats {
   // newcomerMediaDelay ≥ 0 (≤ 7 суток), membersHidden, reactions — режим и
   // набор (SOME — 1..allChatReactions, без повторов, только из общего набора;
   // иначе INVALID_ARGUMENT).
+  //
+  // noForwards (право changeInfo) — защита содержимого группы, без запросов
+  // «разрешить» (они только в личных, Chats.SetNoForwards).
   message EditChat {
     bytes chatID = 1;
     optional string title = 2;
@@ -1097,6 +1108,8 @@ message Chats {
     optional int32 newcomerMediaDelay = 10;
     optional bool membersHidden = 11;
     optional ChatReactionsSettings reactions = 12;
+    // «Запретить копирование» (право changeInfo, ChatInfo.noForwards).
+    optional bool noForwards = 13;
   }
 
   message ChatReactionsSettings {
@@ -1563,7 +1576,7 @@ message Messages {
     // исходного сообщения (без ответа, с заголовком forward; пересланное
     // остаётся «от» автора оригинала) — content клиент не заполняет. Доступ —
     // через исходное сообщение, а не владение файлами вложений. Из чата с
-    // защитой содержимого (Dialog.noForwards) — PERMISSION_DENIED
+    // защитой содержимого (Dialog.noForwards / ChatInfo.noForwards) — PERMISSION_DENIED
     // «forwardsRestricted».
     ForwardFrom forwardFrom = 6;
     // Отложить до этого времени (unix millis; 0 — отправить сейчас): в ответе

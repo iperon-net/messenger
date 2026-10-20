@@ -361,6 +361,13 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     opt: true,
     def: false,
   );
+  static bool _$noForwards(ChatCreateState v) => v.noForwards;
+  static const Field<ChatCreateState, bool> _f$noForwards = Field(
+    'noForwards',
+    _$noForwards,
+    opt: true,
+    def: false,
+  );
   static ChatUsernameStatus _$usernameStatus(ChatCreateState v) =>
       v.usernameStatus;
   static const Field<ChatCreateState, ChatUsernameStatus> _f$usernameStatus =
@@ -440,6 +447,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     #commentsMinSubscription: _f$commentsMinSubscription,
     #newcomerMediaDelay: _f$newcomerMediaDelay,
     #membersHidden: _f$membersHidden,
+    #noForwards: _f$noForwards,
     #usernameStatus: _f$usernameStatus,
     #inviteLink: _f$inviteLink,
     #creating: _f$creating,
@@ -488,6 +496,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
       commentsMinSubscription: data.dec(_f$commentsMinSubscription),
       newcomerMediaDelay: data.dec(_f$newcomerMediaDelay),
       membersHidden: data.dec(_f$membersHidden),
+      noForwards: data.dec(_f$noForwards),
       usernameStatus: data.dec(_f$usernameStatus),
       inviteLink: data.dec(_f$inviteLink),
       creating: data.dec(_f$creating),
@@ -616,6 +625,7 @@ abstract class ChatCreateStateCopyWith<$R, $In extends ChatCreateState, $Out>
     int? commentsMinSubscription,
     int? newcomerMediaDelay,
     bool? membersHidden,
+    bool? noForwards,
     ChatUsernameStatus? usernameStatus,
     String? inviteLink,
     bool? creating,
@@ -709,6 +719,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     int? commentsMinSubscription,
     int? newcomerMediaDelay,
     bool? membersHidden,
+    bool? noForwards,
     ChatUsernameStatus? usernameStatus,
     String? inviteLink,
     bool? creating,
@@ -756,6 +767,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
         #commentsMinSubscription: commentsMinSubscription,
       if (newcomerMediaDelay != null) #newcomerMediaDelay: newcomerMediaDelay,
       if (membersHidden != null) #membersHidden: membersHidden,
+      if (noForwards != null) #noForwards: noForwards,
       if (usernameStatus != null) #usernameStatus: usernameStatus,
       if (inviteLink != null) #inviteLink: inviteLink,
       if (creating != null) #creating: creating,
@@ -813,6 +825,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
       or: $value.newcomerMediaDelay,
     ),
     membersHidden: data.get(#membersHidden, or: $value.membersHidden),
+    noForwards: data.get(#noForwards, or: $value.noForwards),
     usernameStatus: data.get(#usernameStatus, or: $value.usernameStatus),
     inviteLink: data.get(#inviteLink, or: $value.inviteLink),
     creating: data.get(#creating, or: $value.creating),

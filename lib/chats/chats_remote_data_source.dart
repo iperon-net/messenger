@@ -355,6 +355,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
             newcomerMediaDelay: group.info.newcomerMediaDelay,
             joinedAt: group.joinedAt > 0 ? DateTime.fromMillisecondsSinceEpoch(group.joinedAt) : null,
             membersHidden: group.info.membersHidden,
+            // «Запретить копирование» — настройка группы (EditChat), всем.
+            noForwards: group.info.noForwards,
             unreadMentions: row.unreadMentions,
             lastMessage: lastMessage,
             unreadCount: row.unreadCount,
@@ -912,13 +914,14 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     bool signMessages = false,
     bool membersHidden = false,
     bool historyHidden = false,
+    bool noForwards = false,
   }) async {
     final chat = idBytes(chatID);
     final group = await _store.group(userID: _sync.me, chatID: chat);
     if (group == null) _unsupported('Каналы и сообщества');
     // Название, описание, фото, роль вступающих (3.2), способ вступления,
     // публичное имя и «Скрыть историю» (3.3), «новички» и «скрыть участников»
-    // (3.4); остальное — следующие срезы.
+    // (3.4), «Запретить копирование»; остальное — следующие срезы.
     final info = group.info;
     final currentAvatar = await _avatarPath(info.avatarCdnID);
     final avatarChanged = avatarPath != currentAvatar && !(avatarPath.isEmpty && info.avatarCdnID.isEmpty);
@@ -929,7 +932,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final join = editJoinChanges(info, joinMode: joinMode, username: username, historyHidden: historyHidden);
     final newcomerChanged = newcomerMediaDelay != info.newcomerMediaDelay;
     final membersHiddenChanged = membersHidden != info.membersHidden;
-    final extrasChanged = newcomerChanged || membersHiddenChanged;
+    final noForwardsChanged = noForwards != info.noForwards;
+    final extrasChanged = newcomerChanged || membersHiddenChanged || noForwardsChanged;
     if (!titleChanged && !aboutChanged && !avatarChanged && !roleChanged && join.isEmpty && !extrasChanged) return;
     await _requireNetwork();
     final avatar = !avatarChanged ? null : (avatarPath.isEmpty ? Uint8List(0) : await _uploadChatAvatar(avatarPath));
@@ -946,6 +950,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           historyHidden: join.historyHidden,
           newcomerMediaDelay: newcomerChanged ? newcomerMediaDelay : null,
           membersHidden: membersHiddenChanged ? membersHidden : null,
+          noForwards: noForwardsChanged ? noForwards : null,
         ),
       ),
     );
@@ -1064,6 +1069,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       slowMode: info.slowMode,
       newcomerMediaDelay: info.newcomerMediaDelay,
       membersHidden: info.membersHidden,
+      noForwards: info.noForwards,
       isMember: false,
       joinRequested: preview.requested,
       createdAt: info.createdAt > 0 ? DateTime.fromMillisecondsSinceEpoch(info.createdAt.toInt()) : null,

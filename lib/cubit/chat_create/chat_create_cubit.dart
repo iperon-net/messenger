@@ -116,6 +116,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
         newcomerMediaDelay: chat.newcomerMediaDelay,
         signMessages: chat.signMessages,
         membersHidden: chat.membersHidden,
+        noForwards: chat.noForwards,
       ),
     );
   }
@@ -168,6 +169,8 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
   void setMembersHidden(bool hidden) => emit(state.copyWith(membersHidden: hidden));
 
   void setHistoryHidden(bool hidden) => emit(state.copyWith(historyHidden: hidden));
+
+  void setNoForwards(bool enabled) => emit(state.copyWith(noForwards: enabled));
 
   /// Ввод публичного имени: формат сразу, занятость — с паузой (как запрос к
   /// серверу на каждую букву не шлём).
@@ -293,6 +296,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
           signMessages: state.signMessages,
           membersHidden: state.membersHidden,
           historyHidden: state.historyHidden,
+          noForwards: state.noForwards,
         );
         saved = true;
       } on ChatsRequestException catch (error) {
