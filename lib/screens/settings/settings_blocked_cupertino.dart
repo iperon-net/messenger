@@ -15,8 +15,26 @@ import '../chats/forward_picker.dart';
 /// «Конфиденциальность» → «Заблокированные» (iOS): сверху «Заблокировать
 /// пользователя» (выбор из чатов и контактов), тап по строке — профиль, справа —
 /// «Разблокировать». Блокировать можно и из профиля пользователя.
-class SettingsBlockedCupertino extends StatelessWidget {
+class SettingsBlockedCupertino extends StatefulWidget {
   const SettingsBlockedCupertino({super.key});
+
+  @override
+  State<SettingsBlockedCupertino> createState() => _SettingsBlockedCupertinoState();
+}
+
+class _SettingsBlockedCupertinoState extends State<SettingsBlockedCupertino> {
+  String _query = '';
+
+  /// Заблокированные под поиском: каждое слово запроса — начало какого-то
+  /// слова имени.
+  List<BlockedUser> _found(List<BlockedUser> users) {
+    final words = _query.trim().toLowerCase().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
+    if (words.isEmpty) return users;
+    return [
+      for (final u in users)
+        if (words.every((q) => u.name.toLowerCase().split(RegExp(r'\s+')).any((w) => w.startsWith(q)))) u,
+    ];
+  }
 
   /// Поля уже стандартных (20 / 20+14): список людей во всю ширину экрана.
   static const _sectionMargin = EdgeInsets.fromLTRB(12, 0, 12, 10);
@@ -65,6 +83,14 @@ class SettingsBlockedCupertino extends StatelessWidget {
                         ),
                       ],
                     ),
+                    if (state.users.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+                        child: CupertinoSearchTextField(
+                          placeholder: context.t.screenContacts.search,
+                          onChanged: (value) => setState(() => _query = value),
+                        ),
+                      ),
                     CupertinoListSection.insetGrouped(
                       margin: _sectionMargin,
                       backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
@@ -77,13 +103,13 @@ class SettingsBlockedCupertino extends StatelessWidget {
                         child: Text(t.blockedNote, style: TextStyle(fontSize: 13, color: secondary)),
                       ),
                       children: [
-                        if (state.users.isEmpty)
+                        if (_found(state.users).isEmpty)
                           CupertinoListTile(
                             padding: _tilePadding,
-                            title: Text(t.blockedEmpty, style: TextStyle(color: secondary)),
+                            title: Text(state.users.isEmpty ? t.blockedEmpty : t.blockedNotFound, style: TextStyle(color: secondary)),
                           )
                         else
-                          for (final user in state.users)
+                          for (final user in _found(state.users))
                             // Разблокировали — строка рассыпается в пыль.
                             DustDismiss(
                               key: ValueKey(utils.bytesToHex(user.userID)),

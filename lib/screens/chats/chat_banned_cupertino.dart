@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
+import '../../chats/member_search.dart';
 import 'chats_new_cupertino.dart';
 
 /// «Заблокированные» (iOS) — профиль группы → админ.
@@ -20,15 +22,25 @@ Future<void> showChatBannedCupertino(BuildContext context, ChatCubit cubit) {
   );
 }
 
-/// Заблокированные участники; удержание — контекстное меню «Разблокировать».
-class ChatBannedCupertino extends StatelessWidget {
+/// Заблокированные участники: поиск по имени / @username, справа —
+/// «Разблокировать» (строка рассыпается в пыль).
+class ChatBannedCupertino extends StatefulWidget {
   const ChatBannedCupertino({super.key});
+
+  @override
+  State<ChatBannedCupertino> createState() => _ChatBannedCupertinoState();
+}
+
+class _ChatBannedCupertinoState extends State<ChatBannedCupertino> {
+  String _query = '';
 
   @override
   Widget build(BuildContext context) {
     final t = context.t;
+    final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
     return BlocBuilder<ChatCubit, ChatState>(
       builder: (context, state) {
+        final found = filterMembers(state.banned, _query);
         return CupertinoPageScaffold(
           backgroundColor: ThemesCupertino.groupedBackground,
           navigationBar: AppCupertinoNavigationBar(
@@ -42,13 +54,23 @@ class ChatBannedCupertino extends StatelessWidget {
           child: SafeArea(
             child: ListView(
               children: [
-                if (state.banned.isEmpty)
+                if (state.banned.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    child: CupertinoSearchTextField(
+                      placeholder: t.screenChatInfo.membersSearch,
+                      onChanged: (value) => setState(() => _query = value),
+                    ),
+                  ),
+                if (found.isEmpty)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(32, 40, 32, 8),
                     child: Text(
-                      state.bannedLoadFailed ? t.screenChatInfo.bannedLoadFailed : t.screenChatInfo.bannedEmpty,
+                      state.banned.isNotEmpty
+                          ? t.screenChatInfo.membersNotFound
+                          : (state.bannedLoadFailed ? t.screenChatInfo.bannedLoadFailed : t.screenChatInfo.bannedEmpty),
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: AppFontSizes.body, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                      style: TextStyle(fontSize: AppFontSizes.body, color: secondary),
                     ),
                   )
                 else
@@ -59,18 +81,30 @@ class ChatBannedCupertino extends StatelessWidget {
                       borderRadius: const BorderRadius.all(Radius.circular(10)),
                     ),
                     children: [
-                      for (final member in state.banned)
-                        RowContextMenuCupertino(
-                          background: ThemesCupertino.groupedCard.resolveFrom(context),
-                          actions: [
-                            rowMenuAction(
-                              context,
-                              t.screenChatInfo.unban,
-                              CupertinoIcons.lock_open,
-                              () => context.read<ChatCubit>().unbanMember(member),
-                            ),
-                          ],
-                          child: ContactTileCupertino(contact: member),
+                      for (final member in found)
+                        DustDismiss(
+                          key: ValueKey(member.id),
+                          builder: (context, dissolve) => Row(
+                            children: [
+                              Expanded(child: ContactTileCupertino(contact: member)),
+                              Semantics(
+                                label: t.screenChatInfo.unban,
+                                button: true,
+                                child: CupertinoButton(
+                                  padding: const EdgeInsets.only(left: 8, right: 16),
+                                  onPressed: () {
+                                    final cubit = context.read<ChatCubit>();
+                                    dissolve(() => cubit.unbanMember(member));
+                                  },
+                                  child: HugeIcon(
+                                    icon: HugeIcons.strokeRoundedDelete02,
+                                    size: 22,
+                                    color: ThemesCupertino.actionColor(context),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                     ],
                   ),

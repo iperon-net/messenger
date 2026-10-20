@@ -1213,6 +1213,7 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get phoneNumberFindNote => 'Остальные не найдут вас поиском по номеру телефона.';
 	@override String get blocked => 'Заблокированные';
 	@override String get blockedEmpty => 'Вы никого не заблокировали';
+	@override String get blockedNotFound => 'Никого не найдено';
 	@override String get blockedNote => 'Заблокированные не могут писать вам и звонить, не видят ваше время захода, фото, «О себе» и день рождения. Заблокировать можно и в профиле пользователя.';
 	@override String get unblock => 'Разблокировать';
 	@override String get unknownUser => 'Пользователь';
@@ -2699,6 +2700,7 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.phoneNumberFindNote' => 'Остальные не найдут вас поиском по номеру телефона.',
 			'sessionsPrivacyAndSecurity.blocked' => 'Заблокированные',
 			'sessionsPrivacyAndSecurity.blockedEmpty' => 'Вы никого не заблокировали',
+			'sessionsPrivacyAndSecurity.blockedNotFound' => 'Никого не найдено',
 			'sessionsPrivacyAndSecurity.blockedNote' => 'Заблокированные не могут писать вам и звонить, не видят ваше время захода, фото, «О себе» и день рождения. Заблокировать можно и в профиле пользователя.',
 			'sessionsPrivacyAndSecurity.unblock' => 'Разблокировать',
 			'sessionsPrivacyAndSecurity.unknownUser' => 'Пользователь',
@@ -2865,9 +2867,9 @@ extension on TranslationsRu {
 			'screenCalls.filterMissed' => 'Пропущенные',
 			'screenCalls.incoming' => 'Входящий',
 			'screenCalls.outgoing' => 'Исходящий',
-			'screenCalls.missed' => 'Пропущенный',
 			_ => null,
 		} ?? switch (path) {
+			'screenCalls.missed' => 'Пропущенный',
 			'screenCalls.cancelled' => 'Отменённый',
 			'screenCalls.durationSec' => ({required Object s}) => '${s} сек',
 			'screenCalls.durationMin' => ({required Object m}) => '${m} мин',

@@ -14,8 +14,26 @@ import '../chats/forward_picker.dart';
 /// «Конфиденциальность» → «Заблокированные» (Android): сверху «Заблокировать
 /// пользователя» (выбор из чатов и контактов), тап по строке — профиль, справа —
 /// «Разблокировать». Блокировать можно и из профиля пользователя.
-class SettingsBlockedMaterial extends StatelessWidget {
+class SettingsBlockedMaterial extends StatefulWidget {
   const SettingsBlockedMaterial({super.key});
+
+  @override
+  State<SettingsBlockedMaterial> createState() => _SettingsBlockedMaterialState();
+}
+
+class _SettingsBlockedMaterialState extends State<SettingsBlockedMaterial> {
+  String _query = '';
+
+  /// Заблокированные под поиском: каждое слово запроса — начало какого-то
+  /// слова имени.
+  List<BlockedUser> _found(List<BlockedUser> users) {
+    final words = _query.trim().toLowerCase().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
+    if (words.isEmpty) return users;
+    return [
+      for (final u in users)
+        if (words.every((q) => u.name.toLowerCase().split(RegExp(r'\s+')).any((w) => w.startsWith(q)))) u,
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,17 +61,30 @@ class SettingsBlockedMaterial extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 10),
+                    if (state.users.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(6, 0, 6, 10),
+                        child: TextField(
+                          decoration: InputDecoration(
+                            prefixIcon: const Icon(Icons.search),
+                            hintText: context.t.screenContacts.search,
+                            border: const OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                          onChanged: (value) => setState(() => _query = value),
+                        ),
+                      ),
                     Card(
                       clipBehavior: Clip.antiAlias,
                       child: Column(
                         children: [
-                          if (state.users.isEmpty)
+                          if (_found(state.users).isEmpty)
                             ListTile(
                               contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                              title: Text(t.blockedEmpty, style: TextStyle(color: secondary)),
+                              title: Text(state.users.isEmpty ? t.blockedEmpty : t.blockedNotFound, style: TextStyle(color: secondary)),
                             )
                           else
-                            for (final user in state.users)
+                            for (final user in _found(state.users))
                               // Разблокировали — строка рассыпается в пыль.
                               DustDismiss(
                                 key: ValueKey(utils.bytesToHex(user.userID)),

@@ -24,3 +24,14 @@ bool memberMatches(models.ChatMember member, String query, {required bool byName
   final name = member.name.toLowerCase();
   return name.startsWith(query) || name.split(RegExp(r'\s+')).any((word) => word.startsWith(query));
 }
+
+/// Локальный список (например, «Заблокированные»), где имена известны все:
+/// подходящие под [query] по имени или `@username`.
+List<models.ChatMember> filterMembers(List<models.ChatMember> members, String query) {
+  final q = normalizeMemberQuery(query);
+  if (q.isEmpty) return members;
+  return [
+    for (final m in members)
+      if (memberMatches(m, q, byName: true)) m,
+  ];
+}

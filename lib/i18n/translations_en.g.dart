@@ -2906,6 +2906,9 @@ class Translations$sessionsPrivacyAndSecurity$en {
 	/// en: 'You haven't blocked anyone'
 	String get blockedEmpty => 'You haven\'t blocked anyone';
 
+	/// en: 'No one found'
+	String get blockedNotFound => 'No one found';
+
 	/// en: 'Blocked users can't message or call you and can't see your last seen, photo, bio or birthday. You can also block someone from their profile.'
 	String get blockedNote => 'Blocked users can\'t message or call you and can\'t see your last seen, photo, bio or birthday. You can also block someone from their profile.';
 
@@ -5160,6 +5163,7 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.phoneNumberFindNote' => 'Others won\'t be able to find you by searching for your phone number.',
 			'sessionsPrivacyAndSecurity.blocked' => 'Blocked Users',
 			'sessionsPrivacyAndSecurity.blockedEmpty' => 'You haven\'t blocked anyone',
+			'sessionsPrivacyAndSecurity.blockedNotFound' => 'No one found',
 			'sessionsPrivacyAndSecurity.blockedNote' => 'Blocked users can\'t message or call you and can\'t see your last seen, photo, bio or birthday. You can also block someone from their profile.',
 			'sessionsPrivacyAndSecurity.unblock' => 'Unblock',
 			'sessionsPrivacyAndSecurity.unknownUser' => 'User',
@@ -5326,9 +5330,9 @@ extension on Translations {
 			'screenCalls.filterMissed' => 'Missed',
 			'screenCalls.incoming' => 'Incoming',
 			'screenCalls.outgoing' => 'Outgoing',
-			'screenCalls.missed' => 'Missed',
 			_ => null,
 		} ?? switch (path) {
+			'screenCalls.missed' => 'Missed',
 			'screenCalls.cancelled' => 'Cancelled',
 			'screenCalls.durationSec' => ({required Object s}) => '${s} sec',
 			'screenCalls.durationMin' => ({required Object m}) => '${m} min',
