@@ -577,8 +577,23 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                   child: _Header(chat: chat),
                                 ),
                         ),
+                  // «Чат не найден» — на тех же обоях (иначе в тёмной теме чёрный фон).
                   body: chat == null
-                      ? Center(child: Text(state.status == Status.success ? t.screenChat.notFound : ''))
+                      ? Stack(
+                          children: [
+                            Positioned.fill(
+                              child: BlocBuilder<CommonCubit, CommonState>(
+                                builder: (context, common) => ChatWallpaper(
+                                  pattern: common.settingsDevice.chatWallpaper,
+                                  colorIndex: common.settingsDevice.chatWallpaperColor,
+                                  intensity: common.settingsDevice.chatWallpaperIntensity,
+                                  dark: Theme.of(context).brightness == Brightness.dark,
+                                ),
+                              ),
+                            ),
+                            Center(child: Text(state.status == Status.success ? t.screenChat.notFound : '')),
+                          ],
+                        )
                       : Column(
                           children: [
                             Expanded(
