@@ -1,4 +1,5 @@
 import Contacts
+import Intents
 import UserNotifications
 
 /// Notification Service Extension: расшифровывает alert-пуши конвейера
@@ -11,6 +12,12 @@ import UserNotifications
 ///
 /// В `userInfo` дописываем kind/id/chatID/fromUserID — по ним приложение решает,
 /// показывать ли пуш в foreground и куда вести по тапу (PushBridge.swift).
+///
+/// Сообщения, реакции, пропущенные звонки и «контакт в Iperon» оформляются
+/// как Communication Notification (INSendMessageIntent): слева аватар
+/// собеседника или группы, иконка приложения — маленьким значком в углу.
+/// Аватары — копии, которые положило приложение ([PushAvatars]); нет копии —
+/// система рисует инициалы.
 class NotificationService: UNNotificationServiceExtension {
   private var contentHandler: ((UNNotificationContent) -> Void)?
   private var bestAttempt: UNMutableNotificationContent?
@@ -29,7 +36,10 @@ class NotificationService: UNNotificationServiceExtension {
     if let encrypted = content.userInfo["p"] as? String {
       do {
         if let plaintext = try PushCrypto.open(encrypted, keyLookup: PushKeychain.key(forId:)) {
-          apply(try Iperon_V1_PushPayload(serializedBytes: plaintext), to: content)
+          let payload = try Iperon_V1_PushPayload(serializedBytes: plaintext)
+          if let intent = apply(payload, to: content) {
+            bestAttempt = Self.communication(content, intent: intent)
+          }
         } else {
           // Ключа нет: разлогинены или пуш для старой сессии. Скрыть уведомление
           // iOS не даёт без filtering entitlement — остаётся фолбэк.
@@ -55,7 +65,9 @@ class NotificationService: UNNotificationServiceExtension {
     handler(content)
   }
 
-  private func apply(_ payload: Iperon_V1_PushPayload, to content: UNMutableNotificationContent) {
+  /// Подставляет заголовок и текст; возвращает intent для Communication
+  /// Notification (nil — обычное уведомление с иконкой приложения).
+  private func apply(_ payload: Iperon_V1_PushPayload, to content: UNMutableNotificationContent) -> INSendMessageIntent? {
     var userInfo = content.userInfo
     userInfo["kind"] = payload.kind.rawValue
     userInfo["id"] = payload.id
@@ -80,22 +92,25 @@ class NotificationService: UNNotificationServiceExtension {
     if PushKeychain.isPasscodeEnabled || PushKeychain.isHiddenUser(payload.fromUserID) {
       content.title = appName
       content.body = Self.text("PUSH_FALLBACK_BODY")
-      return
+      return nil
     }
 
     switch payload.kind {
     case .test:
       content.title = Self.text("PUSH_TEST_TITLE")
       content.body = Self.text("PUSH_TEST_ENCRYPTED_BODY")
+      return nil
     case .contactJoined:
       // Как у Telegram — имя из адресной книги устройства (на сервере имён
       // приватных контактов нет): args[0] — номер в E.164. Нет доступа к
       // контактам или номера там нет — имя, которое прислал сервер.
       content.title = payload.args.first.flatMap(Self.addressBookName) ?? title
       content.body = Self.text("PUSH_CONTACT_JOINED_BODY")
+      return Self.intent(payload, sender: content.title, body: content.body)
     case .callMissed:
       content.title = title
       content.body = Self.text("PUSH_CALL_MISSED_BODY")
+      return Self.intent(payload, sender: title, body: content.body)
     case .message:
       let body = payload.body.isEmpty ? Self.text("PUSH_MESSAGE_NO_PREVIEW") : payload.body
       if payload.chatTitle.isEmpty {
@@ -107,22 +122,92 @@ class NotificationService: UNNotificationServiceExtension {
         content.body = senderName.isEmpty ? body : senderName + ": " + body
       }
       content.threadIdentifier = "chat:" + PushKeychain.hex(payload.chatID)
+      return Self.intent(payload, sender: title, body: body)
     case .secretMessage:
       // Секретный чат: текста у сервера нет — только «новое сообщение».
       content.title = title
       content.body = Self.text("PUSH_SECRET_MESSAGE")
       content.threadIdentifier = "chat:" + PushKeychain.hex(payload.chatID)
+      return Self.intent(payload, sender: title, body: content.body)
     case .messageReaction:
       // messageID — моё сообщение: прочитал чат на другом устройстве —
       // READ_HISTORY снимет и это уведомление.
       content.title = title
       content.body = Self.reactionBody(payload)
       content.threadIdentifier = "chat:" + PushKeychain.hex(payload.chatID)
+      return Self.intent(payload, sender: title, body: content.body)
     default:
       // READ_HISTORY / MESSAGE_DELETED сюда не попадают: сервер шлёт их
       // background-пушем, их разбирает приложение (PushBridge.handleSilent).
       content.title = title
       content.body = payload.body.isEmpty ? Self.text("PUSH_FALLBACK_BODY") : payload.body
+      return nil
+    }
+  }
+
+  /// INSendMessageIntent от отправителя (аватар — копия по fromUserID). Группа
+  /// (chatTitle) — беседа с её названием и аватаром по chatID; получателей
+  /// двое (я и отправитель) — иначе iOS покажет её как личную.
+  private static func intent(_ payload: Iperon_V1_PushPayload, sender name: String, body: String) -> INSendMessageIntent? {
+    let senderID = PushKeychain.hex(payload.fromUserID)
+    guard !senderID.isEmpty, !name.isEmpty else { return nil }
+    var components = PersonNameComponents()
+    components.nickname = name
+    let sender = INPerson(
+      personHandle: INPersonHandle(value: senderID, type: .unknown),
+      nameComponents: components,
+      displayName: name,
+      image: PushAvatars.user(payload.fromUserID).map { INImage(imageData: $0) },
+      contactIdentifier: nil,
+      customIdentifier: senderID
+    )
+
+    let isGroup = !payload.chatTitle.isEmpty
+    let chatID = PushKeychain.hex(payload.chatID)
+    var recipients: [INPerson]?
+    if isGroup {
+      let me = INPerson(
+        personHandle: INPersonHandle(value: "me", type: .unknown),
+        nameComponents: nil,
+        displayName: nil,
+        image: nil,
+        contactIdentifier: nil,
+        customIdentifier: nil,
+        isMe: true
+      )
+      recipients = [me, sender]
+    }
+    let intent = INSendMessageIntent(
+      recipients: recipients,
+      outgoingMessageType: .outgoingMessageText,
+      content: body,
+      speakableGroupName: isGroup ? INSpeakableString(spokenPhrase: payload.chatTitle) : nil,
+      conversationIdentifier: chatID.isEmpty ? senderID : chatID,
+      serviceName: nil,
+      sender: sender,
+      attachments: nil
+    )
+    if isGroup, let image = PushAvatars.chat(payload.chatID) {
+      intent.setImage(INImage(imageData: image), forParameterNamed: \.speakableGroupName)
+    }
+    return intent
+  }
+
+  /// Уведомление в виде Communication Notification. Нет entitlement'а
+  /// (`usernotifications.communication`) или иная ошибка — прежний вид.
+  private static func communication(_ content: UNMutableNotificationContent, intent: INSendMessageIntent) -> UNMutableNotificationContent {
+    let interaction = INInteraction(intent: intent, response: nil)
+    interaction.direction = .incoming
+    // По нему PushBridge удаляет подсказки скрытых профилей / при код-пароле.
+    if intent.speakableGroupName == nil, let sender = intent.sender?.customIdentifier {
+      interaction.groupIdentifier = PushAvatars.interactionGroup(user: sender)
+    }
+    interaction.donate(completion: nil)
+    do {
+      return try content.updating(from: intent).mutableCopy() as? UNMutableNotificationContent ?? content
+    } catch {
+      NSLog("IperonPush: communication notification failed: \(error)")
+      return content
     }
   }
 

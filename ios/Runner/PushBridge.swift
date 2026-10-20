@@ -9,6 +9,8 @@ import UserNotifications
 ///   `setHiddenUsers` — Dart
 ///   кладёт в общий Keychain то, что нужно Notification Service Extension для
 ///   расшифровки ([PushKeychain]);
+/// - `syncAvatars [{key, id, path}]` — снимок скачанных аватаров для
+///   уведомлений (копии в App Group, [PushAvatars]);
 /// - `takeInitialTap` — тап, открывший приложение до готовности Dart;
 /// - `isInBackground` — запущено ли приложение системой в фоне (presence);
 /// - `setBadge` — счётчик на иконке (непрочитанные, считает Dart);
@@ -51,12 +53,21 @@ final class PushBridge {
       result(nil)
     case "clearPushKeys":
       PushKeychain.clearKeys()
+      PushAvatars.forgetInteractions()
       result(nil)
     case "setPasscodeEnabled":
-      PushKeychain.setPasscodeEnabled((call.arguments as? Bool) ?? false)
+      let enabled = (call.arguments as? Bool) ?? false
+      PushKeychain.setPasscodeEnabled(enabled)
+      // В подсказках бесед — имена и аватары.
+      if enabled { PushAvatars.forgetInteractions() }
       result(nil)
     case "setHiddenUsers":
-      PushKeychain.setHiddenUsers((call.arguments as? [String]) ?? [])
+      let users = (call.arguments as? [String]) ?? []
+      PushKeychain.setHiddenUsers(users)
+      PushAvatars.forgetInteractions(users: users)
+      result(nil)
+    case "syncAvatars":
+      PushAvatars.sync((call.arguments as? [[String: String]]) ?? [])
       result(nil)
     case "clearChatNotifications":
       guard let args = call.arguments as? [String: Any], let chatID = args["chatID"] as? String else {
