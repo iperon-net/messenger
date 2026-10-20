@@ -79,6 +79,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
       MapperContainer.globals.use(_instance = ChatCreateStateMapper._());
       models.ChatTypeMapper.ensureInitialized();
       models.ChatMemberMapper.ensureInitialized();
+      models.ChatMapper.ensureInitialized();
       models.ChatJoinModeMapper.ensureInitialized();
       models.ChatRoleMapper.ensureInitialized();
       models.ChatCommentsWhoMapper.ensureInitialized();
@@ -233,6 +234,13 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
   _f$globalResults = Field(
     'globalResults',
     _$globalResults,
+    opt: true,
+    def: const [],
+  );
+  static List<models.Chat> _$globalChats(ChatCreateState v) => v.globalChats;
+  static const Field<ChatCreateState, List<models.Chat>> _f$globalChats = Field(
+    'globalChats',
+    _$globalChats,
     opt: true,
     def: const [],
   );
@@ -429,6 +437,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     #query: _f$query,
     #globalStatus: _f$globalStatus,
     #globalResults: _f$globalResults,
+    #globalChats: _f$globalChats,
     #selected: _f$selected,
     #avatarPath: _f$avatarPath,
     #coverPath: _f$coverPath,
@@ -478,6 +487,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
       query: data.dec(_f$query),
       globalStatus: data.dec(_f$globalStatus),
       globalResults: data.dec(_f$globalResults),
+      globalChats: data.dec(_f$globalChats),
       selected: data.dec(_f$selected),
       avatarPath: data.dec(_f$avatarPath),
       coverPath: data.dec(_f$coverPath),
@@ -581,6 +591,12 @@ abstract class ChatCreateStateCopyWith<$R, $In extends ChatCreateState, $Out>
   get globalResults;
   ListCopyWith<
     $R,
+    models.Chat,
+    models.ChatCopyWith<$R, models.Chat, models.Chat>
+  >
+  get globalChats;
+  ListCopyWith<
+    $R,
     models.ChatMember,
     models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
   >
@@ -607,6 +623,7 @@ abstract class ChatCreateStateCopyWith<$R, $In extends ChatCreateState, $Out>
     String? query,
     UsersSearchStatus? globalStatus,
     List<models.ChatMember>? globalResults,
+    List<models.Chat>? globalChats,
     List<models.ChatMember>? selected,
     String? avatarPath,
     String? coverPath,
@@ -670,6 +687,17 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
   @override
   ListCopyWith<
     $R,
+    models.Chat,
+    models.ChatCopyWith<$R, models.Chat, models.Chat>
+  >
+  get globalChats => ListCopyWith(
+    $value.globalChats,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(globalChats: v),
+  );
+  @override
+  ListCopyWith<
+    $R,
     models.ChatMember,
     models.ChatMemberCopyWith<$R, models.ChatMember, models.ChatMember>
   >
@@ -701,6 +729,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     String? query,
     UsersSearchStatus? globalStatus,
     List<models.ChatMember>? globalResults,
+    List<models.Chat>? globalChats,
     List<models.ChatMember>? selected,
     String? avatarPath,
     String? coverPath,
@@ -748,6 +777,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
       if (query != null) #query: query,
       if (globalStatus != null) #globalStatus: globalStatus,
       if (globalResults != null) #globalResults: globalResults,
+      if (globalChats != null) #globalChats: globalChats,
       if (selected != null) #selected: selected,
       if (avatarPath != null) #avatarPath: avatarPath,
       if (coverPath != null) #coverPath: coverPath,
@@ -798,6 +828,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     query: data.get(#query, or: $value.query),
     globalStatus: data.get(#globalStatus, or: $value.globalStatus),
     globalResults: data.get(#globalResults, or: $value.globalResults),
+    globalChats: data.get(#globalChats, or: $value.globalChats),
     selected: data.get(#selected, or: $value.selected),
     avatarPath: data.get(#avatarPath, or: $value.avatarPath),
     coverPath: data.get(#coverPath, or: $value.coverPath),

@@ -33,10 +33,14 @@ class ChatsState with ChatsStateMappable {
 
   final String query;
 
-  /// Глобальный поиск людей по [query] (номер / username, см. [UsersSearch]):
+  /// Глобальный поиск по [query] (люди — номер / username, см. [UsersSearch]):
   /// найденные — без тех, с кем личный чат уже в списке.
   final UsersSearchStatus globalStatus;
   final List<models.ChatMember> globalResults;
+
+  /// Публичные группы глобального поиска (`Chats.SearchChats`) — без тех, что
+  /// уже в списке чатов.
+  final List<models.Chat> globalChats;
 
   /// Растёт, когда действие не выполнено из-за отсутствия сети
   /// (`ChatsOfflineException`): экран показывает «Нет соединения».
@@ -68,6 +72,7 @@ class ChatsState with ChatsStateMappable {
     this.query = '',
     this.globalStatus = UsersSearchStatus.idle,
     this.globalResults = const [],
+    this.globalChats = const [],
     this.hiddenHashByHex = const {},
     this.revealedHex = const {},
   });

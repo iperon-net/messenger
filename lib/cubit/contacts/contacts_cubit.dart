@@ -616,7 +616,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     _usersSearch.search(trimmed.startsWith('/') ? null : chatsDataSource(demo: false), trimmed);
   }
 
-  late final _usersSearch = UsersSearch((status, results) {
+  late final _usersSearch = UsersSearch((status, results, _) {
     if (isClosed) return;
     final known = {
       for (final item in [...state.registered, ...state.cloud])

@@ -12,6 +12,7 @@ import '../chats/message_formatting.dart';
 import '../chats/reactions.dart';
 import '../chats/reactions_list.dart';
 import '../chats/read_receipts.dart';
+import '../chats/users_search.dart';
 import '../models.dart' as models;
 
 /// Фейковые чаты и папки для UX-демо (флаг «Демо чатов» на экране
@@ -471,6 +472,24 @@ class ChatsDemoDataSource implements ChatsDataSource {
   @override
   Future<List<models.ChatMember>> searchUsers(String query) async => const [];
 
+  /// Публичные группы и каналы демо (с публичным именем, открытые): по
+  /// началу слов названия (все слова запроса) или «@имени» — как на сервере.
+  @override
+  Future<List<models.Chat>> searchChats(String query) async {
+    final trimmed = query.trim();
+    final byUsername = trimmed.startsWith('@');
+    final prefix = trimmed.replaceFirst('@', '').toLowerCase();
+    final words = byUsername ? const <String>[] : UsersSearch.words(trimmed);
+    final found = _chats.where((c) {
+      if (c.username.isEmpty || c.isThread || c.inCommunity) return false;
+      if (c.type != models.ChatType.group && c.type != models.ChatType.channel) return false;
+      if (prefix.isNotEmpty && c.username.toLowerCase().startsWith(prefix)) return true;
+      final titleWords = UsersSearch.words(c.title);
+      return words.isNotEmpty && words.every((w) => titleWords.any((t) => t.startsWith(w)));
+    }).toList()..sort((a, b) => b.membersCount.compareTo(a.membersCount));
+    return found.take(20).toList();
+  }
+
   @override
   Future<String> findPrivateChat(String userID) async => _chats.any((c) => c.id == userID) ? userID : '';
 
@@ -527,6 +546,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
     String avatarPath = '',
     String communityID = '',
     models.ChatJoinMode joinMode = models.ChatJoinMode.open,
+    bool historyHidden = false,
   }) async {
     final now = DateTime.now();
     final id = 'new${_nextChatID++}';
@@ -576,6 +596,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
       // Подписчиков канала и участников сообщества (их могут быть сотни
       // тысяч) по умолчанию видят только админы.
       membersHidden: type == models.ChatType.channel || type == models.ChatType.community,
+      historyHidden: historyHidden && username.isEmpty,
       membersCount: 1 + members.length,
       myRole: myRole,
       createdAt: now,

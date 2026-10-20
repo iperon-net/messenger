@@ -7320,6 +7320,181 @@ class Chats_SearchUsersResult extends $pb.GeneratedMessage {
   $pb.PbList<$1.Profile_Response> get profiles => $_getList(0);
 }
 
+/// Глобальный поиск публичных чатов (как contacts.search в Telegram —
+/// группы рядом с людьми). Только публичные (группы OPEN; каналы — когда
+/// появятся, тип — в ChatInfo.type), частные и удалённые не находятся.
+/// query — слова названия по началу (регистр и ё/е не важны, все слова
+/// запроса должны совпасть) или username по префиксу (ведущий «@» — только
+/// по username). Короче 2 символов — пустой ответ. По убыванию числа
+/// участников, до limit (≤ 50, 0 — 20). Свой лимит частоты.
+class Chats_SearchChats extends $pb.GeneratedMessage {
+  factory Chats_SearchChats({
+    $core.String? query,
+    $core.int? limit,
+  }) {
+    final result = create();
+    if (query != null) result.query = query;
+    if (limit != null) result.limit = limit;
+    return result;
+  }
+
+  Chats_SearchChats._();
+
+  factory Chats_SearchChats.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_SearchChats.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.SearchChats',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'query')
+    ..aI(2, _omitFieldNames ? '' : 'limit')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SearchChats clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SearchChats copyWith(void Function(Chats_SearchChats) updates) =>
+      super.copyWith((message) => updates(message as Chats_SearchChats)) as Chats_SearchChats;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_SearchChats create() => Chats_SearchChats._();
+  @$core.override
+  Chats_SearchChats createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_SearchChats getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_SearchChats>(create);
+  static Chats_SearchChats? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get query => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set query($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasQuery() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearQuery() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get limit => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set limit($core.int value) => $_setSignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasLimit() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearLimit() => $_clearField(2);
+}
+
+/// Найденный чат: chat — без pts, avatar — со ссылкой на скачивание; member
+/// — я участник (открыть диалог), иначе — предпросмотр (ResolveLink по
+/// chat.username) и вступление (JoinChat). Заблокированный в группе её
+/// тоже находит (как в Telegram), вступить не может («banned»).
+class Chats_FoundChat extends $pb.GeneratedMessage {
+  factory Chats_FoundChat({
+    ChatInfo? chat,
+    $core.bool? member,
+  }) {
+    final result = create();
+    if (chat != null) result.chat = chat;
+    if (member != null) result.member = member;
+    return result;
+  }
+
+  Chats_FoundChat._();
+
+  factory Chats_FoundChat.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_FoundChat.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.FoundChat',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<ChatInfo>(1, _omitFieldNames ? '' : 'chat', subBuilder: ChatInfo.create)
+    ..aOB(2, _omitFieldNames ? '' : 'member')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_FoundChat clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_FoundChat copyWith(void Function(Chats_FoundChat) updates) =>
+      super.copyWith((message) => updates(message as Chats_FoundChat)) as Chats_FoundChat;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_FoundChat create() => Chats_FoundChat._();
+  @$core.override
+  Chats_FoundChat createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_FoundChat getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_FoundChat>(create);
+  static Chats_FoundChat? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  ChatInfo get chat => $_getN(0);
+  @$pb.TagNumber(1)
+  set chat(ChatInfo value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChat() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChat() => $_clearField(1);
+  @$pb.TagNumber(1)
+  ChatInfo ensureChat() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  $core.bool get member => $_getBF(1);
+  @$pb.TagNumber(2)
+  set member($core.bool value) => $_setBool(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasMember() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearMember() => $_clearField(2);
+}
+
+class Chats_SearchChatsResult extends $pb.GeneratedMessage {
+  factory Chats_SearchChatsResult({
+    $core.Iterable<Chats_FoundChat>? chats,
+  }) {
+    final result = create();
+    if (chats != null) result.chats.addAll(chats);
+    return result;
+  }
+
+  Chats_SearchChatsResult._();
+
+  factory Chats_SearchChatsResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Chats_SearchChatsResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.SearchChatsResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..pPM<Chats_FoundChat>(1, _omitFieldNames ? '' : 'chats', subBuilder: Chats_FoundChat.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SearchChatsResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Chats_SearchChatsResult copyWith(void Function(Chats_SearchChatsResult) updates) =>
+      super.copyWith((message) => updates(message as Chats_SearchChatsResult)) as Chats_SearchChatsResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Chats_SearchChatsResult create() => Chats_SearchChatsResult._();
+  @$core.override
+  Chats_SearchChatsResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Chats_SearchChatsResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Chats_SearchChatsResult>(create);
+  static Chats_SearchChatsResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<Chats_FoundChat> get chats => $_getList(0);
+}
+
 /// Создать группу (как messages.createChat в Telegram): я — владелец,
 /// memberUserIDs — участники (≤ 200, без меня), роль у них WRITER. Кого
 /// нельзя добавить по его приватности «кто может добавлять меня в группы»
@@ -7343,6 +7518,7 @@ class Chats_CreateGroup extends $pb.GeneratedMessage {
     $fixnum.Int64? randomID,
     $core.String? username,
     ChatJoinMode? joinMode,
+    $core.bool? historyHidden,
   }) {
     final result = create();
     if (title != null) result.title = title;
@@ -7352,6 +7528,7 @@ class Chats_CreateGroup extends $pb.GeneratedMessage {
     if (randomID != null) result.randomID = randomID;
     if (username != null) result.username = username;
     if (joinMode != null) result.joinMode = joinMode;
+    if (historyHidden != null) result.historyHidden = historyHidden;
     return result;
   }
 
@@ -7371,6 +7548,7 @@ class Chats_CreateGroup extends $pb.GeneratedMessage {
     ..aInt64(5, _omitFieldNames ? '' : 'randomID', protoName: 'randomID')
     ..aOS(6, _omitFieldNames ? '' : 'username')
     ..aE<ChatJoinMode>(7, _omitFieldNames ? '' : 'joinMode', protoName: 'joinMode', enumValues: ChatJoinMode.values)
+    ..aOB(8, _omitFieldNames ? '' : 'historyHidden', protoName: 'historyHidden')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -7446,6 +7624,17 @@ class Chats_CreateGroup extends $pb.GeneratedMessage {
   $core.bool hasJoinMode() => $_has(6);
   @$pb.TagNumber(7)
   void clearJoinMode() => $_clearField(7);
+
+  /// «Скрыть историю» (как EditChat.historyHidden: при OPEN —
+  /// INVALID_ARGUMENT).
+  @$pb.TagNumber(8)
+  $core.bool get historyHidden => $_getBF(7);
+  @$pb.TagNumber(8)
+  set historyHidden($core.bool value) => $_setBool(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasHistoryHidden() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearHistoryHidden() => $_clearField(8);
 }
 
 class Chats_CreateGroupResult extends $pb.GeneratedMessage {
@@ -10845,6 +11034,7 @@ enum Chats_Request_Request {
   deleteRevokedInviteLinks,
   joinRequests,
   answerJoinRequest,
+  searchChats,
   notSet
 }
 
@@ -10891,6 +11081,7 @@ class Chats_Request extends $pb.GeneratedMessage {
     Chats_DeleteRevokedInviteLinks? deleteRevokedInviteLinks,
     Chats_JoinRequests? joinRequests,
     Chats_AnswerJoinRequest? answerJoinRequest,
+    Chats_SearchChats? searchChats,
   }) {
     final result = create();
     if (list != null) result.list = list;
@@ -10934,6 +11125,7 @@ class Chats_Request extends $pb.GeneratedMessage {
     if (deleteRevokedInviteLinks != null) result.deleteRevokedInviteLinks = deleteRevokedInviteLinks;
     if (joinRequests != null) result.joinRequests = joinRequests;
     if (answerJoinRequest != null) result.answerJoinRequest = answerJoinRequest;
+    if (searchChats != null) result.searchChats = searchChats;
     return result;
   }
 
@@ -10986,6 +11178,7 @@ class Chats_Request extends $pb.GeneratedMessage {
     39: Chats_Request_Request.deleteRevokedInviteLinks,
     40: Chats_Request_Request.joinRequests,
     41: Chats_Request_Request.answerJoinRequest,
+    42: Chats_Request_Request.searchChats,
     0: Chats_Request_Request.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.Request',
@@ -11031,7 +11224,8 @@ class Chats_Request extends $pb.GeneratedMessage {
       38,
       39,
       40,
-      41
+      41,
+      42
     ])
     ..aOM<Chats_List>(1, _omitFieldNames ? '' : 'list', subBuilder: Chats_List.create)
     ..aOM<Chats_OpenPrivate>(2, _omitFieldNames ? '' : 'openPrivate', protoName: 'openPrivate', subBuilder: Chats_OpenPrivate.create)
@@ -11087,6 +11281,7 @@ class Chats_Request extends $pb.GeneratedMessage {
     ..aOM<Chats_JoinRequests>(40, _omitFieldNames ? '' : 'joinRequests', protoName: 'joinRequests', subBuilder: Chats_JoinRequests.create)
     ..aOM<Chats_AnswerJoinRequest>(41, _omitFieldNames ? '' : 'answerJoinRequest',
         protoName: 'answerJoinRequest', subBuilder: Chats_AnswerJoinRequest.create)
+    ..aOM<Chats_SearchChats>(42, _omitFieldNames ? '' : 'searchChats', protoName: 'searchChats', subBuilder: Chats_SearchChats.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -11147,6 +11342,7 @@ class Chats_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(39)
   @$pb.TagNumber(40)
   @$pb.TagNumber(41)
+  @$pb.TagNumber(42)
   Chats_Request_Request whichRequest() => _Chats_Request_RequestByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -11189,6 +11385,7 @@ class Chats_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(39)
   @$pb.TagNumber(40)
   @$pb.TagNumber(41)
+  @$pb.TagNumber(42)
   void clearRequest() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -11641,6 +11838,17 @@ class Chats_Request extends $pb.GeneratedMessage {
   void clearAnswerJoinRequest() => $_clearField(41);
   @$pb.TagNumber(41)
   Chats_AnswerJoinRequest ensureAnswerJoinRequest() => $_ensure(40);
+
+  @$pb.TagNumber(42)
+  Chats_SearchChats get searchChats => $_getN(41);
+  @$pb.TagNumber(42)
+  set searchChats(Chats_SearchChats value) => $_setField(42, value);
+  @$pb.TagNumber(42)
+  $core.bool hasSearchChats() => $_has(41);
+  @$pb.TagNumber(42)
+  void clearSearchChats() => $_clearField(42);
+  @$pb.TagNumber(42)
+  Chats_SearchChats ensureSearchChats() => $_ensure(41);
 }
 
 enum Chats_Response_Response {
@@ -11685,6 +11893,7 @@ enum Chats_Response_Response {
   deleteRevokedInviteLinks,
   joinRequests,
   answerJoinRequest,
+  searchChats,
   notSet
 }
 
@@ -11731,6 +11940,7 @@ class Chats_Response extends $pb.GeneratedMessage {
     Chats_DeleteRevokedInviteLinksResult? deleteRevokedInviteLinks,
     Chats_JoinRequestsResult? joinRequests,
     Chats_AnswerJoinRequestResult? answerJoinRequest,
+    Chats_SearchChatsResult? searchChats,
   }) {
     final result = create();
     if (list != null) result.list = list;
@@ -11774,6 +11984,7 @@ class Chats_Response extends $pb.GeneratedMessage {
     if (deleteRevokedInviteLinks != null) result.deleteRevokedInviteLinks = deleteRevokedInviteLinks;
     if (joinRequests != null) result.joinRequests = joinRequests;
     if (answerJoinRequest != null) result.answerJoinRequest = answerJoinRequest;
+    if (searchChats != null) result.searchChats = searchChats;
     return result;
   }
 
@@ -11826,6 +12037,7 @@ class Chats_Response extends $pb.GeneratedMessage {
     39: Chats_Response_Response.deleteRevokedInviteLinks,
     40: Chats_Response_Response.joinRequests,
     41: Chats_Response_Response.answerJoinRequest,
+    42: Chats_Response_Response.searchChats,
     0: Chats_Response_Response.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Chats.Response',
@@ -11871,7 +12083,8 @@ class Chats_Response extends $pb.GeneratedMessage {
       38,
       39,
       40,
-      41
+      41,
+      42
     ])
     ..aOM<Chats_ListResult>(1, _omitFieldNames ? '' : 'list', subBuilder: Chats_ListResult.create)
     ..aOM<Chats_OpenPrivateResult>(2, _omitFieldNames ? '' : 'openPrivate',
@@ -11942,6 +12155,8 @@ class Chats_Response extends $pb.GeneratedMessage {
         protoName: 'joinRequests', subBuilder: Chats_JoinRequestsResult.create)
     ..aOM<Chats_AnswerJoinRequestResult>(41, _omitFieldNames ? '' : 'answerJoinRequest',
         protoName: 'answerJoinRequest', subBuilder: Chats_AnswerJoinRequestResult.create)
+    ..aOM<Chats_SearchChatsResult>(42, _omitFieldNames ? '' : 'searchChats',
+        protoName: 'searchChats', subBuilder: Chats_SearchChatsResult.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -12002,6 +12217,7 @@ class Chats_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(39)
   @$pb.TagNumber(40)
   @$pb.TagNumber(41)
+  @$pb.TagNumber(42)
   Chats_Response_Response whichResponse() => _Chats_Response_ResponseByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -12044,6 +12260,7 @@ class Chats_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(39)
   @$pb.TagNumber(40)
   @$pb.TagNumber(41)
+  @$pb.TagNumber(42)
   void clearResponse() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -12496,6 +12713,17 @@ class Chats_Response extends $pb.GeneratedMessage {
   void clearAnswerJoinRequest() => $_clearField(41);
   @$pb.TagNumber(41)
   Chats_AnswerJoinRequestResult ensureAnswerJoinRequest() => $_ensure(40);
+
+  @$pb.TagNumber(42)
+  Chats_SearchChatsResult get searchChats => $_getN(41);
+  @$pb.TagNumber(42)
+  set searchChats(Chats_SearchChatsResult value) => $_setField(42, value);
+  @$pb.TagNumber(42)
+  $core.bool hasSearchChats() => $_has(41);
+  @$pb.TagNumber(42)
+  void clearSearchChats() => $_clearField(42);
+  @$pb.TagNumber(42)
+  Chats_SearchChatsResult ensureSearchChats() => $_ensure(41);
 }
 
 /// CHATS — диалоги.

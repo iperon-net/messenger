@@ -1046,6 +1046,31 @@ message Chats {
     repeated Profile.Response profiles = 1;
   }
 
+  // Глобальный поиск публичных чатов (как contacts.search в Telegram —
+  // группы рядом с людьми). Только публичные (группы OPEN; каналы — когда
+  // появятся, тип — в ChatInfo.type), частные и удалённые не находятся.
+  // query — слова названия по началу (регистр и ё/е не важны, все слова
+  // запроса должны совпасть) или username по префиксу (ведущий «@» — только
+  // по username). Короче 2 символов — пустой ответ. По убыванию числа
+  // участников, до limit (≤ 50, 0 — 20). Свой лимит частоты.
+  message SearchChats {
+    string query = 1;
+    int32 limit = 2;
+  }
+
+  // Найденный чат: chat — без pts, avatar — со ссылкой на скачивание; member
+  // — я участник (открыть диалог), иначе — предпросмотр (ResolveLink по
+  // chat.username) и вступление (JoinChat). Заблокированный в группе её
+  // тоже находит (как в Telegram), вступить не может («banned»).
+  message FoundChat {
+    ChatInfo chat = 1;
+    bool member = 2;
+  }
+
+  message SearchChatsResult {
+    repeated FoundChat chats = 1;
+  }
+
   // Создать группу (как messages.createChat в Telegram): я — владелец,
   // memberUserIDs — участники (≤ 200, без меня), роль у них WRITER. Кого
   // нельзя добавить по его приватности «кто может добавлять меня в группы»
@@ -1068,6 +1093,9 @@ message Chats {
     int64 randomID = 5;
     string username = 6;
     ChatJoinMode joinMode = 7;
+    // «Скрыть историю» (как EditChat.historyHidden: при OPEN —
+    // INVALID_ARGUMENT).
+    bool historyHidden = 8;
   }
 
   message CreateGroupResult {
@@ -1489,6 +1517,7 @@ message Chats {
       DeleteRevokedInviteLinks deleteRevokedInviteLinks = 39;
       JoinRequests joinRequests = 40;
       AnswerJoinRequest answerJoinRequest = 41;
+      SearchChats searchChats = 42;
     }
   }
 
@@ -1535,6 +1564,7 @@ message Chats {
       DeleteRevokedInviteLinksResult deleteRevokedInviteLinks = 39;
       JoinRequestsResult joinRequests = 40;
       AnswerJoinRequestResult answerJoinRequest = 41;
+      SearchChatsResult searchChats = 42;
     }
   }
 }

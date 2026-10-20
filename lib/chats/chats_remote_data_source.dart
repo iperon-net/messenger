@@ -790,6 +790,36 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     ];
   }
 
+  /// Публичные группы (`Chats.SearchChats`). Группы выключены (флаг) — пусто:
+  /// открыть найденную было бы некуда. Аватары докачиваются здесь же (недолго,
+  /// параллельно) — выдача живёт только в памяти экрана поиска.
+  @override
+  Future<List<models.Chat>> searchChats(String query) async {
+    if (!_sync.groups) return const [];
+    await _requireNetwork();
+    final response = await _sync.chats(pb.Chats_Request(searchChats: pb.Chats_SearchChats(query: query)));
+    if (!response.hasSearchChats()) return const [];
+    final found = await Future.wait([for (final item in response.searchChats.chats) _foundChat(item)]);
+    return [for (final chat in found) ?chat];
+  }
+
+  /// Найденная группа с аватаром: нет в кэше — качаем (до [_searchAvatarWait],
+  /// не успели — без фото).
+  Future<models.Chat?> _foundChat(pb.Chats_FoundChat found) async {
+    final info = found.chat;
+    var path = await _avatarPath(info.avatarCdnID);
+    if (path.isEmpty && info.avatarCdnID.isNotEmpty && info.hasAvatar()) {
+      try {
+        path = (await getIt.get<CDNManager>().download(cdn: models.CDN.fromProto(info.avatar)).timeout(_searchAvatarWait)).path;
+      } catch (error) {
+        _logger.warning('chats: search avatar: $error');
+      }
+    }
+    return foundChatFromPb(found, avatarPath: path);
+  }
+
+  static const _searchAvatarWait = Duration(seconds: 3);
+
   /// Существующий личный чат — сразу из кэша (и offline); новый создаёт сервер
   /// (без сети — [ChatsOfflineException]). Свой userID — «Избранное».
   @override
@@ -846,6 +876,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     String avatarPath = '',
     String communityID = '',
     models.ChatJoinMode joinMode = models.ChatJoinMode.open,
+    bool historyHidden = false,
   }) async {
     if (type != models.ChatType.group || communityID.isNotEmpty || !_sync.groups) _unsupported('Каналы и сообщества');
     // Публичная — только с именем; без имени — частная по ссылке.
@@ -866,6 +897,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           randomID: Int64(_randomID()),
           username: open ? username : null,
           joinMode: joinModeToPb(mode),
+          // У публичной истории не скрыть (сервер — INVALID_ARGUMENT).
+          historyHidden: historyHidden && !open,
         ),
       ),
     );

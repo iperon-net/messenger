@@ -129,6 +129,8 @@ class _ChatsNewMaterial extends State<ChatsNewMaterial> {
                         status: state.globalStatus,
                         results: state.globalResults,
                         onTap: (member) => context.read<ChatCreateCubit>().openPrivateChat(member),
+                        chats: state.globalChats,
+                        onChatTap: (chat) => context.read<ChatCreateCubit>().openFoundChat(chat),
                       ),
                     ],
                   );

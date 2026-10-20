@@ -173,6 +173,7 @@
   "globalSearchEmpty": "Никого не найдено"
   "globalSearchOffline": "Нет соединения — искать по @username и номеру телефона сейчас нельзя."
   "globalSearchFlood": "Слишком много запросов. Попробуйте позже."
+  "globalSearchGroups": "Группы"
   "addMembers": "Добавить участников"
   "next": "Далее"
   "selected": "Выбрано: {n}"

@@ -187,7 +187,8 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
   Widget _folderPage(BuildContext context, ChatsState state, models.ChatFolder folder) {
     final chats = state.chatsOf(folder);
     final archived = folder.isAll && state.query.isEmpty ? state.archived : const <models.Chat>[];
-    // Глобальный поиск людей (номер / @username) — секцией после чатов.
+    // Глобальный поиск (люди — номер / @username, публичные группы) — секцией
+    // после чатов.
     final global = state.query.isEmpty
         ? const <Widget>[]
         : usersSearchListCupertino(
@@ -195,6 +196,8 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
             status: state.globalStatus,
             results: state.globalResults,
             onTap: (member) => _openGlobal(context, member),
+            chats: state.globalChats,
+            onChatTap: (chat) => _openFoundChat(context, chat),
           );
     if (chats.isEmpty && archived.isEmpty && global.isEmpty) {
       return _empty(context, state.query.isEmpty ? context.t.screenChats.emptyFolder : context.t.screenChats.empty, folder: folder);
@@ -232,6 +235,11 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
         );
       },
     );
+  }
+
+  Future<void> _openFoundChat(BuildContext context, models.Chat chat) async {
+    final chatID = await context.read<ChatsCubit>().openFoundChat(chat);
+    if (chatID.isNotEmpty && context.mounted) await context.push('/chats/chat/$chatID');
   }
 
   Future<void> _openGlobal(BuildContext context, models.ChatMember member) async {

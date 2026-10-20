@@ -169,6 +169,7 @@
   "globalSearchEmpty": "No one found"
   "globalSearchOffline": "No connection — searching by @username and phone number is unavailable right now."
   "globalSearchFlood": "Too many requests. Try again later."
+  "globalSearchGroups": "Groups"
   "addMembers": "Add Members"
   "next": "Next"
   "selected": "Selected: {n}"

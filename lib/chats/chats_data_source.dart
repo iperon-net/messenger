@@ -217,6 +217,14 @@ abstract class ChatsDataSource {
   /// [ChatsOfflineException], лимит — [ChatsFloodException].
   Future<List<models.ChatMember>> searchUsers(String query);
 
+  /// Глобальный поиск публичных групп (сервер, `Chats.SearchChats`): слова
+  /// названия по началу или «@имя» по префиксу (см.
+  /// `UsersSearch.chatsQualify`), по убыванию числа участников. Модель —
+  /// для строки поиска: название, имя, аватар, число участников и
+  /// [models.Chat.isMember]. Без сети — [ChatsOfflineException], лимит —
+  /// [ChatsFloodException].
+  Future<List<models.Chat>> searchChats(String query);
+
   /// Личный чат с пользователем [userID] (контакт или участник группы):
   /// существующий или новый пустой. Возвращает id чата (пусто — не найден).
   Future<String> openPrivateChat(String userID);
@@ -237,7 +245,8 @@ abstract class ChatsDataSource {
   /// Сообщество создаётся сразу с каналом объявлений. [communityID] — группа /
   /// канал внутри сообщества (своих ссылок нет, [joinMode] — одним нажатием
   /// ([models.ChatJoinMode.open]) или по заявке; настройки по умолчанию — от
-  /// сообщества). Возвращает id нового чата.
+  /// сообщества). [historyHidden] — «Скрыть историю» (только частная группа).
+  /// Возвращает id нового чата.
   Future<String> createChat({
     required models.ChatType type,
     required String title,
@@ -248,6 +257,7 @@ abstract class ChatsDataSource {
     String avatarPath = '',
     String communityID = '',
     models.ChatJoinMode joinMode = models.ChatJoinMode.open,
+    bool historyHidden = false,
   });
 
   /// Изменить группу/канал/сообщество (профиль чата → «Изменить», админ):

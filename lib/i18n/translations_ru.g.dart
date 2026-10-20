@@ -307,6 +307,7 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get globalSearchEmpty => 'Никого не найдено';
 	@override String get globalSearchOffline => 'Нет соединения — искать по @username и номеру телефона сейчас нельзя.';
 	@override String get globalSearchFlood => 'Слишком много запросов. Попробуйте позже.';
+	@override String get globalSearchGroups => 'Группы';
 	@override String get addMembers => 'Добавить участников';
 	@override String get next => 'Далее';
 	@override String selected({required Object n}) => 'Выбрано: ${n}';
@@ -2008,6 +2009,7 @@ extension on TranslationsRu {
 			'screenNewChat.globalSearchEmpty' => 'Никого не найдено',
 			'screenNewChat.globalSearchOffline' => 'Нет соединения — искать по @username и номеру телефона сейчас нельзя.',
 			'screenNewChat.globalSearchFlood' => 'Слишком много запросов. Попробуйте позже.',
+			'screenNewChat.globalSearchGroups' => 'Группы',
 			'screenNewChat.addMembers' => 'Добавить участников',
 			'screenNewChat.next' => 'Далее',
 			'screenNewChat.selected' => ({required Object n}) => 'Выбрано: ${n}',
@@ -2368,9 +2370,9 @@ extension on TranslationsRu {
 			'screenChat.sendSilent' => 'Отправить без звука',
 			'screenChat.sendLater' => 'Отправить позже',
 			'screenChat.slowMode' => 'Медленный режим',
-			'screenChat.slowModeWait' => ({required Object time}) => 'В этом чате включён медленный режим. Следующее сообщение можно отправить через ${time}.',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.slowModeWait' => ({required Object time}) => 'В этом чате включён медленный режим. Следующее сообщение можно отправить через ${time}.',
 			'screenChat.floodTitle' => 'Слишком часто',
 			'screenChat.floodWait' => ({required Object time}) => 'Вы отправляете сообщения слишком часто. Следующее можно отправить через ${time}.',
 			'screenChat.floodNewChats' => ({required Object time}) => 'Вы начинаете новые чаты слишком часто. Попробуйте через ${time}.',
@@ -2882,9 +2884,9 @@ extension on TranslationsRu {
 			'screenContacts.removeContact' => 'Удалить контакт',
 			'screenContacts.removeFailed' => 'Не удалось удалить контакт',
 			'screenCalls.title' => 'Звонки',
-			'screenCalls.empty' => 'Здесь появятся ваши звонки',
 			_ => null,
 		} ?? switch (path) {
+			'screenCalls.empty' => 'Здесь появятся ваши звонки',
 			'screenCalls.emptyMissed' => 'Нет пропущенных звонков',
 			'screenCalls.permissionTitle' => 'Нужен доступ к микрофону',
 			'screenCalls.permissionMessage' => 'Разрешите доступ к микрофону, чтобы совершать и принимать звонки в Iperon.',

@@ -23,7 +23,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
   ChatsDataSource? _source;
   Timer? _usernameTimer;
 
-  late final _usersSearch = UsersSearch((status, results) {
+  late final _usersSearch = UsersSearch(chats: true, (status, results, chats) {
     if (isClosed) return;
     final known = {for (final c in state.contacts) c.id};
     emit(
@@ -33,6 +33,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
           for (final r in results)
             if (!known.contains(r.id)) r,
         ],
+        globalChats: chats,
       ),
     );
   });
@@ -69,6 +70,8 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
         inviteLink: serverLinks ? '' : newInviteCode(),
         communityID: communityID,
         joinMode: communityID.isNotEmpty ? models.ChatJoinMode.open : state.joinMode,
+        // Новая частная группа — со скрытой историей (как в Telegram).
+        historyHidden: type == models.ChatType.group && communityID.isEmpty,
       ),
     );
     // [exclude] — уже участники («Добавить участников» в профиле группы).
@@ -219,6 +222,20 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
     if (!isClosed && chatID.isNotEmpty) emit(state.copyWith(openChatID: chatID));
   }
 
+  /// Найденная глобальным поиском группа: участник — её чат, иначе —
+  /// предпросмотр с «Вступить» (экран переходит по [ChatCreateState.openChatID]).
+  Future<void> openFoundChat(models.Chat chat) async {
+    final source = _source;
+    if (source == null) return;
+    var chatID = '';
+    try {
+      await _online(() async => chatID = await resolveFoundChat(source, chat));
+    } on ChatsRequestException {
+      // Группы выключены и т. п. — остаёмся в поиске.
+    }
+    if (!isClosed && chatID.isNotEmpty) emit(state.copyWith(openChatID: chatID));
+  }
+
   /// Серверное действие без сети: не делаем вид, что получилось, — экран
   /// покажет «Нет соединения» (см. `offlineNotice`). false — не выполнено.
   Future<bool> _online(Future<void>? Function() action) async {
@@ -254,6 +271,7 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
           avatarPath: state.avatarPath,
           communityID: state.communityID,
           joinMode: state.joinMode,
+          historyHidden: state.historyHidden && !state.isPublic,
         );
       } on ChatsMembersRestrictedException catch (error) {
         // Группа создана без тех, кого нельзя добавить.

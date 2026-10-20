@@ -608,6 +608,9 @@ class Translations$screenNewChat$en {
 	/// en: 'Too many requests. Try again later.'
 	String get globalSearchFlood => 'Too many requests. Try again later.';
 
+	/// en: 'Groups'
+	String get globalSearchGroups => 'Groups';
+
 	/// en: 'Add Members'
 	String get addMembers => 'Add Members';
 
@@ -4503,6 +4506,7 @@ extension on Translations {
 			'screenNewChat.globalSearchEmpty' => 'No one found',
 			'screenNewChat.globalSearchOffline' => 'No connection — searching by @username and phone number is unavailable right now.',
 			'screenNewChat.globalSearchFlood' => 'Too many requests. Try again later.',
+			'screenNewChat.globalSearchGroups' => 'Groups',
 			'screenNewChat.addMembers' => 'Add Members',
 			'screenNewChat.next' => 'Next',
 			'screenNewChat.selected' => ({required Object n}) => 'Selected: ${n}',
@@ -4863,9 +4867,9 @@ extension on Translations {
 			'screenChat.sendSilent' => 'Send without sound',
 			'screenChat.sendLater' => 'Schedule message',
 			'screenChat.slowMode' => 'Slow mode',
-			'screenChat.slowModeWait' => ({required Object time}) => 'Slow mode is enabled in this chat. You can send your next message in ${time}.',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.slowModeWait' => ({required Object time}) => 'Slow mode is enabled in this chat. You can send your next message in ${time}.',
 			'screenChat.floodTitle' => 'Too many requests',
 			'screenChat.floodWait' => ({required Object time}) => 'You are sending messages too often. You can send the next one in ${time}.',
 			'screenChat.floodNewChats' => ({required Object time}) => 'You are starting new chats too often. Try again in ${time}.',
@@ -5377,9 +5381,9 @@ extension on Translations {
 			'screenContacts.removeContact' => 'Delete Contact',
 			'screenContacts.removeFailed' => 'Couldn\'t delete the contact',
 			'screenCalls.title' => 'Calls',
-			'screenCalls.empty' => 'Your calls will appear here',
 			_ => null,
 		} ?? switch (path) {
+			'screenCalls.empty' => 'Your calls will appear here',
 			'screenCalls.emptyMissed' => 'No missed calls',
 			'screenCalls.permissionTitle' => 'Microphone access needed',
 			'screenCalls.permissionMessage' => 'Allow microphone access to make and receive calls on Iperon.',

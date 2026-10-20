@@ -473,11 +473,8 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                             state.inviteLink.isEmpty ? t.screenNewChat.inviteLinkLater : t.screenNewChat.inviteLinkFooter,
                           ),
                         ],
-                        // «Скрыть историю» — у частной группы.
-                        if (state.isEdit &&
-                            type == models.ChatType.group &&
-                            !state.inCommunity &&
-                            state.joinMode != models.ChatJoinMode.open) ...[
+                        // «Скрыть историю» — у частной группы (новой — включено).
+                        if (type == models.ChatType.group && !state.inCommunity && state.joinMode != models.ChatJoinMode.open) ...[
                           const SizedBox(height: 8),
                           card([
                             SwitchListTile(

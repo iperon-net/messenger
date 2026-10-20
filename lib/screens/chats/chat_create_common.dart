@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart' show XFile;
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../di.dart';
+import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../utils.dart';
@@ -122,6 +123,16 @@ class ContactAvatar extends StatelessWidget {
 /// Подпись под найденным глобальным поиском: @username, иначе номер; пусто —
 /// как у контакта ([contactStatus]).
 String globalSearchSubtitle(models.ChatMember member) => member.username.isNotEmpty ? '@${member.username}' : member.phone;
+
+/// Подпись найденной глобальным поиском группы: «@имя · N участников»
+/// (канал — подписчиков).
+String foundChatSubtitle(Translations t, models.Chat chat) {
+  final n = chat.membersCount;
+  final count = chat.type == models.ChatType.channel
+      ? t.screenChat.subscribers(n: n, count: n.grouped)
+      : t.screenChat.members(n: n, count: n.grouped);
+  return [if (chat.username.isNotEmpty) '@${chat.username}', count].join(' · ');
+}
 
 /// Заголовок формы создания.
 String createTitle(Translations t, models.ChatType type) => switch (type) {

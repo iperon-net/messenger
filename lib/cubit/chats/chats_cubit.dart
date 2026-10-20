@@ -36,21 +36,29 @@ class ChatsCubit extends Cubit<ChatsState> {
   StreamSubscription<List<models.ChatFolder>>? _foldersSubscription;
   StreamSubscription<void>? _hiddenSubscription;
 
-  late final _usersSearch = UsersSearch((status, results) {
+  late final _usersSearch = UsersSearch(chats: true, (status, results, chats) {
     if (isClosed) return;
     final known = {
       for (final c in state.chats)
         if (c.type == models.ChatType.private && !c.hiddenInList) c.peerUserID,
     };
-    emit(
-      state.copyWith(
-        globalStatus: status,
-        globalResults: [
-          for (final r in results)
-            if (!known.contains(r.id)) r,
-        ],
-      ),
-    );
+    // Группы, что уже в списке, находит и локальный поиск по названию.
+    final listed = {
+      for (final c in state.chats)
+        if (!c.hiddenInList) c.id,
+    };
+    final people = [
+      for (final r in results)
+        if (!known.contains(r.id)) r,
+    ];
+    final groups = [
+      for (final c in chats)
+        if (!listed.contains(c.id)) c,
+    ];
+    // Искали только группы, а нашлись лишь те, что уже в списке, — секции нет
+    // (как будто не искали).
+    final onlyKnownGroups = status == UsersSearchStatus.done && groups.isEmpty && !UsersSearch.qualifies(state.query);
+    emit(state.copyWith(globalStatus: onlyKnownGroups ? UsersSearchStatus.idle : status, globalResults: people, globalChats: groups));
   });
 
   /// [demo] — флаг «Демо чатов» из `settingsDevice`. [archive] — экран «Архив»:
@@ -140,6 +148,22 @@ class ChatsCubit extends Cubit<ChatsState> {
       logger.warning('chats: open private chat flood ${error.seconds}s');
     } on ChatsRequestException catch (error) {
       logger.warning('chats: open private chat failed: $error');
+    }
+    return chatID;
+  }
+
+  /// Найденная глобальным поиском группа → её чат (участник) или предпросмотр
+  /// с «Вступить». Пусто — не открылась (без сети — «Нет соединения»).
+  Future<String> openFoundChat(models.Chat chat) async {
+    final source = _source;
+    if (source == null) return '';
+    var chatID = '';
+    try {
+      await _online(() async => chatID = await resolveFoundChat(source, chat));
+    } on ChatsFloodException catch (error) {
+      logger.warning('chats: open found chat flood ${error.seconds}s');
+    } on ChatsRequestException catch (error) {
+      logger.warning('chats: open found chat failed: $error');
     }
     return chatID;
   }

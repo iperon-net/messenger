@@ -686,3 +686,28 @@ EditJoinChanges editJoinChanges(
     historyHidden: !open && historyHidden != info.historyHidden ? historyHidden : null,
   );
 }
+
+/// Найденный глобальным поиском публичный чат (`Chats.SearchChats`) → модель
+/// строки поиска: группа или канал (другие типы и пустой id — `null`),
+/// название, имя, число участников, [models.Chat.isMember]; [avatarPath] —
+/// скачанный аватар.
+models.Chat? foundChatFromPb(pb.Chats_FoundChat found, {String avatarPath = ''}) {
+  final info = found.chat;
+  final type = switch (info.type) {
+    pb.ChatType.CHAT_TYPE_GROUP => models.ChatType.group,
+    pb.ChatType.CHAT_TYPE_CHANNEL => models.ChatType.channel,
+    _ => null,
+  };
+  if (type == null || info.chatID.isEmpty) return null;
+  return models.Chat(
+    id: idHex(info.chatID),
+    type: type,
+    title: info.title,
+    about: info.about,
+    avatarPath: avatarPath,
+    membersCount: info.membersCount,
+    joinMode: joinModeFromPb(info.joinMode),
+    username: info.username,
+    isMember: found.member,
+  );
+}

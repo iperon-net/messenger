@@ -37,10 +37,13 @@ class ChatCreateState with ChatCreateStateMappable {
   final List<models.ChatMember> contacts;
   final String query;
 
-  /// Глобальный поиск людей по [query] (номер / username, см. [UsersSearch]):
+  /// Глобальный поиск по [query] (люди — номер / username, см. [UsersSearch]):
   /// найденные — без тех, кто уже в [contacts].
   final UsersSearchStatus globalStatus;
   final List<models.ChatMember> globalResults;
+
+  /// Публичные группы глобального поиска (`Chats.SearchChats`).
+  final List<models.Chat> globalChats;
 
   /// Выбранные участники группы — в порядке выбора (чипы сверху).
   final List<models.ChatMember> selected;
@@ -165,6 +168,7 @@ class ChatCreateState with ChatCreateStateMappable {
     this.query = '',
     this.globalStatus = UsersSearchStatus.idle,
     this.globalResults = const [],
+    this.globalChats = const [],
     this.selected = const [],
     this.avatarPath = '',
     this.coverPath = '',
