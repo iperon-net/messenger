@@ -1863,6 +1863,32 @@ message Messages {
     bytes nextOffset = 2;
   }
 
+  // Поиск по сообщениям чата на сервере (подэтап 3.6, личные и группы):
+  // слепой индекс основ слов, расшифровываются только кандидаты страницы.
+  // Слова запроса — все должны встретиться (в любой форме: основы snowball,
+  // язык — по алфавиту слова). Ищет по целым словам и их формам, не по
+  // произвольному куску. Сообщения — от новых к старым, только видимые мне (не
+  // удалённые у меня, после очистки истории, при «Скрыть историю» — после
+  // вступления); offsetID — искать старше него (0 — с последнего). nextOffsetID
+  // — продолжение (0 — больше нет). Запрос только из стоп-слов / пустой —
+  // status QUERY_TOO_SHORT. Публичную группу без вступления искать нельзя.
+  message Search {
+    bytes chatID = 1;
+    string query = 2;
+    int64 offsetID = 3;
+    int32 limit = 4;
+  }
+
+  message SearchResult {
+    enum Status {
+      OK = 0;
+      QUERY_TOO_SHORT = 1;
+    }
+    Status status = 1;
+    repeated ChatMessage messages = 2;
+    int64 nextOffsetID = 3;
+  }
+
   message Request {
     oneof request {
       History history = 1;
@@ -1888,6 +1914,7 @@ message Messages {
       ClosePoll closePoll = 21;
       PollVoters pollVoters = 22;
       ReactionsList reactionsList = 23;
+      Search search = 24;
     }
   }
 
@@ -1916,6 +1943,7 @@ message Messages {
       ClosePollResult closePoll = 21;
       PollVotersResult pollVoters = 22;
       ReactionsListResult reactionsList = 23;
+      SearchResult search = 24;
     }
   }
 }

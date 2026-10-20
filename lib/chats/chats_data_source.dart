@@ -19,6 +19,41 @@ class ChatMembersPage {
   const ChatMembersPage({required this.members, required this.nextCursor, required this.total});
 }
 
+/// Чем закончился запрос страницы поиска на сервере
+/// ([ChatsDataSource.searchMessagesOnServer]).
+enum ServerSearchStatus {
+  /// Ответ есть ([ServerSearchPage.ids], может быть пустым).
+  ok,
+
+  /// Сервер не ищет по такому запросу (пустой / одни стоп-слова,
+  /// `QUERY_TOO_SHORT`) — показываем локальное, без ошибки.
+  tooShort,
+
+  /// Нет сети — показаны только сообщения на устройстве; появится сеть —
+  /// спросить снова.
+  offline,
+
+  /// Сервер не спрашиваем: история чата на устройстве полная, источник не
+  /// умеет (демо, предпросмотр), сервер отказал. Без пометки.
+  skipped,
+}
+
+/// Страница результатов поиска на сервере.
+class ServerSearchPage {
+  /// id найденных — от новых к старым (уже в кэше, см.
+  /// `ChatsRepository.applySearchHits`).
+  final List<String> ids;
+
+  /// Продолжение — искать старше этого id; null — дальше нет.
+  final String? nextOffsetID;
+
+  final ServerSearchStatus status;
+
+  const ServerSearchPage({this.ids = const [], this.nextOffsetID, this.status = ServerSearchStatus.ok});
+
+  const ServerSearchPage.status(this.status) : ids = const [], nextOffsetID = null;
+}
+
 /// Что из действий над сообщениями умеет источник: демо — всё, серверный —
 /// по срезам (личные чаты, группы срез 3.1). Экраны прячут недоступное, а не
 /// падают с [UnsupportedError].
@@ -382,12 +417,22 @@ abstract class ChatsDataSource {
   /// старых сообщений (из кэша или с сервера). false — старше нет.
   Future<bool> loadOlderMessages(String chatID);
 
-  /// Поиск в чате (лупа в окне чата): id найденных сообщений, от новых к
-  /// старым. Настоящие чаты ищут локально по всей скачанной истории (FTS5).
+  /// Поиск в чате (лупа в окне чата) на устройстве: id найденных сообщений,
+  /// от новых к старым. Настоящие чаты ищут по всей скачанной истории (FTS5,
+  /// по началу слова), демо — по подстроке.
   Future<List<String>> searchMessages(String chatID, String query);
 
+  /// Тот же поиск на сервере (`Messages.Search`, по словам и их формам) —
+  /// находит то, чего на устройстве нет (до вступления, до установки, после
+  /// долгого офлайна). Страница от новых к старым; [offsetID] — продолжение
+  /// из [ServerSearchPage.nextOffsetID]. Найденное ложится в кэш (локальный
+  /// поиск найдёт его в следующий раз, [revealMessage] докачает историю до
+  /// него). Не бросает: нет сети / не нужно — в [ServerSearchPage.status].
+  Future<ServerSearchPage> searchMessagesOnServer(String chatID, String query, {String? offsetID});
+
   /// Добавить в [watchMessages] всё от последнего до [messageID] (переход к
-  /// найденному, которого ещё нет в ленте).
+  /// найденному, которого ещё нет в ленте): старше скачанной истории —
+  /// докачать страницы истории до него.
   Future<void> revealMessage(String chatID, String messageID);
 
   /// Отправить сообщение: текст уже разобран в entities (см.

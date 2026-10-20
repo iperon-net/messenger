@@ -1656,8 +1656,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           if (error is! ChatsOfflineException) _logger.handle(error, stackTrace);
         }),
       );
-      // Открытый чат — докачиваем всю его историю в фоне: сервер искать не
-      // может (содержимое зашифровано), поиск — только по скачанному.
+      // Открытый чат — докачиваем всю его историю в фоне: локальный поиск
+      // (по началу слова, гибче серверного) и лента — по скачанному.
       _sync.backfill(chat);
     }
     // Перечитываем при изменении таблиц и при расширении окна истории
@@ -1699,8 +1699,10 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   static const _initialWindow = 200;
   static const _windowStep = 100;
 
-  /// Сколько страниц истории докачивать ради перехода к старому сообщению.
-  static const _revealMaxPages = 20;
+  /// Сколько страниц истории докачивать ради перехода к старому сообщению
+  /// (найденное поиском на сервере может быть очень старым; фоновая докачка
+  /// всё равно идёт до начала, [ChatsSync.backfill]).
+  static const _revealMaxPages = 50;
   final _windowChanged = StreamController<String>.broadcast();
 
   @override
@@ -1712,15 +1714,69 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     return [for (final id in ids) id.toString()];
   }
 
+  /// Страница поиска на сервере (`Messages.Search`, по умолчанию у сервера
+  /// тоже 20).
+  static const _serverSearchLimit = 20;
+
+  @override
+  Future<ServerSearchPage> searchMessagesOnServer(String chatID, String query, {String? offsetID}) async {
+    final chat = idBytes(chatID);
+    if (chat.isEmpty || query.trim().isEmpty || !_auth.isAuthorized || _previews.containsKey(chatID)) {
+      return const ServerSearchPage.status(ServerSearchStatus.skipped);
+    }
+    // Вся история уже на устройстве и сверена — локальный поиск полный.
+    if (await _sync.historyComplete(chat)) return const ServerSearchPage.status(ServerSearchStatus.skipped);
+    if (!await _sync.hasNetwork()) return const ServerSearchPage.status(ServerSearchStatus.offline);
+    final pb.Messages_SearchResult result;
+    try {
+      final response = await _sync.messages(
+        pb.Messages_Request(
+          search: pb.Messages_Search(
+            chatID: chat,
+            query: query.trim(),
+            offsetID: Int64(int.tryParse(offsetID ?? '') ?? 0),
+            limit: _serverSearchLimit,
+          ),
+        ),
+      );
+      result = response.search;
+    } on ChatsOfflineException {
+      return const ServerSearchPage.status(ServerSearchStatus.offline);
+    } on ChatsRequestException catch (error) {
+      // Сервер без поиска (старая версия) / нет прав — молча локальное.
+      _logger.warning('chats: server search failed: $error');
+      return const ServerSearchPage.status(ServerSearchStatus.skipped);
+    } on ChatsFloodException catch (error) {
+      _logger.warning('chats: server search flood: $error');
+      return const ServerSearchPage.status(ServerSearchStatus.skipped);
+    }
+    if (result.status == pb.Messages_SearchResult_Status.QUERY_TOO_SHORT) {
+      return const ServerSearchPage.status(ServerSearchStatus.tooShort);
+    }
+    await _sync.saveSearchHits(chat, result.messages);
+    final next = result.nextOffsetID.toInt();
+    return ServerSearchPage(
+      ids: [for (final m in result.messages) m.messageID.toString()],
+      nextOffsetID: next > 0 ? next.toString() : null,
+    );
+  }
+
   @override
   Future<void> revealMessage(String chatID, String messageID) async {
     final chat = idBytes(chatID);
     final id = int.tryParse(messageID);
     if (chat.isEmpty || id == null || !_auth.isAuthorized) return;
-    // Старше скачанной истории (закреплённое) — докачать до него.
+    // Старше скачанной истории (закреплённое, найденное на сервере) —
+    // докачать до него страницами истории: History не умеет «вокруг», а
+    // лента непрерывна. Найденное сервером лежит в кэше скрытым из ленты
+    // (`searchHit`) — страница, дошедшая до него, сделает его обычным.
     for (var page = 0; page < _revealMaxPages; page++) {
-      final oldest = await _store.oldestMessageID(userID: _sync.me, chatID: chat);
-      if (oldest == 0 || oldest <= id) break;
+      if (await _store.inHistory(userID: _sync.me, chatID: chat, messageID: id)) break;
+      // Нижняя граница сверенной непрерывной истории: дошли до неё — дальше
+      // вниз его нет (удалено / скрыто).
+      final stale = await _store.historyStaleBelow(userID: _sync.me, chatID: chat);
+      final floor = stale > 0 ? stale : await _store.oldestMessageID(userID: _sync.me, chatID: chat);
+      if (floor == 0 || floor <= id) break;
       final result = await _sync.loadOlder(chat);
       if (result.loaded == 0) break;
     }

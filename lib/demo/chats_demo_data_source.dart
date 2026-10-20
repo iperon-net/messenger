@@ -1574,6 +1574,11 @@ class ChatsDemoDataSource implements ChatsDataSource {
     ];
   }
 
+  /// Демо ищет только в памяти — вся «история» и так на устройстве.
+  @override
+  Future<ServerSearchPage> searchMessagesOnServer(String chatID, String query, {String? offsetID}) async =>
+      const ServerSearchPage.status(ServerSearchStatus.skipped);
+
   @override
   Future<void> revealMessage(String chatID, String messageID) async {}
 

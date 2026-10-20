@@ -248,6 +248,27 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: 0,
   );
+  static bool _$searchLoading(ChatState v) => v.searchLoading;
+  static const Field<ChatState, bool> _f$searchLoading = Field(
+    'searchLoading',
+    _$searchLoading,
+    opt: true,
+    def: false,
+  );
+  static bool _$searchOffline(ChatState v) => v.searchOffline;
+  static const Field<ChatState, bool> _f$searchOffline = Field(
+    'searchOffline',
+    _$searchOffline,
+    opt: true,
+    def: false,
+  );
+  static bool _$searchHasMore(ChatState v) => v.searchHasMore;
+  static const Field<ChatState, bool> _f$searchHasMore = Field(
+    'searchHasMore',
+    _$searchHasMore,
+    opt: true,
+    def: false,
+  );
   static List<models.Message> _$scheduled(ChatState v) => v.scheduled;
   static const Field<ChatState, List<models.Message>> _f$scheduled = Field(
     'scheduled',
@@ -398,6 +419,9 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #searchQuery: _f$searchQuery,
     #searchResults: _f$searchResults,
     #searchIndex: _f$searchIndex,
+    #searchLoading: _f$searchLoading,
+    #searchOffline: _f$searchOffline,
+    #searchHasMore: _f$searchHasMore,
     #scheduled: _f$scheduled,
     #pinned: _f$pinned,
     #linkPreviewDisabled: _f$linkPreviewDisabled,
@@ -443,6 +467,9 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       searchQuery: data.dec(_f$searchQuery),
       searchResults: data.dec(_f$searchResults),
       searchIndex: data.dec(_f$searchIndex),
+      searchLoading: data.dec(_f$searchLoading),
+      searchOffline: data.dec(_f$searchOffline),
+      searchHasMore: data.dec(_f$searchHasMore),
       scheduled: data.dec(_f$scheduled),
       pinned: data.dec(_f$pinned),
       linkPreviewDisabled: data.dec(_f$linkPreviewDisabled),
@@ -607,6 +634,9 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     String? searchQuery,
     List<String>? searchResults,
     int? searchIndex,
+    bool? searchLoading,
+    bool? searchOffline,
+    bool? searchHasMore,
     List<models.Message>? scheduled,
     List<models.Message>? pinned,
     bool? linkPreviewDisabled,
@@ -794,6 +824,9 @@ class _ChatStateCopyWithImpl<$R, $Out>
     String? searchQuery,
     List<String>? searchResults,
     int? searchIndex,
+    bool? searchLoading,
+    bool? searchOffline,
+    bool? searchHasMore,
     List<models.Message>? scheduled,
     List<models.Message>? pinned,
     bool? linkPreviewDisabled,
@@ -837,6 +870,9 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (searchQuery != null) #searchQuery: searchQuery,
       if (searchResults != null) #searchResults: searchResults,
       if (searchIndex != null) #searchIndex: searchIndex,
+      if (searchLoading != null) #searchLoading: searchLoading,
+      if (searchOffline != null) #searchOffline: searchOffline,
+      if (searchHasMore != null) #searchHasMore: searchHasMore,
       if (scheduled != null) #scheduled: scheduled,
       if (pinned != null) #pinned: pinned,
       if (linkPreviewDisabled != null)
@@ -883,6 +919,9 @@ class _ChatStateCopyWithImpl<$R, $Out>
     searchQuery: data.get(#searchQuery, or: $value.searchQuery),
     searchResults: data.get(#searchResults, or: $value.searchResults),
     searchIndex: data.get(#searchIndex, or: $value.searchIndex),
+    searchLoading: data.get(#searchLoading, or: $value.searchLoading),
+    searchOffline: data.get(#searchOffline, or: $value.searchOffline),
+    searchHasMore: data.get(#searchHasMore, or: $value.searchHasMore),
     scheduled: data.get(#scheduled, or: $value.scheduled),
     pinned: data.get(#pinned, or: $value.pinned),
     linkPreviewDisabled: data.get(

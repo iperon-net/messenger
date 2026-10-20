@@ -1622,6 +1622,12 @@ class Translations$screenChat$en {
 	/// en: 'No results'
 	String get searchNoResults => 'No results';
 
+	/// en: 'Searching…'
+	String get searchLoading => 'Searching…';
+
+	/// en: 'No connection — showing only messages on this device'
+	String get searchOffline => 'No connection — showing only messages on this device';
+
 	/// en: 'Unread messages'
 	String get unreadMessages => 'Unread messages';
 
@@ -4766,6 +4772,8 @@ extension on Translations {
 			'screenChat.selected' => ({required Object n}) => 'Selected: ${n}',
 			'screenChat.search' => 'Search',
 			'screenChat.searchNoResults' => 'No results',
+			'screenChat.searchLoading' => 'Searching…',
+			'screenChat.searchOffline' => 'No connection — showing only messages on this device',
 			'screenChat.unreadMessages' => 'Unread messages',
 			'screenChat.select' => 'Select',
 			'screenChat.videoCompressing' => 'Compressing video',
@@ -4805,10 +4813,10 @@ extension on Translations {
 			'screenChat.scheduledTitle' => 'Scheduled messages',
 			'screenChat.schedule' => 'Schedule',
 			'screenChat.sendNow' => 'Send now',
-			'screenChat.reschedule' => 'Reschedule',
-			'screenChat.deleteScheduledTitle' => 'Delete scheduled message?',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.reschedule' => 'Reschedule',
+			'screenChat.deleteScheduledTitle' => 'Delete scheduled message?',
 			'screenChat.scheduledHint' => 'Scheduled messages',
 			'screenChat.linkPreview' => 'Link preview',
 			'screenChat.forward' => 'Forward',
@@ -5319,10 +5327,10 @@ extension on Translations {
 			'screenCalls.incoming' => 'Incoming',
 			'screenCalls.outgoing' => 'Outgoing',
 			'screenCalls.missed' => 'Missed',
-			'screenCalls.cancelled' => 'Cancelled',
-			'screenCalls.durationSec' => ({required Object s}) => '${s} sec',
 			_ => null,
 		} ?? switch (path) {
+			'screenCalls.cancelled' => 'Cancelled',
+			'screenCalls.durationSec' => ({required Object s}) => '${s} sec',
 			'screenCalls.durationMin' => ({required Object m}) => '${m} min',
 			'screenCalls.durationHour' => ({required Object h}) => '${h} h',
 			'screenCalls.durationHourMin' => ({required Object h, required Object m}) => '${h} h ${m} min',

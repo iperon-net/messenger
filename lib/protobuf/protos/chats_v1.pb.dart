@@ -15533,6 +15533,165 @@ class Messages_ReactionsListResult extends $pb.GeneratedMessage {
   void clearNextOffset() => $_clearField(2);
 }
 
+/// Поиск по сообщениям чата на сервере (подэтап 3.6, личные и группы):
+/// слепой индекс основ слов, расшифровываются только кандидаты страницы.
+/// Слова запроса — все должны встретиться (в любой форме: основы snowball,
+/// язык — по алфавиту слова). Ищет по целым словам и их формам, не по
+/// произвольному куску. Сообщения — от новых к старым, только видимые мне (не
+/// удалённые у меня, после очистки истории, при «Скрыть историю» — после
+/// вступления); offsetID — искать старше него (0 — с последнего). nextOffsetID
+/// — продолжение (0 — больше нет). Запрос только из стоп-слов / пустой —
+/// status QUERY_TOO_SHORT. Публичную группу без вступления искать нельзя.
+class Messages_Search extends $pb.GeneratedMessage {
+  factory Messages_Search({
+    $core.List<$core.int>? chatID,
+    $core.String? query,
+    $fixnum.Int64? offsetID,
+    $core.int? limit,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (query != null) result.query = query;
+    if (offsetID != null) result.offsetID = offsetID;
+    if (limit != null) result.limit = limit;
+    return result;
+  }
+
+  Messages_Search._();
+
+  factory Messages_Search.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_Search.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Search',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..aOS(2, _omitFieldNames ? '' : 'query')
+    ..aInt64(3, _omitFieldNames ? '' : 'offsetID', protoName: 'offsetID')
+    ..aI(4, _omitFieldNames ? '' : 'limit')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_Search clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_Search copyWith(void Function(Messages_Search) updates) =>
+      super.copyWith((message) => updates(message as Messages_Search)) as Messages_Search;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_Search create() => Messages_Search._();
+  @$core.override
+  Messages_Search createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_Search getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_Search>(create);
+  static Messages_Search? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get query => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set query($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasQuery() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearQuery() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get offsetID => $_getI64(2);
+  @$pb.TagNumber(3)
+  set offsetID($fixnum.Int64 value) => $_setInt64(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasOffsetID() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearOffsetID() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get limit => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set limit($core.int value) => $_setSignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasLimit() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearLimit() => $_clearField(4);
+}
+
+class Messages_SearchResult extends $pb.GeneratedMessage {
+  factory Messages_SearchResult({
+    Messages_SearchResult_Status? status,
+    $core.Iterable<ChatMessage>? messages,
+    $fixnum.Int64? nextOffsetID,
+  }) {
+    final result = create();
+    if (status != null) result.status = status;
+    if (messages != null) result.messages.addAll(messages);
+    if (nextOffsetID != null) result.nextOffsetID = nextOffsetID;
+    return result;
+  }
+
+  Messages_SearchResult._();
+
+  factory Messages_SearchResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_SearchResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.SearchResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aE<Messages_SearchResult_Status>(1, _omitFieldNames ? '' : 'status', enumValues: Messages_SearchResult_Status.values)
+    ..pPM<ChatMessage>(2, _omitFieldNames ? '' : 'messages', subBuilder: ChatMessage.create)
+    ..aInt64(3, _omitFieldNames ? '' : 'nextOffsetID', protoName: 'nextOffsetID')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_SearchResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_SearchResult copyWith(void Function(Messages_SearchResult) updates) =>
+      super.copyWith((message) => updates(message as Messages_SearchResult)) as Messages_SearchResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_SearchResult create() => Messages_SearchResult._();
+  @$core.override
+  Messages_SearchResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_SearchResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_SearchResult>(create);
+  static Messages_SearchResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Messages_SearchResult_Status get status => $_getN(0);
+  @$pb.TagNumber(1)
+  set status(Messages_SearchResult_Status value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasStatus() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearStatus() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<ChatMessage> get messages => $_getList(1);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get nextOffsetID => $_getI64(2);
+  @$pb.TagNumber(3)
+  set nextOffsetID($fixnum.Int64 value) => $_setInt64(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasNextOffsetID() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearNextOffsetID() => $_clearField(3);
+}
+
 enum Messages_Request_Request {
   history,
   send,
@@ -15557,6 +15716,7 @@ enum Messages_Request_Request {
   closePoll,
   pollVoters,
   reactionsList,
+  search,
   notSet
 }
 
@@ -15585,6 +15745,7 @@ class Messages_Request extends $pb.GeneratedMessage {
     Messages_ClosePoll? closePoll,
     Messages_PollVoters? pollVoters,
     Messages_ReactionsList? reactionsList,
+    Messages_Search? search,
   }) {
     final result = create();
     if (history != null) result.history = history;
@@ -15610,6 +15771,7 @@ class Messages_Request extends $pb.GeneratedMessage {
     if (closePoll != null) result.closePoll = closePoll;
     if (pollVoters != null) result.pollVoters = pollVoters;
     if (reactionsList != null) result.reactionsList = reactionsList;
+    if (search != null) result.search = search;
     return result;
   }
 
@@ -15644,11 +15806,12 @@ class Messages_Request extends $pb.GeneratedMessage {
     21: Messages_Request_Request.closePoll,
     22: Messages_Request_Request.pollVoters,
     23: Messages_Request_Request.reactionsList,
+    24: Messages_Request_Request.search,
     0: Messages_Request_Request.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24])
     ..aOM<Messages_History>(1, _omitFieldNames ? '' : 'history', subBuilder: Messages_History.create)
     ..aOM<Messages_Send>(2, _omitFieldNames ? '' : 'send', subBuilder: Messages_Send.create)
     ..aOM<Messages_Edit>(3, _omitFieldNames ? '' : 'edit', subBuilder: Messages_Edit.create)
@@ -15682,6 +15845,7 @@ class Messages_Request extends $pb.GeneratedMessage {
     ..aOM<Messages_PollVoters>(22, _omitFieldNames ? '' : 'pollVoters', protoName: 'pollVoters', subBuilder: Messages_PollVoters.create)
     ..aOM<Messages_ReactionsList>(23, _omitFieldNames ? '' : 'reactionsList',
         protoName: 'reactionsList', subBuilder: Messages_ReactionsList.create)
+    ..aOM<Messages_Search>(24, _omitFieldNames ? '' : 'search', subBuilder: Messages_Search.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -15724,6 +15888,7 @@ class Messages_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(21)
   @$pb.TagNumber(22)
   @$pb.TagNumber(23)
+  @$pb.TagNumber(24)
   Messages_Request_Request whichRequest() => _Messages_Request_RequestByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -15748,6 +15913,7 @@ class Messages_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(21)
   @$pb.TagNumber(22)
   @$pb.TagNumber(23)
+  @$pb.TagNumber(24)
   void clearRequest() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -16002,6 +16168,17 @@ class Messages_Request extends $pb.GeneratedMessage {
   void clearReactionsList() => $_clearField(23);
   @$pb.TagNumber(23)
   Messages_ReactionsList ensureReactionsList() => $_ensure(22);
+
+  @$pb.TagNumber(24)
+  Messages_Search get search => $_getN(23);
+  @$pb.TagNumber(24)
+  set search(Messages_Search value) => $_setField(24, value);
+  @$pb.TagNumber(24)
+  $core.bool hasSearch() => $_has(23);
+  @$pb.TagNumber(24)
+  void clearSearch() => $_clearField(24);
+  @$pb.TagNumber(24)
+  Messages_Search ensureSearch() => $_ensure(23);
 }
 
 enum Messages_Response_Response {
@@ -16028,6 +16205,7 @@ enum Messages_Response_Response {
   closePoll,
   pollVoters,
   reactionsList,
+  search,
   notSet
 }
 
@@ -16056,6 +16234,7 @@ class Messages_Response extends $pb.GeneratedMessage {
     Messages_ClosePollResult? closePoll,
     Messages_PollVotersResult? pollVoters,
     Messages_ReactionsListResult? reactionsList,
+    Messages_SearchResult? search,
   }) {
     final result = create();
     if (history != null) result.history = history;
@@ -16081,6 +16260,7 @@ class Messages_Response extends $pb.GeneratedMessage {
     if (closePoll != null) result.closePoll = closePoll;
     if (pollVoters != null) result.pollVoters = pollVoters;
     if (reactionsList != null) result.reactionsList = reactionsList;
+    if (search != null) result.search = search;
     return result;
   }
 
@@ -16115,11 +16295,12 @@ class Messages_Response extends $pb.GeneratedMessage {
     21: Messages_Response_Response.closePoll,
     22: Messages_Response_Response.pollVoters,
     23: Messages_Response_Response.reactionsList,
+    24: Messages_Response_Response.search,
     0: Messages_Response_Response.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24])
     ..aOM<Messages_HistoryResult>(1, _omitFieldNames ? '' : 'history', subBuilder: Messages_HistoryResult.create)
     ..aOM<Messages_SendResult>(2, _omitFieldNames ? '' : 'send', subBuilder: Messages_SendResult.create)
     ..aOM<Messages_EditResult>(3, _omitFieldNames ? '' : 'edit', subBuilder: Messages_EditResult.create)
@@ -16155,6 +16336,7 @@ class Messages_Response extends $pb.GeneratedMessage {
         protoName: 'pollVoters', subBuilder: Messages_PollVotersResult.create)
     ..aOM<Messages_ReactionsListResult>(23, _omitFieldNames ? '' : 'reactionsList',
         protoName: 'reactionsList', subBuilder: Messages_ReactionsListResult.create)
+    ..aOM<Messages_SearchResult>(24, _omitFieldNames ? '' : 'search', subBuilder: Messages_SearchResult.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -16197,6 +16379,7 @@ class Messages_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(21)
   @$pb.TagNumber(22)
   @$pb.TagNumber(23)
+  @$pb.TagNumber(24)
   Messages_Response_Response whichResponse() => _Messages_Response_ResponseByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -16221,6 +16404,7 @@ class Messages_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(21)
   @$pb.TagNumber(22)
   @$pb.TagNumber(23)
+  @$pb.TagNumber(24)
   void clearResponse() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -16475,6 +16659,17 @@ class Messages_Response extends $pb.GeneratedMessage {
   void clearReactionsList() => $_clearField(23);
   @$pb.TagNumber(23)
   Messages_ReactionsListResult ensureReactionsList() => $_ensure(22);
+
+  @$pb.TagNumber(24)
+  Messages_SearchResult get search => $_getN(23);
+  @$pb.TagNumber(24)
+  set search(Messages_SearchResult value) => $_setField(24, value);
+  @$pb.TagNumber(24)
+  $core.bool hasSearch() => $_has(23);
+  @$pb.TagNumber(24)
+  void clearSearch() => $_clearField(24);
+  @$pb.TagNumber(24)
+  Messages_SearchResult ensureSearch() => $_ensure(23);
 }
 
 /// MESSAGES — сообщения.

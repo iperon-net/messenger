@@ -509,6 +509,8 @@
   "selected": "Selected: {n}"
   "search": "Search"
   "searchNoResults": "No results"
+  "searchLoading": "Searching…"
+  "searchOffline": "No connection — showing only messages on this device"
   "unreadMessages": "Unread messages"
   "select": "Select"
   "videoCompressing": "Compressing video"

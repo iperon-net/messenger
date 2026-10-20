@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:messenger/chats/chats_data_source.dart';
 import 'package:messenger/chats/message_search.dart';
 import 'package:messenger/protobuf/protos/chats_v1.pb.dart' as pb;
 import 'package:sqlite_async/sqlite_async.dart';
@@ -96,6 +97,78 @@ void main() {
 
       await db.execute('DELETE FROM chatMessages WHERE messageID = 1;');
       expect(await search('новый'), isEmpty);
+    });
+  });
+
+  group('mergeSearchResults', () {
+    test('без повторов, от новых к старым', () {
+      expect(mergeSearchResults(['90', '40', '12'], ['95', '40', '30', '5']), ['95', '90', '40', '30', '12', '5']);
+    });
+
+    test('без серверных — локальные как есть (демо: id не числа)', () {
+      expect(mergeSearchResults(['m3', 'm1'], const []), ['m3', 'm1']);
+      expect(mergeSearchResults(const [], ['7', '3']), ['7', '3']);
+    });
+  });
+
+  group('ServerSearchSession', () {
+    test('страницы: слияние с локальными и «ещё раньше»', () {
+      final session = ServerSearchSession('квартира');
+      final local = ['120', '100', '20'];
+      expect(session.merge(local), local);
+      expect(session.needsPage(local, 1), isFalse);
+
+      session.apply(const ServerSearchPage(ids: ['130', '100', '90'], nextOffsetID: '90'), more: false);
+      expect(session.offline, isFalse);
+      expect(session.hasMore, isTrue);
+      final merged = session.merge(local);
+      expect(merged, ['130', '120', '100', '90', '20']);
+      // Между 90 и 20 сервер ещё не смотрел — перед переходом к 20 догружаем.
+      expect(session.needsPage(merged, 3), isFalse);
+      expect(session.needsPage(merged, 4), isTrue);
+
+      session.apply(const ServerSearchPage(ids: ['90', '60']), more: true);
+      expect(session.results, ['130', '100', '90', '60']);
+      expect(session.hasMore, isFalse);
+      expect(session.needsPage(session.merge(local), 5), isFalse);
+      expect(session.merge(local), ['130', '120', '100', '90', '60', '20']);
+    });
+
+    test('нет сети — только локальные и пометка; сеть появилась — догружается', () {
+      final session = ServerSearchSession('отчёт');
+      session.apply(const ServerSearchPage.status(ServerSearchStatus.offline), more: false);
+      expect(session.offline, isTrue);
+      expect(session.hasMore, isFalse);
+      expect(session.retryMore, isFalse);
+      expect(session.merge(['5']), ['5']);
+
+      session.apply(const ServerSearchPage(ids: ['9'], nextOffsetID: '9'), more: false);
+      expect(session.offline, isFalse);
+      expect(session.merge(['5']), ['9', '5']);
+
+      // Обрыв на продолжении — собранное и курсор остаются для повтора.
+      session.apply(const ServerSearchPage.status(ServerSearchStatus.offline), more: true);
+      expect(session.offline, isTrue);
+      expect(session.retryMore, isTrue);
+      expect(session.next, '9');
+      expect(session.results, ['9']);
+    });
+
+    test('QUERY_TOO_SHORT — локальные без ошибки и без продолжения', () {
+      final session = ServerSearchSession('и в на');
+      session.apply(const ServerSearchPage.status(ServerSearchStatus.tooShort), more: false);
+      expect(session.offline, isFalse);
+      expect(session.hasMore, isFalse);
+      expect(session.needsPage(['3'], 1), isFalse);
+      expect(session.merge(['3', '1']), ['3', '1']);
+    });
+
+    test('полная история / демо — сервер не спрашиваем', () {
+      final session = ServerSearchSession('x');
+      session.apply(const ServerSearchPage.status(ServerSearchStatus.skipped), more: false);
+      expect(session.offline, isFalse);
+      expect(session.hasMore, isFalse);
+      expect(ServerSearchSession('  ').active, isFalse);
     });
   });
 }

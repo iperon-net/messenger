@@ -560,7 +560,16 @@ class ChatsRepository {
   /// моего выбора и `mentionUnread` всегда false — мои сохранённые значения
   /// остаются ([mergeSharedReactions], [mergePollResults]). Упоминание
   /// только добавляется (снимают Update.mentions / сверка истории).
-  Future<void> upsertMessage({required List<int> userID, required pb.ChatMessage message, bool shared = false}) async {
+  ///
+  /// [searchHit] — сообщение из ответа поиска на сервере ([applySearchHits]):
+  /// новое кладётся скрытым из ленты, у уже лежащего флаг не меняется. Любая
+  /// другая запись (история, журнал) флаг снимает.
+  Future<void> upsertMessage({
+    required List<int> userID,
+    required pb.ChatMessage message,
+    bool shared = false,
+    bool searchHit = false,
+  }) async {
     var reactions = message.hasReactions() ? message.reactions : null;
     var poll = message.hasPoll() ? message.poll : null;
     if (shared && (reactions != null || poll != null)) {
@@ -581,8 +590,8 @@ class ChatsRepository {
     await ctx.execute(
       '''
       INSERT INTO chatMessages (userID, chatID, messageID, fromUserID, date, editDate, randomID, mediaUnread, silent, content, searchText, reactions,
-        reactionsUnread, expireAt, poll)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        reactionsUnread, expireAt, poll, searchHit)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(userID, chatID, messageID) DO UPDATE SET
         fromUserID = excluded.fromUserID,
         date = excluded.date,
@@ -595,7 +604,8 @@ class ChatsRepository {
         reactions = excluded.reactions,
         reactionsUnread = excluded.reactionsUnread,
         expireAt = excluded.expireAt,
-        poll = COALESCE(excluded.poll, chatMessages.poll);
+        poll = COALESCE(excluded.poll, chatMessages.poll),
+        searchHit = MIN(chatMessages.searchHit, excluded.searchHit);
       ''',
       [
         userID,
@@ -613,6 +623,7 @@ class ChatsRepository {
         _reactionsUnread(userID, message) ? 1 : 0,
         messageExpireAt(message),
         poll?.writeToBuffer(),
+        searchHit ? 1 : 0,
       ],
     );
     if (message.mentionUnread) await addMentions(userID: userID, chatID: message.chatID, messageIDs: [message.messageID.toInt()]);
@@ -682,7 +693,7 @@ class ChatsRepository {
   /// История чата от старых к новым (последние [limit]).
   Future<List<pb.ChatMessage>> messages({required List<int> userID, required List<int> chatID, int limit = 1000}) async {
     final rows = await ctx.getAll(
-      'SELECT * FROM (SELECT * FROM chatMessages WHERE userID = ? AND chatID = ? ORDER BY messageID DESC LIMIT ?) ORDER BY messageID ASC;',
+      'SELECT * FROM (SELECT * FROM chatMessages WHERE userID = ? AND chatID = ? AND searchHit = 0 ORDER BY messageID DESC LIMIT ?) ORDER BY messageID ASC;',
       [userID, chatID, limit],
     );
     return rows.map(_messageFromRow).toList(growable: false);
@@ -690,13 +701,19 @@ class ChatsRepository {
 
   /// Сколько сообщений чата в кэше.
   Future<int> countMessages({required List<int> userID, required List<int> chatID}) async {
-    final row = await ctx.get('SELECT COUNT(*) AS n FROM chatMessages WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+    final row = await ctx.get('SELECT COUNT(*) AS n FROM chatMessages WHERE userID = ? AND chatID = ? AND searchHit = 0;', [
+      userID,
+      chatID,
+    ]);
     return row['n'] as int;
   }
 
   /// Самый старый messageID в кэше (0 — кэш пуст).
   Future<int> oldestMessageID({required List<int> userID, required List<int> chatID}) async {
-    final row = await ctx.get('SELECT MIN(messageID) AS id FROM chatMessages WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+    final row = await ctx.get('SELECT MIN(messageID) AS id FROM chatMessages WHERE userID = ? AND chatID = ? AND searchHit = 0;', [
+      userID,
+      chatID,
+    ]);
     return (row['id'] as int?) ?? 0;
   }
 
@@ -816,6 +833,61 @@ class ChatsRepository {
     return next;
   }
 
+  /// Найденное поиском на сервере (`Messages.Search`, от новых к старым) — в
+  /// кэш, не ломая непрерывность истории. Ответ поиска — не страница истории:
+  /// между найденными — дыры, поэтому ничего не удаляется и граница
+  /// `historyStaleBelow` не сдвигается вниз.
+  ///
+  /// - уже лежащее в кэше — обновляется (правка, реакции), флаг не меняется;
+  /// - старше сверенной непрерывной части (ниже `historyStaleBelow`, а если
+  ///   её нет — ниже самого старого в ленте) — кладётся с флагом `searchHit`:
+  ///   его находит локальный поиск, но в ленте его нет, пока до него не
+  ///   дойдут страницы истории ([applyHistoryPage] перезапишет его обычным или
+  ///   удалит). Сверенная часть была непрерывной до самого старого — теперь
+  ///   ниже него несверенное: граница встаёт на самое старое;
+  /// - в сверенной части, но не в кэше (новее кэша — придёт журналом) —
+  ///   не кладётся.
+  ///
+  /// Кэш чата пуст — всё найденное кладётся флагом, граница — выше самого
+  /// нового из найденного. Возвращает, сколько добавлено.
+  Future<int> applySearchHits({required List<int> userID, required List<int> chatID, required List<pb.ChatMessage> messages}) async {
+    if (messages.isEmpty) return 0;
+    final stale = await historyStaleBelow(userID: userID, chatID: chatID);
+    final oldest = await oldestMessageID(userID: userID, chatID: chatID);
+    // Нижняя граница сверенной непрерывной части (0 — кэш пуст).
+    final floor = stale > 0 ? stale : oldest;
+    var added = 0;
+    var newest = 0;
+    for (final message in messages) {
+      final id = message.messageID.toInt();
+      final cached = await ctx.getOptional('SELECT 1 FROM chatMessages WHERE userID = ? AND chatID = ? AND messageID = ?;', [
+        userID,
+        chatID,
+        id,
+      ]);
+      if (cached == null && floor > 0 && id >= floor) continue;
+      await upsertMessage(userID: userID, message: message, searchHit: true);
+      if (cached == null) {
+        added++;
+        if (id > newest) newest = id;
+      }
+    }
+    if (added > 0 && stale == 0) {
+      await updateDialog(userID: userID, chatID: chatID, fields: {'historyStaleBelow': floor > 0 ? floor : newest + 1});
+    }
+    return added;
+  }
+
+  /// Сообщение лежит в кэше и видно в ленте (не только найдено поиском).
+  Future<bool> inHistory({required List<int> userID, required List<int> chatID, required int messageID}) async {
+    final row = await ctx.getOptional('SELECT 1 FROM chatMessages WHERE userID = ? AND chatID = ? AND messageID = ? AND searchHit = 0;', [
+      userID,
+      chatID,
+      messageID,
+    ]);
+    return row != null;
+  }
+
   /// Поиск по истории чата в кэше (FTS5): messageID найденных, от новых к
   /// старым. [match] — выражение из `ftsMatchQuery`.
   Future<List<int>> searchMessages({required List<int> userID, required List<int> chatID, required String match, int limit = 1000}) async {
@@ -825,20 +897,19 @@ class ChatsRepository {
 
   /// Сколько сообщений чата в кэше не старше [messageID] (окно, чтобы его показать).
   Future<int> countMessagesFrom({required List<int> userID, required List<int> chatID, required int messageID}) async {
-    final row = await ctx.get('SELECT COUNT(*) AS n FROM chatMessages WHERE userID = ? AND chatID = ? AND messageID >= ?;', [
-      userID,
-      chatID,
-      messageID,
-    ]);
+    final row = await ctx.get(
+      'SELECT COUNT(*) AS n FROM chatMessages WHERE userID = ? AND chatID = ? AND messageID >= ? AND searchHit = 0;',
+      [userID, chatID, messageID],
+    );
     return row['n'] as int;
   }
 
   /// Самое новое сообщение из кэша (новое «последнее» после удаления).
   Future<pb.ChatMessage?> latestMessage({required List<int> userID, required List<int> chatID}) async {
-    final row = await ctx.getOptional('SELECT * FROM chatMessages WHERE userID = ? AND chatID = ? ORDER BY messageID DESC LIMIT 1;', [
-      userID,
-      chatID,
-    ]);
+    final row = await ctx.getOptional(
+      'SELECT * FROM chatMessages WHERE userID = ? AND chatID = ? AND searchHit = 0 ORDER BY messageID DESC LIMIT 1;',
+      [userID, chatID],
+    );
     return row == null ? null : _messageFromRow(row);
   }
 

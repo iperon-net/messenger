@@ -74,6 +74,17 @@ class ChatState with ChatStateMappable {
   /// Текущее найденное — индекс в [searchResults].
   final int searchIndex;
 
+  /// Идёт поиск на сервере (страница или докачка истории до найденного).
+  final bool searchLoading;
+
+  /// Сервер спросить не удалось — нет сети: показаны только сообщения на
+  /// устройстве (появится сеть — серверная часть догрузится сама).
+  final bool searchOffline;
+
+  /// На сервере есть ещё более старые найденные («ещё раньше» — стрелка
+  /// «вверх» на последнем найденном догружает следующую страницу).
+  final bool searchHasMore;
+
   /// Отложенные сообщения («Отправить позже») — от ранних к поздним; есть —
   /// в поле ввода значок календаря.
   final List<models.Message> scheduled;
@@ -173,6 +184,9 @@ class ChatState with ChatStateMappable {
     this.searchQuery = '',
     this.searchResults = const [],
     this.searchIndex = 0,
+    this.searchLoading = false,
+    this.searchOffline = false,
+    this.searchHasMore = false,
     this.scheduled = const [],
     this.pinned = const [],
     this.linkPreviewDisabled = false,

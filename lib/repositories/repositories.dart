@@ -835,6 +835,17 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(39, (tx) async {
+        // Поиск по сообщениям на сервере (подэтап 3.6): найденное сервером
+        // старое сообщение кладётся в кэш (его находит и локальный FTS5), но
+        // в ленту не попадает, пока до него не дойдёт непрерывная история
+        // (страница истории снимает флаг) — иначе в ленте висел бы островок
+        // за дырой. См. ChatsRepository.applySearchHits.
+        await tx.execute('ALTER TABLE chatMessages ADD COLUMN searchHit INTEGER NOT NULL DEFAULT 0;');
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

@@ -1396,7 +1396,8 @@ class _SearchBar extends StatelessWidget {
     final total = state.searchResults.length;
     final label = total > 0
         ? t.mediaCounter(current: state.searchIndex + 1, total: total)
-        : (state.searchQuery.trim().isEmpty ? '' : t.searchNoResults);
+        : (state.searchQuery.trim().isEmpty ? '' : (state.searchLoading ? t.searchLoading : t.searchNoResults));
+    final theme = Theme.of(context);
     return Material(
       color: color,
       child: SafeArea(
@@ -1406,8 +1407,37 @@ class _SearchBar extends StatelessWidget {
           child: Row(
             children: [
               const SizedBox(width: 20),
-              Expanded(child: Text(label, style: Theme.of(context).textTheme.bodyMedium)),
-              IconButton(icon: const Icon(Icons.keyboard_arrow_up), onPressed: state.searchIndex + 1 < total ? cubit.searchOlder : null),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(child: Text(label, style: theme.textTheme.bodyMedium)),
+                        // Сервер ещё ищет (или лента дотягивается до найденного).
+                        if (state.searchLoading && total > 0) ...[
+                          const SizedBox(width: 8),
+                          const SizedBox.square(dimension: 14, child: CircularProgressIndicator(strokeWidth: 2)),
+                        ],
+                      ],
+                    ),
+                    // Без сети — нашли только то, что есть на устройстве.
+                    if (state.searchOffline)
+                      Text(
+                        t.searchOffline,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.keyboard_arrow_up),
+                // На последнем найденном — «ещё раньше» с сервера.
+                onPressed: state.searchIndex + 1 < total || state.searchHasMore ? cubit.searchOlder : null,
+              ),
               IconButton(icon: const Icon(Icons.keyboard_arrow_down), onPressed: state.searchIndex > 0 ? cubit.searchNewer : null),
               const SizedBox(width: 8),
             ],

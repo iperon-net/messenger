@@ -46,7 +46,7 @@ void main() {
           fromUserID BLOB NOT NULL,
           reactions BLOB NULL,
           reactionsUnread INTEGER NOT NULL DEFAULT 0,
-          expireAt INTEGER NOT NULL DEFAULT 0, poll BLOB NULL,
+          expireAt INTEGER NOT NULL DEFAULT 0, poll BLOB NULL, searchHit INTEGER NOT NULL DEFAULT 0,
           PRIMARY KEY (userID, chatID, messageID)
         );
       ''');

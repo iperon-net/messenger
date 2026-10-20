@@ -1143,6 +1143,27 @@ class ChatsSync {
     return _locked(() => _store.setPollResults(userID: user, chatID: chatID, messageID: messageID, results: results));
   }
 
+  /// Найденное поиском на сервере — в кэш (см. [ChatsRepository.applySearchHits]),
+  /// в общей очереди с обновлениями.
+  Future<void> saveSearchHits(Uint8List chatID, List<pb.ChatMessage> found) {
+    final user = me;
+    return _locked(
+      () => _store.transaction((tx) async {
+        if (await tx.dialog(userID: user, chatID: chatID) == null) return;
+        await tx.applySearchHits(userID: user, chatID: chatID, messages: found);
+      }),
+    );
+  }
+
+  /// История чата скачана до самого начала и сверена: сервер старше ничего
+  /// не отдаст (поиск на сервере не нужен).
+  Future<bool> historyComplete(Uint8List chatID) async {
+    final user = me;
+    if (await _store.historyStaleBelow(userID: user, chatID: chatID) > 0) return false;
+    if (_noOlder.contains(idHex(chatID))) return true;
+    return await _store.oldestMessageID(userID: user, chatID: chatID) == 1;
+  }
+
   /// Чаты, у которых на сервере старше уже нет (hex chatID).
   final _noOlder = <String>{};
 
@@ -1199,8 +1220,8 @@ class ChatsSync {
   static const _backfillPause = Duration(milliseconds: 300);
 
   /// Докачать в фоне всю историю открытого чата — от самого старого в кэше до
-  /// первого сообщения, страницами по [_pageLimit]. Сервер искать не может
-  /// (содержимое зашифровано), поэтому поиск в чате — по скачанному. По
+  /// первого сообщения, страницами по [_pageLimit]: локальный поиск (FTS5)
+  /// идёт по скачанному, сервер ищет лишь по целым словам (подэтап 3.6). По
   /// одному чату за раз; нет сети — остановится и продолжит при следующем
   /// подключении ([onConnected]).
   void backfill(Uint8List chatID) {

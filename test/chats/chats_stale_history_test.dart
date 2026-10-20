@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:messenger/chats/message_search.dart';
 import 'package:messenger/logger.dart';
 import 'package:messenger/protobuf/protos/chats_v1.pb.dart' as pb;
 import 'package:messenger/repositories/repositories.dart';
@@ -64,10 +65,13 @@ void main() {
         searchText TEXT NOT NULL DEFAULT '',
         reactions BLOB NULL,
         reactionsUnread INTEGER NOT NULL DEFAULT 0,
-        expireAt INTEGER NOT NULL DEFAULT 0, poll BLOB NULL,
+        expireAt INTEGER NOT NULL DEFAULT 0, poll BLOB NULL, searchHit INTEGER NOT NULL DEFAULT 0,
         PRIMARY KEY (userID, chatID, messageID)
       );
     ''');
+    for (final statement in chatMessagesFtsSchema) {
+      await db.execute(statement);
+    }
     await db.execute(ChatsRepository.mentionsSchema);
     await db.execute('''
       CREATE TABLE chatPinned (
@@ -191,5 +195,101 @@ void main() {
     final next = await store.applyHistoryPage(userID: me, chatID: chat, messages: const [], offsetID: 0, hasMore: false);
     expect(next, 0);
     expect(await cached(), isEmpty);
+  });
+
+  group('найденное поиском на сервере (applySearchHits)', () {
+    /// Лента: что видно в окне чата.
+    Future<List<int>> feed() async => [for (final m in await store.messages(userID: me, chatID: chat)) m.messageID.toInt()];
+
+    Future<List<int>> localSearch(String query) => store.searchMessages(userID: me, chatID: chat, match: ftsMatchQuery(query)!);
+
+    test('старше ленты — в кэш скрытым, граница — на самое старое', () async {
+      for (var id = 50; id <= 60; id++) {
+        await store.upsertMessage(userID: me, message: message(id, 'm$id'));
+      }
+      expect(await stale(), 0);
+
+      // Сервер нашёл: 55 (есть в кэше, правили), 30 и 10 (старше скачанного),
+      // 70 (новее кэша — придёт журналом).
+      final added = await store.applySearchHits(
+        userID: me,
+        chatID: chat,
+        messages: [message(70, 'квартира'), message(55, 'квартира правка'), message(30, 'квартиру'), message(10, 'квартира')],
+      );
+      expect(added, 2);
+      expect(await cached(), [10, 30, for (var id = 50; id <= 60; id++) id]);
+      // В ленте островков за дырой нет, лента та же.
+      expect(await feed(), [for (var id = 50; id <= 60; id++) id]);
+      expect(await store.oldestMessageID(userID: me, chatID: chat), 50);
+      expect(await store.countMessages(userID: me, chatID: chat), 11);
+      // Ниже 50 — несверенное: следующая страница истории пойдёт от 50.
+      expect(await stale(), 50);
+      // Локальный поиск найдёт их уже без сервера.
+      expect(await localSearch('кварт'), [55, 30, 10]);
+      expect(await store.inHistory(userID: me, chatID: chat, messageID: 30), isFalse);
+      expect(await store.inHistory(userID: me, chatID: chat, messageID: 55), isTrue);
+
+      // Страница истории дошла до 30 — оно в ленте; 31 на сервере удалено.
+      var next = await store.applyHistoryPage(
+        userID: me,
+        chatID: chat,
+        messages: page([for (var id = 25; id < 50; id++) id]),
+        offsetID: 50,
+        hasMore: true,
+      );
+      expect(next, 25);
+      expect(await store.inHistory(userID: me, chatID: chat, messageID: 30), isTrue);
+      expect(await feed(), [for (var id = 25; id <= 60; id++) id]);
+      expect((await feed()).contains(10), isFalse);
+
+      // До начала: 10 сервер в истории не вернул (удалили) — уходит из кэша.
+      next = await store.applyHistoryPage(
+        userID: me,
+        chatID: chat,
+        messages: page([for (var id = 1; id < 25; id++) id].where((id) => id != 10)),
+        offsetID: 25,
+        hasMore: false,
+      );
+      expect(next, 0);
+      expect(await cached(), [for (var id = 1; id <= 60; id++) id].where((id) => id != 10).toList());
+      expect(await localSearch('квартира'), [55]);
+    });
+
+    test('уже несверенный кэш — граница не меняется', () async {
+      for (var id = 50; id <= 60; id++) {
+        await store.upsertMessage(userID: me, message: message(id));
+      }
+      await store.markHistoryStale(userID: me);
+      expect(await stale(), 61);
+      await store.applySearchHits(userID: me, chatID: chat, messages: [message(20, 'отчёт')]);
+      expect(await stale(), 61);
+      expect(await feed(), [for (var id = 50; id <= 60; id++) id]);
+      expect(await localSearch('отчет'), [20]);
+    });
+
+    test('пустой кэш — всё скрытым, граница выше найденного', () async {
+      await store.applySearchHits(userID: me, chatID: chat, messages: [message(9, 'отчёт'), message(4, 'отчёт')]);
+      expect(await stale(), 10);
+      expect(await feed(), isEmpty);
+      expect(await localSearch('отчет'), [9, 4]);
+
+      // Открыли чат: самая новая страница до 9 не дотянулась — ниже неё
+      // несверенное, найденное всё ещё не в ленте.
+      final next = await store.applyHistoryPage(userID: me, chatID: chat, messages: page([20, 21, 22]), offsetID: 0, hasMore: true);
+      expect(next, 20);
+      expect(await feed(), [20, 21, 22]);
+    });
+
+    test('история и журнал снимают флаг с уже найденного', () async {
+      await store.upsertMessage(userID: me, message: message(50));
+      await store.applySearchHits(userID: me, chatID: chat, messages: [message(40, 'отчёт')]);
+      expect(await feed(), [50]);
+      // Пришло обычной записью (журнал, Get, история) — в ленте.
+      await store.upsertMessage(userID: me, message: message(40, 'отчёт'));
+      expect(await feed(), [40, 50]);
+      // Повторный поиск флаг не возвращает.
+      await store.applySearchHits(userID: me, chatID: chat, messages: [message(40, 'отчёт')]);
+      expect(await feed(), [40, 50]);
+    });
   });
 }

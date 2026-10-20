@@ -693,6 +693,8 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String selected({required Object n}) => 'Выбрано: ${n}';
 	@override String get search => 'Поиск';
 	@override String get searchNoResults => 'Нет результатов';
+	@override String get searchLoading => 'Поиск…';
+	@override String get searchOffline => 'Нет соединения — показаны только сообщения на устройстве';
 	@override String get unreadMessages => 'Непрочитанные сообщения';
 	@override String get select => 'Выбрать';
 	@override String get videoCompressing => 'Сжатие видео';
@@ -2309,6 +2311,8 @@ extension on TranslationsRu {
 			'screenChat.selected' => ({required Object n}) => 'Выбрано: ${n}',
 			'screenChat.search' => 'Поиск',
 			'screenChat.searchNoResults' => 'Нет результатов',
+			'screenChat.searchLoading' => 'Поиск…',
+			'screenChat.searchOffline' => 'Нет соединения — показаны только сообщения на устройстве',
 			'screenChat.unreadMessages' => 'Непрочитанные сообщения',
 			'screenChat.select' => 'Выбрать',
 			'screenChat.videoCompressing' => 'Сжатие видео',
@@ -2348,10 +2352,10 @@ extension on TranslationsRu {
 			'screenChat.scheduledTitle' => 'Отложенные сообщения',
 			'screenChat.schedule' => 'Запланировать',
 			'screenChat.sendNow' => 'Отправить сейчас',
-			'screenChat.reschedule' => 'Изменить время',
-			'screenChat.deleteScheduledTitle' => 'Удалить отложенное сообщение?',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.reschedule' => 'Изменить время',
+			'screenChat.deleteScheduledTitle' => 'Удалить отложенное сообщение?',
 			'screenChat.scheduledHint' => 'Отложенные сообщения',
 			'screenChat.linkPreview' => 'Предпросмотр ссылки',
 			'screenChat.forward' => 'Переслать',
@@ -2862,10 +2866,10 @@ extension on TranslationsRu {
 			'screenCalls.incoming' => 'Входящий',
 			'screenCalls.outgoing' => 'Исходящий',
 			'screenCalls.missed' => 'Пропущенный',
-			'screenCalls.cancelled' => 'Отменённый',
-			'screenCalls.durationSec' => ({required Object s}) => '${s} сек',
 			_ => null,
 		} ?? switch (path) {
+			'screenCalls.cancelled' => 'Отменённый',
+			'screenCalls.durationSec' => ({required Object s}) => '${s} сек',
 			'screenCalls.durationMin' => ({required Object m}) => '${m} мин',
 			'screenCalls.durationHour' => ({required Object h}) => '${h} час',
 			'screenCalls.durationHourMin' => ({required Object h, required Object m}) => '${h} час ${m} мин',

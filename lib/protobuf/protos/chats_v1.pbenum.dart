@@ -302,4 +302,19 @@ class Messages_ReadParticipantsResult_Status extends $pb.ProtobufEnum {
   const Messages_ReadParticipantsResult_Status._(super.value, super.name);
 }
 
+class Messages_SearchResult_Status extends $pb.ProtobufEnum {
+  static const Messages_SearchResult_Status OK = Messages_SearchResult_Status._(0, _omitEnumNames ? '' : 'OK');
+  static const Messages_SearchResult_Status QUERY_TOO_SHORT = Messages_SearchResult_Status._(1, _omitEnumNames ? '' : 'QUERY_TOO_SHORT');
+
+  static const $core.List<Messages_SearchResult_Status> values = <Messages_SearchResult_Status>[
+    OK,
+    QUERY_TOO_SHORT,
+  ];
+
+  static final $core.List<Messages_SearchResult_Status?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 1);
+  static Messages_SearchResult_Status? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const Messages_SearchResult_Status._(super.value, super.name);
+}
+
 const $core.bool _omitEnumNames = $core.bool.fromEnvironment('protobuf.omit_enum_names');

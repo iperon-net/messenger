@@ -20,6 +20,7 @@ import '../../chats/chats_mapping.dart';
 import '../../chats/chats_presence.dart';
 import '../../chats/chats_sync.dart';
 import '../../chats/chats_typing.dart';
+import '../../chats/message_search.dart';
 import '../../chats/group_rights.dart';
 import '../../models.dart' as models;
 import '../../privacy_blocks.dart';
@@ -153,6 +154,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
         if (_writeRestricted) unawaited(ChatsSync.instance.canWrite(idBytes(_chatID)));
         if (_reactionsSeen.isNotEmpty) _scheduleReactionsSeen();
         if (_mentionsSeen.isNotEmpty) _scheduleMentionsSeen();
+        _retryServerSearch();
       });
     }
     _chatsSubscription = source.watchChats().listen((chats) {
@@ -226,7 +228,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
       _recheckCanWrite(messages);
       // Пришло/удалилось сообщение во время поиска — пересчитываем, оставаясь
       // на текущем найденном.
-      if (state.searching) unawaited(_search(state.searchQuery, keepID: state.searchCurrentID));
+      if (state.searching) unawaited(_search(_server.query, keepID: state.searchCurrentID));
     });
   }
 
@@ -647,15 +649,61 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   Future<void> cancelUpload(models.Message message) async => _source?.cancelUpload(_chatID, message.id);
 
   /// Поиск по чату: открыть (удержание шапки) / закрыть.
-  void startSearch() => emit(state.copyWith(searching: true, searchQuery: '', searchResults: const [], searchIndex: 0));
+  void startSearch() {
+    _resetServerSearch('');
+    emit(
+      state.copyWith(
+        searching: true,
+        searchQuery: '',
+        searchResults: const [],
+        searchIndex: 0,
+        searchLoading: false,
+        searchOffline: false,
+        searchHasMore: false,
+      ),
+    );
+  }
 
-  void closeSearch() => emit(state.copyWith(searching: false, searchQuery: '', searchResults: const [], searchIndex: 0));
+  void closeSearch() {
+    _resetServerSearch('');
+    emit(
+      state.copyWith(
+        searching: false,
+        searchQuery: '',
+        searchResults: const [],
+        searchIndex: 0,
+        searchLoading: false,
+        searchOffline: false,
+        searchHasMore: false,
+      ),
+    );
+  }
 
-  void setSearchQuery(String query) => unawaited(_search(query));
+  /// Новый запрос: локально — сразу, на сервере — после паузы в наборе.
+  void setSearchQuery(String query) {
+    _resetServerSearch(query);
+    if (query.trim().isNotEmpty) _serverTimer = Timer(_serverSearchDelay, () => unawaited(_loadServerPage(_server)));
+    if (state.searchLoading || state.searchOffline || state.searchHasMore) {
+      emit(state.copyWith(searchLoading: false, searchOffline: false, searchHasMore: false));
+    }
+    unawaited(_search(query));
+  }
 
-  /// Стрелка «вверх» — к более старому найденному, «вниз» — к более новому.
-  void searchOlder() {
-    if (state.searchIndex + 1 < state.searchResults.length) unawaited(_showResult(state.searchIndex + 1));
+  /// Стрелка «вверх» — к более старому найденному («ещё раньше»: между ним и
+  /// текущим могут быть ещё не спрошенные у сервера — сначала догружаем
+  /// страницу), «вниз» — к более новому.
+  void searchOlder() => unawaited(_searchOlder());
+
+  Future<void> _searchOlder() async {
+    final session = _server;
+    for (var page = 0; page < _serverMorePages && session.needsPage(state.searchResults, state.searchIndex + 1); page++) {
+      final before = session.next;
+      await _loadServerPage(session, more: true);
+      if (isClosed || !state.searching || !identical(session, _server) || session.next == before) break;
+    }
+    if (isClosed || !state.searching) return;
+    final next = state.searchIndex + 1;
+    if (next < state.searchResults.length) await _showResult(next);
   }
 
   void searchNewer() {
@@ -666,14 +714,17 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   /// показываем.
   int _searchGeneration = 0;
 
-  /// Ищет источник: настоящие чаты — по всей скачанной истории (FTS5, не
-  /// только по ленте на экране), демо — по тексту и имени файла. От новых к
-  /// старым. [keepID] — остаться на этом найденном (лента обновилась).
+  /// Ищет источник на устройстве: настоящие чаты — по всей скачанной истории
+  /// (FTS5, не только по ленте на экране), демо — по тексту и имени файла — и
+  /// сливает с уже пришедшим от сервера ([ServerSearchSession.merge]). От
+  /// новых к старым. [keepID] — остаться на этом найденном (лента обновилась,
+  /// пришла страница с сервера).
   Future<void> _search(String query, {String? keepID}) async {
     final source = _source;
     final generation = ++_searchGeneration;
-    final results = source == null || query.trim().isEmpty ? const <String>[] : await source.searchMessages(_chatID, query);
+    final local = source == null || query.trim().isEmpty ? const <String>[] : await source.searchMessages(_chatID, query);
     if (isClosed || generation != _searchGeneration || !state.searching) return;
+    final results = query == _server.query ? _server.merge(local) : local;
     final kept = keepID == null ? -1 : results.indexOf(keepID);
     // Новый переход — к самому новому найденному; сначала дотягиваем ленту до
     // него, чтобы экран мог к нему прокрутиться.
@@ -684,12 +735,74 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     emit(state.copyWith(searchQuery: query, searchResults: results, searchIndex: kept < 0 ? 0 : kept));
   }
 
-  /// Перейти к найденному [index].
+  // --- поиск на сервере (подэтап 3.6) ---
+
+  /// Пауза после последней буквы перед запросом к серверу.
+  static const _serverSearchDelay = Duration(milliseconds: 400);
+
+  /// Сколько страниц сервера догружать подряд за одно «вверх».
+  static const _serverMorePages = 5;
+
+  /// Поиск на сервере по текущему запросу.
+  ServerSearchSession _server = ServerSearchSession('');
+  Timer? _serverTimer;
+
+  void _resetServerSearch(String query) {
+    _serverTimer?.cancel();
+    _serverTimer = null;
+    _server = ServerSearchSession(query);
+  }
+
+  /// Страница поиска на сервере ([more] — следующая); один запрос за раз.
+  Future<void> _loadServerPage(ServerSearchSession session, {bool more = false}) {
+    final inFlight = session.inFlight;
+    if (inFlight != null) return inFlight;
+    late final Future<void> future;
+    future = _fetchServerPage(session, more).whenComplete(() {
+      if (identical(session.inFlight, future)) session.inFlight = null;
+    });
+    session.inFlight = future;
+    return future;
+  }
+
+  Future<void> _fetchServerPage(ServerSearchSession session, bool more) async {
+    final source = _source;
+    final query = session.query;
+    if (source == null || !session.active || (more && session.next == null)) return;
+    emit(state.copyWith(searchLoading: true));
+    ServerSearchPage page;
+    try {
+      page = await source.searchMessagesOnServer(_chatID, query, offsetID: more ? session.next : null);
+    } catch (error, stackTrace) {
+      getIt.get<Logger>().handle(error, stackTrace);
+      page = const ServerSearchPage.status(ServerSearchStatus.skipped);
+    }
+    if (isClosed || !identical(session, _server) || !state.searching) return;
+    session.apply(page, more: more);
+    // Слить с локальными, оставаясь на текущем найденном (нет — к самому
+    // новому); «Поиск…» — пока не дотянули ленту до него.
+    await _search(query, keepID: state.searchQuery == query ? state.searchCurrentID : null);
+    if (isClosed || !identical(session, _server)) return;
+    emit(state.copyWith(searchLoading: false, searchOffline: session.offline, searchHasMore: session.hasMore));
+  }
+
+  /// Подключились: поиск, не дошедший до сервера из-за сети, — догрузить.
+  void _retryServerSearch() {
+    final session = _server;
+    if (!state.searching || !session.offline || !session.active) return;
+    unawaited(_loadServerPage(session, more: session.retryMore));
+  }
+
+  /// Перейти к найденному [index]. Дошли до самого старого, а на сервере
+  /// есть ещё — заранее догружаем следующую страницу.
   Future<void> _showResult(int index) async {
     final id = state.searchResults[index];
     await _reveal(id);
     if (!isClosed && state.searchResults.length > index && state.searchResults[index] == id) {
       emit(state.copyWith(searchIndex: index));
+    }
+    if (!isClosed && state.searching && _server.needsPage(state.searchResults, state.searchIndex + 1)) {
+      unawaited(_loadServerPage(_server, more: true));
     }
   }
 
@@ -733,8 +846,21 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   Future<bool> unpinAll({bool forEveryone = true}) => _online(() => _source?.unpinAllMessages(_chatID, forEveryone: forEveryone));
 
   /// Режим выделения: «Выбрать» в меню сообщения.
-  void startSelection(models.Message message) =>
-      emit(state.copyWith(selecting: true, selectedIDs: [message.id], searching: false, searchQuery: '', searchResults: const []));
+  void startSelection(models.Message message) {
+    _resetServerSearch('');
+    emit(
+      state.copyWith(
+        selecting: true,
+        selectedIDs: [message.id],
+        searching: false,
+        searchQuery: '',
+        searchResults: const [],
+        searchLoading: false,
+        searchOffline: false,
+        searchHasMore: false,
+      ),
+    );
+  }
 
   /// Тап по сообщению в режиме выделения; сняли последнее — выходим из режима.
   void toggleSelected(models.Message message) {
@@ -1256,6 +1382,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     await _deletedSubscription?.cancel();
     await _rejectedSubscription?.cancel();
     await _connectionSubscription?.cancel();
+    _serverTimer?.cancel();
     await _blocksSubscription?.cancel();
     final peer = _presencePeer;
     if (peer != null) ChatsPresence.instance.unwatch(peer);
