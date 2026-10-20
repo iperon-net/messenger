@@ -18,6 +18,7 @@ import 'package:local_auth/local_auth.dart';
 
 import 'api.dart';
 import 'calls.dart';
+import 'chats/chats_sync.dart';
 import 'cubit.dart';
 import 'di.dart';
 import 'push.dart';
@@ -145,6 +146,8 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
         api.setForeground(true);
         // Push-токен мог смениться, пока приложение было в фоне/выгружено.
         unawaited(getIt.get<PushManager>().syncTokens());
+        // Бейдж на иконке в фоне ставили пуши — сверить с прочитанным здесь.
+        ChatsSync.instance.refreshBadge();
         // Проверяем, не пора ли заблокировать экран по таймауту авто-блокировки.
         context.read<CommonCubit>().onAppResumed();
       case AppLifecycleState.paused:

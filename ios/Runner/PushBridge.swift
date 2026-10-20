@@ -124,8 +124,10 @@ final class PushBridge {
       return true
     }
 
-    // Прочитано / удалено — непрочитанных стало меньше: бейдж из пуша.
-    if let badge = signal.badge {
+    // Прочитано / удалено — непрочитанных стало меньше: бейдж из пуша. На
+    // переднем плане бейдж ведёт приложение по локальному списку — серверное
+    // число (без скрытых профилей, из кэша) его не перетирает.
+    if let badge = signal.badge, UIApplication.shared.applicationState != .active {
       setBadge(badge)
     }
 
