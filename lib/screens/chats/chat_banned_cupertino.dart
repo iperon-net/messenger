@@ -56,7 +56,7 @@ class _ChatBannedCupertinoState extends State<ChatBannedCupertino> {
               children: [
                 if (state.banned.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
                     child: CupertinoSearchTextField(
                       placeholder: t.screenChatInfo.membersSearch,
                       onChanged: (value) => setState(() => _query = value),
@@ -74,7 +74,9 @@ class _ChatBannedCupertinoState extends State<ChatBannedCupertino> {
                     ),
                   )
                 else
+                  // Поля как у поиска (и у «Заблокированных» в настройках): список во всю ширину.
                   CupertinoListSection.insetGrouped(
+                    margin: const EdgeInsets.fromLTRB(12, 0, 12, 10),
                     backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
                     decoration: BoxDecoration(
                       color: ThemesCupertino.groupedCard.resolveFrom(context),
@@ -109,7 +111,7 @@ class _ChatBannedCupertinoState extends State<ChatBannedCupertino> {
                     ],
                   ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: createNoteCupertino(t.screenChatInfo.bannedFooter),
                 ),
               ],

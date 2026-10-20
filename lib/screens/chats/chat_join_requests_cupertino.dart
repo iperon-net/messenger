@@ -28,6 +28,9 @@ Future<void> showChatJoinRequestsCupertino(BuildContext context, String chatID) 
 class ChatJoinRequestsCupertino extends StatelessWidget {
   const ChatJoinRequestsCupertino({super.key});
 
+  /// Поля уже стандартных 20: список людей во всю ширину, как у «Заблокированных».
+  static const _sectionMargin = EdgeInsets.fromLTRB(12, 20, 12, 10);
+
   @override
   Widget build(BuildContext context) {
     final t = context.t;
@@ -117,6 +120,7 @@ class ChatJoinRequestsCupertino extends StatelessWidget {
                         // Список мог устареть — обновить не удалось.
                         if (state.requestsFailed)
                           CupertinoListSection.insetGrouped(
+                            margin: _sectionMargin,
                             backgroundColor: background,
                             decoration: BoxDecoration(color: card, borderRadius: const BorderRadius.all(Radius.circular(10))),
                             children: [
@@ -131,6 +135,7 @@ class ChatJoinRequestsCupertino extends StatelessWidget {
                             ],
                           ),
                         CupertinoListSection.insetGrouped(
+                          margin: _sectionMargin,
                           backgroundColor: background,
                           decoration: BoxDecoration(color: card, borderRadius: const BorderRadius.all(Radius.circular(10))),
                           children: [for (final request in requests) _RequestTile(request: request)],
