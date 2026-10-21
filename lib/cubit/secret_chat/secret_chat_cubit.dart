@@ -83,6 +83,13 @@ class SecretChatCubit extends Cubit<SecretChatState> with MessageDust<SecretChat
     final title = state.title.isNotEmpty ? state.title : await peerDisplayName(chat.peerUserID);
     if (isClosed) return;
     final listID = secretChatListID(_chatID);
+    // Всё асинхронное — до emit: `state.copyWith(...)` берёт state до
+    // вычисления аргументов, и await внутри них затёр бы то, что успели
+    // записать за это время (vanishingIDs из [vanish] — строка после пыли
+    // вернулась бы в ленту и осталась там до переоткрытия чата).
+    final avatarPath = await secretPeerAvatar(chat.peerUserID);
+    final messages = [for (final record in records) await _message(record, listID, title)];
+    if (isClosed) return;
     emit(
       state.copyWith(
         status: Status.success,
@@ -93,8 +100,8 @@ class SecretChatCubit extends Cubit<SecretChatState> with MessageDust<SecretChat
         emoji: chat.emoji,
         fingerprintHex: chat.fingerprint == null ? '' : utils.bytesToHex(chat.fingerprint!),
         ttl: chat.ttl,
-        avatarPath: await secretPeerAvatar(chat.peerUserID),
-        messages: withDustRetained([for (final record in records) await _message(record, listID, title)]),
+        avatarPath: avatarPath,
+        messages: withDustRetained(messages),
       ),
     );
     if (_visible && chat.unreadCount > 0) unawaited(_markRead());
