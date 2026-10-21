@@ -168,9 +168,16 @@ abstract class SecretChatsTransport {
 }
 
 class _ApiSecretChatsTransport implements SecretChatsTransport {
+  /// Предел ожидания ответа: unary без дедлайна на полуоткрытом после сна
+  /// соединении висит долго и держит всю очередь секретных чатов.
+  static const _timeout = Duration(seconds: 20);
+
   @override
   Future<sc.SecretChats_Response> request(sc.SecretChats_Request request) async {
-    final (status, body) = await getIt.get<API>().unaryEncodedWithResponse(MessageType.SECRET_CHATS, request.writeToBuffer());
+    final (status, body) = await getIt
+        .get<API>()
+        .unaryEncodedWithResponse(MessageType.SECRET_CHATS, request.writeToBuffer())
+        .timeout(_timeout, onTimeout: () => throw const ChatsOfflineException());
     if (status.status == APIStatus.success && body != null) return sc.SecretChats_Response.fromBuffer(body);
     if (const [StatusCode.unavailable, StatusCode.deadlineExceeded, StatusCode.unknown].contains(status.statusCode)) {
       throw const ChatsOfflineException();
@@ -721,12 +728,12 @@ class SecretChatsSync {
       for (final messages in byChat.values) {
         final removed = <SecretMessageRecord>[];
         _announceDeleted(messages.first.secretChatID, [for (final m in messages) m.randomID]);
-        await _locked(
-          () => store.update(
-            sessionID: _sessionID,
-            secretChatID: messages.first.secretChatID,
-            apply: (tx) async => removed.addAll(await tx.deleteMessages([for (final m in messages) m.randomID])),
-          ),
+        // Мимо [_locked]: храповик не трогаем, а очередь может стоять на
+        // сети (догон после сна) — пыль уже полетела, сообщение должно уйти.
+        await store.update(
+          sessionID: _sessionID,
+          secretChatID: messages.first.secretChatID,
+          apply: (tx) async => removed.addAll(await tx.deleteMessages([for (final m in messages) m.randomID])),
         );
         await _cleanup(removed);
       }

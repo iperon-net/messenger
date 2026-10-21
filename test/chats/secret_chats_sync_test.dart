@@ -215,8 +215,12 @@ class _Transport implements SecretChatsTransport {
 
   _Transport(this.server);
 
+  /// Запрос «повис» (полуоткрытое соединение после сна) — до команды.
+  Completer<void>? hang;
+
   @override
   Future<sc.SecretChats_Response> request(sc.SecretChats_Request request) async {
+    if (hang case final hang?) await hang.future;
     if (device.offline) throw const ChatsOfflineException();
     // Как по сети: сервер получает копию байт.
     return server.handle(device, sc.SecretChats_Request.fromBuffer(request.writeToBuffer()));
@@ -265,6 +269,7 @@ class _Device {
   final SqliteDatabase db;
   late final SecretChatsRepository store;
   late final SecretChatsSync sync;
+  late final _Transport transport;
   final uploader = _Uploader();
   final Directory mediaDir;
 
@@ -274,7 +279,7 @@ class _Device {
 
   _Device(this.userID, this.sessionID, this.db, this.mediaDir, _FakeServer server, Logger logger, {this.capable = true}) {
     store = SecretChatsRepository(logger: logger, db: db);
-    final transport = _Transport(server);
+    transport = _Transport(server);
     sync = SecretChatsSync(
       store: () => store,
       crypto: () => SecretChatCrypto(logger: logger),
@@ -697,6 +702,22 @@ void main() {
     await a.sync.onConnected();
     await a.sync.expireNow();
     expect([for (final m in await a.messages(id)) m.kind], [SecretMessageKind.ttlChange]);
+
+    // Догон завис на сети (проснулись, соединение полуоткрыто) — истёкшее
+    // всё равно удаляется: удаление не ждёт очередь событий.
+    await a.sync.sendText(id, 'повисло');
+    await server.deliver();
+    await b.sync.markRead(id);
+    await server.deliver();
+    final hang = b.transport.hang = Completer<void>();
+    final catchUp = b.sync.onConnected();
+    await pumpEventQueue();
+    server.now = server.now.add(const Duration(seconds: 6));
+    await b.sync.expireNow();
+    expect([for (final m in await b.messages(id)) m.kind], [SecretMessageKind.ttlChange]);
+    b.transport.hang = null;
+    hang.complete();
+    await catchUp;
 
     // Выключили — новые без таймера.
     await b.sync.setTtl(id, 0);
