@@ -837,7 +837,7 @@ class MessageBubble extends StatelessWidget {
         : metaRow;
     // Невидимый хвост под время: nbsp, чтобы не переносился отдельно.
     final trailing =
-        '  ${m.authorSignature.isNotEmpty ? '${m.authorSignature.replaceAll(' ', '\u00a0')}\u00a0\u00a0' : ''}${views.isNotEmpty ? '\u00a0\u00a0\u00a0\u00a0$views\u00a0\u00a0' : ''}${m.pinned ? '\u00a0\u00a0\u00a0' : ''}${m.selfDestructTtl > 0 ? '\u00a0' * 9 : ''}$metaText${out && m.kind != models.MessageKind.call ? '     ' : ''}';
+        '  ${m.authorSignature.isNotEmpty ? '${m.authorSignature.replaceAll(' ', '\u00a0')}\u00a0\u00a0' : ''}${views.isNotEmpty ? '\u00a0\u00a0\u00a0\u00a0$views\u00a0\u00a0' : ''}${m.pinned ? '\u00a0\u00a0\u00a0' : ''}${m.selfDestructTtl > 0 ? SelfDestructBadge.reserve(m.selfDestructTtl) : ''}$metaText${out && m.kind != models.MessageKind.call ? '     ' : ''}';
 
     // Пока вложения грузятся — тап по медиа не открывает просмотр.
     final mediaTap = m.isUploading ? null : onMediaTap;
@@ -2245,6 +2245,11 @@ class SelfDestructBadge extends StatefulWidget {
     if (s >= 3600) return t.secretChat.ttlShortHours(n: (s / 3600).ceil());
     return '${s ~/ 60}:${(s % 60).toString().padLeft(2, '0')}';
   }
+
+  /// Невидимое место под значок в хвосте текста: секундомер с отступами и
+  /// самая широкая запись, до которой дойдёт отсчёт ([ttl] от часа — «59:59»),
+  /// чтобы цифры не наезжали на последнюю строку.
+  static String reserve(int ttl) => '${'\u00a0' * 6}${ttl >= 600 ? '00:00' : '0:00'}';
 
   @override
   State<SelfDestructBadge> createState() => _SelfDestructBadgeState();

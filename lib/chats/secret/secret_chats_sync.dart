@@ -560,7 +560,10 @@ class SecretChatsSync {
               ),
             );
           case sp.SecretPayload_Payload.read:
-            await tx.markOutgoingRead([for (final id in payload.read.randomIDs) id.toInt()], now: _clock());
+            // Отсчёт — с прочтения (время конверта на сервере), а не с того,
+            // когда отметку принял этот телефон: проспал — удалится сразу,
+            // вместе с копией собеседника.
+            await tx.markOutgoingRead([for (final id in payload.read.randomIDs) id.toInt()], now: date);
           case sp.SecretPayload_Payload.delete:
             final ids = [for (final id in payload.delete.randomIDs) id.toInt()];
             _announceDeleted(chatID, ids);

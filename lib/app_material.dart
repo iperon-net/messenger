@@ -36,6 +36,7 @@ import 'routers.dart';
 import 'screens/call/call_material.dart';
 import 'themes.dart';
 import 'components.dart';
+import 'chats/secret/secret_chats_sync.dart';
 
 // Material-корень приложения (Android). Вынесен из main.dart в отдельный файл,
 // потому что импортирует material_ui, а Cupertino-корень — cupertino_ui: держать
@@ -146,6 +147,10 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
         api.setForeground(true);
         // Push-токен мог смениться, пока приложение было в фоне/выгружено.
         unawaited(getIt.get<PushManager>().syncTokens());
+        // Таймеры Dart идут по монотонным часам, которые стоят, пока телефон
+        // спит, — истёкшее за сон самоуничтожение убрать сейчас и перезавести
+        // таймер по настоящему времени (стрим мог и не переподключаться).
+        unawaited(SecretChatsSync.instance.expireNow());
         context.read<CommonCubit>().onAppResumed();
       case AppLifecycleState.paused:
       case AppLifecycleState.hidden:

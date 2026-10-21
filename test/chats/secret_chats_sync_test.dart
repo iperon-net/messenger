@@ -44,7 +44,7 @@ class _FakeServer {
   /// randomID конвертов, отправленных с notify (push получателю).
   final notified = <int>{};
 
-  /// Часы устройств (самоуничтожение) — двигаются тестом.
+  /// Часы сервера и устройств (самоуничтожение, даты конвертов) — двигаются тестом.
   DateTime now = DateTime(2026, 10, 18, 12);
   final pushes = <(_Device, sc.SecretUpdate)>[];
   var _nextID = 1;
@@ -55,7 +55,7 @@ class _FakeServer {
     qts[key] = number;
     update
       ..qts = Int64(number)
-      ..date = Int64(DateTime.now().millisecondsSinceEpoch)
+      ..date = Int64(now.millisecondsSinceEpoch)
       ..secretChatID = chatID;
     queues.putIfAbsent(key, () => []).add(update);
     pushes.add((device, update));
@@ -160,7 +160,7 @@ class _FakeServer {
             ),
           );
         }
-        return sc.SecretChats_Response(send: sc.SecretChats_SendResult(date: Int64(DateTime.now().millisecondsSinceEpoch)));
+        return sc.SecretChats_Response(send: sc.SecretChats_SendResult(date: Int64(now.millisecondsSinceEpoch)));
 
       case sc.SecretChats_Request_Request.discard:
         final chat = chats[_hex(request.discard.secretChatID)]!;
@@ -685,6 +685,18 @@ void main() {
     await b.sync.expireNow();
     expect([for (final m in await a.messages(id)) m.kind], [SecretMessageKind.ttlChange]);
     expect([for (final m in await b.messages(id)) m.kind], [SecretMessageKind.ttlChange]);
+
+    // Отправитель проспал отметку о прочтении: отсчёт всё равно с прочтения —
+    // проснулся после срока, сообщение удаляется сразу.
+    await a.sync.sendText(id, 'проспал');
+    await server.deliver();
+    await b.sync.markRead(id);
+    final readAt = server.now;
+    await server.deliver(drop: (device, _) => device == a);
+    server.now = readAt.add(const Duration(minutes: 1));
+    await a.sync.onConnected();
+    await a.sync.expireNow();
+    expect([for (final m in await a.messages(id)) m.kind], [SecretMessageKind.ttlChange]);
 
     // Выключили — новые без таймера.
     await b.sync.setTtl(id, 0);

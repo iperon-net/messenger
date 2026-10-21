@@ -1,15 +1,18 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 
+import '../../api.dart';
 import '../../auth.dart';
 import '../../cdn.dart';
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
+import '../../protobuf.dart';
 import '../../repositories/repositories.dart';
 import '../../utils.dart';
 import '../profile/profile_common.dart';
@@ -46,7 +49,28 @@ class PrivacyProfilePreview extends StatefulWidget {
 }
 
 class _PrivacyProfilePreviewState extends State<PrivacyProfilePreview> {
-  late final Future<PrivacySelf> _self = _load();
+  Future<PrivacySelf> _self = _load();
+  StreamSubscription<void>? _changes;
+
+  @override
+  void initState() {
+    super.initState();
+    // Аватар с другого устройства (или после переустановки) привязывается к
+    // профилю, только когда приходит MY_PROFILE, — запрашиваем его и
+    // перечитываем карточку при изменениях. Без сети — что есть в кэше.
+    _changes = getIt
+        .get<Repositories>()
+        .db
+        .onChange(const ['myProfile'], triggerImmediately: false)
+        .listen((_) => setState(() => _self = _load()));
+    unawaited(getIt.get<API>().sendEncoded(MessageType.MY_PROFILE, MyProfile_Request().writeToBuffer()).catchError((_) {}));
+  }
+
+  @override
+  void dispose() {
+    _changes?.cancel();
+    super.dispose();
+  }
 
   static Future<PrivacySelf> _load() async {
     final repositories = getIt.get<Repositories>();

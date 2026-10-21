@@ -30,6 +30,7 @@ import 'routers.dart';
 import 'screens/call/call_cupertino.dart';
 import 'themes.dart';
 import 'components.dart';
+import 'chats/secret/secret_chats_sync.dart';
 
 // Cupertino-корень приложения (iOS). Вынесен из main.dart в отдельный файл,
 // потому что импортирует cupertino_ui, а Material-корень — material_ui: держать
@@ -148,6 +149,10 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
         unawaited(getIt.get<PushManager>().syncTokens());
         // Бейдж на иконке в фоне ставили пуши — сверить с прочитанным здесь.
         ChatsSync.instance.refreshBadge();
+        // Таймеры Dart идут по монотонным часам, которые стоят, пока телефон
+        // спит, — истёкшее за сон самоуничтожение убрать сейчас и перезавести
+        // таймер по настоящему времени (стрим мог и не переподключаться).
+        unawaited(SecretChatsSync.instance.expireNow());
         // Проверяем, не пора ли заблокировать экран по таймауту авто-блокировки.
         context.read<CommonCubit>().onAppResumed();
       case AppLifecycleState.paused:

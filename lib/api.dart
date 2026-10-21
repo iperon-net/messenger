@@ -771,6 +771,22 @@ class API {
           aboutMe: payload.aboutMe,
         );
         await repositories.myProfile.setPremium(userID: session.userID, isPremium: payload.isPremium);
+        // Аватар привязываем к профилю, как у чужих (cacheProfile): иначе
+        // avatarCdnID знает только устройство, которое его загрузило, и превью
+        // приватности / пересылки показывают заглушку. Качаем в фоне — не
+        // держим очередь стрима. Без аватара не сбрасываем: часть пушей
+        // MY_PROFILE (правка имени) приходит без поля avatar.
+        if (payload.hasAvatar()) {
+          unawaited(() async {
+            try {
+              final cdn = models.CDN.fromProto(payload.avatar);
+              await getIt.get<CDNManager>().download(cdn: cdn);
+              await repositories.myProfile.updateAvatarByCdnID(userID: session.userID, cdnID: cdn.cdnID);
+            } catch (error, stackTrace) {
+              logger.handle(error, stackTrace);
+            }
+          }());
+        }
 
       case MessageType.PROFILE:
         // Публичный профиль чужого пользователя. userID приходит в самом ответе
