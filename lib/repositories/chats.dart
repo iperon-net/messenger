@@ -660,16 +660,16 @@ class ChatsRepository {
       call.outcome == pb.MessageCall_Outcome.ENDED ? call.duration : 0,
       message.date.toInt(),
     ];
-    await ctx.execute('UPDATE callLogs SET direction = ?, video = ?, missed = ?, durationSeconds = ?, createdAt = ? WHERE callID = ?;', [
-      ...values,
-      call.callID,
-    ]);
+    await ctx.execute(
+      'UPDATE callLogs SET direction = ?, video = ?, missed = ?, durationSeconds = ?, createdAt = ? WHERE ownerID = ? AND callID = ?;',
+      [...values, userID, call.callID],
+    );
     await ctx.execute(
       '''
-      INSERT INTO callLogs (direction, video, missed, durationSeconds, createdAt, callID, userID, displayName)
-      SELECT ?, ?, ?, ?, ?, ?, ?, '' WHERE NOT EXISTS (SELECT 1 FROM callLogs WHERE callID = ?);
+      INSERT INTO callLogs (direction, video, missed, durationSeconds, createdAt, callID, ownerID, userID, displayName)
+      SELECT ?, ?, ?, ?, ?, ?, ?, ?, '' WHERE NOT EXISTS (SELECT 1 FROM callLogs WHERE ownerID = ? AND callID = ?);
       ''',
-      [...values, call.callID, peer, call.callID],
+      [...values, call.callID, userID, peer, userID, call.callID],
     );
   }
 

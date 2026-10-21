@@ -3,6 +3,8 @@ part of 'repositories.dart';
 /// Локальный журнал звонков (таблица `callLogs`). Наполняется при завершении
 /// каждого звонка из сервиса `Calls` (сервер историю не хранит) и читается
 /// вкладкой «Звонки» (`CallsCubit`). Строки упорядочены по времени завершения.
+/// Всё — по аккаунту [ownerID] (миграция 41): на одном устройстве журналы
+/// разных аккаунтов не смешиваются.
 class CallLogs {
   final Logger logger;
   final SqliteDatabase db;
@@ -13,16 +15,17 @@ class CallLogs {
 
   /// Добавляет запись о завершённом звонке. Звонок с тем же callID уже есть
   /// (успело прийти служебное сообщение «звонок» с сервера) — не дублируем.
-  Future<void> insert(models.CallLog log) async {
+  Future<void> insert({required List<int> ownerID, required models.CallLog log}) async {
     await db.execute(
       """
       INSERT INTO callLogs
-        (callID, userID, displayName, direction, video, missed, durationSeconds, createdAt)
-      SELECT ?, ?, ?, ?, ?, ?, ?, ?
-      WHERE ?1 = '' OR NOT EXISTS (SELECT 1 FROM callLogs WHERE callID = ?1);
+        (callID, ownerID, userID, displayName, direction, video, missed, durationSeconds, createdAt)
+      SELECT ?1, ?2, ?, ?, ?, ?, ?, ?, ?
+      WHERE ?1 = '' OR NOT EXISTS (SELECT 1 FROM callLogs WHERE ownerID = ?2 AND callID = ?1);
       """,
       [
         log.callID,
+        ownerID,
         log.userID,
         log.displayName,
         log.direction.name,
@@ -36,8 +39,11 @@ class CallLogs {
 
   /// Все звонки, новые сверху. [limit] ограничивает выборку — журнал локальный
   /// и большего показывать смысла нет.
-  Future<List<models.CallLog>> getAll({int limit = 500}) async {
-    final rows = await db.execute("SELECT * FROM callLogs WHERE hidden = 0 ORDER BY createdAt DESC LIMIT ?;", [limit]);
+  Future<List<models.CallLog>> getAll({required List<int> ownerID, int limit = 500}) async {
+    final rows = await db.execute("SELECT * FROM callLogs WHERE ownerID = ? AND hidden = 0 ORDER BY createdAt DESC LIMIT ?;", [
+      ownerID,
+      limit,
+    ]);
     return rows.map((row) => models.CallLogMapper.fromMap(row)).toList();
   }
 
@@ -46,8 +52,8 @@ class CallLogs {
     await db.execute("UPDATE callLogs SET hidden = 1 WHERE id = ?;", [id]);
   }
 
-  /// Очищает весь журнал.
-  Future<void> deleteAll() async {
-    await db.execute("UPDATE callLogs SET hidden = 1;");
+  /// Очищает весь журнал аккаунта.
+  Future<void> deleteAll({required List<int> ownerID}) async {
+    await db.execute("UPDATE callLogs SET hidden = 1 WHERE ownerID = ?;", [ownerID]);
   }
 }

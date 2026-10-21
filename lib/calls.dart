@@ -2146,6 +2146,9 @@ class Calls {
   }) async {
     try {
       final repositories = getIt.get<Repositories>();
+      // Журнал — по аккаунту; звонок пережил выход — записывать некому.
+      final ownerID = auth.session.userID;
+      if (ownerID.isEmpty) return;
       var displayName = '';
       try {
         displayName = await peerDisplayName(remoteUserID);
@@ -2154,7 +2157,8 @@ class Calls {
       }
 
       await repositories.callLogs.insert(
-        models.CallLog(
+        ownerID: ownerID,
+        log: models.CallLog(
           callID: callId,
           userID: Uint8List.fromList(remoteUserID),
           displayName: displayName,

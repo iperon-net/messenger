@@ -15,6 +15,8 @@ class HiddenProfileEntry {
 /// списков Контактов/Звонков/Чатов на этом устройстве, а его пуши показываются
 /// без имени и текста (набор уходит в натив — `PushManager.setHiddenUsers`).
 /// Источник истины — только локальная БД; на сервер ничего не уходит.
+/// Набор свой у каждого аккаунта (`ownerID`, миграция 42): все запросы — по
+/// активной сессии ([_owner]), поэтому вызывающим владельца передавать не надо.
 ///
 /// [changes] — широковещательный сигнал «набор скрытых изменился». Списки
 /// (`ContactsCubit`/`CallsCubit`) живут в долгоживущем IndexedStack и не
@@ -28,11 +30,14 @@ class HiddenProfiles {
 
   final _changes = StreamController<void>.broadcast();
 
+  /// userID активного аккаунта — подзапросом, чтобы не тянуть `Auth` в слой БД.
+  static const _owner = '(SELECT userID FROM sessions WHERE isActive = 1 LIMIT 1)';
+
   Stream<void> get changes => _changes.stream;
 
   /// Весь набор скрытых профилей.
   Future<List<HiddenProfileEntry>> getAll() async {
-    final rows = await db.execute("SELECT userID, phraseHash FROM hiddenProfiles;");
+    final rows = await db.execute("SELECT userID, phraseHash FROM hiddenProfiles WHERE ownerID = $_owner;");
     return rows
         .map((row) => HiddenProfileEntry(userID: row["userID"] as List<int>, phraseHash: row["phraseHash"] as String))
         .toList(growable: false);
@@ -46,14 +51,14 @@ class HiddenProfiles {
 
   /// Скрыт ли профиль с этим [userID].
   Future<bool> isHidden(List<int> userID) async {
-    final rows = await db.execute("SELECT 1 FROM hiddenProfiles WHERE userID = ? LIMIT 1;", [userID]);
+    final rows = await db.execute("SELECT 1 FROM hiddenProfiles WHERE ownerID = $_owner AND userID = ? LIMIT 1;", [userID]);
     return rows.isNotEmpty;
   }
 
   /// Скрывает профиль (или обновляет код-фразу существующего). [phraseHash] —
   /// sha256 нормализованной фразы в hex (см. `Utils.passphraseHash`).
   Future<void> hide({required List<int> userID, required String phraseHash}) async {
-    await db.execute("INSERT OR REPLACE INTO hiddenProfiles (userID, phraseHash, createdAt) VALUES (?, ?, ?);", [
+    await db.execute("INSERT OR REPLACE INTO hiddenProfiles (ownerID, userID, phraseHash, createdAt) VALUES ($_owner, ?, ?, ?);", [
       userID,
       phraseHash,
       DateTime.now().millisecondsSinceEpoch,
@@ -64,7 +69,7 @@ class HiddenProfiles {
   /// Снимает скрытие — профиль снова виден в списках. Идемпотентно (сброс
   /// разрешён, даже если профиль не был скрыт).
   Future<void> unhide(List<int> userID) async {
-    await db.execute("DELETE FROM hiddenProfiles WHERE userID = ?;", [userID]);
+    await db.execute("DELETE FROM hiddenProfiles WHERE ownerID = $_owner AND userID = ?;", [userID]);
     _changes.add(null);
   }
 }

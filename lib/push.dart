@@ -179,7 +179,11 @@ class PushManager {
 
   void _onAuthChanged() {
     unawaited(_syncPushKey());
-    if (_hasNativePush) _scheduleAvatars();
+    if (_hasNativePush) {
+      // Скрытые профили свои у каждого аккаунта.
+      unawaited(_syncHiddenUsers());
+      _scheduleAvatars();
+    }
     if (!auth.isAuthorized) return;
     unawaited(syncTokens());
   }

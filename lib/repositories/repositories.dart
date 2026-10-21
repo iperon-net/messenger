@@ -853,6 +853,49 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(41, (tx) async {
+        // Журнал звонков — по аккаунту (ownerID), как чаты: после смены аккаунта
+        // на устройстве не видно звонков прежнего. Старые строки относим к
+        // аккаунту, у которого собеседник есть в диалогах (активный — первым),
+        // иначе к активному; без сессии — ни к кому (не видны).
+        await tx.execute("ALTER TABLE callLogs ADD COLUMN ownerID BLOB NOT NULL DEFAULT X'';");
+        await tx.execute('''
+          UPDATE callLogs SET ownerID = COALESCE(
+            (SELECT d.userID FROM chatDialogs d WHERE d.peerUserID = callLogs.userID
+              ORDER BY d.userID = (SELECT userID FROM sessions WHERE isActive = 1 LIMIT 1) DESC LIMIT 1),
+            (SELECT userID FROM sessions WHERE isActive = 1 LIMIT 1),
+            X''
+          );
+        ''');
+        await tx.execute('CREATE INDEX idx_callLogs_owner ON callLogs(ownerID, createdAt);');
+      }),
+    );
+
+    migrations.add(
+      SqliteMigration(42, (tx) async {
+        // Скрытые профили — тоже по аккаунту (ownerID): скрытое одним аккаунтом
+        // не прячется у другого на том же устройстве. Старые строки — активному
+        // аккаунту (без сессии — ни к кому).
+        await tx.execute('''
+          CREATE TABLE hiddenProfiles_new (
+            ownerID BLOB NOT NULL,
+            userID BLOB NOT NULL,
+            phraseHash TEXT NOT NULL,
+            createdAt INTEGER NOT NULL,
+            PRIMARY KEY (ownerID, userID)
+          );
+        ''');
+        await tx.execute('''
+          INSERT INTO hiddenProfiles_new (ownerID, userID, phraseHash, createdAt)
+          SELECT COALESCE((SELECT userID FROM sessions WHERE isActive = 1 LIMIT 1), X''), userID, phraseHash, createdAt
+          FROM hiddenProfiles;
+        ''');
+        await tx.execute('DROP TABLE hiddenProfiles;');
+        await tx.execute('ALTER TABLE hiddenProfiles_new RENAME TO hiddenProfiles;');
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

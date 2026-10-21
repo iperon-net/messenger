@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../api.dart';
+import '../../auth.dart';
 import '../../calls.dart';
 import '../../components/call_permissions.dart';
 import '../../constants.dart';
@@ -35,6 +36,7 @@ class CallsCubit extends Cubit<CallsState> {
   final utils = getIt.get<Utils>();
   final repositories = getIt.get<Repositories>();
   final _calls = getIt.get<Calls>();
+  final _auth = getIt.get<Auth>();
 
   StreamSubscription<void>? _sub;
   StreamSubscription<Uint8List>? _profileSub;
@@ -60,7 +62,7 @@ class CallsCubit extends Cubit<CallsState> {
   /// Перечитывает журнал из БД и резолвит актуальные имена из кэша профилей.
   Future<void> load() async {
     try {
-      final calls = await repositories.callLogs.getAll();
+      final calls = await repositories.callLogs.getAll(ownerID: _auth.session.userID);
       if (isClosed) return;
       final names = await _resolveNames(calls);
       if (isClosed) return;
@@ -156,7 +158,7 @@ class CallsCubit extends Cubit<CallsState> {
   /// Очищает весь журнал.
   Future<void> clearAll() async {
     try {
-      await repositories.callLogs.deleteAll();
+      await repositories.callLogs.deleteAll(ownerID: _auth.session.userID);
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     }
