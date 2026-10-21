@@ -5,16 +5,22 @@ import 'dart:io';
 import 'package:cryptography/cryptography.dart';
 import 'package:firebase_app_installations/firebase_app_installations.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'api.dart';
 import 'auth.dart';
 import 'cdn.dart';
+import 'chats/chats_mapping.dart';
+import 'chats/chats_remote_data_source.dart';
+import 'chats/chats_sync.dart';
 import 'di.dart';
 import 'logger.dart';
 import 'protobuf.dart';
+import 'protobuf/protos/chats_v1.pb.dart' as pb;
 import 'repositories.dart';
+import 'utils.dart';
 
 /// Регистрирует push-токены устройства на сервере: побудка входящих звонков и
 /// уведомления, когда персистентный gRPC-стрим закрыт (приложение в фоне/
@@ -46,7 +52,8 @@ import 'repositories.dart';
 /// код-пароля, скрытые профили и скачанные аватары отдаём в натив
 /// ([_syncPushKey], [setPasscodeEnabled], [_syncHiddenUsers], [_syncAvatars]) по каналу
 /// `net.iperon.messenger/push` (Android — хранилище на Keystore, iOS — общий с
-/// NSE Keychain); тот же канал приносит тапы по уведомлениям ([onRoute]).
+/// NSE Keychain); тот же канал приносит тапы по уведомлениям ([onRoute]) и
+/// кнопки уведомлений Android «Ответить» / «Прочитано» ([_handleAction]).
 ///
 /// Регистрируется в `get_it` (см. `di.dart`, `dependsOn: [API, Auth]`) как
 /// синглтон. Отправка идемпотентна: последний отправленный токен каждого канала
@@ -135,6 +142,7 @@ class PushManager {
           ..add(repositories.db.onChange(const [ChatsRepository.groupsTable, 'downloads']).listen((_) => _scheduleAvatars()));
         _scheduleAvatars();
         unawaited(_takeInitialTap());
+        if (Platform.isAndroid) unawaited(_takePendingActions());
       }
 
       // На свежей установке к старту сессии ещё нет — токены не уходят. После
@@ -281,8 +289,11 @@ class PushManager {
   /// Жизненный цикл Flutter в таком запуске не приходит, поэтому спрашиваем
   /// натив. На прочих платформах и при ошибке — `false` (как раньше: стрим =
   /// передний план).
+  ///
+  /// Android: движок без видимой Activity — его подняла кнопка уведомления
+  /// («Ответить» / «Прочитано»), пользователь приложение не открывал.
   static Future<bool> isLaunchedInBackground() async {
-    if (!Platform.isIOS) return false;
+    if (!_hasNativePush) return false;
     try {
       return await _channel.invokeMethod<bool>('isInBackground') ?? false;
     } catch (error, stackTrace) {
@@ -326,8 +337,104 @@ class PushManager {
   }
 
   Future<dynamic> _onNativeCall(MethodCall call) async {
-    if (call.method == 'onNotificationTap') await _handleTap(call.arguments);
+    switch (call.method) {
+      case 'onNotificationTap':
+        await _handleTap(call.arguments);
+      case 'onNotificationAction':
+        // Не ждём: натив держит процесс до notificationActionDone, а ответ
+        // канала ему не нужен.
+        unawaited(_handleAction(call.arguments));
+    }
     return null;
+  }
+
+  /// Кнопки уведомлений, нажатые до готовности Dart (холодный старт движка).
+  Future<void> _takePendingActions() async {
+    try {
+      final actions = await _channel.invokeMethod<List<Object?>>('takePendingActions');
+      for (final action in actions ?? const <Object?>[]) {
+        await _handleAction(action);
+      }
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  // Сколько ждём, пока ответ из шторки уйдёт из outbox, прежде чем отпустить
+  // процесс (натив держит его ~9 с). Не успели — сообщение в outbox и уйдёт
+  // при следующем подключении.
+  static const _replyFlushTimeout = Duration(seconds: 8);
+  static const _replyFlushPoll = Duration(milliseconds: 300);
+
+  /// Кнопка уведомления чата (Android, NotificationActionReceiver): `reply` —
+  /// сообщение [text] в чат (через outbox, как из окна чата: без сети оно
+  /// уйдёт при подключении) и «прочитано»; `read` — «прочитано» до `maxID`
+  /// (последнее сообщение уведомления). Само уведомление натив уже обновил.
+  /// В конце отпускает процесс (`notificationActionDone`).
+  Future<void> _handleAction(Object? arguments) async {
+    final action = arguments as Map? ?? const {};
+    final chatID = ((action['chatID'] as String?) ?? '').toLowerCase();
+    final maxID = (action['maxID'] as num?)?.toInt() ?? 0;
+    logger.info('push: notification action ${action['action']} chat=$chatID');
+    try {
+      if (!auth.isAuthorized || !_chatIDPattern.hasMatch(chatID)) return;
+      switch (action['action']) {
+        case 'reply':
+          final text = ((action['text'] as String?) ?? '').trim();
+          if (text.isEmpty) return;
+          await ChatsRemoteDataSource.instance.sendMessage(chatID, text: text);
+          await _readHistory(chatID, maxID);
+          await _waitOutbox(chatID);
+        case 'read':
+          await _readHistory(chatID, maxID);
+      }
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    } finally {
+      // Подняты кнопкой без Activity — стрим не держим: пауза через грейс,
+      // откроет пользователь — resumed вернёт его.
+      if (Platform.isAndroid && await isLaunchedInBackground()) api.setForeground(false);
+      try {
+        await _channel.invokeMethod<void>('notificationActionDone', action['id']);
+      } catch (error, stackTrace) {
+        logger.handle(error, stackTrace);
+      }
+    }
+  }
+
+  /// «Прочитано» до [maxID] — напрямую по id из уведомления: локальный кэш
+  /// после пуша мог ещё не догнать чат. Без id — как при открытии чата. Без
+  /// сети — молча (счётчик честно останется).
+  Future<void> _readHistory(String chatID, int maxID) async {
+    if (maxID <= 0) {
+      await ChatsRemoteDataSource.instance.setRead(chatID, true);
+      return;
+    }
+    final sync = ChatsSync.instance;
+    if (!await sync.hasNetwork()) return;
+    try {
+      final response = await sync.chats(
+        pb.Chats_Request(
+          readHistory: pb.Chats_ReadHistory(chatID: idBytes(chatID), maxID: Int64(maxID)),
+        ),
+      );
+      await sync.applyUpdates(response.readHistory.updates);
+    } on ChatsOfflineException {
+      // Прочитаем при следующем открытии чата.
+    }
+  }
+
+  /// Ждёт, пока outbox чата не опустеет (или [_replyFlushTimeout]); без сети
+  /// не ждёт — отправка всё равно отложится.
+  Future<void> _waitOutbox(String chatID) async {
+    final chat = idBytes(chatID);
+    final deadline = DateTime.now().add(_replyFlushTimeout);
+    while (DateTime.now().isBefore(deadline)) {
+      if (!await getIt.get<Utils>().hasNetwork()) return;
+      final rows = await repositories.chats.outbox(userID: ChatsSync.instance.me, chatID: chat);
+      if (rows.every((row) => row.failed)) return;
+      await Future<void>.delayed(_replyFlushPoll);
+    }
   }
 
   /// Тап холодного старта, отложенный нативом до готовности Dart.

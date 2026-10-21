@@ -15,6 +15,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
+import androidx.core.app.RemoteInput
 import androidx.core.content.LocusIdCompat
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
@@ -140,6 +141,9 @@ object MessagePushHandler {
                     .build()
                 if (isMessage) {
                     messageStyle(context, builder, payload, tag, sender, appName)
+                    // Секретный — без кнопок: текста в пуше нет, а ответ в
+                    // него — отдельный E2EE-путь.
+                    if (!secret) addActions(context, builder, payload, tag)
                 } else {
                     // Реакция: отдельное уведомление (свой тег), но в той же беседе.
                     val text = reactionText(context, payload)
@@ -206,6 +210,82 @@ object MessagePushHandler {
             .setContentTitle(if (group) payload.chatTitle else payload.title.ifEmpty { appName })
             .setContentText(if (group && payload.title.isNotEmpty()) "${payload.title}: $text" else text)
             .addExtras(android.os.Bundle().apply { putLongArray(EXTRA_MESSAGE_IDS, ids.toLongArray()) })
+    }
+
+    /// Кнопки «Ответить» (поле ввода в шторке) и «Прочитано», как в Telegram:
+    /// семантика REPLY / MARK_AS_READ — их понимают Android Auto и Wear OS,
+    /// generated replies — системные подсказки ответа. Обрабатывает
+    /// [NotificationActionReceiver], приложение не открывается.
+    private fun addActions(context: Context, builder: NotificationCompat.Builder, payload: PushPayload, tag: String) {
+        fun intent(action: String) = Intent(context, NotificationActionReceiver::class.java).apply {
+            this.action = action
+            putExtra(NotificationActionReceiver.EXTRA_CHAT_ID, hex(payload.chatID))
+            putExtra(NotificationActionReceiver.EXTRA_MAX_ID, payload.messageID)
+        }
+        // RemoteInput дописывает текст в intent — PendingIntent ответа обязан
+        // быть mutable (intent явный, на свой приёмник).
+        val reply = PendingIntent.getBroadcast(
+            context,
+            "$tag:reply".hashCode(),
+            intent(NotificationActionReceiver.ACTION_REPLY),
+            PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        val read = PendingIntent.getBroadcast(
+            context,
+            "$tag:read".hashCode(),
+            intent(NotificationActionReceiver.ACTION_READ),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        val label = context.getString(R.string.push_action_reply)
+        builder
+            .addAction(
+                NotificationCompat.Action.Builder(R.drawable.ic_notification_reply, label, reply)
+                    .addRemoteInput(RemoteInput.Builder(NotificationActionReceiver.KEY_REPLY_TEXT).setLabel(label).build())
+                    .setAllowGeneratedReplies(true)
+                    .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_REPLY)
+                    .setShowsUserInterface(false)
+                    .build(),
+            )
+            .addAction(
+                NotificationCompat.Action.Builder(R.drawable.ic_notification_read, context.getString(R.string.push_action_read), read)
+                    .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_MARK_AS_READ)
+                    .setShowsUserInterface(false)
+                    .build(),
+            )
+    }
+
+    /// Ответ из шторки — в ленту уведомления чата [chatHex] от «Вы» (так
+    /// просит Android: перепоказ снимает индикатор отправки с поля ввода).
+    /// id своего сообщения неизвестен (0) — «прочитано» снимет его вместе с
+    /// остальными.
+    fun appendReply(context: Context, chatHex: String, text: String) {
+        val tag = "chat:$chatHex"
+        val active = activeNotification(context, tag) ?: return
+        val previous = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(active) ?: return
+        val ids = messageIDs(active, previous.messages.size)
+        // «Вы» — пользователь стиля: его сообщения (person = null) система
+        // рисует как свои.
+        val style = NotificationCompat.MessagingStyle(Person.Builder().setName(context.getString(R.string.push_reply_self)).build())
+            .setConversationTitle(previous.conversationTitle)
+            .setGroupConversation(previous.isGroupConversation)
+        previous.messages.forEach { style.addMessage(it) }
+        style.addMessage(text, System.currentTimeMillis(), null as Person?)
+        ids += 0L
+        while (style.messages.size > MAX_STYLE_MESSAGES) {
+            style.messages.removeAt(0)
+            ids.removeAt(0)
+        }
+        val builder = NotificationCompat.Builder(context, active)
+            .setStyle(style)
+            .setContentText(text)
+            .setOnlyAlertOnce(true)
+            .setSilent(true)
+            .addExtras(android.os.Bundle().apply { putLongArray(EXTRA_MESSAGE_IDS, ids.toLongArray()) })
+        try {
+            NotificationManagerCompat.from(context).notify(tag, 0, builder.build())
+        } catch (error: SecurityException) {
+            Log.w(LOG_TAG, "push: reply re-notify denied", error)
+        }
     }
 
     /// Делает уведомление беседой: шорткат чата (имя и аватар собеседника или

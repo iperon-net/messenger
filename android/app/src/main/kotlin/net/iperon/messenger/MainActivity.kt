@@ -24,8 +24,6 @@ import android.view.WindowManager
 import androidx.lifecycle.Lifecycle
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
-import io.flutter.embedding.engine.FlutterEngineCache
-import io.flutter.embedding.engine.dart.DartExecutor
 import io.flutter.plugin.common.MethodChannel
 
 /// Хост Flutter-приложения на Android.
@@ -73,11 +71,6 @@ class MainActivity : FlutterFragmentActivity() {
     private val systemCallChannelName = "net.iperon.messenger/system_call"
     private var systemCallChannel: MethodChannel? = null
 
-    // Канал push-уведомлений: ключи расшифровки и флаг код-пароля для нативного
-    // FCM-сервиса (PushKeyStore), тапы по уведомлениям → Dart (PushManager).
-    private val pushChannelName = "net.iperon.messenger/push"
-    private var pushChannel: MethodChannel? = null
-
     // Разрешён ли автовход в PiP по нажатию Home. Flutter взводит флаг, пока открыт
     // активный видеозвонок (см. lib/components/calls/call_view.dart), и снимает при
     // уходе с экрана/переходе в аудио. Без флага любое сворачивание приложения
@@ -110,10 +103,10 @@ class MainActivity : FlutterFragmentActivity() {
     private var mediaFiles: MediaFiles? = null
 
     /// Имя кэшированного движка, к которому цепляется `FlutterFragment`. Сам движок
-    /// кладётся в кэш в [onCreate] ДО `super.onCreate` (см. [ensureEngine]) — иначе
+    /// кладётся в кэш в [onCreate] ДО `super.onCreate` (см. [AppEngine.ensure]) — иначе
     /// восстановленный из saved-state фрагмент на cold-start не найдёт его и упадёт
     /// `IllegalStateException: The requested cached FlutterEngine did not exist`.
-    override fun getCachedEngineId(): String = ENGINE_ID
+    override fun getCachedEngineId(): String = AppEngine.ENGINE_ID
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Движок должен быть в кэше ДО super.onCreate: там FlutterFragmentActivity
@@ -122,7 +115,7 @@ class MainActivity : FlutterFragmentActivity() {
         // в Application.onCreate) не поднимает полный DI/БД, когда процесс стартовал
         // только ради фонового FCM-обработчика (тот в отдельном isolate, Activity
         // не поднимает).
-        ensureEngine()
+        AppEngine.ensure(this)
         // Холодный старт для ответа на звонок: плагин запускает нас с action
         // ...ACTION_CALL_*. Включаем показ поверх локскрина ещё до отрисовки
         // окна, иначе keyguard успеет потребовать разблокировку.
@@ -130,7 +123,7 @@ class MainActivity : FlutterFragmentActivity() {
         super.onCreate(savedInstanceState)
         NotificationChannels.ensure(this)
         // Холодный старт тапом по уведомлению.
-        MessagePushHandler.tapFromIntent(intent)?.let { deliverPushTap(it) }
+        MessagePushHandler.tapFromIntent(intent)?.let { PushChannel.deliverTap(it) }
         // Приёмник действий PiP-окна (смена камеры). NOT_EXPORTED — внутренний,
         // снаружи слать нельзя (Android 13+ требует явный флаг экспорта).
         val filter = IntentFilter(ACTION_PIP_SWITCH_CAMERA)
@@ -157,7 +150,7 @@ class MainActivity : FlutterFragmentActivity() {
         applyCallLaunchFlags(intent)
         super.onNewIntent(intent)
         // Тёплый старт тапом по уведомлению.
-        MessagePushHandler.tapFromIntent(intent)?.let { deliverPushTap(it) }
+        MessagePushHandler.tapFromIntent(intent)?.let { PushChannel.deliverTap(it) }
     }
 
     override fun onStart() {
@@ -168,18 +161,6 @@ class MainActivity : FlutterFragmentActivity() {
     override fun onStop() {
         isForeground = false
         super.onStop()
-    }
-
-    /// Отдаёт тап по уведомлению в Dart. Если Dart ещё не готов (холодный старт:
-    /// main() не дошёл до PushManager.start) — откладываем, Dart заберёт его
-    /// вызовом `takeInitialTap`.
-    private fun deliverPushTap(tap: Map<String, Any>) {
-        val channel = pushChannel
-        if (pushDartReady && channel != null) {
-            channel.invokeMethod("onNotificationTap", tap)
-        } else {
-            pendingPushTap = tap
-        }
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -267,72 +248,6 @@ class MainActivity : FlutterFragmentActivity() {
         // исход. → заблокировать. Аргумент exclude (UUID своих CallKit-звонков)
         // на Android не нужен — режим аудио глобальный, а свой in-app-звонок в
         // окно проверки не попадает (см. hasActiveExternalCall).
-        pushChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, pushChannelName)
-            .also { it.setMethodCallHandler { call, result ->
-                when (call.method) {
-                    // Ключ расшифровки пушей текущей сессии (Dart выводит HKDF).
-                    "setPushKey" -> {
-                        val keyId = call.argument<ByteArray>("keyId")
-                        val key = call.argument<ByteArray>("key")
-                        if (keyId == null || key == null) {
-                            result.error("args", "keyId and key are required", null)
-                        } else {
-                            PushKeyStore.put(applicationContext, keyId, key)
-                            result.success(null)
-                        }
-                    }
-                    "clearPushKeys" -> {
-                        PushKeyStore.clear(applicationContext)
-                        PushAvatars.clear(applicationContext)
-                        MessagePushHandler.removeShortcuts(applicationContext)
-                        result.success(null)
-                    }
-                    // Прочитано / удалено (обновление из стрима) — снять показанное.
-                    "clearChatNotifications" -> {
-                        MessagePushHandler.clearChat(
-                            applicationContext,
-                            chatHex = call.argument<String>("chatID") ?: "",
-                            maxID = call.argument<Number>("maxID")?.toLong() ?: 0,
-                            messageIDs = call.argument<List<Number>>("messageIDs").orEmpty().map { it.toLong() }.toSet(),
-                            all = call.argument<Boolean>("all") ?: false,
-                        )
-                        result.success(null)
-                    }
-                    "setPasscodeEnabled" -> {
-                        val enabled = call.arguments as? Boolean ?: false
-                        PushKeyStore.setPasscodeEnabled(applicationContext, enabled)
-                        // В шорткатах бесед — имена и аватары.
-                        if (enabled) MessagePushHandler.removeShortcuts(applicationContext)
-                        result.success(null)
-                    }
-                    // Локально скрытые профили — их пуши без имени и текста.
-                    "setHiddenUsers" -> {
-                        val users = (call.arguments as? List<*>).orEmpty().filterIsInstance<String>()
-                        PushKeyStore.setHiddenUsers(applicationContext, users)
-                        if (users.isNotEmpty()) MessagePushHandler.removeShortcuts(applicationContext, users.map { it.lowercase() }.toSet())
-                        result.success(null)
-                    }
-                    // Снимок скачанных аватаров для уведомлений: [{key, id, path}].
-                    "syncAvatars" -> {
-                        val entries = (call.arguments as? List<*>).orEmpty().mapNotNull { entry ->
-                            (entry as? Map<*, *>)?.entries
-                                ?.mapNotNull { (k, v) -> if (k is String && v is String) k to v else null }
-                                ?.toMap()
-                        }
-                        PushAvatars.sync(applicationContext, entries)
-                        result.success(null)
-                    }
-                    // Dart готов принимать тапы; заодно забирает отложенный тап
-                    // холодного старта.
-                    "takeInitialTap" -> {
-                        pushDartReady = true
-                        result.success(pendingPushTap)
-                        pendingPushTap = null
-                    }
-                    else -> result.notImplemented()
-                }
-            } }
-
         systemCallChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, systemCallChannelName)
             .also { it.setMethodCallHandler { call, result ->
                 when (call.method) {
@@ -505,44 +420,12 @@ class MainActivity : FlutterFragmentActivity() {
         }
     }
 
-    /// Лениво создаёт единственный на процесс движок и кладёт в
-    /// [FlutterEngineCache] под [ENGINE_ID]. `FlutterEngine(context)` сам
-    /// авторегистрирует плагины (embedding v2), затем гоняем `main()`.
-    /// Идемпотентно и потокобезопасно: под звонок Activity может подниматься
-    /// гонкой (full-screen intent + «Ответить»), а два создания вернули бы нас к
-    /// исходной проблеме двух isolate'ов.
-    private fun ensureEngine() {
-        val cache = FlutterEngineCache.getInstance()
-        synchronized(engineLock) {
-            if (cache.get(ENGINE_ID) == null) {
-                val engine = FlutterEngine(applicationContext)
-                engine.dartExecutor.executeDartEntrypoint(DartExecutor.DartEntrypoint.createDefault())
-                cache.put(ENGINE_ID, engine)
-            }
-        }
-    }
-
     companion object {
         /// Activity видна пользователю (onStart..onStop). Читает FCM-сервис того же
         /// процесса: в foreground системные уведомления не показываем.
         @Volatile
         var isForeground = false
             private set
-
-        // Dart-сторона push-канала готова (вызвала takeInitialTap). Живёт на
-        // процесс, как и кэшированный движок, — пересоздание Activity её не
-        // сбрасывает.
-        @Volatile
-        private var pushDartReady = false
-
-        // Тап холодного старта, ещё не забранный Dart.
-        private var pendingPushTap: Map<String, Any>? = null
-
-        // Ключ единственного на процесс движка в FlutterEngineCache.
-        private const val ENGINE_ID = "net.iperon.messenger/main_engine"
-
-        // Сериализует ленивое создание движка (см. [ensureEngine]).
-        private val engineLock = Any()
 
         // Action внутреннего broadcast'а от кнопки «Сменить камеру» в PiP-окне.
         private const val ACTION_PIP_SWITCH_CAMERA = "net.iperon.messenger.PIP_SWITCH_CAMERA"

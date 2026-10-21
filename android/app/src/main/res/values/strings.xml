@@ -27,4 +27,8 @@
     <string name="push_reaction_voice">%1$s to your voice message</string>
     <string name="push_reaction_poll">%1$s to your poll</string>
     <string name="push_reaction_no_preview">New reaction</string>
+    <!-- Кнопки уведомления чата (NotificationActionReceiver). -->
+    <string name="push_action_reply">Reply</string>
+    <string name="push_action_read">Mark as read</string>
+    <string name="push_reply_self">You</string>
 </resources>
