@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../chats/secret/secret_chats_list.dart' show secretChatIDPrefix;
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -27,7 +28,10 @@ class SecretChatMaterial extends StatefulWidget {
   State<SecretChatMaterial> createState() => _SecretChatMaterialState();
 }
 
-class _SecretChatMaterialState extends State<SecretChatMaterial> {
+class _SecretChatMaterialState extends State<SecretChatMaterial> with UnreadBackCount {
+  @override
+  String get unreadChatID => '$secretChatIDPrefix${context.read<SecretChatCubit>().state.chatID}';
+
   final _input = TextEditingController();
 
   /// Ключи строк ленты — снимки для «пыли» при удалении.
@@ -122,6 +126,7 @@ class _SecretChatMaterialState extends State<SecretChatMaterial> {
             backgroundColor: dark ? const Color(0xFF000000) : scheme.surfaceContainerLow,
             appBar: AppBar(
               titleSpacing: 0,
+              leading: unreadBackButtonMaterial(unreadBack),
               title: InkWell(
                 onTap: () => _openInfo(context),
                 child: Row(

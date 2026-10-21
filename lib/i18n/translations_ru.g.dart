@@ -71,6 +71,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$screenAuth$ru screenAuth = _Translations$screenAuth$ru._(_root);
 	@override late final _Translations$screenAuthModerationApplicationStore$ru screenAuthModerationApplicationStore = _Translations$screenAuthModerationApplicationStore$ru._(_root);
 	@override late final _Translations$screenAuthCallpasswordConfirmation$ru screenAuthCallpasswordConfirmation = _Translations$screenAuthCallpasswordConfirmation$ru._(_root);
+	@override late final _Translations$inAppNotice$ru inAppNotice = _Translations$inAppNotice$ru._(_root);
 	@override late final _Translations$grpcError$ru grpcError = _Translations$grpcError$ru._(_root);
 	@override late final _Translations$dateTime$ru dateTime = _Translations$dateTime$ru._(_root);
 	@override late final _Translations$screenCall$ru screenCall = _Translations$screenCall$ru._(_root);
@@ -1520,6 +1521,17 @@ class _Translations$screenAuthCallpasswordConfirmation$ru extends Translations$s
 	@override String confirmYourNumberDetail({required Object confirmationPhoneNumberRu}) => 'Позвоните на номер ${confirmationPhoneNumberRu} с указанного вами номера телефона и дождитесь сброса вызова.';
 	@override String get callForFree => 'Позвонить бесплатно';
 	@override String get signatureVerificationFailed => 'Не удалось проверить подпись';
+}
+
+// Path: inAppNotice
+class _Translations$inAppNotice$ru extends Translations$inAppNotice$en {
+	_Translations$inAppNotice$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get appName => 'Iperon';
+	@override String get newMessage => 'Новое сообщение';
 }
 
 // Path: grpcError
@@ -2991,6 +3003,8 @@ extension on TranslationsRu {
 			'screenAuthCallpasswordConfirmation.confirmYourNumberDetail' => ({required Object confirmationPhoneNumberRu}) => 'Позвоните на номер ${confirmationPhoneNumberRu} с указанного вами номера телефона и дождитесь сброса вызова.',
 			'screenAuthCallpasswordConfirmation.callForFree' => 'Позвонить бесплатно',
 			'screenAuthCallpasswordConfirmation.signatureVerificationFailed' => 'Не удалось проверить подпись',
+			'inAppNotice.appName' => 'Iperon',
+			'inAppNotice.newMessage' => 'Новое сообщение',
 			'grpcError.errorConnectingServer' => 'Ошибка подключения к серверу',
 			'grpcError.unauthenticated' => 'Неавторизован',
 			'grpcError.unableConnectServer' => 'Не удалось подключиться к серверу',

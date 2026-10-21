@@ -1197,6 +1197,10 @@
   "callForFree": "Позвонить бесплатно"
   "signatureVerificationFailed": "Не удалось проверить подпись"
 
+inAppNotice:
+  "appName": "Iperon"
+  "newMessage": "Новое сообщение"
+
 grpcError:
   "errorConnectingServer": "Ошибка подключения к серверу"
   "unauthenticated": "Неавторизован"

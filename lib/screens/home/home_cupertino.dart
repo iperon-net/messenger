@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../i18n/translations.g.dart';
+import '../../components.dart';
 import '../../cubit.dart';
 import '../../themes.dart';
 
@@ -92,7 +93,8 @@ class _HomeCupertinoState extends State<HomeCupertino> {
             BottomNavigationBarItem(
               icon: const Padding(
                 padding: EdgeInsets.only(top: 8),
-                child: HugeIcon(icon: HugeIcons.strokeRoundedChatFeedback01, size: 24.0, strokeWidth: 2),
+                // Непрочитанные (без заглушённых) — как в Telegram.
+                child: UnreadTabIconCupertino(icon: HugeIcon(icon: HugeIcons.strokeRoundedChatFeedback01, size: 24.0, strokeWidth: 2)),
               ),
               label: context.t.screenHome.chats,
             ),

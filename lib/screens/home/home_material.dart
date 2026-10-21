@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../i18n/translations.g.dart';
+import '../../components.dart';
 import '../../cubit.dart';
 
 class HomeMaterial extends StatefulWidget {
@@ -68,11 +69,7 @@ class _HomeMaterialState extends State<HomeMaterial> {
                 selectedIcon: const HugeIcon(icon: HugeIcons.strokeRoundedCall02, size: 24.0, strokeWidth: 2),
                 label: context.t.screenHome.calls,
               ),
-              NavigationDestination(
-                icon: const HugeIcon(icon: HugeIcons.strokeRoundedChatFeedback01, size: 24.0, strokeWidth: 2),
-                selectedIcon: const HugeIcon(icon: HugeIcons.strokeRoundedChatFeedback01, size: 24.0, strokeWidth: 2),
-                label: context.t.screenHome.chats,
-              ),
+              NavigationDestination(icon: const _ChatsIcon(), selectedIcon: const _ChatsIcon(), label: context.t.screenHome.chats),
               NavigationDestination(
                 icon: const HugeIcon(icon: HugeIcons.strokeRoundedSettings01, size: 24.0, strokeWidth: 2),
                 selectedIcon: const HugeIcon(icon: HugeIcons.strokeRoundedSettings01, size: 24.0, strokeWidth: 2),
@@ -84,4 +81,19 @@ class _HomeMaterialState extends State<HomeMaterial> {
       },
     );
   }
+}
+
+/// Иконка вкладки «Чаты» со счётчиком непрочитанных (без заглушённых) — как в
+/// Telegram.
+class _ChatsIcon extends StatelessWidget {
+  const _ChatsIcon();
+
+  @override
+  Widget build(BuildContext context) => UnreadTotalBuilder(
+    builder: (context, total) => Badge(
+      isLabelVisible: total > 0,
+      label: Text(ChatTileContent.badge(total)),
+      child: const HugeIcon(icon: HugeIcons.strokeRoundedChatFeedback01, size: 24.0, strokeWidth: 2),
+    ),
+  );
 }

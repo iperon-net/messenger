@@ -22,6 +22,7 @@ import 'chats_media.dart';
 import 'updates_plan.dart';
 import 'chats_media_cleanup.dart';
 import 'chats_typing.dart';
+import 'secret/secret_chats_list.dart' show secretChatListID;
 
 /// Capability сессии «умеет группы» (`Subscribe.capabilities`, флаг «Группы»
 /// на экране «Разработчик»): групповое сервер отдаёт только таким сессиям.
@@ -257,7 +258,7 @@ class ChatsSync {
   void setEnabled(bool value) {
     if (_enabled == value) return;
     _enabled = value;
-    _watchBadge(value);
+    _watchUnread(value);
     _watchExpired(value);
     if (value && getIt.isRegistered<API>() && getIt.get<API>().connectionStatus == ApiConnectionStatus.connected) {
       unawaited(onConnected());
@@ -308,24 +309,35 @@ class ChatsSync {
     if (getIt.isRegistered<API>()) unawaited(getIt.get<API>().resubscribe());
   }
 
-  StreamSubscription<int>? _badgeSub;
+  StreamSubscription<ChatsUnread>? _unreadSub;
 
-  /// Бейдж на иконке (iOS) — из локального списка диалогов при каждом его
-  /// изменении: так он сходится с тем, что видно в «Чатах», и падает сразу после
-  /// прочтения здесь. В фоне его ведут пуши (сервер считает так же, см. `badge`
-  /// в `services/chats.go`). Выключили серверные чаты — снимаем.
-  void _watchBadge(bool enabled) {
-    if (!Platform.isIOS) return;
-    unawaited(_badgeSub?.cancel());
-    _badgeSub = null;
+  /// Непрочитанные для счётчиков на вкладке «Чаты» и у «назад» в окне чата
+  /// (как в Telegram) — из локального списка диалогов, при каждом его
+  /// изменении.
+  final unread = ValueNotifier<ChatsUnread>(ChatsUnread.empty);
+
+  /// Последнее выставленное число на иконке (iOS) — не дёргаем натив зря.
+  int? _badge;
+
+  /// Счётчики [unread] и бейдж на иконке (iOS) — из локального списка диалогов
+  /// при каждом его изменении: так они сходятся с тем, что видно в «Чатах», и
+  /// падают сразу после прочтения здесь. В фоне бейдж ведут пуши (сервер
+  /// считает так же, см. `badge` в `services/chats.go`). Выключили серверные
+  /// чаты — снимаем.
+  void _watchUnread(bool enabled) {
+    unawaited(_unreadSub?.cancel());
+    _unreadSub = null;
     if (!enabled) {
-      unawaited(PushManager.setBadge(0));
+      unread.value = ChatsUnread.empty;
+      _setBadge(0);
       return;
     }
     final repositories = getIt.get<Repositories>();
-    // Скрыли/показали профиль — его личный чат входит в бейдж или выходит.
+    // Скрыли/показали профиль — его личный чат входит в счётчик или выходит.
     final changes = StreamController<void>();
-    final dialogsSub = repositories.db.onChange([ChatsRepository.dialogsTable]).listen(changes.add, onError: changes.addError);
+    final dialogsSub = repositories.db
+        .onChange([ChatsRepository.dialogsTable, ...SecretChatsRepository.tables])
+        .listen(changes.add, onError: changes.addError);
     final hiddenSub = repositories.hiddenProfiles.changes.listen(changes.add);
     final groupsSub = _groupsChanged.stream.listen(changes.add);
     changes.onCancel = () async {
@@ -333,13 +345,16 @@ class ChatsSync {
       await hiddenSub.cancel();
       await groupsSub.cancel();
     };
-    _badgeSub = changes.stream
-        .asyncMap((_) => _badge())
-        .distinct()
-        .listen(
-          (count) => unawaited(PushManager.setBadge(count)),
-          onError: (Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace),
-        );
+    _unreadSub = changes.stream.asyncMap((_) => _countUnread()).listen((counts) {
+      unread.value = counts;
+      _setBadge(counts.total);
+    }, onError: (Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace));
+  }
+
+  void _setBadge(int count, {bool force = false}) {
+    if (!Platform.isIOS || (!force && _badge == count)) return;
+    _badge = count;
+    unawaited(PushManager.setBadge(count));
   }
 
   /// Приложение вернулось на передний план — переставить бейдж по локальному
@@ -348,27 +363,48 @@ class ChatsSync {
   /// без тихого пуша), и иначе на иконке оставалась бы «1» при всём прочитанном.
   void refreshBadge() {
     if (!Platform.isIOS || !_enabled) return;
-    unawaited(_badge().then(PushManager.setBadge, onError: (Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace)));
+    unawaited(
+      _countUnread().then(
+        (counts) => _setBadge(counts.total, force: true),
+        onError: (Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace),
+      ),
+    );
   }
 
   /// Непрочитанные во всех незаглушённых диалогах; ручная пометка без
   /// непрочитанных — 1 (как на сервере). Личные чаты с локально скрытыми
   /// профилями (HiddenProfiles) не считаем — сервер о них не знает, поэтому
-  /// бейдж из пуша в фоне их ещё включает.
-  Future<int> _badge() async {
-    if (!_auth.isAuthorized) return 0;
+  /// бейдж из пуша в фоне их ещё включает. Секретные чаты этого устройства
+  /// считаем тоже (заглушить их нельзя) — сервер их не видит.
+  Future<ChatsUnread> _countUnread() async {
+    if (!_auth.isAuthorized) return ChatsUnread.empty;
     final now = DateTime.now();
-    final hidden = await getIt.get<Repositories>().hiddenProfiles.hashByHex();
-    var total = 0;
+    final repositories = getIt.get<Repositories>();
+    final hidden = await repositories.hiddenProfiles.hashByHex();
+    final byChat = <String, int>{};
     for (final row in await _store.dialogs(userID: me)) {
       if (mutedFromPb(row.mutedUntil, now).muted) continue;
-      // Группы без флага «Группы» не видны — и в бейдж не идут (как на сервере).
+      // Группы без флага «Группы» не видны — и в счётчик не идут (как на сервере).
       if (!_groups && row.type != pb.ChatType.CHAT_TYPE_PRIVATE.value) continue;
       if (row.peerUserID case final peer? when hidden.containsKey(idHex(peer))) continue;
-      total += row.unreadCount > 0 ? row.unreadCount : (row.markedUnread ? 1 : 0);
+      final count = row.unreadCount > 0 ? row.unreadCount : (row.markedUnread ? 1 : 0);
+      if (count > 0) byChat[idHex(row.chatID)] = count;
     }
-    return total;
+    for (final record in await repositories.secretChats.chats(sessionID: _auth.session.sessionID)) {
+      if (record.unreadCount <= 0 || hidden.containsKey(idHex(record.peerUserID))) continue;
+      byChat[secretChatListID(record.secretChatID)] = record.unreadCount;
+    }
+    return ChatsUnread(byChat);
   }
+
+  final _incoming = StreamController<ChatsIncoming>.broadcast();
+
+  /// Новые входящие, пришедшие вживую push'ем `UPDATES` (не догон после
+  /// подключения), — для баннера в приложении (`InAppNotices`). Событие — уже
+  /// после записи в БД. Упоминание меня в группе приходит отдельным
+  /// обновлением — тогда событие повторяется с `mentioned` (пробивает «Без
+  /// звука»).
+  Stream<ChatsIncoming> get incoming => _incoming.stream;
 
   /// Для кого уже убедились, что «Избранное» есть (hex userID).
   final _selfEnsured = <String>{};
@@ -613,15 +649,20 @@ class ChatsSync {
   void handlePush(Uint8List payload) {
     if (!_enabled) return;
     final updates = pb.Updates.fromBuffer(payload);
-    unawaited(applyUpdates(updates).catchError((Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace)));
+    unawaited(applyLive(updates).catchError((Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace)));
   }
+
+  /// Как [applyUpdates], но вживую по стриму: новые входящие идут в [incoming].
+  @visibleForTesting
+  Future<void> applyLive(pb.Updates updates) => _locked(() => _applyUpdatesLocked(updates, live: true));
 
   /// Обновления из ответа на запрос или push: применить подряд идущие, при
   /// дыре — догнать.
   Future<void> applyUpdates(pb.Updates updates) => _locked(() => _applyUpdatesLocked(updates));
 
-  Future<void> _applyUpdatesLocked(pb.Updates updates) async {
-    final result = await _applyBatch(updates.updates, statePts: updates.hasState() ? updates.state.pts.toInt() : 0);
+  /// [live] — push по стриму: новые входящие из него идут в [incoming].
+  Future<void> _applyUpdatesLocked(pb.Updates updates, {bool live = false}) async {
+    final result = await _applyBatch(updates.updates, statePts: updates.hasState() ? updates.state.pts.toInt() : 0, live: live);
     try {
       if (result.gap) await _getDifference();
       await _catchUpChats(result.chatGaps);
@@ -636,12 +677,14 @@ class ChatsSync {
   /// GetChatDifference). Обновления с `chatPts > 0` — журналы групп
   /// ([planChatUpdates]), применяются после журнала пользователя: его
   /// dialogNew из той же пачки заводит группу. Возвращает, есть ли дыра в
-  /// журнале пользователя и в каких группах.
+  /// журнале пользователя и в каких группах. [live] — push по стриму (см.
+  /// [incoming]).
   Future<({bool gap, List<Uint8List> chatGaps})> _applyBatch(
     List<pb.Update> updates, {
     int statePts = 0,
     int? setPts,
     Map<String, int> chatSetPts = const {},
+    bool live = false,
   }) async {
     final user = me;
     final followUps = _FollowUps();
@@ -692,6 +735,16 @@ class ChatsSync {
     for (final chatID in followUps.joinRequestsChanged) {
       _joinRequestsChanged.add(chatID);
     }
+    if (live) {
+      for (final message in followUps.incoming) {
+        final mentioned = followUps.mentions.remove((chatID: message.chatID, messageID: message.messageID));
+        _incoming.add((chatID: message.chatID, messageID: message.messageID, fromUserID: message.fromUserID, mentioned: mentioned));
+      }
+      // Упоминание в сообщении из прошлой пачки (автор — в БД).
+      for (final mention in followUps.mentions) {
+        _incoming.add((chatID: mention.chatID, messageID: mention.messageID, fromUserID: '', mentioned: true));
+      }
+    }
     if (followUps.reloadDialogs || followUps.refreshTop.isNotEmpty || followUps.refreshPinned.isNotEmpty) {
       unawaited(_runFollowUps(followUps));
     }
@@ -730,6 +783,11 @@ class ChatsSync {
         } else if (!fresh && dialog != null && id > top && id > dialog.readInboxMaxID && !skipsUnread(message.content)) {
           // Новое входящее: счётчик локально, точное значение — с ReadInbox/Dialog.
           await tx.updateDialog(userID: user, chatID: chatID, fields: {'unreadCount': dialog.unreadCount + 1});
+        }
+        // Баннер в приложении — о новом непрочитанном (звонок — не сообщение:
+        // о пропущенном есть свои уведомления).
+        if (!outgoing && !skipsUnread(message.content) && !message.content.hasCall() && id > (dialog?.readInboxMaxID ?? 0)) {
+          followUps.incoming.add((chatID: idHex(chatID), messageID: id, fromUserID: idHex(message.fromUserID)));
         }
 
       case pb.Update_Update.editMessage:
@@ -865,6 +923,9 @@ class ChatsSync {
         final ids = [for (final id in mentions.messageIDs) id.toInt()];
         if (mentions.unread) {
           await tx.addMentions(userID: user, chatID: mentions.chatID, messageIDs: ids);
+          for (final id in ids) {
+            followUps.mentions.add((chatID: idHex(mentions.chatID), messageID: id));
+          }
         } else {
           await tx.removeMentions(userID: user, chatID: mentions.chatID, messageIDs: ids.isEmpty ? null : ids);
         }
@@ -1821,4 +1882,36 @@ class _FollowUps {
 
   /// Группы, у которых изменились заявки на вступление (hex chatID).
   final joinRequestsChanged = <String>{};
+
+  /// Новые входящие (для [ChatsSync.incoming]).
+  final incoming = <({String chatID, int messageID, String fromUserID})>[];
+
+  /// Новые упоминания меня.
+  final mentions = <({String chatID, int messageID})>{};
+}
+
+/// Новое входящее сообщение ([ChatsSync.incoming]): hex chatID, id сообщения,
+/// hex автора (пусто — неизвестен), упоминает ли меня.
+typedef ChatsIncoming = ({String chatID, int messageID, String fromUserID, bool mentioned});
+
+/// Непрочитанные по чатам ([ChatsSync.unread]): id строки списка чатов (hex
+/// chatID / `secret:<hex>`) → сколько он добавляет в общий счётчик; заглушённых
+/// и скрытых здесь нет.
+@immutable
+class ChatsUnread {
+  final Map<String, int> byChat;
+  final int total;
+
+  ChatsUnread(this.byChat) : total = byChat.values.fold(0, (sum, count) => sum + count);
+
+  static final empty = ChatsUnread(const {});
+
+  /// Без чата [chatID] — счётчик у «назад» в его окне.
+  int except(String chatID) => total - (byChat[chatID] ?? 0);
+
+  @override
+  bool operator ==(Object other) => other is ChatsUnread && mapEquals(other.byChat, byChat);
+
+  @override
+  int get hashCode => Object.hashAllUnordered(byChat.entries.map((e) => Object.hash(e.key, e.value)));
 }

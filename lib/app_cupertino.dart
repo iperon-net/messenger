@@ -296,7 +296,18 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                 );
               }
 
-              return child ?? const SizedBox.shrink();
+              // Баннер о новом сообщении в другом чате (системные уведомления
+              // на переднем плане не показываются).
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  child ?? const SizedBox.shrink(),
+                  InAppNoticeHost(
+                    router: goRouter,
+                    card: (context, notice) => InAppNoticeCupertino(notice: notice),
+                  ),
+                ],
+              );
             },
           ),
         );

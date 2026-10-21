@@ -73,6 +73,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$screenAuth$en screenAuth = Translations$screenAuth$en.internal(_root);
 	late final Translations$screenAuthModerationApplicationStore$en screenAuthModerationApplicationStore = Translations$screenAuthModerationApplicationStore$en.internal(_root);
 	late final Translations$screenAuthCallpasswordConfirmation$en screenAuthCallpasswordConfirmation = Translations$screenAuthCallpasswordConfirmation$en.internal(_root);
+	late final Translations$inAppNotice$en inAppNotice = Translations$inAppNotice$en.internal(_root);
 	late final Translations$grpcError$en grpcError = Translations$grpcError$en.internal(_root);
 	late final Translations$dateTime$en dateTime = Translations$dateTime$en.internal(_root);
 	late final Translations$screenCall$en screenCall = Translations$screenCall$en.internal(_root);
@@ -3643,6 +3644,21 @@ class Translations$screenAuthCallpasswordConfirmation$en {
 	String get signatureVerificationFailed => 'Signature verification failed';
 }
 
+// Path: inAppNotice
+class Translations$inAppNotice$en {
+	Translations$inAppNotice$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Iperon'
+	String get appName => 'Iperon';
+
+	/// en: 'New message'
+	String get newMessage => 'New message';
+}
+
 // Path: grpcError
 class Translations$grpcError$en {
 	Translations$grpcError$en.internal(this._root);
@@ -5580,6 +5596,8 @@ extension on Translations {
 			'screenAuthCallpasswordConfirmation.confirmYourNumberDetail' => ({required Object confirmationPhoneNumberRu}) => 'Call ${confirmationPhoneNumberRu} from the phone number you provided and wait for the call to be disconnected.',
 			'screenAuthCallpasswordConfirmation.callForFree' => 'Call for free',
 			'screenAuthCallpasswordConfirmation.signatureVerificationFailed' => 'Signature verification failed',
+			'inAppNotice.appName' => 'Iperon',
+			'inAppNotice.newMessage' => 'New message',
 			'grpcError.errorConnectingServer' => 'Error connecting to the server',
 			'grpcError.unauthenticated' => 'Unauthenticated',
 			'grpcError.unableConnectServer' => 'Unable to connect to the server',

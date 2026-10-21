@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:grpc/grpc.dart' show StatusCode;
+import 'package:messenger/api.dart';
 import 'package:messenger/auth.dart';
 import 'package:messenger/chats/chats_mapping.dart';
 import 'package:messenger/chats/chats_sync.dart';
@@ -13,6 +15,7 @@ import 'package:messenger/di.dart';
 import 'package:messenger/logger.dart';
 import 'package:messenger/models.dart' as models;
 import 'package:messenger/protobuf/protos/chats_v1.pb.dart' as pb;
+import 'package:messenger/protobuf/protos/v1.pb.dart' show MessageType;
 import 'package:messenger/repositories/repositories.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
@@ -281,6 +284,60 @@ void main() {
       expect(group?.pts, 5);
     });
 
+    test('баннер в приложении: вживую — новые входящие и упоминания; ответ на запрос и свои — нет', () async {
+      // Входящее снимает «печатает…» (ChatsTyping слушает стрим).
+      getIt.registerSingleton<API>(_FakeApi());
+      await store.upsertDialog(userID: me, dialog: groupDialog());
+      await store.setPts(userID: me, pts: 10);
+      final events = <ChatsIncoming>[];
+      final subscription = ChatsSync.instance.incoming.listen(events.add);
+      addTearDown(subscription.cancel);
+      pb.Update newMessage(int chatPts, pb.ChatMessage message) => pb.Update(
+        chatPts: Int64(chatPts),
+        chatID: groupChat,
+        newMessage: pb.Update_NewMessage(message: message),
+      );
+      pb.Update mention(int pts, int messageID) => pb.Update(
+        pts: Int64(pts),
+        mentions: pb.Update_MentionsChanged(chatID: groupChat, messageIDs: [Int64(messageID)], unread: true, unreadMentionsCount: 1),
+      );
+
+      // Ответ на запрос (не стрим) — без баннера.
+      await apply([newMessage(2, message(1))]);
+      // Своё с другого устройства — без баннера; чужое с упоминанием в той же пачке — с ним.
+      await ChatsSync.instance.applyLive(
+        pb.Updates(
+          updates: [
+            newMessage(3, message(2, from: me)),
+            newMessage(4, message(3)),
+            mention(11, 3),
+          ],
+        ),
+      );
+      // Упоминание отдельной пачкой — повтор с mentioned (пробивает «Без звука»).
+      await ChatsSync.instance.applyLive(pb.Updates(updates: [newMessage(5, message(4))]));
+      await ChatsSync.instance.applyLive(pb.Updates(updates: [mention(12, 4)]));
+      // Служебное — не сообщение.
+      await ChatsSync.instance.applyLive(
+        pb.Updates(
+          updates: [
+            newMessage(
+              6,
+              message(
+                5,
+                content: pb.MessageContent(chatAction: pb.MessageChatAction(userIDs: [me])),
+              ),
+            ),
+          ],
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      final hex = idHex(groupChat);
+      expect([for (final e in events) (e.chatID, e.messageID, e.mentioned)], [(hex, 3, true), (hex, 4, false), (hex, 4, true)]);
+      expect([for (final e in events) e.fromUserID], [idHex(peer), idHex(peer), '']);
+    });
+
     test('упоминания: из истории, Update.mentions, сверка страницей, удаление', () async {
       await store.upsertDialog(userID: me, dialog: groupDialog());
       await store.setPts(userID: me, pts: 10);
@@ -496,6 +553,14 @@ class _FakeRepositories implements Repositories {
   final ChatsRepository chats;
 
   _FakeRepositories(this.chats);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakeApi implements API {
+  @override
+  Stream<Uint8List> on(MessageType type) => const Stream.empty();
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

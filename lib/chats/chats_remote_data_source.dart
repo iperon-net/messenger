@@ -187,6 +187,15 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     return out.stream;
   }
 
+  /// Один чат списка по [id] (hex) — разовым чтением, без подписки (баннер о
+  /// новом сообщении, `InAppNotices`); null — нет в списке.
+  Future<models.Chat?> loadChat(String id) async {
+    for (final chat in await _loadChats()) {
+      if (chat.id == id) return chat;
+    }
+    return null;
+  }
+
   /// «Печатает…» / «отправляет фото…» из [ChatsTyping] — поверх загруженного.
   /// В личном чате имя не нужно (собеседник один) — берём заголовок; в группе
   /// — имя участника по общему правилу ([_names]).

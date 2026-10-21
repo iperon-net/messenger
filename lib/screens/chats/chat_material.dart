@@ -74,7 +74,10 @@ class ChatMaterial extends StatefulWidget {
   State<ChatMaterial> createState() => _ChatMaterialState();
 }
 
-class _ChatMaterialState extends State<ChatMaterial> {
+class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
+  @override
+  String get unreadChatID => context.read<ChatCubit>().chatID;
+
   final _input = TextEditingController();
   late final _mentions = ComposeMentions(_input);
   late final _formatMenu = ComposeFormatMenu(
@@ -578,6 +581,8 @@ class _ChatMaterialState extends State<ChatMaterial> {
                       : AppBar(
                           backgroundColor: barColor,
                           titleSpacing: 0,
+                          // Непрочитанные в других чатах — на стрелке (как в Telegram).
+                          leading: unreadBackButtonMaterial(unreadBack),
                           // Удержание шапки — поиск по чату (как в Telegram).
                           title: chat == null
                               ? null

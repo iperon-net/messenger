@@ -1170,6 +1170,10 @@
   "callForFree": "Call for free"
   "signatureVerificationFailed": "Signature verification failed"
 
+inAppNotice:
+  "appName": "Iperon"
+  "newMessage": "New message"
+
 grpcError:
   "errorConnectingServer": "Error connecting to the server"
   "unauthenticated": "Unauthenticated"

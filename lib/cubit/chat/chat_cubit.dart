@@ -39,6 +39,9 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
 
   ChatsDataSource? _source;
   late String _chatID;
+
+  /// hex id чата окна.
+  String get chatID => _chatID;
   StreamSubscription<List<models.Chat>>? _chatsSubscription;
   StreamSubscription<List<models.Message>>? _messagesSubscription;
   StreamSubscription<List<models.Message>>? _scheduledSubscription;

@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:screen_protector/screen_protector.dart';
 
+import '../../chats/secret/secret_chats_list.dart' show secretChatIDPrefix;
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -30,7 +31,10 @@ class SecretChatCupertino extends StatefulWidget {
   State<SecretChatCupertino> createState() => _SecretChatCupertinoState();
 }
 
-class _SecretChatCupertinoState extends State<SecretChatCupertino> {
+class _SecretChatCupertinoState extends State<SecretChatCupertino> with UnreadBackCount {
+  @override
+  String get unreadChatID => '$secretChatIDPrefix${context.read<SecretChatCubit>().state.chatID}';
+
   final _input = TextEditingController();
 
   /// Ключи строк ленты — снимки для «пыли» при удалении.
@@ -109,7 +113,7 @@ class _SecretChatCupertinoState extends State<SecretChatCupertino> {
             backgroundColor: background,
             navigationBar: AppCupertinoNavigationBar(
               child: CupertinoNavigationBar(
-                previousPageTitle: '',
+                previousPageTitle: unreadBack > 0 ? ChatTileContent.badge(unreadBack) : '',
                 automaticBackgroundVisibility: false,
                 backgroundColor: barColor,
                 middle: GestureDetector(

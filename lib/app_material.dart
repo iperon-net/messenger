@@ -261,7 +261,18 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
                 );
               }
 
-              return child ?? const SizedBox.shrink();
+              // Баннер о новом сообщении в другом чате (системные уведомления
+              // на переднем плане не показываются).
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  child ?? const SizedBox.shrink(),
+                  InAppNoticeHost(
+                    router: goRouter,
+                    card: (context, notice) => InAppNoticeMaterial(notice: notice),
+                  ),
+                ],
+              );
             },
           ),
         );

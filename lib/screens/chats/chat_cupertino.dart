@@ -78,7 +78,10 @@ class ChatCupertino extends StatefulWidget {
   State<ChatCupertino> createState() => _ChatCupertinoState();
 }
 
-class _ChatCupertinoState extends State<ChatCupertino> {
+class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
+  @override
+  String get unreadChatID => context.read<ChatCubit>().chatID;
+
   final _input = TextEditingController();
   late final _mentions = ComposeMentions(_input);
   late final _formatMenu = ComposeFormatMenu(
@@ -542,7 +545,8 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                         )
                       : AppCupertinoNavigationBar(
                           child: CupertinoNavigationBar(
-                            previousPageTitle: '',
+                            // Непрочитанные в других чатах — «‹ 3» (как в Telegram).
+                            previousPageTitle: unreadBack > 0 ? ChatTileContent.badge(unreadBack) : '',
                             // Фон панели всегда (без автоскрытия у края ленты): иначе у верха
                             // истории панель становилась прозрачной и под ней была чёрная полоса.
                             automaticBackgroundVisibility: false,

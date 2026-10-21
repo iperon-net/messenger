@@ -343,7 +343,7 @@ class SecretChatsSync {
         await _catchUp();
         return;
       }
-      await _apply(update);
+      await _apply(update, live: true);
       qts = number;
       await store.setQts(sessionID: _sessionID, qts: qts);
     }
@@ -384,7 +384,8 @@ class SecretChatsSync {
 
   /// Применяет одно событие локально. Ошибка расшифровки/формата не
   /// останавливает очередь: событие пропускается с записью в лог.
-  Future<void> _apply(sc.SecretUpdate update) async {
+  /// [live] — из push по стриму, не догон (см. [incoming]).
+  Future<void> _apply(sc.SecretUpdate update, {bool live = false}) async {
     final chatID = Uint8List.fromList(update.secretChatID);
     try {
       switch (update.whichUpdate()) {
@@ -395,7 +396,7 @@ class SecretChatsSync {
         case sc.SecretUpdate_Update.committed:
           await _onCommitted(chatID, update.committed);
         case sc.SecretUpdate_Update.newMessage:
-          await _onNewMessage(chatID, update);
+          await _onNewMessage(chatID, update, live: live);
         case sc.SecretUpdate_Update.discarded:
           await _onDiscarded(chatID, update.discarded);
         case sc.SecretUpdate_Update.notSet:
@@ -488,7 +489,7 @@ class SecretChatsSync {
     );
   }
 
-  Future<void> _onNewMessage(Uint8List chatID, sc.SecretUpdate update) async {
+  Future<void> _onNewMessage(Uint8List chatID, sc.SecretUpdate update, {bool live = false}) async {
     final chat = await store.chat(sessionID: _sessionID, secretChatID: chatID);
     final ratchet = chat?.ratchet;
     if (chat == null || ratchet == null) {
@@ -583,6 +584,7 @@ class SecretChatsSync {
     );
     await _cleanup(removed);
     _scheduleExpiry();
+    if (live && (payload.hasText() || payload.hasMedia())) _incoming.add((chatID: chatID, randomID: randomID));
   }
 
   Future<void> _onDiscarded(Uint8List chatID, sc.SecretUpdate_Discarded discarded) async {
@@ -842,6 +844,11 @@ class SecretChatsSync {
   /// строки и рассыпать их пылью. [chatID] — hex, [messageIDs] — randomID.
   Stream<({String chatID, List<String> messageIDs})> get messagesDeleted => _messagesDeleted.stream;
   final _messagesDeleted = StreamController<({String chatID, List<String> messageIDs})>.broadcast(sync: true);
+
+  /// Новое входящее сообщение, пришедшее вживую push'ем (не догон), — для
+  /// баннера в приложении (`InAppNotices`). Событие — уже после записи в БД.
+  Stream<({Uint8List chatID, int randomID})> get incoming => _incoming.stream;
+  final _incoming = StreamController<({Uint8List chatID, int randomID})>.broadcast();
 
   void _announceDeleted(List<int> chatID, Iterable<int> randomIDs) =>
       _messagesDeleted.add((chatID: _hex(chatID), messageIDs: [for (final id in randomIDs) '$id']));
