@@ -50,6 +50,8 @@ export '../../components/chats/chat_toast.dart' show showChatToast;
   final count = chat.membersCount > 0 ? chat.membersCount : (chat.type == models.ChatType.channel ? 1200 + seed % 90000 : 3 + seed % 60);
   return switch (chat.type) {
     models.ChatType.private when chat.isSelf => (text: '', active: false),
+    // «Iperon» — не человек: вместо «в сети» — что это за чат.
+    models.ChatType.private when chat.isSystem => (text: t.systemNotice.subtitle, active: false),
     models.ChatType.private => chatPresence(t, chat),
     models.ChatType.group || models.ChatType.community => (text: t.screenChat.members(n: count, count: count.grouped), active: false),
     models.ChatType.channel => (text: t.screenChat.subscribers(n: count, count: count.grouped), active: false),
@@ -2047,9 +2049,9 @@ class MentionSuggestions extends StatelessWidget {
 }
 
 /// Удаление чата с выбором «У меня» / «У меня и собеседника» — личный, кроме
-/// «Избранного» (у собеседника история тоже очищается, чат пропадает из его
+/// «Избранного» и «Iperon» (у собеседника история тоже очищается, чат пропадает из его
 /// списка). Так же — удаление и закрепление сообщений в нём. Выбор — отдельным
 /// меню после пункта действий: на iOS выпадающим ([scopeMenuCupertino] в
 /// chat_actions_cupertino.dart), на Android шторкой ([pickScopeMaterial] в
 /// chat_actions_material.dart).
-bool chatDeleteScoped(models.Chat chat) => chat.type == models.ChatType.private && !chat.isSelf;
+bool chatDeleteScoped(models.Chat chat) => chat.type == models.ChatType.private && !chat.isSelf && !chat.isSystem;

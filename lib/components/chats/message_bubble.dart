@@ -178,6 +178,9 @@ class ChatMessagesView extends StatelessWidget {
   /// Тап по звонку — перезвонить.
   final ValueChanged<models.Message>? onCallTap;
 
+  /// Кнопки внизу пузыря сообщения (уведомления «Iperon»); пусто — без них.
+  final List<(String, VoidCallback)> Function(models.Message message)? actionsFor;
+
   /// Наше сообщение с непрочитанными реакциями (или упоминание нас)
   /// оказалось на экране (строка построена — лента ленивая) или получило
   /// флаг, уже будучи на экране.
@@ -225,6 +228,7 @@ class ChatMessagesView extends StatelessWidget {
     this.onPollVote,
     this.onPollVoters,
     this.onCallTap,
+    this.actionsFor,
     this.onReactionsShown,
     this.senderBadges = const {},
   });
@@ -367,6 +371,7 @@ class ChatMessagesView extends StatelessWidget {
                                   onPollVote: onPollVote == null ? null : (options) => onPollVote!(m, options),
                                   onPollVoters: onPollVoters == null ? null : () => onPollVoters!(m),
                                   onCallTap: onCallTap == null ? null : () => onCallTap!(m),
+                                  actions: actionsFor?.call(m) ?? const [],
                                 ),
                               ),
                             ),
@@ -703,6 +708,9 @@ class MessageBubble extends StatelessWidget {
   /// Тап по звонку ([models.MessageKind.call]) — перезвонить.
   final VoidCallback? onCallTap;
 
+  /// Кнопки внизу пузыря (уведомление «Iperon»: «Устройства» / «Это не я»).
+  final List<(String, VoidCallback)> actions;
+
   const MessageBubble({
     super.key,
     required this.message,
@@ -728,6 +736,7 @@ class MessageBubble extends StatelessWidget {
     this.onPollVote,
     this.onPollVoters,
     this.onCallTap,
+    this.actions = const [],
   });
 
   static const _radius = Radius.circular(18);
@@ -1055,6 +1064,11 @@ class MessageBubble extends StatelessWidget {
             closed: commentsClosed,
             onTap: onTap,
           ),
+        );
+      }
+      if (actions.isNotEmpty) {
+        content.add(
+          _ActionsBar(actions: actions, color: colors.link, separator: metaColor, textStyle: style.textStyle, inset: captionInset),
         );
       }
       if (selectableText == null) return content;
@@ -1877,6 +1891,57 @@ String compactCount(int n) {
 
 /// Низ поста канала: аватары последних комментаторов (или значок), «N
 /// комментариев» / «Прокомментировать» и стрелка; тап — ветка комментариев.
+/// Кнопки внизу пузыря (уведомление «Iperon»): над ними черта, как у
+/// [_CommentsBar]; рядом — поровну, разделены вертикальной чертой.
+class _ActionsBar extends StatelessWidget {
+  final List<(String, VoidCallback)> actions;
+  final Color color;
+  final Color separator;
+  final TextStyle textStyle;
+  final double inset;
+
+  const _ActionsBar({required this.actions, required this.color, required this.separator, required this.textStyle, required this.inset});
+
+  @override
+  Widget build(BuildContext context) {
+    final line = separator.withValues(alpha: 0.4);
+    return Padding(
+      padding: EdgeInsets.fromLTRB(inset, 6, inset, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(height: 0.5, color: line),
+          IntrinsicHeight(
+            child: Row(
+              children: [
+                for (final (i, (title, onTap)) in actions.indexed) ...[
+                  if (i > 0) Container(width: 0.5, margin: const EdgeInsets.symmetric(vertical: 6), color: line),
+                  Expanded(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: onTap,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(6, 9, 6, 2),
+                        child: Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: textStyle.copyWith(fontSize: 14.5, fontWeight: FontWeight.w500, color: color),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _CommentsBar extends StatelessWidget {
   final models.Message message;
   final MessageTextColors colors;

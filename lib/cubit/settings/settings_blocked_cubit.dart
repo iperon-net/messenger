@@ -7,6 +7,7 @@ import '../../api.dart';
 import '../../auth.dart';
 import '../../constants.dart';
 import '../../di.dart';
+import '../../models.dart' as models;
 import '../../protobuf.dart';
 import '../../protobuf/protos/chats_v1.pb.dart' as pb;
 import '../../peer_names.dart';
@@ -70,6 +71,8 @@ class SettingsBlockedCubit extends Cubit<SettingsBlockedState> {
     final me = getIt.get<Auth>().session.userID;
     final skip = {
       utils.bytesToHex(Uint8List.fromList(me)),
+      // «Iperon» не блокируют.
+      models.systemUserID,
       ...await PrivacyBlocks.hexes(),
       ...(await repositories.hiddenProfiles.hashByHex()).keys,
     };

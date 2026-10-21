@@ -502,6 +502,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         idHex(userID): () {
           final key = idHex(userID);
           final profile = profiles[key];
+          // Системный аккаунт — всегда «Iperon» (его не переименовать контактом).
+          if (key == models.systemUserID) return _PeerInfo(title: models.systemAccountName, isContact: false, profile: profile);
           final rawPhone = profile?.phoneNumber ?? '';
           final phone = rawPhone.isEmpty
               ? ''

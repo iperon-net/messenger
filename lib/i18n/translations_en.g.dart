@@ -82,6 +82,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$chatTtl$en chatTtl = Translations$chatTtl$en.internal(_root);
 	late final Translations$chatNoForwards$en chatNoForwards = Translations$chatNoForwards$en.internal(_root);
 	late final Translations$secretChat$en secretChat = Translations$secretChat$en.internal(_root);
+	late final Translations$systemNotice$en systemNotice = Translations$systemNotice$en.internal(_root);
 }
 
 // Path: common
@@ -4353,6 +4354,147 @@ class Translations$secretChat$en {
 	String screenshot({required Object name}) => '${name} took a screenshot';
 }
 
+// Path: systemNotice
+class Translations$systemNotice$en {
+	Translations$systemNotice$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Service notifications'
+	String get subtitle => 'Service notifications';
+
+	/// en: 'New login'
+	String get newLoginTitle => 'New login';
+
+	/// en: 'Someone logged in to your account from a new device.'
+	String get newLogin => 'Someone logged in to your account from a new device.';
+
+	/// en: 'Device: {value}'
+	String device({required Object value}) => 'Device: ${value}';
+
+	/// en: 'App: Iperon {value}'
+	String app({required Object value}) => 'App: Iperon ${value}';
+
+	/// en: 'Location: {value}'
+	String location({required Object value}) => 'Location: ${value}';
+
+	/// en: 'IP address: {value}'
+	String ip({required Object value}) => 'IP address: ${value}';
+
+	/// en: 'Login method: {value}'
+	String method({required Object value}) => 'Login method: ${value}';
+
+	/// en: 'phone call'
+	String get methodCallPassword => 'phone call';
+
+	/// en: 'SMS'
+	String get methodSms => 'SMS';
+
+	/// en: 'passkey'
+	String get methodPasskey => 'passkey';
+
+	/// en: 'Yandex ID'
+	String get methodYandex => 'Yandex ID';
+
+	/// en: 'If this wasn't you, tap “Not me” to end that session, and turn on a cloud password.'
+	String get notMeHint => 'If this wasn\'t you, tap “Not me” to end that session, and turn on a cloud password.';
+
+	/// en: 'Cloud password enabled'
+	String get cloudPasswordSetTitle => 'Cloud password enabled';
+
+	/// en: 'A cloud password is now required to log in to your account on a new device.'
+	String get cloudPasswordSet => 'A cloud password is now required to log in to your account on a new device.';
+
+	/// en: 'Cloud password changed'
+	String get cloudPasswordChangedTitle => 'Cloud password changed';
+
+	/// en: 'The cloud password of your account has been changed.'
+	String get cloudPasswordChanged => 'The cloud password of your account has been changed.';
+
+	/// en: 'Cloud password disabled'
+	String get cloudPasswordDisabledTitle => 'Cloud password disabled';
+
+	/// en: 'Two-step verification is off: a cloud password is no longer required to log in.'
+	String get cloudPasswordDisabled => 'Two-step verification is off: a cloud password is no longer required to log in.';
+
+	/// en: 'Cloud password reset'
+	String get cloudPasswordResetTitle => 'Cloud password reset';
+
+	/// en: 'Your cloud password was reset with a code from the email and set again.'
+	String get cloudPasswordReset => 'Your cloud password was reset with a code from the email and set again.';
+
+	/// en: 'Failed login attempt'
+	String get cloudPasswordWrongTitle => 'Failed login attempt';
+
+	/// en: 'Someone confirmed a login to your account but entered a wrong cloud password. They were not logged in.'
+	String get cloudPasswordWrong => 'Someone confirmed a login to your account but entered a wrong cloud password. They were not logged in.';
+
+	/// en: 'If this wasn't you, someone knows your login code. Never share it and keep your cloud password on.'
+	String get cloudPasswordWrongHint => 'If this wasn\'t you, someone knows your login code. Never share it and keep your cloud password on.';
+
+	/// en: 'Recovery email confirmed'
+	String get recoveryEmailSetTitle => 'Recovery email confirmed';
+
+	/// en: 'You can now reset your cloud password via {email}.'
+	String recoveryEmailSet({required Object email}) => 'You can now reset your cloud password via ${email}.';
+
+	/// en: 'You can now reset your cloud password via email.'
+	String get recoveryEmailSetNoEmail => 'You can now reset your cloud password via email.';
+
+	/// en: 'Passkey added'
+	String get passkeyAddedTitle => 'Passkey added';
+
+	/// en: 'Passkey “{label}” was added to your account: it lets you log in without a phone call.'
+	String passkeyAdded({required Object label}) => 'Passkey “${label}” was added to your account: it lets you log in without a phone call.';
+
+	/// en: 'A passkey was added to your account: it lets you log in without a phone call.'
+	String get passkeyAddedNoLabel => 'A passkey was added to your account: it lets you log in without a phone call.';
+
+	/// en: 'Passkey removed'
+	String get passkeyRemovedTitle => 'Passkey removed';
+
+	/// en: 'A passkey was removed from your account.'
+	String get passkeyRemoved => 'A passkey was removed from your account.';
+
+	/// en: 'Service notification. Update the app to read it.'
+	String get unknown => 'Service notification. Update the app to read it.';
+
+	/// en: 'Devices'
+	String get devices => 'Devices';
+
+	/// en: 'Not me'
+	String get notMe => 'Not me';
+
+	/// en: 'End this session?'
+	String get notMeTitle => 'End this session?';
+
+	/// en: '“{device}” will be logged out of your account.'
+	String notMeMessage({required Object device}) => '“${device}” will be logged out of your account.';
+
+	/// en: 'This device will be logged out of your account.'
+	String get notMeMessageUnknown => 'This device will be logged out of your account.';
+
+	/// en: 'End session'
+	String get terminate => 'End session';
+
+	/// en: 'Session ended'
+	String get terminatedTitle => 'Session ended';
+
+	/// en: 'Turn on a cloud password: with it, nobody can log in on a new device, even with your login code.'
+	String get terminatedMessage => 'Turn on a cloud password: with it, nobody can log in on a new device, even with your login code.';
+
+	/// en: 'Turn on cloud password'
+	String get enableCloudPassword => 'Turn on cloud password';
+
+	/// en: 'Later'
+	String get later => 'Later';
+
+	/// en: 'Couldn't end the session. Please try again.'
+	String get terminateFailed => 'Couldn\'t end the session. Please try again.';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -5638,6 +5780,50 @@ extension on Translations {
 			'secretChat.ttlServiceOff' => ({required Object name}) => '${name} disabled the self-destruct timer',
 			'secretChat.screenshotYou' => 'You took a screenshot',
 			'secretChat.screenshot' => ({required Object name}) => '${name} took a screenshot',
+			'systemNotice.subtitle' => 'Service notifications',
+			'systemNotice.newLoginTitle' => 'New login',
+			'systemNotice.newLogin' => 'Someone logged in to your account from a new device.',
+			'systemNotice.device' => ({required Object value}) => 'Device: ${value}',
+			'systemNotice.app' => ({required Object value}) => 'App: Iperon ${value}',
+			'systemNotice.location' => ({required Object value}) => 'Location: ${value}',
+			'systemNotice.ip' => ({required Object value}) => 'IP address: ${value}',
+			'systemNotice.method' => ({required Object value}) => 'Login method: ${value}',
+			'systemNotice.methodCallPassword' => 'phone call',
+			'systemNotice.methodSms' => 'SMS',
+			'systemNotice.methodPasskey' => 'passkey',
+			'systemNotice.methodYandex' => 'Yandex ID',
+			'systemNotice.notMeHint' => 'If this wasn\'t you, tap “Not me” to end that session, and turn on a cloud password.',
+			'systemNotice.cloudPasswordSetTitle' => 'Cloud password enabled',
+			'systemNotice.cloudPasswordSet' => 'A cloud password is now required to log in to your account on a new device.',
+			'systemNotice.cloudPasswordChangedTitle' => 'Cloud password changed',
+			'systemNotice.cloudPasswordChanged' => 'The cloud password of your account has been changed.',
+			'systemNotice.cloudPasswordDisabledTitle' => 'Cloud password disabled',
+			'systemNotice.cloudPasswordDisabled' => 'Two-step verification is off: a cloud password is no longer required to log in.',
+			'systemNotice.cloudPasswordResetTitle' => 'Cloud password reset',
+			'systemNotice.cloudPasswordReset' => 'Your cloud password was reset with a code from the email and set again.',
+			'systemNotice.cloudPasswordWrongTitle' => 'Failed login attempt',
+			'systemNotice.cloudPasswordWrong' => 'Someone confirmed a login to your account but entered a wrong cloud password. They were not logged in.',
+			'systemNotice.cloudPasswordWrongHint' => 'If this wasn\'t you, someone knows your login code. Never share it and keep your cloud password on.',
+			'systemNotice.recoveryEmailSetTitle' => 'Recovery email confirmed',
+			'systemNotice.recoveryEmailSet' => ({required Object email}) => 'You can now reset your cloud password via ${email}.',
+			'systemNotice.recoveryEmailSetNoEmail' => 'You can now reset your cloud password via email.',
+			'systemNotice.passkeyAddedTitle' => 'Passkey added',
+			'systemNotice.passkeyAdded' => ({required Object label}) => 'Passkey “${label}” was added to your account: it lets you log in without a phone call.',
+			'systemNotice.passkeyAddedNoLabel' => 'A passkey was added to your account: it lets you log in without a phone call.',
+			'systemNotice.passkeyRemovedTitle' => 'Passkey removed',
+			'systemNotice.passkeyRemoved' => 'A passkey was removed from your account.',
+			'systemNotice.unknown' => 'Service notification. Update the app to read it.',
+			'systemNotice.devices' => 'Devices',
+			'systemNotice.notMe' => 'Not me',
+			'systemNotice.notMeTitle' => 'End this session?',
+			'systemNotice.notMeMessage' => ({required Object device}) => '“${device}” will be logged out of your account.',
+			'systemNotice.notMeMessageUnknown' => 'This device will be logged out of your account.',
+			'systemNotice.terminate' => 'End session',
+			'systemNotice.terminatedTitle' => 'Session ended',
+			'systemNotice.terminatedMessage' => 'Turn on a cloud password: with it, nobody can log in on a new device, even with your login code.',
+			'systemNotice.enableCloudPassword' => 'Turn on cloud password',
+			'systemNotice.later' => 'Later',
+			'systemNotice.terminateFailed' => 'Couldn\'t end the session. Please try again.',
 			_ => null,
 		};
 	}

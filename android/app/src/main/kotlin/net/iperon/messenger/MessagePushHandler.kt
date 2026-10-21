@@ -161,8 +161,9 @@ object MessagePushHandler {
                 val (title, text) = textFor(context, payload, appName)
                 builder.setContentTitle(title).setContentText(text)
                     .setStyle(NotificationCompat.BigTextStyle().bigText(text))
-                // Пропущенный звонок / «контакт в Iperon» — аватар человека.
-                if (payload.fromUserID.isNotEmpty()) {
+                // Пропущенный звонок / «контакт в Iperon» — аватар человека
+                // («Iperon» — значок приложения).
+                if (payload.fromUserID.isNotEmpty() && payload.kind != PushPayload.KIND_SYSTEM_NOTICE) {
                     builder.setLargeIcon(PushAvatars.user(context, payload.fromUserID) ?: PushAvatars.placeholder(title, payload.fromUserID))
                 }
             }
@@ -364,8 +365,33 @@ object MessagePushHandler {
         PushPayload.KIND_CALL_MISSED -> payload.title.ifEmpty { appName } to
             context.getString(R.string.push_call_missed_body)
         PushPayload.KIND_MESSAGE_REACTION -> payload.title.ifEmpty { appName } to reactionText(context, payload)
+        PushPayload.KIND_SYSTEM_NOTICE -> payload.title.ifEmpty { appName } to systemNoticeText(context, payload)
         else -> payload.title.ifEmpty { appName } to
             payload.body.ifEmpty { context.getString(R.string.push_fallback_body) }
+    }
+
+    /// Уведомление «Iperon»: args[0] — вид (имя MessageSystemNotice.Kind),
+    /// args[1] — устройство, args[2] / args[3] — место (en / ru). Неизвестный
+    /// вид (сервер новее) — общий текст.
+    private fun systemNoticeText(context: Context, payload: PushPayload): String {
+        val res = when (payload.args.firstOrNull()) {
+            "NEW_LOGIN" -> R.string.push_system_new_login
+            "CLOUD_PASSWORD_SET" -> R.string.push_system_cloud_password_set
+            "CLOUD_PASSWORD_CHANGED" -> R.string.push_system_cloud_password_changed
+            "CLOUD_PASSWORD_DISABLED" -> R.string.push_system_cloud_password_disabled
+            "CLOUD_PASSWORD_RESET" -> R.string.push_system_cloud_password_reset
+            "CLOUD_PASSWORD_WRONG" -> R.string.push_system_cloud_password_wrong
+            "RECOVERY_EMAIL_SET" -> R.string.push_system_recovery_email_set
+            "PASSKEY_ADDED" -> R.string.push_system_passkey_added
+            "PASSKEY_REMOVED" -> R.string.push_system_passkey_removed
+            else -> return context.getString(R.string.push_fallback_body)
+        }
+        val args = payload.args
+        val russian = context.resources.configuration.locales[0].language == "ru"
+        val location = (if (russian) listOf(3, 2) else listOf(2, 3)).firstNotNullOfOrNull { i -> args.getOrNull(i)?.ifEmpty { null } }
+        val details = listOfNotNull(args.getOrNull(1)?.ifEmpty { null }, location)
+        val title = context.getString(res)
+        return if (details.isEmpty()) title else "$title: ${details.joinToString(", ")}"
     }
 
     /// «❤️ к вашему сообщению «…»» / «❤️ к вашему фото»: args[0] — эмодзи,

@@ -306,6 +306,73 @@ final $typed_data.Uint8List messageChatActionDescriptor =
         'ISCAoETEVGVBADEgsKB1JFTU9WRUQQBBIRCg1USVRMRV9DSEFOR0VEEAUSEQoNUEhPVE9fQ0hB'
         'TkdFRBAGEhEKDVBIT1RPX1JFTU9WRUQQBxIRCg1PV05FUl9DSEFOR0VEEAg=');
 
+@$core.Deprecated('Use messageSystemNoticeDescriptor instead')
+const MessageSystemNotice$json = {
+  '1': 'MessageSystemNotice',
+  '2': [
+    {'1': 'kind', '3': 1, '4': 1, '5': 14, '6': '.iperon.v1.MessageSystemNotice.Kind', '10': 'kind'},
+    {'1': 'sessionID', '3': 2, '4': 1, '5': 12, '10': 'sessionID'},
+    {'1': 'deviceModel', '3': 3, '4': 1, '5': 9, '10': 'deviceModel'},
+    {'1': 'os', '3': 4, '4': 1, '5': 5, '10': 'os'},
+    {'1': 'osVersion', '3': 5, '4': 1, '5': 9, '10': 'osVersion'},
+    {'1': 'appVersion', '3': 6, '4': 1, '5': 9, '10': 'appVersion'},
+    {'1': 'ip', '3': 7, '4': 1, '5': 9, '10': 'ip'},
+    {'1': 'locationEnglish', '3': 8, '4': 1, '5': 9, '10': 'locationEnglish'},
+    {'1': 'locationRussian', '3': 9, '4': 1, '5': 9, '10': 'locationRussian'},
+    {'1': 'loginMethod', '3': 10, '4': 1, '5': 14, '6': '.iperon.v1.MessageSystemNotice.LoginMethod', '10': 'loginMethod'},
+    {'1': 'email', '3': 11, '4': 1, '5': 9, '10': 'email'},
+    {'1': 'passkeyLabel', '3': 12, '4': 1, '5': 9, '10': 'passkeyLabel'},
+  ],
+  '4': [MessageSystemNotice_Kind$json, MessageSystemNotice_LoginMethod$json],
+};
+
+@$core.Deprecated('Use messageSystemNoticeDescriptor instead')
+const MessageSystemNotice_Kind$json = {
+  '1': 'Kind',
+  '2': [
+    {'1': 'UNKNOWN', '2': 0},
+    {'1': 'NEW_LOGIN', '2': 1},
+    {'1': 'CLOUD_PASSWORD_SET', '2': 2},
+    {'1': 'CLOUD_PASSWORD_CHANGED', '2': 3},
+    {'1': 'CLOUD_PASSWORD_DISABLED', '2': 4},
+    {'1': 'CLOUD_PASSWORD_RESET', '2': 5},
+    {'1': 'CLOUD_PASSWORD_WRONG', '2': 6},
+    {'1': 'RECOVERY_EMAIL_SET', '2': 7},
+    {'1': 'PASSKEY_ADDED', '2': 8},
+    {'1': 'PASSKEY_REMOVED', '2': 9},
+  ],
+};
+
+@$core.Deprecated('Use messageSystemNoticeDescriptor instead')
+const MessageSystemNotice_LoginMethod$json = {
+  '1': 'LoginMethod',
+  '2': [
+    {'1': 'LOGIN_METHOD_UNKNOWN', '2': 0},
+    {'1': 'CALL_PASSWORD', '2': 1},
+    {'1': 'SMS', '2': 2},
+    {'1': 'PASSKEY', '2': 3},
+    {'1': 'YANDEX', '2': 4},
+  ],
+};
+
+/// Descriptor for `MessageSystemNotice`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List messageSystemNoticeDescriptor =
+    $convert.base64Decode('ChNNZXNzYWdlU3lzdGVtTm90aWNlEjcKBGtpbmQYASABKA4yIy5pcGVyb24udjEuTWVzc2FnZV'
+        'N5c3RlbU5vdGljZS5LaW5kUgRraW5kEhwKCXNlc3Npb25JRBgCIAEoDFIJc2Vzc2lvbklEEiAK'
+        'C2RldmljZU1vZGVsGAMgASgJUgtkZXZpY2VNb2RlbBIOCgJvcxgEIAEoBVICb3MSHAoJb3NWZX'
+        'JzaW9uGAUgASgJUglvc1ZlcnNpb24SHgoKYXBwVmVyc2lvbhgGIAEoCVIKYXBwVmVyc2lvbhIO'
+        'CgJpcBgHIAEoCVICaXASKAoPbG9jYXRpb25FbmdsaXNoGAggASgJUg9sb2NhdGlvbkVuZ2xpc2'
+        'gSKAoPbG9jYXRpb25SdXNzaWFuGAkgASgJUg9sb2NhdGlvblJ1c3NpYW4STAoLbG9naW5NZXRo'
+        'b2QYCiABKA4yKi5pcGVyb24udjEuTWVzc2FnZVN5c3RlbU5vdGljZS5Mb2dpbk1ldGhvZFILbG'
+        '9naW5NZXRob2QSFAoFZW1haWwYCyABKAlSBWVtYWlsEiIKDHBhc3NrZXlMYWJlbBgMIAEoCVIM'
+        'cGFzc2tleUxhYmVsIucBCgRLaW5kEgsKB1VOS05PV04QABINCglORVdfTE9HSU4QARIWChJDTE'
+        '9VRF9QQVNTV09SRF9TRVQQAhIaChZDTE9VRF9QQVNTV09SRF9DSEFOR0VEEAMSGwoXQ0xPVURf'
+        'UEFTU1dPUkRfRElTQUJMRUQQBBIYChRDTE9VRF9QQVNTV09SRF9SRVNFVBAFEhgKFENMT1VEX1'
+        'BBU1NXT1JEX1dST05HEAYSFgoSUkVDT1ZFUllfRU1BSUxfU0VUEAcSEQoNUEFTU0tFWV9BRERF'
+        'RBAIEhMKD1BBU1NLRVlfUkVNT1ZFRBAJIlwKC0xvZ2luTWV0aG9kEhgKFExPR0lOX01FVEhPRF'
+        '9VTktOT1dOEAASEQoNQ0FMTF9QQVNTV09SRBABEgcKA1NNUxACEgsKB1BBU1NLRVkQAxIKCgZZ'
+        'QU5ERVgQBA==');
+
 @$core.Deprecated('Use messageEntityDescriptor instead')
 const MessageEntity$json = {
   '1': 'MessageEntity',
@@ -590,6 +657,7 @@ const MessageContent$json = {
     {'1': 'noForwardsRequest', '3': 11, '4': 1, '5': 11, '6': '.iperon.v1.MessageNoForwardsRequest', '10': 'noForwardsRequest'},
     {'1': 'chatAction', '3': 12, '4': 1, '5': 11, '6': '.iperon.v1.MessageChatAction', '10': 'chatAction'},
     {'1': 'poll', '3': 13, '4': 1, '5': 11, '6': '.iperon.v1.MessagePoll', '10': 'poll'},
+    {'1': 'systemNotice', '3': 14, '4': 1, '5': 11, '6': '.iperon.v1.MessageSystemNotice', '10': 'systemNotice'},
   ],
 };
 
@@ -607,7 +675,8 @@ final $typed_data.Uint8List messageContentDescriptor =
         'dhcmRzUmVxdWVzdBgLIAEoCzIjLmlwZXJvbi52MS5NZXNzYWdlTm9Gb3J3YXJkc1JlcXVlc3RS'
         'EW5vRm9yd2FyZHNSZXF1ZXN0EjwKCmNoYXRBY3Rpb24YDCABKAsyHC5pcGVyb24udjEuTWVzc2'
         'FnZUNoYXRBY3Rpb25SCmNoYXRBY3Rpb24SKgoEcG9sbBgNIAEoCzIWLmlwZXJvbi52MS5NZXNz'
-        'YWdlUG9sbFIEcG9sbA==');
+        'YWdlUG9sbFIEcG9sbBJCCgxzeXN0ZW1Ob3RpY2UYDiABKAsyHi5pcGVyb24udjEuTWVzc2FnZV'
+        'N5c3RlbU5vdGljZVIMc3lzdGVtTm90aWNl');
 
 @$core.Deprecated('Use messageReactionDescriptor instead')
 const MessageReaction$json = {

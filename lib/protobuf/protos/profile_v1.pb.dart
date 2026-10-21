@@ -105,6 +105,7 @@ class Profile_Response extends $pb.GeneratedMessage {
     $core.String? phoneNumber,
     $core.List<$core.int>? userID,
     $core.bool? hideBirthYear,
+    $core.bool? official,
   }) {
     final result = create();
     if (firstName != null) result.firstName = firstName;
@@ -116,6 +117,7 @@ class Profile_Response extends $pb.GeneratedMessage {
     if (phoneNumber != null) result.phoneNumber = phoneNumber;
     if (userID != null) result.userID = userID;
     if (hideBirthYear != null) result.hideBirthYear = hideBirthYear;
+    if (official != null) result.official = official;
     return result;
   }
 
@@ -137,6 +139,7 @@ class Profile_Response extends $pb.GeneratedMessage {
     ..aOS(7, _omitFieldNames ? '' : 'phoneNumber', protoName: 'phoneNumber')
     ..a<$core.List<$core.int>>(8, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY, protoName: 'userID')
     ..aOB(9, _omitFieldNames ? '' : 'hideBirthYear')
+    ..aOB(10, _omitFieldNames ? '' : 'official')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -246,6 +249,17 @@ class Profile_Response extends $pb.GeneratedMessage {
   $core.bool hasHideBirthYear() => $_has(8);
   @$pb.TagNumber(9)
   void clearHideBirthYear() => $_clearField(9);
+
+  /// Официальный аккаунт (системный «Iperon», SYSTEM_USER_ID): галочка, без
+  /// звонков, контактов и блокировки; писать ему нельзя.
+  @$pb.TagNumber(10)
+  $core.bool get official => $_getBF(9);
+  @$pb.TagNumber(10)
+  set official($core.bool value) => $_setBool(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasOfficial() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearOfficial() => $_clearField(10);
 }
 
 class Profile extends $pb.GeneratedMessage {

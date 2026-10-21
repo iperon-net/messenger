@@ -15,6 +15,7 @@ void main() {
     expect(PushManager.routeForKind(PushPayload_Kind.MESSAGE, chatID: 'bad'), '/chats');
     expect(PushManager.routeForKind(PushPayload_Kind.SECRET_MESSAGE, chatID: chat), '/chats/secret/$chat');
     expect(PushManager.routeForKind(PushPayload_Kind.SECRET_MESSAGE), '/chats');
+    expect(PushManager.routeForKind(PushPayload_Kind.SYSTEM_NOTICE, chatID: chat), '/chats/chat/$chat');
     expect(PushManager.routeForKind(PushPayload_Kind.TEST), isNull);
     expect(PushManager.routeForKind(null), isNull);
   });

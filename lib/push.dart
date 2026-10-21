@@ -484,7 +484,9 @@ class PushManager {
     PushPayload_Kind.CONTACT_JOINED => '/contacts',
     PushPayload_Kind.CALL_MISSED => '/calls',
     PushPayload_Kind.MESSAGE ||
-    PushPayload_Kind.MESSAGE_REACTION => _chatIDPattern.hasMatch(chatID) ? '/chats/chat/${chatID.toLowerCase()}' : '/chats',
+    PushPayload_Kind.MESSAGE_REACTION ||
+    // Уведомление «Iperon» — его чат.
+    PushPayload_Kind.SYSTEM_NOTICE => _chatIDPattern.hasMatch(chatID) ? '/chats/chat/${chatID.toLowerCase()}' : '/chats',
     // Секретный чат — своё окно (chatID — secretChatID).
     PushPayload_Kind.SECRET_MESSAGE => _chatIDPattern.hasMatch(chatID) ? '/chats/secret/${chatID.toLowerCase()}' : '/chats',
     _ => null,

@@ -106,6 +106,84 @@ extension MessageEntityTypeMapperExtension on MessageEntityType {
   }
 }
 
+class SystemNoticeKindMapper extends EnumMapper<SystemNoticeKind> {
+  SystemNoticeKindMapper._();
+
+  static SystemNoticeKindMapper? _instance;
+  static SystemNoticeKindMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = SystemNoticeKindMapper._());
+    }
+    return _instance!;
+  }
+
+  static SystemNoticeKind fromValue(dynamic value) {
+    ensureInitialized();
+    return MapperContainer.globals.fromValue(value);
+  }
+
+  @override
+  SystemNoticeKind decode(dynamic value) {
+    switch (value) {
+      case r'unknown':
+        return SystemNoticeKind.unknown;
+      case r'newLogin':
+        return SystemNoticeKind.newLogin;
+      case r'cloudPasswordSet':
+        return SystemNoticeKind.cloudPasswordSet;
+      case r'cloudPasswordChanged':
+        return SystemNoticeKind.cloudPasswordChanged;
+      case r'cloudPasswordDisabled':
+        return SystemNoticeKind.cloudPasswordDisabled;
+      case r'cloudPasswordReset':
+        return SystemNoticeKind.cloudPasswordReset;
+      case r'cloudPasswordWrong':
+        return SystemNoticeKind.cloudPasswordWrong;
+      case r'recoveryEmailSet':
+        return SystemNoticeKind.recoveryEmailSet;
+      case r'passkeyAdded':
+        return SystemNoticeKind.passkeyAdded;
+      case r'passkeyRemoved':
+        return SystemNoticeKind.passkeyRemoved;
+      default:
+        throw MapperException.unknownEnumValue(value);
+    }
+  }
+
+  @override
+  dynamic encode(SystemNoticeKind self) {
+    switch (self) {
+      case SystemNoticeKind.unknown:
+        return r'unknown';
+      case SystemNoticeKind.newLogin:
+        return r'newLogin';
+      case SystemNoticeKind.cloudPasswordSet:
+        return r'cloudPasswordSet';
+      case SystemNoticeKind.cloudPasswordChanged:
+        return r'cloudPasswordChanged';
+      case SystemNoticeKind.cloudPasswordDisabled:
+        return r'cloudPasswordDisabled';
+      case SystemNoticeKind.cloudPasswordReset:
+        return r'cloudPasswordReset';
+      case SystemNoticeKind.cloudPasswordWrong:
+        return r'cloudPasswordWrong';
+      case SystemNoticeKind.recoveryEmailSet:
+        return r'recoveryEmailSet';
+      case SystemNoticeKind.passkeyAdded:
+        return r'passkeyAdded';
+      case SystemNoticeKind.passkeyRemoved:
+        return r'passkeyRemoved';
+    }
+  }
+}
+
+extension SystemNoticeKindMapperExtension on SystemNoticeKind {
+  String toValue() {
+    SystemNoticeKindMapper.ensureInitialized();
+    return MapperContainer.globals.toValue<SystemNoticeKind>(this) as String;
+  }
+}
+
 class MessageEntityMapper extends ClassMapperBase<MessageEntity> {
   MessageEntityMapper._();
 
@@ -1745,6 +1823,152 @@ class _MessageMediaCopyWithImpl<$R, $Out>
   ) => _MessageMediaCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
+class SystemNoticeMapper extends ClassMapperBase<SystemNotice> {
+  SystemNoticeMapper._();
+
+  static SystemNoticeMapper? _instance;
+  static SystemNoticeMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = SystemNoticeMapper._());
+      SystemNoticeKindMapper.ensureInitialized();
+    }
+    return _instance!;
+  }
+
+  @override
+  final String id = 'SystemNotice';
+
+  static SystemNoticeKind _$kind(SystemNotice v) => v.kind;
+  static const Field<SystemNotice, SystemNoticeKind> _f$kind = Field(
+    'kind',
+    _$kind,
+  );
+  static String _$sessionID(SystemNotice v) => v.sessionID;
+  static const Field<SystemNotice, String> _f$sessionID = Field(
+    'sessionID',
+    _$sessionID,
+    opt: true,
+    def: '',
+  );
+  static String _$deviceModel(SystemNotice v) => v.deviceModel;
+  static const Field<SystemNotice, String> _f$deviceModel = Field(
+    'deviceModel',
+    _$deviceModel,
+    opt: true,
+    def: '',
+  );
+
+  @override
+  final MappableFields<SystemNotice> fields = const {
+    #kind: _f$kind,
+    #sessionID: _f$sessionID,
+    #deviceModel: _f$deviceModel,
+  };
+
+  static SystemNotice _instantiate(DecodingData data) {
+    return SystemNotice(
+      kind: data.dec(_f$kind),
+      sessionID: data.dec(_f$sessionID),
+      deviceModel: data.dec(_f$deviceModel),
+    );
+  }
+
+  @override
+  final Function instantiate = _instantiate;
+
+  static SystemNotice fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<SystemNotice>(map);
+  }
+
+  static SystemNotice fromJson(String json) {
+    return ensureInitialized().decodeJson<SystemNotice>(json);
+  }
+}
+
+mixin SystemNoticeMappable {
+  String toJson() {
+    return SystemNoticeMapper.ensureInitialized().encodeJson<SystemNotice>(
+      this as SystemNotice,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return SystemNoticeMapper.ensureInitialized().encodeMap<SystemNotice>(
+      this as SystemNotice,
+    );
+  }
+
+  SystemNoticeCopyWith<SystemNotice, SystemNotice, SystemNotice> get copyWith =>
+      _SystemNoticeCopyWithImpl<SystemNotice, SystemNotice>(
+        this as SystemNotice,
+        $identity,
+        $identity,
+      );
+  @override
+  String toString() {
+    return SystemNoticeMapper.ensureInitialized().stringifyValue(
+      this as SystemNotice,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return SystemNoticeMapper.ensureInitialized().equalsValue(
+      this as SystemNotice,
+      other,
+    );
+  }
+
+  @override
+  int get hashCode {
+    return SystemNoticeMapper.ensureInitialized().hashValue(
+      this as SystemNotice,
+    );
+  }
+}
+
+extension SystemNoticeValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, SystemNotice, $Out> {
+  SystemNoticeCopyWith<$R, SystemNotice, $Out> get $asSystemNotice =>
+      $base.as((v, t, t2) => _SystemNoticeCopyWithImpl<$R, $Out>(v, t, t2));
+}
+
+abstract class SystemNoticeCopyWith<$R, $In extends SystemNotice, $Out>
+    implements ClassCopyWith<$R, $In, $Out> {
+  $R call({SystemNoticeKind? kind, String? sessionID, String? deviceModel});
+  SystemNoticeCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
+}
+
+class _SystemNoticeCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, SystemNotice, $Out>
+    implements SystemNoticeCopyWith<$R, SystemNotice, $Out> {
+  _SystemNoticeCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<SystemNotice> $mapper =
+      SystemNoticeMapper.ensureInitialized();
+  @override
+  $R call({SystemNoticeKind? kind, String? sessionID, String? deviceModel}) =>
+      $apply(
+        FieldCopyWithData({
+          if (kind != null) #kind: kind,
+          if (sessionID != null) #sessionID: sessionID,
+          if (deviceModel != null) #deviceModel: deviceModel,
+        }),
+      );
+  @override
+  SystemNotice $make(CopyWithData data) => SystemNotice(
+    kind: data.get(#kind, or: $value.kind),
+    sessionID: data.get(#sessionID, or: $value.sessionID),
+    deviceModel: data.get(#deviceModel, or: $value.deviceModel),
+  );
+
+  @override
+  SystemNoticeCopyWith<$R2, SystemNotice, $Out2> $chain<$R2, $Out2>(
+    Then<$Out2, $R2> t,
+  ) => _SystemNoticeCopyWithImpl<$R2, $Out2>($value, $cast, t);
+}
+
 class MessageMapper extends ClassMapperBase<Message> {
   MessageMapper._();
 
@@ -1762,6 +1986,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       MessageLinkPreviewMapper.ensureInitialized();
       MessagePollMapper.ensureInitialized();
       MessageCallMapper.ensureInitialized();
+      SystemNoticeMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -2019,6 +2244,12 @@ class MessageMapper extends ClassMapperBase<Message> {
     _$phoneCall,
     opt: true,
   );
+  static SystemNotice? _$systemNotice(Message v) => v.systemNotice;
+  static const Field<Message, SystemNotice> _f$systemNotice = Field(
+    'systemNotice',
+    _$systemNotice,
+    opt: true,
+  );
   static String _$authorSignature(Message v) => v.authorSignature;
   static const Field<Message, String> _f$authorSignature = Field(
     'authorSignature',
@@ -2108,6 +2339,7 @@ class MessageMapper extends ClassMapperBase<Message> {
     #linkPreview: _f$linkPreview,
     #poll: _f$poll,
     #phoneCall: _f$phoneCall,
+    #systemNotice: _f$systemNotice,
     #authorSignature: _f$authorSignature,
     #views: _f$views,
     #commentsCount: _f$commentsCount,
@@ -2158,6 +2390,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       linkPreview: data.dec(_f$linkPreview),
       poll: data.dec(_f$poll),
       phoneCall: data.dec(_f$phoneCall),
+      systemNotice: data.dec(_f$systemNotice),
       authorSignature: data.dec(_f$authorSignature),
       views: data.dec(_f$views),
       commentsCount: data.dec(_f$commentsCount),
@@ -2250,6 +2483,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
   get linkPreview;
   MessagePollCopyWith<$R, MessagePoll, MessagePoll>? get poll;
   MessageCallCopyWith<$R, MessageCall, MessageCall>? get phoneCall;
+  SystemNoticeCopyWith<$R, SystemNotice, SystemNotice>? get systemNotice;
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get commenters;
   $R call({
     String? id,
@@ -2291,6 +2525,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     MessageLinkPreview? linkPreview,
     MessagePoll? poll,
     MessageCall? phoneCall,
+    SystemNotice? systemNotice,
     String? authorSignature,
     int? views,
     int? commentsCount,
@@ -2367,6 +2602,9 @@ class _MessageCopyWithImpl<$R, $Out>
   MessageCallCopyWith<$R, MessageCall, MessageCall>? get phoneCall =>
       $value.phoneCall?.copyWith.$chain((v) => call(phoneCall: v));
   @override
+  SystemNoticeCopyWith<$R, SystemNotice, SystemNotice>? get systemNotice =>
+      $value.systemNotice?.copyWith.$chain((v) => call(systemNotice: v));
+  @override
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get commenters =>
       ListCopyWith(
         $value.commenters,
@@ -2414,6 +2652,7 @@ class _MessageCopyWithImpl<$R, $Out>
     Object? linkPreview = $none,
     Object? poll = $none,
     Object? phoneCall = $none,
+    Object? systemNotice = $none,
     String? authorSignature,
     int? views,
     int? commentsCount,
@@ -2463,6 +2702,7 @@ class _MessageCopyWithImpl<$R, $Out>
       if (linkPreview != $none) #linkPreview: linkPreview,
       if (poll != $none) #poll: poll,
       if (phoneCall != $none) #phoneCall: phoneCall,
+      if (systemNotice != $none) #systemNotice: systemNotice,
       if (authorSignature != null) #authorSignature: authorSignature,
       if (views != null) #views: views,
       if (commentsCount != null) #commentsCount: commentsCount,
@@ -2519,6 +2759,7 @@ class _MessageCopyWithImpl<$R, $Out>
     linkPreview: data.get(#linkPreview, or: $value.linkPreview),
     poll: data.get(#poll, or: $value.poll),
     phoneCall: data.get(#phoneCall, or: $value.phoneCall),
+    systemNotice: data.get(#systemNotice, or: $value.systemNotice),
     authorSignature: data.get(#authorSignature, or: $value.authorSignature),
     views: data.get(#views, or: $value.views),
     commentsCount: data.get(#commentsCount, or: $value.commentsCount),

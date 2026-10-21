@@ -233,6 +233,37 @@ class MessageMedia with MessageMediaMappable {
   double? get aspectRatio => width > 0 && height > 0 ? width / height : null;
 }
 
+/// Вид служебного уведомления системного аккаунта — порядок как в proto
+/// `MessageSystemNotice.Kind`.
+@MappableEnum()
+enum SystemNoticeKind {
+  unknown,
+  newLogin,
+  cloudPasswordSet,
+  cloudPasswordChanged,
+  cloudPasswordDisabled,
+  cloudPasswordReset,
+  cloudPasswordWrong,
+  recoveryEmailSet,
+  passkeyAdded,
+  passkeyRemoved,
+}
+
+/// Служебное уведомление «Iperon» ([Message.systemNotice]): текст уже в
+/// [Message.text], здесь — что нужно кнопкам под ним.
+@MappableClass()
+class SystemNotice with SystemNoticeMappable {
+  final SystemNoticeKind kind;
+
+  /// Сессия, которая это сделала (hex); пусто — неизвестна (сессии ещё нет).
+  final String sessionID;
+
+  /// Её устройство — для «Завершить сеанс на …?».
+  final String deviceModel;
+
+  const SystemNotice({required this.kind, this.sessionID = '', this.deviceModel = ''});
+}
+
 /// Сообщение чата. Пока клиентская модель для UX-демо; по форме близка к
 /// будущему proto (плоский текст + entities).
 @MappableClass()
@@ -360,6 +391,10 @@ class Message with MessageMappable {
   /// [MessageKind.call] — звонок (служебное сообщение от сервера).
   final MessageCall? phoneCall;
 
+  /// Уведомление системного аккаунта «Iperon» (обычный входящий пузырь с
+  /// текстом и кнопками «Устройства» / «Это не я»); `null` — не оно.
+  final SystemNotice? systemNotice;
+
   /// Подпись автора поста канала (канал с «Подписывать сообщения»); пусто —
   /// без подписи.
   final String authorSignature;
@@ -422,6 +457,7 @@ class Message with MessageMappable {
     this.linkPreview,
     this.poll,
     this.phoneCall,
+    this.systemNotice,
     this.authorSignature = '',
     this.views = 0,
     this.commentsCount = 0,

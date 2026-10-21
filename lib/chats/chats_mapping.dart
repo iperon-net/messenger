@@ -150,6 +150,96 @@ String chatActionText(
   };
 }
 
+/// Уведомление системного аккаунта «Iperon» → модель для кнопок под ним
+/// (`null` — не оно).
+models.SystemNotice? systemNoticeFromPb(pb.MessageContent content) {
+  if (!content.hasSystemNotice()) return null;
+  final notice = content.systemNotice;
+  final kinds = models.SystemNoticeKind.values;
+  final kind = notice.kind.value;
+  return models.SystemNotice(
+    kind: kind < kinds.length ? kinds[kind] : models.SystemNoticeKind.unknown,
+    sessionID: notice.sessionID.isEmpty ? '' : idHex(notice.sessionID),
+    deviceModel: notice.deviceModel,
+  );
+}
+
+/// Заголовок уведомления «Iperon» — превью в списке чатов и первая строка
+/// пузыря.
+String systemNoticeTitle(Translations t, pb.MessageSystemNotice notice) {
+  final s = t.systemNotice;
+  return switch (notice.kind) {
+    pb.MessageSystemNotice_Kind.NEW_LOGIN => s.newLoginTitle,
+    pb.MessageSystemNotice_Kind.CLOUD_PASSWORD_SET => s.cloudPasswordSetTitle,
+    pb.MessageSystemNotice_Kind.CLOUD_PASSWORD_CHANGED => s.cloudPasswordChangedTitle,
+    pb.MessageSystemNotice_Kind.CLOUD_PASSWORD_DISABLED => s.cloudPasswordDisabledTitle,
+    pb.MessageSystemNotice_Kind.CLOUD_PASSWORD_RESET => s.cloudPasswordResetTitle,
+    pb.MessageSystemNotice_Kind.CLOUD_PASSWORD_WRONG => s.cloudPasswordWrongTitle,
+    pb.MessageSystemNotice_Kind.RECOVERY_EMAIL_SET => s.recoveryEmailSetTitle,
+    pb.MessageSystemNotice_Kind.PASSKEY_ADDED => s.passkeyAddedTitle,
+    pb.MessageSystemNotice_Kind.PASSKEY_REMOVED => s.passkeyRemovedTitle,
+    _ => s.unknown,
+  };
+}
+
+/// Текст уведомления «Iperon» (как сервисные 777000 в Telegram): заголовок
+/// жирным, что произошло, затем устройство, место, IP, способ входа (что
+/// известно) и подсказка «если это были не вы». [russian] — место по-русски.
+({String text, List<models.MessageEntity> entities}) systemNoticeText(
+  Translations t,
+  pb.MessageSystemNotice notice, {
+  required bool russian,
+}) {
+  final s = t.systemNotice;
+  final title = systemNoticeTitle(t, notice);
+  final body = switch (notice.kind) {
+    pb.MessageSystemNotice_Kind.NEW_LOGIN => s.newLogin,
+    pb.MessageSystemNotice_Kind.CLOUD_PASSWORD_SET => s.cloudPasswordSet,
+    pb.MessageSystemNotice_Kind.CLOUD_PASSWORD_CHANGED => s.cloudPasswordChanged,
+    pb.MessageSystemNotice_Kind.CLOUD_PASSWORD_DISABLED => s.cloudPasswordDisabled,
+    pb.MessageSystemNotice_Kind.CLOUD_PASSWORD_RESET => s.cloudPasswordReset,
+    pb.MessageSystemNotice_Kind.CLOUD_PASSWORD_WRONG => s.cloudPasswordWrong,
+    pb.MessageSystemNotice_Kind.RECOVERY_EMAIL_SET =>
+      notice.email.isEmpty ? s.recoveryEmailSetNoEmail : s.recoveryEmailSet(email: notice.email),
+    pb.MessageSystemNotice_Kind.PASSKEY_ADDED =>
+      notice.passkeyLabel.isEmpty ? s.passkeyAddedNoLabel : s.passkeyAdded(label: notice.passkeyLabel),
+    pb.MessageSystemNotice_Kind.PASSKEY_REMOVED => s.passkeyRemoved,
+    _ => '',
+  };
+  if (body.isEmpty) return (text: title, entities: const []);
+
+  final device = [
+    notice.deviceModel,
+    if (notice.osVersion.isNotEmpty) '${notice.os == 1 ? 'iOS' : 'Android'} ${notice.osVersion}',
+  ].where((part) => part.isNotEmpty).join(', ');
+  final location = russian
+      ? (notice.locationRussian.isNotEmpty ? notice.locationRussian : notice.locationEnglish)
+      : (notice.locationEnglish.isNotEmpty ? notice.locationEnglish : notice.locationRussian);
+  final method = switch (notice.loginMethod) {
+    pb.MessageSystemNotice_LoginMethod.CALL_PASSWORD => s.methodCallPassword,
+    pb.MessageSystemNotice_LoginMethod.SMS => s.methodSms,
+    pb.MessageSystemNotice_LoginMethod.PASSKEY => s.methodPasskey,
+    pb.MessageSystemNotice_LoginMethod.YANDEX => s.methodYandex,
+    _ => '',
+  };
+  final details = [
+    if (device.isNotEmpty) s.device(value: device),
+    if (notice.appVersion.isNotEmpty) s.app(value: notice.appVersion),
+    if (location.isNotEmpty) s.location(value: location),
+    if (notice.ip.isNotEmpty) s.ip(value: notice.ip),
+    if (method.isNotEmpty) s.method(value: method),
+  ];
+  // Своё действие из настроек «не я» не бывает — подсказка только там, где
+  // мог быть чужой.
+  final hint = switch (notice.kind) {
+    pb.MessageSystemNotice_Kind.CLOUD_PASSWORD_WRONG => s.cloudPasswordWrongHint,
+    pb.MessageSystemNotice_Kind.RECOVERY_EMAIL_SET || pb.MessageSystemNotice_Kind.PASSKEY_ADDED => '',
+    _ => notice.sessionID.isEmpty ? '' : s.notMeHint,
+  };
+  final text = [title, body, if (details.isNotEmpty) details.join('\n'), if (hint.isNotEmpty) hint].join('\n\n');
+  return (text: text, entities: [models.MessageEntity(type: models.MessageEntityType.bold, offset: 0, length: title.length)]);
+}
+
 /// Текст закреплённого для «закрепил «…»»: подпись / текст, у файла — имя,
 /// у остального — пусто (тогда подпись вида — на стороне экрана).
 String pinSnippet(pb.ChatMessage? pinned) {
@@ -331,6 +421,9 @@ models.Message messageFromPb(
   final content = m.content;
   final kind = contentKind(content);
   final first = content.media.isEmpty ? null : content.media.first;
+  final notice = content.hasSystemNotice()
+      ? systemNoticeText(t, content.systemNotice, russian: LocaleSettings.currentLocale == AppLocale.ru)
+      : null;
   return models.Message(
     id: m.messageID.toString(),
     chatID: chatID,
@@ -348,9 +441,13 @@ models.Message messageFromPb(
     senderUserID: group && !outgoing ? idHex(m.fromUserID) : '',
     pinned: pinned,
     pinnedOnlyMe: pinned && pinnedOnlyMe,
-    // Опрос: текста нет — вопрос (превью, ответ, поиск по ленте).
-    text: content.hasChatAction() ? serviceText : (content.hasPoll() ? content.poll.question : content.text),
-    entities: [for (final e in content.entities) entityFromPb(e)],
+    // Опрос: текста нет — вопрос (превью, ответ, поиск по ленте); уведомление
+    // «Iperon» — текст по виду (локализует клиент).
+    text: content.hasChatAction()
+        ? serviceText
+        : (content.hasPoll() ? content.poll.question : (notice != null ? notice.text : content.text)),
+    entities: notice != null ? notice.entities : [for (final e in content.entities) entityFromPb(e)],
+    systemNotice: systemNoticeFromPb(content),
     outgoing: outgoing,
     status: outgoing
         ? outgoingStatus(messageID: m.messageID.toInt(), readOutboxMaxID: readOutboxMaxID, isSelf: isSelf)
@@ -462,7 +559,9 @@ models.ChatLastMessage lastMessageFromPb(
   final outgoing = sameID(m.fromUserID, myUserID);
   return models.ChatLastMessage(
     kind: contentKind(m.content),
-    text: m.content.hasPoll() ? m.content.poll.question : m.content.text,
+    text: m.content.hasPoll()
+        ? m.content.poll.question
+        : (m.content.hasSystemNotice() ? systemNoticeTitle(t, m.content.systemNotice) : m.content.text),
     outgoing: outgoing,
     status: outgoing
         ? outgoingStatus(messageID: m.messageID.toInt(), readOutboxMaxID: readOutboxMaxID, isSelf: isSelf)

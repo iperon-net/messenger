@@ -30,6 +30,7 @@ import 'chat_info_material.dart';
 import 'pinned_messages_material.dart';
 import 'pin_scope_material.dart';
 import 'scheduled_messages_material.dart';
+import 'system_notice_common.dart';
 import 'voice_recorder.dart';
 
 /// Окно чата (Android): шапка с аватаром и «печатает…», лента пузырей, поле
@@ -645,6 +646,8 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                           onCallTap: chat.type == models.ChatType.private && !chat.isSelf
                                               ? (message) => chatInfoCall(chat, video: message.phoneCall?.video ?? false)
                                               : null,
+                                          // Уведомление «Iperon» — «Устройства» / «Это не я».
+                                          actionsFor: chat.isSystem ? (message) => systemNoticeActions(context, message) : null,
                                           style: ChatMaterial.bubbleStyle(context),
                                           padding: EdgeInsets.only(
                                             top: 8 + (state.pinnedMessages.isEmpty ? 0 : PinnedMessageBar.height),
@@ -671,6 +674,7 @@ class _ChatMaterialState extends State<ChatMaterial> {
                                           flashRange: _tracker.flashRange,
                                           onReply:
                                               chat.type == models.ChatType.channel ||
+                                                  chat.isSystem ||
                                                   state.commentsBlocked ||
                                                   state.searching ||
                                                   state.selecting

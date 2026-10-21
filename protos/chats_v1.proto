@@ -224,6 +224,54 @@ message MessageChatAction {
   string title = 3;
 }
 
+// Служебное уведомление системного аккаунта «Iperon» (только от сервера и
+// только в чат с SYSTEM_USER_ID = ObjectID 000000000000000000000001; при
+// отправке — отказ), как сервисные сообщения 777000 в Telegram. Текст
+// собирает клиент по kind и полям (локализация), sessionID — для кнопок
+// «Устройства» / «Это не я». План: docs/plans/system-notices.md (клиент).
+message MessageSystemNotice {
+  enum Kind {
+    UNKNOWN = 0;
+    NEW_LOGIN = 1;               // вход с нового устройства
+    CLOUD_PASSWORD_SET = 2;      // включена двухшаговая проверка
+    CLOUD_PASSWORD_CHANGED = 3;  // облачный пароль сменён
+    CLOUD_PASSWORD_DISABLED = 4; // двухшаговая проверка выключена
+    CLOUD_PASSWORD_RESET = 5;    // пароль сброшен по коду из письма
+    CLOUD_PASSWORD_WRONG = 6;    // при входе ввели неверный облачный пароль
+    RECOVERY_EMAIL_SET = 7;      // подтверждена почта восстановления (email)
+    PASSKEY_ADDED = 8;           // добавлен ключ доступа (passkeyLabel)
+    PASSKEY_REMOVED = 9;         // удалён ключ доступа
+  }
+
+  enum LoginMethod {
+    LOGIN_METHOD_UNKNOWN = 0;
+    CALL_PASSWORD = 1;
+    SMS = 2;
+    PASSKEY = 3;
+    YANDEX = 4;
+  }
+
+  Kind kind = 1;
+  // Сессия, которая это сделала (у NEW_LOGIN — новая сессия); пусто — не
+  // известна (CLOUD_PASSWORD_WRONG: сессии ещё нет).
+  bytes sessionID = 2;
+  // Устройство и место — как в DeviceSessions.DeviceSession (NEW_LOGIN;
+  // у остальных — устройство сессии-инициатора, если она есть).
+  string deviceModel = 3;
+  int32 os = 4;
+  string osVersion = 5;
+  string appVersion = 6;
+  string ip = 7;
+  string locationEnglish = 8;
+  string locationRussian = 9;
+  // Способ входа (NEW_LOGIN, CLOUD_PASSWORD_WRONG).
+  LoginMethod loginMethod = 10;
+  // Маска почты (RECOVERY_EMAIL_SET), например «k***@yandex.ru».
+  string email = 11;
+  // Название ключа доступа (PASSKEY_ADDED).
+  string passkeyLabel = 12;
+}
+
 enum MessageKind {
   MESSAGE_KIND_TEXT = 0;
   MESSAGE_KIND_PHOTO = 1;
@@ -458,6 +506,8 @@ message MessageContent {
   MessageChatAction chatAction = 12;
   // Опрос (группа). Текст при этом пуст.
   MessagePoll poll = 13;
+  // Уведомление системного аккаунта (только от сервера; при отправке — отказ).
+  MessageSystemNotice systemNotice = 14;
 }
 
 // Реакция участника на сообщение: кто, каким эмодзи и когда поставил.

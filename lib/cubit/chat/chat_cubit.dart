@@ -968,7 +968,10 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   /// Можно ли переслать: не звонок и уже на сервере (неотправленное
   /// пересылать не из чего).
   static bool forwardable(models.Message m) =>
-      m.kind != models.MessageKind.call && m.status != models.MessageStatus.pending && m.status != models.MessageStatus.failed;
+      m.kind != models.MessageKind.call &&
+      m.systemNotice == null &&
+      m.status != models.MessageStatus.pending &&
+      m.status != models.MessageStatus.failed;
 
   /// [forwardable] в этом источнике (опрос — если источник его пересылает).
   bool canForward(models.Message m) => forwardable(m) && (m.kind != models.MessageKind.poll || features.forwardPolls);
@@ -1013,7 +1016,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     return messages.length;
   }
 
-  /// Куда можно переслать: все чаты, кроме каналов (писать в них нельзя),
+  /// Куда можно переслать: все чаты, кроме каналов и «Iperon» (писать в них нельзя),
   /// сообществ (своей ленты нет — только их группы, где мы участник) и личных
   /// с локально скрытыми профилями (см. HiddenProfiles) — «Избранное» первым,
   /// архив в конце. Пересылаем опрос, а опросы у источника только в группах
@@ -1029,6 +1032,8 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
               (!groupsOnly || c.type == models.ChatType.group) &&
               c.type != models.ChatType.channel &&
               c.type != models.ChatType.community &&
+              // В «Iperon» пишет только сервер.
+              !c.isSystem &&
               // «Чтение» в группе — писать (и пересылать) туда нельзя.
               (c.type != models.ChatType.group || canSendInGroup(c.myRole)) &&
               !c.isThread &&

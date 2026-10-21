@@ -158,6 +158,61 @@ class MessageChatAction_Kind extends $pb.ProtobufEnum {
   const MessageChatAction_Kind._(super.value, super.name);
 }
 
+class MessageSystemNotice_Kind extends $pb.ProtobufEnum {
+  static const MessageSystemNotice_Kind UNKNOWN = MessageSystemNotice_Kind._(0, _omitEnumNames ? '' : 'UNKNOWN');
+  static const MessageSystemNotice_Kind NEW_LOGIN = MessageSystemNotice_Kind._(1, _omitEnumNames ? '' : 'NEW_LOGIN');
+  static const MessageSystemNotice_Kind CLOUD_PASSWORD_SET = MessageSystemNotice_Kind._(2, _omitEnumNames ? '' : 'CLOUD_PASSWORD_SET');
+  static const MessageSystemNotice_Kind CLOUD_PASSWORD_CHANGED =
+      MessageSystemNotice_Kind._(3, _omitEnumNames ? '' : 'CLOUD_PASSWORD_CHANGED');
+  static const MessageSystemNotice_Kind CLOUD_PASSWORD_DISABLED =
+      MessageSystemNotice_Kind._(4, _omitEnumNames ? '' : 'CLOUD_PASSWORD_DISABLED');
+  static const MessageSystemNotice_Kind CLOUD_PASSWORD_RESET = MessageSystemNotice_Kind._(5, _omitEnumNames ? '' : 'CLOUD_PASSWORD_RESET');
+  static const MessageSystemNotice_Kind CLOUD_PASSWORD_WRONG = MessageSystemNotice_Kind._(6, _omitEnumNames ? '' : 'CLOUD_PASSWORD_WRONG');
+  static const MessageSystemNotice_Kind RECOVERY_EMAIL_SET = MessageSystemNotice_Kind._(7, _omitEnumNames ? '' : 'RECOVERY_EMAIL_SET');
+  static const MessageSystemNotice_Kind PASSKEY_ADDED = MessageSystemNotice_Kind._(8, _omitEnumNames ? '' : 'PASSKEY_ADDED');
+  static const MessageSystemNotice_Kind PASSKEY_REMOVED = MessageSystemNotice_Kind._(9, _omitEnumNames ? '' : 'PASSKEY_REMOVED');
+
+  static const $core.List<MessageSystemNotice_Kind> values = <MessageSystemNotice_Kind>[
+    UNKNOWN,
+    NEW_LOGIN,
+    CLOUD_PASSWORD_SET,
+    CLOUD_PASSWORD_CHANGED,
+    CLOUD_PASSWORD_DISABLED,
+    CLOUD_PASSWORD_RESET,
+    CLOUD_PASSWORD_WRONG,
+    RECOVERY_EMAIL_SET,
+    PASSKEY_ADDED,
+    PASSKEY_REMOVED,
+  ];
+
+  static final $core.List<MessageSystemNotice_Kind?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 9);
+  static MessageSystemNotice_Kind? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const MessageSystemNotice_Kind._(super.value, super.name);
+}
+
+class MessageSystemNotice_LoginMethod extends $pb.ProtobufEnum {
+  static const MessageSystemNotice_LoginMethod LOGIN_METHOD_UNKNOWN =
+      MessageSystemNotice_LoginMethod._(0, _omitEnumNames ? '' : 'LOGIN_METHOD_UNKNOWN');
+  static const MessageSystemNotice_LoginMethod CALL_PASSWORD = MessageSystemNotice_LoginMethod._(1, _omitEnumNames ? '' : 'CALL_PASSWORD');
+  static const MessageSystemNotice_LoginMethod SMS = MessageSystemNotice_LoginMethod._(2, _omitEnumNames ? '' : 'SMS');
+  static const MessageSystemNotice_LoginMethod PASSKEY = MessageSystemNotice_LoginMethod._(3, _omitEnumNames ? '' : 'PASSKEY');
+  static const MessageSystemNotice_LoginMethod YANDEX = MessageSystemNotice_LoginMethod._(4, _omitEnumNames ? '' : 'YANDEX');
+
+  static const $core.List<MessageSystemNotice_LoginMethod> values = <MessageSystemNotice_LoginMethod>[
+    LOGIN_METHOD_UNKNOWN,
+    CALL_PASSWORD,
+    SMS,
+    PASSKEY,
+    YANDEX,
+  ];
+
+  static final $core.List<MessageSystemNotice_LoginMethod?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 4);
+  static MessageSystemNotice_LoginMethod? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const MessageSystemNotice_LoginMethod._(super.value, super.name);
+}
+
 class MessageEntity_Type extends $pb.ProtobufEnum {
   static const MessageEntity_Type BOLD = MessageEntity_Type._(0, _omitEnumNames ? '' : 'BOLD');
   static const MessageEntity_Type ITALIC = MessageEntity_Type._(1, _omitEnumNames ? '' : 'ITALIC');

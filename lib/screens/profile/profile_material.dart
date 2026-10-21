@@ -85,7 +85,7 @@ class _ProfileViewState extends State<_ProfileView> {
   void initState() {
     super.initState();
     final userID = context.read<ProfileCubit>().state.userID;
-    if (!profileIsSelf(userID)) {
+    if (!profileIsSelf(userID) && !profileIsSystem(userID)) {
       secretChatAvailable(userID).then((available) {
         if (mounted && available != _secretAvailable) setState(() => _secretAvailable = available);
       });
@@ -167,6 +167,8 @@ class _ProfileViewState extends State<_ProfileView> {
   Future<void> _more(BuildContext context, ProfileState profile, models.Chat? chat) async {
     final t = context.t;
     final error = Theme.of(context).colorScheme.error;
+    // «Iperon» — только удалить чат (новое уведомление вернёт его).
+    final system = profileIsSystem(profile.userID);
     final action = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
@@ -174,44 +176,7 @@ class _ProfileViewState extends State<_ProfileView> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (!profile.isContact && profile.phoneNumber.isNotEmpty)
-              ListTile(
-                leading: const Icon(Icons.person_add_alt_outlined),
-                title: Text(t.screenContacts.addToContacts),
-                onTap: () => Navigator.of(sheetContext).pop('addContact'),
-              ),
-            if (_secretAvailable)
-              ListTile(
-                leading: const Icon(Icons.lock_outline),
-                title: Text(t.secretChat.start),
-                onTap: () => Navigator.of(sheetContext).pop('secret'),
-              ),
-            if (chat != null) ...[
-              ListTile(
-                leading: const Icon(Icons.timer_outlined),
-                title: Text(t.chatTtl.titleLong),
-                subtitle: Text(chatTTLLabel(t, chat.ttlPeriod)),
-                onTap: () => Navigator.of(sheetContext).pop('ttl'),
-              ),
-              ListTile(
-                leading: Icon(chat.noForwards ? Icons.lock_open_outlined : Icons.shield_outlined),
-                title: Text(chatNoForwardsActionLabel(t, noForwards: chat.noForwards, mine: chat.noForwardsMine)),
-                onTap: () => Navigator.of(sheetContext).pop('noForwards'),
-              ),
-            ],
-            ListTile(
-              leading: const Icon(Icons.visibility_off_outlined),
-              title: Text(t.screenProfile.hideProfile),
-              onTap: () => Navigator.of(sheetContext).pop('hide'),
-            ),
-            ListTile(
-              leading: Icon(Icons.block, color: profile.blocked ? null : error),
-              title: Text(
-                profile.blocked ? t.screenProfile.unblock : t.screenProfile.block,
-                style: profile.blocked ? null : TextStyle(color: error),
-              ),
-              onTap: () => Navigator.of(sheetContext).pop('block'),
-            ),
+            if (!system) ..._moreTiles(sheetContext, profile, chat),
             if (chat != null)
               ListTile(
                 leading: Icon(Icons.delete_outline, color: error),
@@ -223,6 +188,56 @@ class _ProfileViewState extends State<_ProfileView> {
       ),
     );
     if (!context.mounted) return;
+    await _moreAction(context, action, profile, chat);
+  }
+
+  /// Пункты «Ещё» кроме удаления чата.
+  List<Widget> _moreTiles(BuildContext sheetContext, ProfileState profile, models.Chat? chat) {
+    final t = sheetContext.t;
+    final error = Theme.of(sheetContext).colorScheme.error;
+    return [
+      if (!profile.isContact && profile.phoneNumber.isNotEmpty)
+        ListTile(
+          leading: const Icon(Icons.person_add_alt_outlined),
+          title: Text(t.screenContacts.addToContacts),
+          onTap: () => Navigator.of(sheetContext).pop('addContact'),
+        ),
+      if (_secretAvailable)
+        ListTile(
+          leading: const Icon(Icons.lock_outline),
+          title: Text(t.secretChat.start),
+          onTap: () => Navigator.of(sheetContext).pop('secret'),
+        ),
+      if (chat != null) ...[
+        ListTile(
+          leading: const Icon(Icons.timer_outlined),
+          title: Text(t.chatTtl.titleLong),
+          subtitle: Text(chatTTLLabel(t, chat.ttlPeriod)),
+          onTap: () => Navigator.of(sheetContext).pop('ttl'),
+        ),
+        ListTile(
+          leading: Icon(chat.noForwards ? Icons.lock_open_outlined : Icons.shield_outlined),
+          title: Text(chatNoForwardsActionLabel(t, noForwards: chat.noForwards, mine: chat.noForwardsMine)),
+          onTap: () => Navigator.of(sheetContext).pop('noForwards'),
+        ),
+      ],
+      ListTile(
+        leading: const Icon(Icons.visibility_off_outlined),
+        title: Text(t.screenProfile.hideProfile),
+        onTap: () => Navigator.of(sheetContext).pop('hide'),
+      ),
+      ListTile(
+        leading: Icon(Icons.block, color: profile.blocked ? null : error),
+        title: Text(
+          profile.blocked ? t.screenProfile.unblock : t.screenProfile.block,
+          style: profile.blocked ? null : TextStyle(color: error),
+        ),
+        onTap: () => Navigator.of(sheetContext).pop('block'),
+      ),
+    ];
+  }
+
+  Future<void> _moreAction(BuildContext context, String? action, ProfileState profile, models.Chat? chat) async {
     switch (action) {
       case 'addContact':
         await _editContact(context, profile);
@@ -282,7 +297,13 @@ class _ProfileViewState extends State<_ProfileView> {
   Widget _avatar(BuildContext context, ProfileState profile, String name) => SizedBox(
     width: 96,
     height: 96,
-    child: profile.avatarBytes != null
+    child: profileIsSystem(profile.userID)
+        ? SystemAccountAvatar(
+            size: 96,
+            background: Theme.of(context).colorScheme.primary,
+            foreground: Theme.of(context).colorScheme.onPrimary,
+          )
+        : profile.avatarBytes != null
         ? GestureDetector(
             onTap: () => showAvatarViewer(context, bytes: profile.avatarBytes!, heroTag: _avatarHero, title: name),
             child: Hero(
@@ -321,11 +342,14 @@ class _ProfileViewState extends State<_ProfileView> {
     final card = dark ? ThemesCupertino.groupedCard.darkColor : ThemesCupertino.groupedCard.color;
     final chat = chatState?.chat;
     final self = profileIsSelf(profile.userID);
+    final system = profileIsSystem(profile.userID);
     final name = profile.displayName.isNotEmpty ? profile.displayName : (chat == null ? '' : ChatTileContent.title(t, chat));
     // Из окна чата — его подзаголовок («печатает…» тоже), иначе — присутствие.
     final subtitle = self
         ? null
-        : (chat != null ? chatSubtitle(t, chat) : userPresence(t, online: profile.online, lastSeen: profile.lastSeen));
+        : (system
+              ? (text: t.systemNotice.subtitle, active: false)
+              : (chat != null ? chatSubtitle(t, chat) : userPresence(t, online: profile.online, lastSeen: profile.lastSeen)));
     final tabs = chat == null ? const <ChatInfoTab>[] : chatInfoTabs(chat);
     final tab = tabs.contains(_tab) ? _tab! : (tabs.firstOrNull ?? ChatInfoTab.media);
     final birthDate = profile.birthDate;
@@ -380,8 +404,8 @@ class _ProfileViewState extends State<_ProfileView> {
                       background: card,
                       onTap: () => _message(context, profile),
                     ),
-                  // Заблокированному не звоним (сервер и так не пропустит).
-                  if (!self && !profile.blocked) ...[
+                  // Заблокированному и «Iperon» не звоним (сервер и так не пропустит).
+                  if (!self && !system && !profile.blocked) ...[
                     ChatInfoActionButton(
                       icon: HugeIcons.strokeRoundedCall02,
                       label: t.screenChatInfo.call,
@@ -415,7 +439,8 @@ class _ProfileViewState extends State<_ProfileView> {
                       background: card,
                       onTap: () => Navigator.of(context).pop(const ChatInfoResult.search()),
                     ),
-                  if (!self)
+                  // У «Iperon» в «Ещё» только удаление чата — без чата кнопки нет.
+                  if (!self && (!system || chat != null))
                     ChatInfoActionButton(
                       icon: HugeIcons.strokeRoundedMoreHorizontal,
                       label: t.screenChatInfo.more,

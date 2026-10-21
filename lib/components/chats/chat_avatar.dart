@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../models.dart' as models;
@@ -102,6 +103,7 @@ class ChatAvatar extends StatelessWidget {
   }
 
   Widget _avatar() {
+    if (chat.isSystem) return SystemAccountAvatar(size: size, background: accentColor, foreground: accentForeground);
     if (chat.isSelf) {
       return Container(
         width: size,
@@ -143,6 +145,30 @@ class ChatAvatar extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Аватар системного аккаунта «Iperon»: значок приложения на цвете темы (как
+/// закладка «Избранного»).
+class SystemAccountAvatar extends StatelessWidget {
+  final double size;
+  final Color background;
+  final Color foreground;
+
+  const SystemAccountAvatar({super.key, required this.size, required this.background, this.foreground = const Color(0xFFFFFFFF)});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(color: background, shape: BoxShape.circle),
+    alignment: Alignment.center,
+    child: SvgPicture.asset(
+      'assets/images/system_account.svg',
+      width: size * 0.5,
+      height: size * 0.5,
+      colorFilter: ColorFilter.mode(foreground, BlendMode.srcIn),
+    ),
+  );
 }
 
 /// Картинка чата (аватар, обложка) по пути: файл с устройства или ассет

@@ -14,6 +14,9 @@ import '../chats/reactions_list.dart';
 import '../chats/read_receipts.dart';
 import '../chats/users_search.dart';
 import '../models.dart' as models;
+import '../chats/chats_mapping.dart';
+import '../i18n/translations.g.dart';
+import '../protobuf/protos/chats_v1.pb.dart' as pb;
 
 /// Фейковые чаты и папки для UX-демо (флаг «Демо чатов» на экране
 /// «Разработчик»). Состояние живёт в памяти процесса — одно на всё приложение,
@@ -2301,6 +2304,15 @@ class ChatsDemoDataSource implements ChatsDataSource {
         pinned: true,
         lastMessage: msg('Список покупок: молоко, хлеб, кофе', out: true, status: models.MessageStatus.read, date: ago(days: 1)),
       ),
+      // Служебные уведомления «Iperon» (docs/plans/system-notices.md).
+      models.Chat(
+        id: 'iperon',
+        type: models.ChatType.private,
+        title: models.systemAccountName,
+        peerUserID: models.systemUserID,
+        unreadCount: 1,
+        lastMessage: msg(t.systemNotice.newLoginTitle, date: ago(hours: 2)),
+      ),
       models.Chat(
         id: 'anna',
         type: models.ChatType.private,
@@ -2707,10 +2719,55 @@ class ChatsDemoDataSource implements ChatsDataSource {
 
   /// История чата для демо: несколько дней переписки, кончается тем же
   /// последним сообщением, что видно в списке.
+  /// «Iperon»: включили облачный пароль, потом вход с чужого устройства.
+  List<models.Message> _seedSystemNotices(models.Chat chat) {
+    final end = chat.lastMessage?.date ?? DateTime.now();
+    models.Message notice(String id, pb.MessageSystemNotice notice, DateTime date) {
+      final (:text, :entities) = systemNoticeText(t, notice, russian: LocaleSettings.currentLocale == AppLocale.ru);
+      return models.Message(
+        id: id,
+        chatID: chat.id,
+        text: text,
+        entities: entities,
+        date: date,
+        systemNotice: systemNoticeFromPb(pb.MessageContent(systemNotice: notice)),
+      );
+    }
+
+    return [
+      notice(
+        '1',
+        pb.MessageSystemNotice(
+          kind: pb.MessageSystemNotice_Kind.CLOUD_PASSWORD_SET,
+          sessionID: idBytes(idHex(getIt.get<Auth>().session.sessionID)),
+          deviceModel: 'iPhone 16 Pro',
+        ),
+        end.subtract(const Duration(days: 3)),
+      ),
+      notice(
+        '2',
+        pb.MessageSystemNotice(
+          kind: pb.MessageSystemNotice_Kind.NEW_LOGIN,
+          sessionID: idBytes('6716a2f0c1d2e3f4a5b6c7d8'),
+          deviceModel: 'Pixel 9',
+          os: 2,
+          osVersion: '16',
+          appVersion: '0.0.240',
+          ip: '185.12.34.56',
+          locationEnglish: 'Kazan, Russia',
+          locationRussian: 'Казань, Россия',
+          loginMethod: pb.MessageSystemNotice_LoginMethod.CALL_PASSWORD,
+        ),
+        end,
+      ),
+    ];
+  }
+
   List<models.Message> _seedMessages(String chatID) {
     final chat = _chat(chatID);
     // У сообщества своей ленты нет — сообщения в его чатах.
     if (chat == null || chat.type == models.ChatType.community) return [];
+    if (chat.isSystem) return _seedSystemNotices(chat);
     final now = DateTime.now();
     final last = chat.lastMessage;
     final end = last?.date ?? now;

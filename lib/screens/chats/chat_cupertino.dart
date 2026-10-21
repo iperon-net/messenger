@@ -31,6 +31,7 @@ import 'message_context_menu_cupertino.dart';
 import 'pinned_messages_cupertino.dart';
 import 'pin_scope_cupertino.dart';
 import 'scheduled_messages_cupertino.dart';
+import 'system_notice_common.dart';
 import 'voice_recorder.dart';
 
 /// Окно чата (iOS): шапка с аватаром и «печатает…», лента пузырей, поле ввода
@@ -630,6 +631,8 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                                 onCallTap: chat.type == models.ChatType.private && !chat.isSelf
                                                     ? (message) => chatInfoCall(chat, video: message.phoneCall?.video ?? false)
                                                     : null,
+                                                // Уведомление «Iperon» — «Устройства» / «Это не я».
+                                                actionsFor: chat.isSystem ? (message) => systemNoticeActions(context, message) : null,
                                                 style: ChatCupertino.bubbleStyle(context),
                                                 padding: EdgeInsets.only(
                                                   top: 8 + (state.pinnedMessages.isEmpty ? 0 : PinnedMessageBar.height),
@@ -658,6 +661,7 @@ class _ChatCupertinoState extends State<ChatCupertino> {
                                                 flashRange: _tracker.flashRange,
                                                 onReply:
                                                     chat.type == models.ChatType.channel ||
+                                                        chat.isSystem ||
                                                         state.commentsBlocked ||
                                                         state.searching ||
                                                         state.selecting

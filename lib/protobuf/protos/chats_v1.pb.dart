@@ -1116,6 +1116,199 @@ class MessageChatAction extends $pb.GeneratedMessage {
   void clearTitle() => $_clearField(3);
 }
 
+/// Служебное уведомление системного аккаунта «Iperon» (только от сервера и
+/// только в чат с SYSTEM_USER_ID = ObjectID 000000000000000000000001; при
+/// отправке — отказ), как сервисные сообщения 777000 в Telegram. Текст
+/// собирает клиент по kind и полям (локализация), sessionID — для кнопок
+/// «Устройства» / «Это не я». План: docs/plans/system-notices.md (клиент).
+class MessageSystemNotice extends $pb.GeneratedMessage {
+  factory MessageSystemNotice({
+    MessageSystemNotice_Kind? kind,
+    $core.List<$core.int>? sessionID,
+    $core.String? deviceModel,
+    $core.int? os,
+    $core.String? osVersion,
+    $core.String? appVersion,
+    $core.String? ip,
+    $core.String? locationEnglish,
+    $core.String? locationRussian,
+    MessageSystemNotice_LoginMethod? loginMethod,
+    $core.String? email,
+    $core.String? passkeyLabel,
+  }) {
+    final result = create();
+    if (kind != null) result.kind = kind;
+    if (sessionID != null) result.sessionID = sessionID;
+    if (deviceModel != null) result.deviceModel = deviceModel;
+    if (os != null) result.os = os;
+    if (osVersion != null) result.osVersion = osVersion;
+    if (appVersion != null) result.appVersion = appVersion;
+    if (ip != null) result.ip = ip;
+    if (locationEnglish != null) result.locationEnglish = locationEnglish;
+    if (locationRussian != null) result.locationRussian = locationRussian;
+    if (loginMethod != null) result.loginMethod = loginMethod;
+    if (email != null) result.email = email;
+    if (passkeyLabel != null) result.passkeyLabel = passkeyLabel;
+    return result;
+  }
+
+  MessageSystemNotice._();
+
+  factory MessageSystemNotice.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MessageSystemNotice.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MessageSystemNotice',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aE<MessageSystemNotice_Kind>(1, _omitFieldNames ? '' : 'kind', enumValues: MessageSystemNotice_Kind.values)
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'sessionID', $pb.PbFieldType.OY, protoName: 'sessionID')
+    ..aOS(3, _omitFieldNames ? '' : 'deviceModel', protoName: 'deviceModel')
+    ..aI(4, _omitFieldNames ? '' : 'os')
+    ..aOS(5, _omitFieldNames ? '' : 'osVersion', protoName: 'osVersion')
+    ..aOS(6, _omitFieldNames ? '' : 'appVersion', protoName: 'appVersion')
+    ..aOS(7, _omitFieldNames ? '' : 'ip')
+    ..aOS(8, _omitFieldNames ? '' : 'locationEnglish', protoName: 'locationEnglish')
+    ..aOS(9, _omitFieldNames ? '' : 'locationRussian', protoName: 'locationRussian')
+    ..aE<MessageSystemNotice_LoginMethod>(10, _omitFieldNames ? '' : 'loginMethod',
+        protoName: 'loginMethod', enumValues: MessageSystemNotice_LoginMethod.values)
+    ..aOS(11, _omitFieldNames ? '' : 'email')
+    ..aOS(12, _omitFieldNames ? '' : 'passkeyLabel', protoName: 'passkeyLabel')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MessageSystemNotice clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MessageSystemNotice copyWith(void Function(MessageSystemNotice) updates) =>
+      super.copyWith((message) => updates(message as MessageSystemNotice)) as MessageSystemNotice;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MessageSystemNotice create() => MessageSystemNotice._();
+  @$core.override
+  MessageSystemNotice createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MessageSystemNotice getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MessageSystemNotice>(create);
+  static MessageSystemNotice? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  MessageSystemNotice_Kind get kind => $_getN(0);
+  @$pb.TagNumber(1)
+  set kind(MessageSystemNotice_Kind value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasKind() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearKind() => $_clearField(1);
+
+  /// Сессия, которая это сделала (у NEW_LOGIN — новая сессия); пусто — не
+  /// известна (CLOUD_PASSWORD_WRONG: сессии ещё нет).
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get sessionID => $_getN(1);
+  @$pb.TagNumber(2)
+  set sessionID($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasSessionID() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSessionID() => $_clearField(2);
+
+  /// Устройство и место — как в DeviceSessions.DeviceSession (NEW_LOGIN;
+  /// у остальных — устройство сессии-инициатора, если она есть).
+  @$pb.TagNumber(3)
+  $core.String get deviceModel => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set deviceModel($core.String value) => $_setString(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasDeviceModel() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearDeviceModel() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get os => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set os($core.int value) => $_setSignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasOs() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearOs() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.String get osVersion => $_getSZ(4);
+  @$pb.TagNumber(5)
+  set osVersion($core.String value) => $_setString(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasOsVersion() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearOsVersion() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.String get appVersion => $_getSZ(5);
+  @$pb.TagNumber(6)
+  set appVersion($core.String value) => $_setString(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasAppVersion() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearAppVersion() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.String get ip => $_getSZ(6);
+  @$pb.TagNumber(7)
+  set ip($core.String value) => $_setString(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasIp() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearIp() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.String get locationEnglish => $_getSZ(7);
+  @$pb.TagNumber(8)
+  set locationEnglish($core.String value) => $_setString(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasLocationEnglish() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearLocationEnglish() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.String get locationRussian => $_getSZ(8);
+  @$pb.TagNumber(9)
+  set locationRussian($core.String value) => $_setString(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasLocationRussian() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearLocationRussian() => $_clearField(9);
+
+  /// Способ входа (NEW_LOGIN, CLOUD_PASSWORD_WRONG).
+  @$pb.TagNumber(10)
+  MessageSystemNotice_LoginMethod get loginMethod => $_getN(9);
+  @$pb.TagNumber(10)
+  set loginMethod(MessageSystemNotice_LoginMethod value) => $_setField(10, value);
+  @$pb.TagNumber(10)
+  $core.bool hasLoginMethod() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearLoginMethod() => $_clearField(10);
+
+  /// Маска почты (RECOVERY_EMAIL_SET), например «k***@yandex.ru».
+  @$pb.TagNumber(11)
+  $core.String get email => $_getSZ(10);
+  @$pb.TagNumber(11)
+  set email($core.String value) => $_setString(10, value);
+  @$pb.TagNumber(11)
+  $core.bool hasEmail() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearEmail() => $_clearField(11);
+
+  /// Название ключа доступа (PASSKEY_ADDED).
+  @$pb.TagNumber(12)
+  $core.String get passkeyLabel => $_getSZ(11);
+  @$pb.TagNumber(12)
+  set passkeyLabel($core.String value) => $_setString(11, value);
+  @$pb.TagNumber(12)
+  $core.bool hasPasskeyLabel() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearPasskeyLabel() => $_clearField(12);
+}
+
 /// Разметка текста (как MessageEntity на клиенте, смещения — в UTF-16).
 class MessageEntity extends $pb.GeneratedMessage {
   factory MessageEntity({
@@ -2272,6 +2465,7 @@ class MessageContent extends $pb.GeneratedMessage {
     MessageNoForwardsRequest? noForwardsRequest,
     MessageChatAction? chatAction,
     MessagePoll? poll,
+    MessageSystemNotice? systemNotice,
   }) {
     final result = create();
     if (text != null) result.text = text;
@@ -2287,6 +2481,7 @@ class MessageContent extends $pb.GeneratedMessage {
     if (noForwardsRequest != null) result.noForwardsRequest = noForwardsRequest;
     if (chatAction != null) result.chatAction = chatAction;
     if (poll != null) result.poll = poll;
+    if (systemNotice != null) result.systemNotice = systemNotice;
     return result;
   }
 
@@ -2313,6 +2508,7 @@ class MessageContent extends $pb.GeneratedMessage {
         protoName: 'noForwardsRequest', subBuilder: MessageNoForwardsRequest.create)
     ..aOM<MessageChatAction>(12, _omitFieldNames ? '' : 'chatAction', protoName: 'chatAction', subBuilder: MessageChatAction.create)
     ..aOM<MessagePoll>(13, _omitFieldNames ? '' : 'poll', subBuilder: MessagePoll.create)
+    ..aOM<MessageSystemNotice>(14, _omitFieldNames ? '' : 'systemNotice', protoName: 'systemNotice', subBuilder: MessageSystemNotice.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2463,6 +2659,18 @@ class MessageContent extends $pb.GeneratedMessage {
   void clearPoll() => $_clearField(13);
   @$pb.TagNumber(13)
   MessagePoll ensurePoll() => $_ensure(12);
+
+  /// Уведомление системного аккаунта (только от сервера; при отправке — отказ).
+  @$pb.TagNumber(14)
+  MessageSystemNotice get systemNotice => $_getN(13);
+  @$pb.TagNumber(14)
+  set systemNotice(MessageSystemNotice value) => $_setField(14, value);
+  @$pb.TagNumber(14)
+  $core.bool hasSystemNotice() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearSystemNotice() => $_clearField(14);
+  @$pb.TagNumber(14)
+  MessageSystemNotice ensureSystemNotice() => $_ensure(13);
 }
 
 /// Реакция участника на сообщение: кто, каким эмодзи и когда поставил.

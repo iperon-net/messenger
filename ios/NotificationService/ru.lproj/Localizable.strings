@@ -16,3 +16,13 @@
 "PUSH_REACTION_VOICE" = "%@ к вашему голосовому сообщению";
 "PUSH_REACTION_POLL" = "%@ к вашему опросу";
 "PUSH_REACTION_NO_PREVIEW" = "Новая реакция";
+/* Уведомления «Iperon» (SYSTEM_NOTICE): ключ — PUSH_SYSTEM_ + вид события. */
+"PUSH_SYSTEM_NEW_LOGIN" = "Новый вход в аккаунт";
+"PUSH_SYSTEM_CLOUD_PASSWORD_SET" = "Облачный пароль включён";
+"PUSH_SYSTEM_CLOUD_PASSWORD_CHANGED" = "Облачный пароль изменён";
+"PUSH_SYSTEM_CLOUD_PASSWORD_DISABLED" = "Облачный пароль выключен";
+"PUSH_SYSTEM_CLOUD_PASSWORD_RESET" = "Облачный пароль сброшен";
+"PUSH_SYSTEM_CLOUD_PASSWORD_WRONG" = "Неудачная попытка входа: неверный облачный пароль";
+"PUSH_SYSTEM_RECOVERY_EMAIL_SET" = "Почта для восстановления подтверждена";
+"PUSH_SYSTEM_PASSKEY_ADDED" = "Добавлен ключ доступа";
+"PUSH_SYSTEM_PASSKEY_REMOVED" = "Ключ доступа удалён";

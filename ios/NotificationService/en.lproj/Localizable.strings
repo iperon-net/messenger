@@ -16,3 +16,13 @@
 "PUSH_REACTION_VOICE" = "%@ to your voice message";
 "PUSH_REACTION_POLL" = "%@ to your poll";
 "PUSH_REACTION_NO_PREVIEW" = "New reaction";
+/* «Iperon» notices (SYSTEM_NOTICE): key — PUSH_SYSTEM_ + event kind. */
+"PUSH_SYSTEM_NEW_LOGIN" = "New login";
+"PUSH_SYSTEM_CLOUD_PASSWORD_SET" = "Cloud password enabled";
+"PUSH_SYSTEM_CLOUD_PASSWORD_CHANGED" = "Cloud password changed";
+"PUSH_SYSTEM_CLOUD_PASSWORD_DISABLED" = "Cloud password disabled";
+"PUSH_SYSTEM_CLOUD_PASSWORD_RESET" = "Cloud password reset";
+"PUSH_SYSTEM_CLOUD_PASSWORD_WRONG" = "Failed login attempt: wrong cloud password";
+"PUSH_SYSTEM_RECOVERY_EMAIL_SET" = "Recovery email confirmed";
+"PUSH_SYSTEM_PASSKEY_ADDED" = "Passkey added";
+"PUSH_SYSTEM_PASSKEY_REMOVED" = "Passkey removed";

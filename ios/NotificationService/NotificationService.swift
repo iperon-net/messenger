@@ -136,6 +136,13 @@ class NotificationService: UNNotificationServiceExtension {
       content.body = Self.reactionBody(payload)
       content.threadIdentifier = "chat:" + PushKeychain.hex(payload.chatID)
       return Self.intent(payload, sender: title, body: content.body)
+    case .systemNotice:
+      // Уведомление «Iperon» (новый вход, облачный пароль…): текст по виду
+      // события, у входа — ещё устройство и место.
+      content.title = title
+      content.body = Self.systemNoticeBody(payload)
+      content.threadIdentifier = "chat:" + PushKeychain.hex(payload.chatID)
+      return nil
     default:
       // READ_HISTORY / MESSAGE_DELETED сюда не попадают: сервер шлёт их
       // background-пушем, их разбирает приложение (PushBridge.handleSilent).
@@ -233,6 +240,20 @@ class NotificationService: UNNotificationServiceExtension {
 
   private static func text(_ key: String) -> String {
     NSLocalizedString(key, comment: "")
+  }
+
+  /// Текст SYSTEM_NOTICE: args[0] — вид (имя MessageSystemNotice.Kind),
+  /// args[1] — устройство, args[2] / args[3] — место (en / ru). Неизвестный
+  /// вид (сервер новее) — общий текст.
+  private static func systemNoticeBody(_ payload: Iperon_V1_PushPayload) -> String {
+    let key = "PUSH_SYSTEM_" + (payload.args.first ?? "")
+    let title = text(key)
+    guard title != key else { return text("PUSH_FALLBACK_BODY") }
+    let args = payload.args
+    let russian = Bundle.main.preferredLocalizations.first == "ru"
+    let location = (russian ? [3, 2] : [2, 3]).lazy.compactMap { args.count > $0 && !args[$0].isEmpty ? args[$0] : nil }.first
+    let details = [args.count > 1 ? args[1] : "", location ?? ""].filter { !$0.isEmpty }
+    return details.isEmpty ? title : title + ": " + details.joined(separator: ", ")
   }
 
   /// Имя контакта из адресной книги по номеру. nil — нет доступа к контактам

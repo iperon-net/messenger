@@ -129,6 +129,12 @@ nonisolated struct Iperon_V1_PushPayload: Sendable {
     /// Новое сообщение секретного чата (chatID — secretChatID): только имя
     /// отправителя, текста нет (у сервера его нет); только на устройство чата.
     case secretMessage // = 14
+
+    /// Уведомление системного аккаунта «Iperon» (MessageSystemNotice): chatID /
+    /// messageID — его чат, title — «Iperon», body пуст — текст собирает
+    /// устройство: args[0] — имя MessageSystemNotice.Kind («NEW_LOGIN», …),
+    /// args[1] — устройство, args[2] / args[3] — место (en / ru).
+    case systemNotice // = 15
     case UNRECOGNIZED(Int)
 
     init() {
@@ -146,6 +152,7 @@ nonisolated struct Iperon_V1_PushPayload: Sendable {
       case 12: self = .messageDeleted
       case 13: self = .messageReaction
       case 14: self = .secretMessage
+      case 15: self = .systemNotice
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -161,6 +168,7 @@ nonisolated struct Iperon_V1_PushPayload: Sendable {
       case .messageDeleted: return 12
       case .messageReaction: return 13
       case .secretMessage: return 14
+      case .systemNotice: return 15
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -176,6 +184,7 @@ nonisolated struct Iperon_V1_PushPayload: Sendable {
       .messageDeleted,
       .messageReaction,
       .secretMessage,
+      .systemNotice,
     ]
 
   }
@@ -289,5 +298,5 @@ nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobu
 }
 
 nonisolated extension Iperon_V1_PushPayload.Kind: SwiftProtobuf._ProtoNameProviding {
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0UNKNOWN\0\u{1}TEST\0\u{1}CONTACT_JOINED\0\u{1}CALL_MISSED\0\u{2}\u{7}MESSAGE\0\u{1}READ_HISTORY\0\u{1}MESSAGE_DELETED\0\u{1}MESSAGE_REACTION\0\u{1}SECRET_MESSAGE\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0UNKNOWN\0\u{1}TEST\0\u{1}CONTACT_JOINED\0\u{1}CALL_MISSED\0\u{2}\u{7}MESSAGE\0\u{1}READ_HISTORY\0\u{1}MESSAGE_DELETED\0\u{1}MESSAGE_REACTION\0\u{1}SECRET_MESSAGE\0\u{1}SYSTEM_NOTICE\0")
 }

@@ -23,6 +23,16 @@
     <string name="push_reaction_voice">%1$s к вашему голосовому сообщению</string>
     <string name="push_reaction_poll">%1$s к вашему опросу</string>
     <string name="push_reaction_no_preview">Новая реакция</string>
+    <!-- Уведомления «Iperon» (SYSTEM_NOTICE) -->
+    <string name="push_system_new_login">Новый вход в аккаунт</string>
+    <string name="push_system_cloud_password_set">Облачный пароль включён</string>
+    <string name="push_system_cloud_password_changed">Облачный пароль изменён</string>
+    <string name="push_system_cloud_password_disabled">Облачный пароль выключен</string>
+    <string name="push_system_cloud_password_reset">Облачный пароль сброшен</string>
+    <string name="push_system_cloud_password_wrong">Неудачная попытка входа: неверный облачный пароль</string>
+    <string name="push_system_recovery_email_set">Почта для восстановления подтверждена</string>
+    <string name="push_system_passkey_added">Добавлен ключ доступа</string>
+    <string name="push_system_passkey_removed">Ключ доступа удалён</string>
     <string name="push_action_reply">Ответить</string>
     <string name="push_action_read">Прочитано</string>
     <string name="push_reply_self">Вы</string>

@@ -2,6 +2,14 @@ import 'package:dart_mappable/dart_mappable.dart';
 
 part 'chat.mapper.dart';
 
+/// hex userID системного аккаунта «Iperon»: служебные уведомления (новый
+/// вход, облачный пароль…) в личном чате с ним, как 777000 в Telegram. Тот же
+/// ID на сервере (`models.SystemUserID`); см. docs/plans/system-notices.md.
+const systemUserID = '000000000000000000000001';
+
+/// Имя системного аккаунта (не переводится).
+const systemAccountName = 'Iperon';
+
 /// Тип чата (см. docs/plans/chats-groups-channels.md). Сообщество — страница
 /// организации и контейнер над её группами и каналами ([Chat.communityID]);
 /// своей ленты у него нет, в списке чатов — одной строкой.
@@ -592,6 +600,9 @@ class Chat with ChatMappable {
   /// Секретный чат (см. [secretStatus]).
   bool get isSecret => secretStatus != null;
 
+  /// Чат с системным аккаунтом «Iperon» ([systemUserID]): только читать.
+  bool get isSystem => type == ChatType.private && peerUserID == systemUserID;
+
   /// Комментарии к посту канала.
   bool get isThread => threadOf.isNotEmpty;
 
@@ -606,6 +617,7 @@ class Chat with ChatMappable {
   /// админ.
   bool get slowModeApplies => slowMode > 0 && (type == ChatType.group || type == ChatType.community) && !canManage;
 
-  /// Можно писать: не канал, либо админ/владелец канала (публикует посты).
-  bool get canPost => isMember && (type != ChatType.channel || canManage);
+  /// Можно писать: не канал, либо админ/владелец канала (публикует посты). В
+  /// чат «Iperon» пишет только сервер — внизу «Звук», как у подписчика канала.
+  bool get canPost => isMember && !isSystem && (type != ChatType.channel || canManage);
 }

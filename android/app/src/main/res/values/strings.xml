@@ -27,6 +27,16 @@
     <string name="push_reaction_voice">%1$s to your voice message</string>
     <string name="push_reaction_poll">%1$s to your poll</string>
     <string name="push_reaction_no_preview">New reaction</string>
+    <!-- «Iperon» notices (SYSTEM_NOTICE) -->
+    <string name="push_system_new_login">New login</string>
+    <string name="push_system_cloud_password_set">Cloud password enabled</string>
+    <string name="push_system_cloud_password_changed">Cloud password changed</string>
+    <string name="push_system_cloud_password_disabled">Cloud password disabled</string>
+    <string name="push_system_cloud_password_reset">Cloud password reset</string>
+    <string name="push_system_cloud_password_wrong">Failed login attempt: wrong cloud password</string>
+    <string name="push_system_recovery_email_set">Recovery email confirmed</string>
+    <string name="push_system_passkey_added">Passkey added</string>
+    <string name="push_system_passkey_removed">Passkey removed</string>
     <!-- Кнопки уведомления чата (NotificationActionReceiver). -->
     <string name="push_action_reply">Reply</string>
     <string name="push_action_read">Mark as read</string>

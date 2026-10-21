@@ -32,6 +32,12 @@ class PushPayload_Kind extends $pb.ProtobufEnum {
   /// отправителя, текста нет (у сервера его нет); только на устройство чата.
   static const PushPayload_Kind SECRET_MESSAGE = PushPayload_Kind._(14, _omitEnumNames ? '' : 'SECRET_MESSAGE');
 
+  /// Уведомление системного аккаунта «Iperon» (MessageSystemNotice): chatID /
+  /// messageID — его чат, title — «Iperon», body пуст — текст собирает
+  /// устройство: args[0] — имя MessageSystemNotice.Kind («NEW_LOGIN», …),
+  /// args[1] — устройство, args[2] / args[3] — место (en / ru).
+  static const PushPayload_Kind SYSTEM_NOTICE = PushPayload_Kind._(15, _omitEnumNames ? '' : 'SYSTEM_NOTICE');
+
   static const $core.List<PushPayload_Kind> values = <PushPayload_Kind>[
     UNKNOWN,
     TEST,
@@ -42,6 +48,7 @@ class PushPayload_Kind extends $pb.ProtobufEnum {
     MESSAGE_DELETED,
     MESSAGE_REACTION,
     SECRET_MESSAGE,
+    SYSTEM_NOTICE,
   ];
 
   static final $core.Map<$core.int, PushPayload_Kind> _byValue = $pb.ProtobufEnum.initByValue(values);

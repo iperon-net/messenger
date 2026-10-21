@@ -37,6 +37,8 @@ const maxReactionsPerPost = 11;
 /// Какие реакции можно поставить в [chat]; с [message] — ещё и с учётом
 /// лимита разных реакций под постом канала: набран — только уже стоящие.
 List<String> availableReactions(models.Chat chat, {models.Message? message}) {
+  // Уведомления «Iperon» — служебные: реакций на них нет (сервер откажет).
+  if (chat.isSystem) return const [];
   if (chat.type == models.ChatType.private) return privateChatReactions;
   final allowed = switch (chat.reactionsMode) {
     models.ChatReactionsMode.all => allChatReactions,

@@ -85,7 +85,7 @@ class _ProfileViewState extends State<_ProfileView> {
   void initState() {
     super.initState();
     final userID = context.read<ProfileCubit>().state.userID;
-    if (!profileIsSelf(userID)) {
+    if (!profileIsSelf(userID) && !profileIsSystem(userID)) {
       secretChatAvailable(userID).then((available) {
         if (mounted && available != _secretAvailable) setState(() => _secretAvailable = available);
       });
@@ -207,6 +207,18 @@ class _ProfileViewState extends State<_ProfileView> {
     final t = context.t;
     final chatCubit = chat == null ? null : context.read<ChatCubit>();
     final profileCubit = context.read<ProfileCubit>();
+    // «Iperon» — только удалить чат (новое уведомление вернёт его).
+    if (profileIsSystem(profile.userID)) {
+      return [
+        if (chat != null && chatCubit != null)
+          ChatInfoMoreItem(
+            title: chatLeaveLabel(t, chat),
+            icon: CupertinoIcons.delete,
+            destructive: true,
+            onTap: () => _delete(context, chat),
+          ),
+      ];
+    }
     return [
       if (!profile.isContact && profile.phoneNumber.isNotEmpty)
         ChatInfoMoreItem(
@@ -292,7 +304,9 @@ class _ProfileViewState extends State<_ProfileView> {
   Widget _avatar(BuildContext context, ProfileState profile, String name) => SizedBox(
     width: 96,
     height: 96,
-    child: profile.avatarBytes != null
+    child: profileIsSystem(profile.userID)
+        ? SystemAccountAvatar(size: 96, background: CupertinoTheme.of(context).primaryColor, foreground: ThemesCupertino.onAccent(context))
+        : profile.avatarBytes != null
         ? GestureDetector(
             onTap: () => showAvatarViewer(context, bytes: profile.avatarBytes!, heroTag: _avatarHero, title: name),
             child: Hero(
@@ -331,11 +345,14 @@ class _ProfileViewState extends State<_ProfileView> {
     final background = ThemesCupertino.groupedBackground.resolveFrom(context);
     final chat = chatState?.chat;
     final self = profileIsSelf(profile.userID);
+    final system = profileIsSystem(profile.userID);
     final name = profile.displayName.isNotEmpty ? profile.displayName : (chat == null ? '' : ChatTileContent.title(t, chat));
     // Из окна чата — его подзаголовок («печатает…» тоже), иначе — присутствие.
     final subtitle = self
         ? null
-        : (chat != null ? chatSubtitle(t, chat) : userPresence(t, online: profile.online, lastSeen: profile.lastSeen));
+        : (system
+              ? (text: t.systemNotice.subtitle, active: false)
+              : (chat != null ? chatSubtitle(t, chat) : userPresence(t, online: profile.online, lastSeen: profile.lastSeen)));
     final tabs = chat == null ? const <ChatInfoTab>[] : chatInfoTabs(chat);
     final tab = tabs.contains(_tab) ? _tab! : (tabs.firstOrNull ?? ChatInfoTab.media);
     final moreItems = _moreItems(context, profile, chat);
@@ -408,8 +425,8 @@ class _ProfileViewState extends State<_ProfileView> {
                         color: action,
                         onTap: () => _message(context, profile),
                       ),
-                    // Заблокированному не звоним (сервер и так не пропустит).
-                    if (!self && !profile.blocked) ...[
+                    // Заблокированному и «Iperon» не звоним (сервер и так не пропустит).
+                    if (!self && !system && !profile.blocked) ...[
                       ChatInfoActionButton(
                         icon: HugeIcons.strokeRoundedCall02,
                         label: t.screenChatInfo.call,

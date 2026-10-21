@@ -80,6 +80,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$chatTtl$ru chatTtl = _Translations$chatTtl$ru._(_root);
 	@override late final _Translations$chatNoForwards$ru chatNoForwards = _Translations$chatNoForwards$ru._(_root);
 	@override late final _Translations$secretChat$ru secretChat = _Translations$secretChat$ru._(_root);
+	@override late final _Translations$systemNotice$ru systemNotice = _Translations$systemNotice$ru._(_root);
 }
 
 // Path: common
@@ -1852,6 +1853,59 @@ class _Translations$secretChat$ru extends Translations$secretChat$en {
 	@override String screenshot({required Object name}) => '${name} сделал(а) скриншот';
 }
 
+// Path: systemNotice
+class _Translations$systemNotice$ru extends Translations$systemNotice$en {
+	_Translations$systemNotice$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get subtitle => 'Служебные уведомления';
+	@override String get newLoginTitle => 'Новый вход в аккаунт';
+	@override String get newLogin => 'В ваш аккаунт вошли с нового устройства.';
+	@override String device({required Object value}) => 'Устройство: ${value}';
+	@override String app({required Object value}) => 'Приложение: Iperon ${value}';
+	@override String location({required Object value}) => 'Место: ${value}';
+	@override String ip({required Object value}) => 'IP-адрес: ${value}';
+	@override String method({required Object value}) => 'Способ входа: ${value}';
+	@override String get methodCallPassword => 'звонок';
+	@override String get methodSms => 'SMS';
+	@override String get methodPasskey => 'ключ доступа';
+	@override String get methodYandex => 'Яндекс ID';
+	@override String get notMeHint => 'Если это были не вы, нажмите «Это не я», чтобы завершить сеанс, и включите облачный пароль.';
+	@override String get cloudPasswordSetTitle => 'Облачный пароль включён';
+	@override String get cloudPasswordSet => 'Теперь для входа в аккаунт на новом устройстве нужен облачный пароль.';
+	@override String get cloudPasswordChangedTitle => 'Облачный пароль изменён';
+	@override String get cloudPasswordChanged => 'Облачный пароль вашего аккаунта изменён.';
+	@override String get cloudPasswordDisabledTitle => 'Облачный пароль выключен';
+	@override String get cloudPasswordDisabled => 'Двухэтапная проверка выключена: для входа облачный пароль больше не нужен.';
+	@override String get cloudPasswordResetTitle => 'Облачный пароль сброшен';
+	@override String get cloudPasswordReset => 'Облачный пароль сброшен по коду из письма и задан заново.';
+	@override String get cloudPasswordWrongTitle => 'Неудачная попытка входа';
+	@override String get cloudPasswordWrong => 'Кто-то подтвердил вход в ваш аккаунт, но ввёл неверный облачный пароль. Вход не выполнен.';
+	@override String get cloudPasswordWrongHint => 'Если это были не вы, значит, кто-то знает код входа. Не сообщайте его никому и не отключайте облачный пароль.';
+	@override String get recoveryEmailSetTitle => 'Почта для восстановления подтверждена';
+	@override String recoveryEmailSet({required Object email}) => 'Сбросить облачный пароль теперь можно через ${email}.';
+	@override String get recoveryEmailSetNoEmail => 'Сбросить облачный пароль теперь можно через почту.';
+	@override String get passkeyAddedTitle => 'Добавлен ключ доступа';
+	@override String passkeyAdded({required Object label}) => 'К аккаунту добавлен ключ доступа «${label}»: с ним можно входить без звонка.';
+	@override String get passkeyAddedNoLabel => 'К аккаунту добавлен ключ доступа: с ним можно входить без звонка.';
+	@override String get passkeyRemovedTitle => 'Ключ доступа удалён';
+	@override String get passkeyRemoved => 'Ключ доступа удалён из аккаунта.';
+	@override String get unknown => 'Служебное уведомление. Обновите приложение, чтобы его прочитать.';
+	@override String get devices => 'Устройства';
+	@override String get notMe => 'Это не я';
+	@override String get notMeTitle => 'Завершить этот сеанс?';
+	@override String notMeMessage({required Object device}) => 'Устройство «${device}» выйдет из вашего аккаунта.';
+	@override String get notMeMessageUnknown => 'Это устройство выйдет из вашего аккаунта.';
+	@override String get terminate => 'Завершить';
+	@override String get terminatedTitle => 'Сеанс завершён';
+	@override String get terminatedMessage => 'Включите облачный пароль: с ним никто не войдёт в аккаунт на новом устройстве, даже зная код входа.';
+	@override String get enableCloudPassword => 'Включить облачный пароль';
+	@override String get later => 'Позже';
+	@override String get terminateFailed => 'Не удалось завершить сеанс. Попробуйте ещё раз.';
+}
+
 /// The flat map containing all translations for locale <ru>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -3137,6 +3191,50 @@ extension on TranslationsRu {
 			'secretChat.ttlServiceOff' => ({required Object name}) => '${name} выключил(а) таймер самоуничтожения',
 			'secretChat.screenshotYou' => 'Вы сделали скриншот',
 			'secretChat.screenshot' => ({required Object name}) => '${name} сделал(а) скриншот',
+			'systemNotice.subtitle' => 'Служебные уведомления',
+			'systemNotice.newLoginTitle' => 'Новый вход в аккаунт',
+			'systemNotice.newLogin' => 'В ваш аккаунт вошли с нового устройства.',
+			'systemNotice.device' => ({required Object value}) => 'Устройство: ${value}',
+			'systemNotice.app' => ({required Object value}) => 'Приложение: Iperon ${value}',
+			'systemNotice.location' => ({required Object value}) => 'Место: ${value}',
+			'systemNotice.ip' => ({required Object value}) => 'IP-адрес: ${value}',
+			'systemNotice.method' => ({required Object value}) => 'Способ входа: ${value}',
+			'systemNotice.methodCallPassword' => 'звонок',
+			'systemNotice.methodSms' => 'SMS',
+			'systemNotice.methodPasskey' => 'ключ доступа',
+			'systemNotice.methodYandex' => 'Яндекс ID',
+			'systemNotice.notMeHint' => 'Если это были не вы, нажмите «Это не я», чтобы завершить сеанс, и включите облачный пароль.',
+			'systemNotice.cloudPasswordSetTitle' => 'Облачный пароль включён',
+			'systemNotice.cloudPasswordSet' => 'Теперь для входа в аккаунт на новом устройстве нужен облачный пароль.',
+			'systemNotice.cloudPasswordChangedTitle' => 'Облачный пароль изменён',
+			'systemNotice.cloudPasswordChanged' => 'Облачный пароль вашего аккаунта изменён.',
+			'systemNotice.cloudPasswordDisabledTitle' => 'Облачный пароль выключен',
+			'systemNotice.cloudPasswordDisabled' => 'Двухэтапная проверка выключена: для входа облачный пароль больше не нужен.',
+			'systemNotice.cloudPasswordResetTitle' => 'Облачный пароль сброшен',
+			'systemNotice.cloudPasswordReset' => 'Облачный пароль сброшен по коду из письма и задан заново.',
+			'systemNotice.cloudPasswordWrongTitle' => 'Неудачная попытка входа',
+			'systemNotice.cloudPasswordWrong' => 'Кто-то подтвердил вход в ваш аккаунт, но ввёл неверный облачный пароль. Вход не выполнен.',
+			'systemNotice.cloudPasswordWrongHint' => 'Если это были не вы, значит, кто-то знает код входа. Не сообщайте его никому и не отключайте облачный пароль.',
+			'systemNotice.recoveryEmailSetTitle' => 'Почта для восстановления подтверждена',
+			'systemNotice.recoveryEmailSet' => ({required Object email}) => 'Сбросить облачный пароль теперь можно через ${email}.',
+			'systemNotice.recoveryEmailSetNoEmail' => 'Сбросить облачный пароль теперь можно через почту.',
+			'systemNotice.passkeyAddedTitle' => 'Добавлен ключ доступа',
+			'systemNotice.passkeyAdded' => ({required Object label}) => 'К аккаунту добавлен ключ доступа «${label}»: с ним можно входить без звонка.',
+			'systemNotice.passkeyAddedNoLabel' => 'К аккаунту добавлен ключ доступа: с ним можно входить без звонка.',
+			'systemNotice.passkeyRemovedTitle' => 'Ключ доступа удалён',
+			'systemNotice.passkeyRemoved' => 'Ключ доступа удалён из аккаунта.',
+			'systemNotice.unknown' => 'Служебное уведомление. Обновите приложение, чтобы его прочитать.',
+			'systemNotice.devices' => 'Устройства',
+			'systemNotice.notMe' => 'Это не я',
+			'systemNotice.notMeTitle' => 'Завершить этот сеанс?',
+			'systemNotice.notMeMessage' => ({required Object device}) => 'Устройство «${device}» выйдет из вашего аккаунта.',
+			'systemNotice.notMeMessageUnknown' => 'Это устройство выйдет из вашего аккаунта.',
+			'systemNotice.terminate' => 'Завершить',
+			'systemNotice.terminatedTitle' => 'Сеанс завершён',
+			'systemNotice.terminatedMessage' => 'Включите облачный пароль: с ним никто не войдёт в аккаунт на новом устройстве, даже зная код входа.',
+			'systemNotice.enableCloudPassword' => 'Включить облачный пароль',
+			'systemNotice.later' => 'Позже',
+			'systemNotice.terminateFailed' => 'Не удалось завершить сеанс. Попробуйте ещё раз.',
 			_ => null,
 		};
 	}

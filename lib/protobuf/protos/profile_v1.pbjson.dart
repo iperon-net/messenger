@@ -46,6 +46,7 @@ const Profile_Response$json = {
     {'1': 'phoneNumber', '3': 7, '4': 1, '5': 9, '9': 6, '10': 'phoneNumber', '17': true},
     {'1': 'userID', '3': 8, '4': 1, '5': 12, '9': 7, '10': 'userID', '17': true},
     {'1': 'hide_birth_year', '3': 9, '4': 1, '5': 8, '10': 'hideBirthYear'},
+    {'1': 'official', '3': 10, '4': 1, '5': 8, '10': 'official'},
   ],
   '8': [
     {'1': '_firstName'},
@@ -62,12 +63,13 @@ const Profile_Response$json = {
 /// Descriptor for `Profile`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List profileDescriptor =
     $convert.base64Decode('CgdQcm9maWxlGk8KB1JlcXVlc3QSGAoGdXNlcklEGAEgASgMSABSBnVzZXJJRBIcCgh1c2Vybm'
-        'FtZRgCIAEoCUgAUgh1c2VybmFtZUIMCgppZGVudGlmaWVyGs4DCghSZXNwb25zZRIhCglmaXJz'
+        'FtZRgCIAEoCUgAUgh1c2VybmFtZUIMCgppZGVudGlmaWVyGuoDCghSZXNwb25zZRIhCglmaXJz'
         'dE5hbWUYASABKAlIAFIJZmlyc3ROYW1liAEBEh8KCGxhc3ROYW1lGAIgASgJSAFSCGxhc3ROYW'
         '1liAEBEh0KB2Fib3V0TWUYBCABKAlIAlIHYWJvdXRNZYgBARI9CgliaXJ0aERhdGUYAyABKAsy'
         'Gi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wSANSCWJpcnRoRGF0ZYgBARIrCgZhdmF0YXIYBS'
         'ABKAsyDi5pcGVyb24udjEuQ0ROSARSBmF2YXRhcogBARIfCgh1c2VybmFtZRgGIAEoCUgFUgh1'
         'c2VybmFtZYgBARIlCgtwaG9uZU51bWJlchgHIAEoCUgGUgtwaG9uZU51bWJlcogBARIbCgZ1c2'
         'VySUQYCCABKAxIB1IGdXNlcklEiAEBEiYKD2hpZGVfYmlydGhfeWVhchgJIAEoCFINaGlkZUJp'
-        'cnRoWWVhckIMCgpfZmlyc3ROYW1lQgsKCV9sYXN0TmFtZUIKCghfYWJvdXRNZUIMCgpfYmlydG'
-        'hEYXRlQgkKB19hdmF0YXJCCwoJX3VzZXJuYW1lQg4KDF9waG9uZU51bWJlckIJCgdfdXNlcklE');
+        'cnRoWWVhchIaCghvZmZpY2lhbBgKIAEoCFIIb2ZmaWNpYWxCDAoKX2ZpcnN0TmFtZUILCglfbG'
+        'FzdE5hbWVCCgoIX2Fib3V0TWVCDAoKX2JpcnRoRGF0ZUIJCgdfYXZhdGFyQgsKCV91c2VybmFt'
+        'ZUIOCgxfcGhvbmVOdW1iZXJCCQoHX3VzZXJJRA==');

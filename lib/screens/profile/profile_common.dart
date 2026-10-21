@@ -8,12 +8,17 @@ import '../../cubit.dart';
 import '../../di.dart';
 import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
+import '../../models.dart' as models;
 import '../../utils.dart';
 
 /// Общее для профиля пользователя (`profile_{cupertino,material}.dart`).
 
 /// Свой ли это профиль — на нём нет звонков и «Ещё».
 bool profileIsSelf(List<int> userID) => listEquals(userID, getIt.get<Auth>().session.userID);
+
+/// Системный аккаунт «Iperon» (служебные уведомления): без звонков, контактов,
+/// блокировки и прочего «Ещё».
+bool profileIsSystem(List<int> userID) => profileHex(userID) == models.systemUserID;
 
 /// userID в hex — для маршрутов `/profile/:userID`, `/chats/...`.
 String profileHex(List<int> userID) => getIt.get<Utils>().bytesToHex(Uint8List.fromList(userID));
