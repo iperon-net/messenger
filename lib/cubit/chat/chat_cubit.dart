@@ -1103,31 +1103,20 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     return messages.length;
   }
 
-  /// Куда можно переслать: все чаты, кроме каналов и «Iperon» (писать в них нельзя),
-  /// сообществ (своей ленты нет — только их группы, где мы участник) и личных
-  /// с локально скрытыми профилями (см. HiddenProfiles) — «Избранное» первым,
-  /// архив в конце. Пересылаем опрос, а опросы у источника только в группах
-  /// ([ChatsFeatures.pollsGroupsOnly]) — только группы.
+  /// Куда можно переслать: все чаты, кроме «Iperon» (писать в него нельзя),
+  /// групп с ролью «Чтение» и каналов без права публиковать (4.6: в канал —
+  /// только админу с postMessages; пост уйдёт от имени канала), каналов без
+  /// подписки и веток комментариев, сообществ (своей ленты нет — только их
+  /// группы, где мы участник) и личных с локально скрытыми профилями (см.
+  /// HiddenProfiles) — «Избранное» первым, архив в конце. Пересылаем опрос, а
+  /// опросы у источника только в группах и каналах
+  /// ([ChatsFeatures.pollsGroupsChannelsOnly]) — только они.
   Future<List<models.Chat>> forwardTargets() async {
     final source = _source;
     if (source == null) return const [];
     final hidden = await getIt.get<Repositories>().hiddenProfiles.hashByHex();
-    final groupsOnly = features.pollsGroupsOnly && state.selectedMessages.any((m) => m.kind == models.MessageKind.poll);
-    final chats = (await source.watchChats().first)
-        .where(
-          (c) =>
-              (!groupsOnly || c.type == models.ChatType.group) &&
-              c.type != models.ChatType.channel &&
-              c.type != models.ChatType.community &&
-              // В «Iperon» пишет только сервер.
-              !c.isSystem &&
-              // «Чтение» в группе — писать (и пересылать) туда нельзя.
-              (c.type != models.ChatType.group || canSendInGroup(c.myRole)) &&
-              !c.isThread &&
-              (!c.inCommunity || c.isMember) &&
-              !(c.type == models.ChatType.private && hidden.containsKey(c.peerUserID)),
-        )
-        .toList();
+    final pollsOnly = features.pollsGroupsChannelsOnly && state.selectedMessages.any((m) => m.kind == models.MessageKind.poll);
+    final chats = (await source.watchChats().first).where((c) => isForwardTarget(c, hidden: hidden, polls: pollsOnly)).toList();
     int rank(models.Chat c) => c.isSelf ? 0 : (c.archived ? 2 : 1);
     // Внутри группы — порядок списка чатов (sort в Dart неустойчивый).
     final indexed = chats.indexed.toList()
@@ -1631,4 +1620,23 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     _views?.detach();
     return super.close();
   }
+}
+
+/// Можно ли переслать в [chat] (см. [ChatCubit.forwardTargets]): [hidden] —
+/// локально скрытые профили (hex userID → хеш), [polls] — пересылаем опрос, а
+/// он бывает только в группах и каналах.
+bool isForwardTarget(models.Chat chat, {Map<String, String> hidden = const {}, bool polls = false}) {
+  if (chat.isThread || chat.isReplies || chat.isSystem || chat.browsing || !chat.isMember) return false;
+  if (chat.type == models.ChatType.community) return false;
+  if (chat.inCommunity && !chat.isMember) return false;
+  if (polls && chat.type != models.ChatType.group && chat.type != models.ChatType.channel) return false;
+  return switch (chat.type) {
+    // «Чтение» в группе — писать (и пересылать) туда нельзя.
+    models.ChatType.group => canSendInGroup(chat.myRole),
+    // Канал — только с правом публиковать (владелец — всегда; в демо права
+    // админа неизвестны — как у поля ввода, [models.Chat.canPost]).
+    models.ChatType.channel => chat.canPost && (chat.myRights == null || channelCan(chat, const [], ChannelAction.post)),
+    models.ChatType.private => !hidden.containsKey(chat.peerUserID),
+    models.ChatType.community => false,
+  };
 }

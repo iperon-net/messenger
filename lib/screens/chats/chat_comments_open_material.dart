@@ -14,7 +14,10 @@ class ChatCommentsOpenMaterial extends StatefulWidget {
   final String channelID;
   final String postID;
 
-  const ChatCommentsOpenMaterial({super.key, required this.channelID, required this.postID});
+  /// Прокрутить ветку к этому комментарию (тап в «Ответах»); пусто — нет.
+  final String messageID;
+
+  const ChatCommentsOpenMaterial({super.key, required this.channelID, required this.postID, this.messageID = ''});
 
   @override
   State<ChatCommentsOpenMaterial> createState() => _ChatCommentsOpenMaterialState();
@@ -40,7 +43,8 @@ class _ChatCommentsOpenMaterialState extends State<ChatCommentsOpenMaterial> {
     );
     if (!mounted) return;
     if (result.threadID.isNotEmpty) {
-      context.replace('/chats/chat/${result.threadID}');
+      final focus = widget.messageID.isEmpty ? '' : '?message=${widget.messageID}';
+      context.replace('/chats/chat/${result.threadID}$focus');
       return;
     }
     setState(() => _error = result.error);

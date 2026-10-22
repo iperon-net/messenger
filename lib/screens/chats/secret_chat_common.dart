@@ -25,8 +25,9 @@ import 'chat_common.dart';
 /// Общее для окна секретного чата и его экрана ключа (Cupertino + Material).
 
 /// Куда открывать строку списка чатов: секретный — своё окно.
-String chatRoute(models.Chat chat) =>
-    chat.isSecret ? '/chats/secret/${chat.id.substring(secretChatIDPrefix.length)}' : '/chats/chat/${chat.id}';
+String chatRoute(models.Chat chat) => chat.isSecret
+    ? '/chats/secret/${chat.id.substring(secretChatIDPrefix.length)}'
+    : (chat.isReplies ? '/chats/replies' : '/chats/chat/${chat.id}');
 
 /// «Начать секретный чат» (меню «Ещё» профиля чата): не себе, фича включена,
 /// при «только Premium» — у меня Premium (принять запрос может любой — это не

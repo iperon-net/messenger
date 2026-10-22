@@ -104,6 +104,16 @@ class ChatAvatar extends StatelessWidget {
 
   Widget _avatar() {
     if (chat.isSystem) return SystemAccountAvatar(size: size, background: accentColor, foreground: accentForeground);
+    // «Ответы» (4.6) — стрелка ответа на цвете темы, как в Telegram.
+    if (chat.isReplies) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(color: accentColor, shape: BoxShape.circle),
+        alignment: Alignment.center,
+        child: FaIcon(FontAwesomeIcons.reply, size: size * 0.42, color: accentForeground),
+      );
+    }
     if (chat.isSelf) {
       return Container(
         width: size,

@@ -208,6 +208,15 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll {
         if (index == chats.length + offset) return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: global);
         if (index < offset) return _ArchiveTileMaterial(archived: archived, onTap: () => context.push('/chats/archive'));
         final chat = chats[index - offset];
+        // «Ответы» (4.6): без свайпов, по удержанию — только «Прочитать все».
+        if (chat.isReplies) {
+          return ChatTileMaterial(
+            key: ValueKey(chat.id),
+            chat: chat,
+            onTap: () => context.push(chatRoute(chat)),
+            onLongPress: chat.hasUnread ? () => showChatActionsMaterial(context, chat) : null,
+          );
+        }
         return ChatSwipeActions(
           key: ValueKey(chat.id),
           chat: chat,

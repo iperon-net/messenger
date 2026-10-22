@@ -306,6 +306,55 @@ class ChatsRepository {
   static const inviteLinksTable = 'chatInviteLinks';
   static const mentionsTable = 'chatMentions';
   static const threadsTable = 'chatThreads';
+  static const repliesTable = 'chatReplies';
+  static const repliesStateTable = 'chatRepliesState';
+  static const repliesChatsTable = 'chatRepliesChats';
+
+  /// «Ответы» (миграция 47, подэтап 4.6): ответы на мои комментарии и
+  /// упоминания меня в ветках — [ThreadReply] целиком в `message`
+  /// (`pb.ThreadReply`), остальное — колонки для выборок. `read` — прочитан
+  /// чтением самой ветки (сервер, `RepliesChanged.readIDs`), независимо от
+  /// readMaxID «Ответов».
+  static const repliesSchema = '''
+    CREATE TABLE chatReplies (
+      userID BLOB NOT NULL,
+      replyID INTEGER NOT NULL,
+      threadChatID BLOB NOT NULL,
+      messageID INTEGER NOT NULL,
+      channelID BLOB NOT NULL,
+      postID INTEGER NOT NULL,
+      mention INTEGER NOT NULL DEFAULT 0,
+      read INTEGER NOT NULL DEFAULT 0,
+      date INTEGER NOT NULL,
+      message BLOB NOT NULL,
+      PRIMARY KEY (userID, replyID)
+    );
+  ''';
+
+  /// Состояние «Ответов»: прочитано до `readMaxID`, непрочитанных (с
+  /// сервера), курсор следующей (более старой) страницы `nextOffsetID` (0 —
+  /// дальше нет), `loaded` — первая страница загружена (обновления журнала
+  /// могут прийти раньше неё).
+  static const repliesStateSchema = '''
+    CREATE TABLE chatRepliesState (
+      userID BLOB PRIMARY KEY,
+      readMaxID INTEGER NOT NULL DEFAULT 0,
+      unreadCount INTEGER NOT NULL DEFAULT 0,
+      nextOffsetID INTEGER NOT NULL DEFAULT 0,
+      loaded INTEGER NOT NULL DEFAULT 0
+    );
+  ''';
+
+  /// Каналы и ветки из ответа `Messages.Replies` (`ChatInfo`): заголовки «в
+  /// комментариях к …», когда своего кэша канала нет.
+  static const repliesChatsSchema = '''
+    CREATE TABLE chatRepliesChats (
+      userID BLOB NOT NULL,
+      chatID BLOB NOT NULL,
+      info BLOB NOT NULL,
+      PRIMARY KEY (userID, chatID)
+    );
+  ''';
 
   /// Ветки комментариев постов канала (миграция 45, подэтап 4.3): канал
   /// [chatID], пост [postID] → чат-ветка [threadChatID]. Сама ветка — диалог
@@ -1597,6 +1646,135 @@ class ChatsRepository {
       if (expireAt > 0 && expireAt <= now) add(row['chatID'] as List<int>, row['messageID'] as int);
     }
     return result;
+  }
+
+  // --- «Ответы» (подэтап 4.6) ---
+
+  /// Состояние «Ответов»; `null` — ничего ещё не знаем.
+  Future<({int readMaxID, int unreadCount, int nextOffsetID, bool loaded})?> repliesState({required List<int> userID}) async {
+    final row = await ctx.getOptional('SELECT readMaxID, unreadCount, nextOffsetID, loaded FROM chatRepliesState WHERE userID = ?;', [
+      userID,
+    ]);
+    if (row == null) return null;
+    return (
+      readMaxID: row['readMaxID'] as int,
+      unreadCount: row['unreadCount'] as int,
+      nextOffsetID: row['nextOffsetID'] as int,
+      loaded: row['loaded'] == 1,
+    );
+  }
+
+  /// Поменять состояние (заданные поля); строки нет — заводится. readMaxID не
+  /// уменьшается.
+  Future<void> setRepliesState({required List<int> userID, int? readMaxID, int? unreadCount, int? nextOffsetID, bool? loaded}) async {
+    final current = await repliesState(userID: userID);
+    await ctx.execute(
+      '''
+      INSERT INTO chatRepliesState (userID, readMaxID, unreadCount, nextOffsetID, loaded) VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(userID) DO UPDATE SET readMaxID = excluded.readMaxID, unreadCount = excluded.unreadCount,
+        nextOffsetID = excluded.nextOffsetID, loaded = excluded.loaded;
+      ''',
+      [
+        userID,
+        max(current?.readMaxID ?? 0, readMaxID ?? 0),
+        max(0, unreadCount ?? current?.unreadCount ?? 0),
+        nextOffsetID ?? current?.nextOffsetID ?? 0,
+        (loaded ?? current?.loaded ?? false) ? 1 : 0,
+      ],
+    );
+  }
+
+  /// Новый / изменённый ответ.
+  Future<void> upsertReply({required List<int> userID, required pb.ThreadReply reply}) async {
+    final m = reply.message;
+    await ctx.execute(
+      '''
+      INSERT OR REPLACE INTO chatReplies (userID, replyID, threadChatID, messageID, channelID, postID, mention, read, date, message)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      ''',
+      [
+        userID,
+        reply.replyID.toInt(),
+        m.chatID,
+        m.messageID.toInt(),
+        reply.channelID,
+        reply.postID.toInt(),
+        reply.mention ? 1 : 0,
+        reply.read ? 1 : 0,
+        m.date.toInt(),
+        reply.writeToBuffer(),
+      ],
+    );
+  }
+
+  Future<void> deleteReplies({required List<int> userID, required List<int> replyIDs}) async {
+    if (replyIDs.isEmpty) return;
+    final placeholders = List.filled(replyIDs.length, '?').join(', ');
+    await ctx.execute('DELETE FROM chatReplies WHERE userID = ? AND replyID IN ($placeholders);', [userID, ...replyIDs]);
+  }
+
+  /// Ответы [replyIDs] прочитаны чтением их ветки (`RepliesChanged.readIDs`):
+  /// флаг `read` и в колонке, и в BLOB.
+  Future<void> markRepliesRead({required List<int> userID, required List<int> replyIDs}) async {
+    if (replyIDs.isEmpty) return;
+    final placeholders = List.filled(replyIDs.length, '?').join(', ');
+    final rows = await ctx.getAll('SELECT message FROM chatReplies WHERE userID = ? AND replyID IN ($placeholders) AND read = 0;', [
+      userID,
+      ...replyIDs,
+    ]);
+    for (final row in rows) {
+      await upsertReply(userID: userID, reply: pb.ThreadReply.fromBuffer(row['message'] as List<int>)..read = true);
+    }
+  }
+
+  /// Все ответы и состояние — заново (полная перезагрузка: журнал отстал).
+  Future<void> clearReplies({required List<int> userID}) async {
+    await ctx.execute('DELETE FROM chatReplies WHERE userID = ?;', [userID]);
+    await ctx.execute('DELETE FROM chatRepliesState WHERE userID = ?;', [userID]);
+  }
+
+  /// Ответы от новых к старым.
+  Future<List<pb.ThreadReply>> replies({required List<int> userID, int limit = 1000}) async {
+    final rows = await ctx.getAll('SELECT message FROM chatReplies WHERE userID = ? ORDER BY replyID DESC LIMIT ?;', [userID, limit]);
+    return [for (final row in rows) pb.ThreadReply.fromBuffer(row['message'] as List<int>)];
+  }
+
+  /// Непрочитанных ответов в кэше новее [afterID] (прочитанные чтением
+  /// ветки — не в счёт).
+  Future<int> countRepliesAfter({required List<int> userID, required int afterID}) async {
+    final row = await ctx.get('SELECT COUNT(*) AS n FROM chatReplies WHERE userID = ? AND replyID > ? AND read = 0;', [userID, afterID]);
+    return row['n'] as int;
+  }
+
+  /// Сообщение ветки изменилось (правка в её журнале) — и в «Ответах».
+  Future<void> updateReplyMessage({required List<int> userID, required pb.ChatMessage message}) async {
+    final rows = await ctx.getAll('SELECT message FROM chatReplies WHERE userID = ? AND threadChatID = ? AND messageID = ?;', [
+      userID,
+      message.chatID,
+      message.messageID.toInt(),
+    ]);
+    for (final row in rows) {
+      final reply = pb.ThreadReply.fromBuffer(row['message'] as List<int>)..message = message;
+      await upsertReply(userID: userID, reply: reply);
+    }
+  }
+
+  /// Каналы и ветки из ответа `Messages.Replies`.
+  Future<void> saveRepliesChats({required List<int> userID, required List<pb.ChatInfo> chats}) async {
+    for (final info in chats) {
+      if (info.chatID.isEmpty) continue;
+      await ctx.execute('INSERT OR REPLACE INTO chatRepliesChats (userID, chatID, info) VALUES (?, ?, ?);', [
+        userID,
+        info.chatID,
+        info.writeToBuffer(),
+      ]);
+    }
+  }
+
+  /// hex chatID → сведения канала / ветки (из `Messages.Replies`).
+  Future<Map<String, pb.ChatInfo>> repliesChats({required List<int> userID}) async {
+    final rows = await ctx.getAll('SELECT chatID, info FROM chatRepliesChats WHERE userID = ?;', [userID]);
+    return {for (final row in rows) _hex(row['chatID'] as List<int>): pb.ChatInfo.fromBuffer(row['info'] as List<int>)};
   }
 
   // --- группы ---

@@ -408,4 +408,8 @@ Future<void> _createSchema(SqliteDatabase db) async {
       PRIMARY KEY (userID, chatID, code)
     );
   ''');
+  // «Ответы» (4.6) — их состояние читает подсчёт непрочитанных.
+  await db.execute(ChatsRepository.repliesSchema);
+  await db.execute(ChatsRepository.repliesStateSchema);
+  await db.execute(ChatsRepository.repliesChatsSchema);
 }

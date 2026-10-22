@@ -128,6 +128,28 @@ void main() {
       expect(unread.except(secretChatListID(id(30))), 4);
     });
 
+    test('«Ответы» с непрочитанными — 1 чат (как `replies` в badge на сервере), только с флагом «Каналы»', () async {
+      await dialog(10, peer: 20, unread: 2);
+      final store = repositories.chats;
+      // Ответов ещё не загружали — не считаются.
+      expect((await ChatsSync.instance.countUnread()).total, 1);
+      await store.setRepliesState(userID: me, unreadCount: 7, loaded: true);
+      var unread = await ChatsSync.instance.countUnread();
+      expect(unread.total, 2, reason: 'семь непрочитанных ответов — один чат');
+      expect(unread.byChat[models.repliesChatID], 7);
+      // «‹ N» на экране «Ответы» — без них самих.
+      expect(unread.except(models.repliesChatID), 1);
+      // Прочитали все.
+      await store.setRepliesState(userID: me, readMaxID: 30, unreadCount: 0);
+      unread = await ChatsSync.instance.countUnread();
+      expect(unread.total, 1);
+      expect(unread.byChat.containsKey(models.repliesChatID), isFalse);
+      // Без флага «Каналы» «Ответов» нет и в счётчике.
+      await store.setRepliesState(userID: me, unreadCount: 3);
+      ChatsSync.instance.setChannels(false, initial: true);
+      expect((await ChatsSync.instance.countUnread()).byChat.containsKey(models.repliesChatID), isFalse);
+    });
+
     test('группы и каналы без своего флага не считаются', () async {
       await dialog(10, peer: 20, unread: 1);
       await dialog(11, type: pb.ChatType.CHAT_TYPE_GROUP, unread: 2);
@@ -248,4 +270,7 @@ Future<void> _createSchema(SqliteDatabase db) async {
       PRIMARY KEY (userID, chatID)
     );
   ''');
+  await db.execute(ChatsRepository.repliesSchema);
+  await db.execute(ChatsRepository.repliesStateSchema);
+  await db.execute(ChatsRepository.repliesChatsSchema);
 }

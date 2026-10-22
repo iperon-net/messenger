@@ -3341,6 +3341,121 @@ class ChatMessage extends $pb.GeneratedMessage {
   MessageComments ensureComments() => $_ensure(17);
 }
 
+/// Элемент «Ответов»: сообщение ветки комментариев (message.chatID — ветка),
+/// которое отвечает на мой комментарий или упоминает меня. channelID / postID —
+/// канал и пост (тап открывает ветку на message.messageID). Удалённое в ветке
+/// пропадает из «Ответов».
+class ThreadReply extends $pb.GeneratedMessage {
+  factory ThreadReply({
+    $fixnum.Int64? replyID,
+    ChatMessage? message,
+    $core.List<$core.int>? channelID,
+    $fixnum.Int64? postID,
+    $core.bool? mention,
+    $core.bool? read,
+  }) {
+    final result = create();
+    if (replyID != null) result.replyID = replyID;
+    if (message != null) result.message = message;
+    if (channelID != null) result.channelID = channelID;
+    if (postID != null) result.postID = postID;
+    if (mention != null) result.mention = mention;
+    if (read != null) result.read = read;
+    return result;
+  }
+
+  ThreadReply._();
+
+  factory ThreadReply.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory ThreadReply.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'ThreadReply',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aInt64(1, _omitFieldNames ? '' : 'replyID', protoName: 'replyID')
+    ..aOM<ChatMessage>(2, _omitFieldNames ? '' : 'message', subBuilder: ChatMessage.create)
+    ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'channelID', $pb.PbFieldType.OY, protoName: 'channelID')
+    ..aInt64(4, _omitFieldNames ? '' : 'postID', protoName: 'postID')
+    ..aOB(5, _omitFieldNames ? '' : 'mention')
+    ..aOB(6, _omitFieldNames ? '' : 'read')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ThreadReply clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  ThreadReply copyWith(void Function(ThreadReply) updates) => super.copyWith((message) => updates(message as ThreadReply)) as ThreadReply;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static ThreadReply create() => ThreadReply._();
+  @$core.override
+  ThreadReply createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static ThreadReply getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<ThreadReply>(create);
+  static ThreadReply? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get replyID => $_getI64(0);
+  @$pb.TagNumber(1)
+  set replyID($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasReplyID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearReplyID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  ChatMessage get message => $_getN(1);
+  @$pb.TagNumber(2)
+  set message(ChatMessage value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasMessage() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearMessage() => $_clearField(2);
+  @$pb.TagNumber(2)
+  ChatMessage ensureMessage() => $_ensure(1);
+
+  @$pb.TagNumber(3)
+  $core.List<$core.int> get channelID => $_getN(2);
+  @$pb.TagNumber(3)
+  set channelID($core.List<$core.int> value) => $_setBytes(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasChannelID() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearChannelID() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $fixnum.Int64 get postID => $_getI64(3);
+  @$pb.TagNumber(4)
+  set postID($fixnum.Int64 value) => $_setInt64(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasPostID() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearPostID() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.bool get mention => $_getBF(4);
+  @$pb.TagNumber(5)
+  set mention($core.bool value) => $_setBool(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasMention() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearMention() => $_clearField(5);
+
+  /// Прочитан, хотя replyID > readMaxID: прочитали саму ветку до этого
+  /// сообщения (ReadHistory в ветке).
+  @$pb.TagNumber(6)
+  $core.bool get read => $_getBF(5);
+  @$pb.TagNumber(6)
+  set read($core.bool value) => $_setBool(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasRead() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearRead() => $_clearField(6);
+}
+
 /// Комментарии к посту канала (подэтап 4.3, как MessageReplies в Telegram).
 class MessageComments extends $pb.GeneratedMessage {
   factory MessageComments({
@@ -5547,6 +5662,99 @@ class Update_DialogNew extends $pb.GeneratedMessage {
 
 /// Комментарии к посту изменились (подэтап 4.3): журнал канала, слитно (не
 /// чаще раза в 5 с на пост), без readMaxID. Закрытие / открытие — сразу.
+/// «Ответы» (как Replies в Telegram): в мой журнал пользователя — новый
+/// ответ на мой комментарий или упоминание меня в ветке комментариев
+/// (reply задан), прочитано / удалено (readMaxID / deletedIDs). unreadCount —
+/// текущее число непрочитанных ответов. Только сессиям с capability
+/// «channels».
+class Update_RepliesChanged extends $pb.GeneratedMessage {
+  factory Update_RepliesChanged({
+    ThreadReply? reply,
+    $fixnum.Int64? readMaxID,
+    $core.Iterable<$fixnum.Int64>? deletedIDs,
+    $core.int? unreadCount,
+    $core.Iterable<$fixnum.Int64>? readIDs,
+  }) {
+    final result = create();
+    if (reply != null) result.reply = reply;
+    if (readMaxID != null) result.readMaxID = readMaxID;
+    if (deletedIDs != null) result.deletedIDs.addAll(deletedIDs);
+    if (unreadCount != null) result.unreadCount = unreadCount;
+    if (readIDs != null) result.readIDs.addAll(readIDs);
+    return result;
+  }
+
+  Update_RepliesChanged._();
+
+  factory Update_RepliesChanged.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Update_RepliesChanged.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Update.RepliesChanged',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<ThreadReply>(1, _omitFieldNames ? '' : 'reply', subBuilder: ThreadReply.create)
+    ..aInt64(2, _omitFieldNames ? '' : 'readMaxID', protoName: 'readMaxID')
+    ..p<$fixnum.Int64>(3, _omitFieldNames ? '' : 'deletedIDs', $pb.PbFieldType.K6, protoName: 'deletedIDs')
+    ..aI(4, _omitFieldNames ? '' : 'unreadCount', protoName: 'unreadCount')
+    ..p<$fixnum.Int64>(5, _omitFieldNames ? '' : 'readIDs', $pb.PbFieldType.K6, protoName: 'readIDs')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Update_RepliesChanged clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Update_RepliesChanged copyWith(void Function(Update_RepliesChanged) updates) =>
+      super.copyWith((message) => updates(message as Update_RepliesChanged)) as Update_RepliesChanged;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Update_RepliesChanged create() => Update_RepliesChanged._();
+  @$core.override
+  Update_RepliesChanged createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Update_RepliesChanged getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Update_RepliesChanged>(create);
+  static Update_RepliesChanged? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  ThreadReply get reply => $_getN(0);
+  @$pb.TagNumber(1)
+  set reply(ThreadReply value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasReply() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearReply() => $_clearField(1);
+  @$pb.TagNumber(1)
+  ThreadReply ensureReply() => $_ensure(0);
+
+  @$pb.TagNumber(2)
+  $fixnum.Int64 get readMaxID => $_getI64(1);
+  @$pb.TagNumber(2)
+  set readMaxID($fixnum.Int64 value) => $_setInt64(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasReadMaxID() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearReadMaxID() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $pb.PbList<$fixnum.Int64> get deletedIDs => $_getList(2);
+
+  @$pb.TagNumber(4)
+  $core.int get unreadCount => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set unreadCount($core.int value) => $_setSignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasUnreadCount() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearUnreadCount() => $_clearField(4);
+
+  /// Прочитаны чтением ветки (ReadHistory в ней): отметить read у этих
+  /// replyID, readMaxID не меняется.
+  @$pb.TagNumber(5)
+  $pb.PbList<$fixnum.Int64> get readIDs => $_getList(4);
+}
+
 class Update_PostCommentsChanged extends $pb.GeneratedMessage {
   factory Update_PostCommentsChanged({
     $core.List<$core.int>? chatID,
@@ -5645,6 +5853,7 @@ enum Update_Update {
   mentions,
   messagePoll,
   postComments,
+  replies,
   notSet
 }
 
@@ -5683,6 +5892,7 @@ class Update extends $pb.GeneratedMessage {
     Update_MentionsChanged? mentions,
     Update_MessagePollChanged? messagePoll,
     Update_PostCommentsChanged? postComments,
+    Update_RepliesChanged? replies,
     $fixnum.Int64? chatPts,
     $core.List<$core.int>? chatID,
   }) {
@@ -5710,6 +5920,7 @@ class Update extends $pb.GeneratedMessage {
     if (mentions != null) result.mentions = mentions;
     if (messagePoll != null) result.messagePoll = messagePoll;
     if (postComments != null) result.postComments = postComments;
+    if (replies != null) result.replies = replies;
     if (chatPts != null) result.chatPts = chatPts;
     if (chatID != null) result.chatID = chatID;
     return result;
@@ -5744,11 +5955,12 @@ class Update extends $pb.GeneratedMessage {
     21: Update_Update.mentions,
     22: Update_Update.messagePoll,
     23: Update_Update.postComments,
+    24: Update_Update.replies,
     0: Update_Update.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Update',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23])
+    ..oo(0, [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24])
     ..aInt64(1, _omitFieldNames ? '' : 'pts')
     ..aInt64(2, _omitFieldNames ? '' : 'date')
     ..aOM<Update_NewMessage>(3, _omitFieldNames ? '' : 'newMessage', protoName: 'newMessage', subBuilder: Update_NewMessage.create)
@@ -5784,6 +5996,7 @@ class Update extends $pb.GeneratedMessage {
         protoName: 'messagePoll', subBuilder: Update_MessagePollChanged.create)
     ..aOM<Update_PostCommentsChanged>(23, _omitFieldNames ? '' : 'postComments',
         protoName: 'postComments', subBuilder: Update_PostCommentsChanged.create)
+    ..aOM<Update_RepliesChanged>(24, _omitFieldNames ? '' : 'replies', subBuilder: Update_RepliesChanged.create)
     ..aInt64(50, _omitFieldNames ? '' : 'chatPts', protoName: 'chatPts')
     ..a<$core.List<$core.int>>(51, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
     ..hasRequiredFields = false;
@@ -5825,6 +6038,7 @@ class Update extends $pb.GeneratedMessage {
   @$pb.TagNumber(21)
   @$pb.TagNumber(22)
   @$pb.TagNumber(23)
+  @$pb.TagNumber(24)
   Update_Update whichUpdate() => _Update_UpdateByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(3)
   @$pb.TagNumber(4)
@@ -5847,6 +6061,7 @@ class Update extends $pb.GeneratedMessage {
   @$pb.TagNumber(21)
   @$pb.TagNumber(22)
   @$pb.TagNumber(23)
+  @$pb.TagNumber(24)
   void clearUpdate() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -6100,21 +6315,32 @@ class Update extends $pb.GeneratedMessage {
   @$pb.TagNumber(23)
   Update_PostCommentsChanged ensurePostComments() => $_ensure(22);
 
+  @$pb.TagNumber(24)
+  Update_RepliesChanged get replies => $_getN(23);
+  @$pb.TagNumber(24)
+  set replies(Update_RepliesChanged value) => $_setField(24, value);
+  @$pb.TagNumber(24)
+  $core.bool hasReplies() => $_has(23);
+  @$pb.TagNumber(24)
+  void clearReplies() => $_clearField(24);
+  @$pb.TagNumber(24)
+  Update_RepliesChanged ensureReplies() => $_ensure(23);
+
   @$pb.TagNumber(50)
-  $fixnum.Int64 get chatPts => $_getI64(23);
+  $fixnum.Int64 get chatPts => $_getI64(24);
   @$pb.TagNumber(50)
-  set chatPts($fixnum.Int64 value) => $_setInt64(23, value);
+  set chatPts($fixnum.Int64 value) => $_setInt64(24, value);
   @$pb.TagNumber(50)
-  $core.bool hasChatPts() => $_has(23);
+  $core.bool hasChatPts() => $_has(24);
   @$pb.TagNumber(50)
   void clearChatPts() => $_clearField(50);
 
   @$pb.TagNumber(51)
-  $core.List<$core.int> get chatID => $_getN(24);
+  $core.List<$core.int> get chatID => $_getN(25);
   @$pb.TagNumber(51)
-  set chatID($core.List<$core.int> value) => $_setBytes(24, value);
+  set chatID($core.List<$core.int> value) => $_setBytes(25, value);
   @$pb.TagNumber(51)
-  $core.bool hasChatID() => $_has(24);
+  $core.bool hasChatID() => $_has(25);
   @$pb.TagNumber(51)
   void clearChatID() => $_clearField(51);
 }
@@ -17297,6 +17523,256 @@ class Messages_SetCommentsClosed extends $pb.GeneratedMessage {
   void clearClosed() => $_clearField(3);
 }
 
+/// «Ответы»: ответы на мои комментарии и упоминания меня в ветках, от новых к
+/// старым. replyID — собственная нумерация «Ответов» у пользователя
+/// (возрастает), курсор — offsetID (0 — с начала). chats — каналы и ветки
+/// для заголовков и аватаров.
+class Messages_Replies extends $pb.GeneratedMessage {
+  factory Messages_Replies({
+    $fixnum.Int64? offsetID,
+    $core.int? limit,
+  }) {
+    final result = create();
+    if (offsetID != null) result.offsetID = offsetID;
+    if (limit != null) result.limit = limit;
+    return result;
+  }
+
+  Messages_Replies._();
+
+  factory Messages_Replies.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_Replies.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Replies',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aInt64(1, _omitFieldNames ? '' : 'offsetID', protoName: 'offsetID')
+    ..aI(2, _omitFieldNames ? '' : 'limit')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_Replies clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_Replies copyWith(void Function(Messages_Replies) updates) =>
+      super.copyWith((message) => updates(message as Messages_Replies)) as Messages_Replies;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_Replies create() => Messages_Replies._();
+  @$core.override
+  Messages_Replies createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_Replies getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_Replies>(create);
+  static Messages_Replies? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get offsetID => $_getI64(0);
+  @$pb.TagNumber(1)
+  set offsetID($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasOffsetID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearOffsetID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get limit => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set limit($core.int value) => $_setSignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasLimit() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearLimit() => $_clearField(2);
+}
+
+class Messages_RepliesResult extends $pb.GeneratedMessage {
+  factory Messages_RepliesResult({
+    $core.Iterable<ThreadReply>? replies,
+    $core.Iterable<ChatInfo>? chats,
+    $fixnum.Int64? nextOffsetID,
+    $core.int? unreadCount,
+    $fixnum.Int64? readMaxID,
+  }) {
+    final result = create();
+    if (replies != null) result.replies.addAll(replies);
+    if (chats != null) result.chats.addAll(chats);
+    if (nextOffsetID != null) result.nextOffsetID = nextOffsetID;
+    if (unreadCount != null) result.unreadCount = unreadCount;
+    if (readMaxID != null) result.readMaxID = readMaxID;
+    return result;
+  }
+
+  Messages_RepliesResult._();
+
+  factory Messages_RepliesResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_RepliesResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.RepliesResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..pPM<ThreadReply>(1, _omitFieldNames ? '' : 'replies', subBuilder: ThreadReply.create)
+    ..pPM<ChatInfo>(2, _omitFieldNames ? '' : 'chats', subBuilder: ChatInfo.create)
+    ..aInt64(3, _omitFieldNames ? '' : 'nextOffsetID', protoName: 'nextOffsetID')
+    ..aI(4, _omitFieldNames ? '' : 'unreadCount', protoName: 'unreadCount')
+    ..aInt64(5, _omitFieldNames ? '' : 'readMaxID', protoName: 'readMaxID')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_RepliesResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_RepliesResult copyWith(void Function(Messages_RepliesResult) updates) =>
+      super.copyWith((message) => updates(message as Messages_RepliesResult)) as Messages_RepliesResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_RepliesResult create() => Messages_RepliesResult._();
+  @$core.override
+  Messages_RepliesResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_RepliesResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_RepliesResult>(create);
+  static Messages_RepliesResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<ThreadReply> get replies => $_getList(0);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<ChatInfo> get chats => $_getList(1);
+
+  @$pb.TagNumber(3)
+  $fixnum.Int64 get nextOffsetID => $_getI64(2);
+  @$pb.TagNumber(3)
+  set nextOffsetID($fixnum.Int64 value) => $_setInt64(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasNextOffsetID() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearNextOffsetID() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get unreadCount => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set unreadCount($core.int value) => $_setSignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasUnreadCount() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearUnreadCount() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $fixnum.Int64 get readMaxID => $_getI64(4);
+  @$pb.TagNumber(5)
+  set readMaxID($fixnum.Int64 value) => $_setInt64(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasReadMaxID() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearReadMaxID() => $_clearField(5);
+}
+
+/// Прочитал «Ответы» до maxID включительно (на всех устройствах —
+/// Update.replies с readMaxID).
+class Messages_ReadReplies extends $pb.GeneratedMessage {
+  factory Messages_ReadReplies({
+    $fixnum.Int64? maxID,
+  }) {
+    final result = create();
+    if (maxID != null) result.maxID = maxID;
+    return result;
+  }
+
+  Messages_ReadReplies._();
+
+  factory Messages_ReadReplies.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_ReadReplies.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.ReadReplies',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aInt64(1, _omitFieldNames ? '' : 'maxID', protoName: 'maxID')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_ReadReplies clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_ReadReplies copyWith(void Function(Messages_ReadReplies) updates) =>
+      super.copyWith((message) => updates(message as Messages_ReadReplies)) as Messages_ReadReplies;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_ReadReplies create() => Messages_ReadReplies._();
+  @$core.override
+  Messages_ReadReplies createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_ReadReplies getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_ReadReplies>(create);
+  static Messages_ReadReplies? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get maxID => $_getI64(0);
+  @$pb.TagNumber(1)
+  set maxID($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasMaxID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearMaxID() => $_clearField(1);
+}
+
+class Messages_ReadRepliesResult extends $pb.GeneratedMessage {
+  factory Messages_ReadRepliesResult({
+    Updates? updates,
+  }) {
+    final result = create();
+    if (updates != null) result.updates = updates;
+    return result;
+  }
+
+  Messages_ReadRepliesResult._();
+
+  factory Messages_ReadRepliesResult.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_ReadRepliesResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.ReadRepliesResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<Updates>(1, _omitFieldNames ? '' : 'updates', subBuilder: Updates.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_ReadRepliesResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_ReadRepliesResult copyWith(void Function(Messages_ReadRepliesResult) updates) =>
+      super.copyWith((message) => updates(message as Messages_ReadRepliesResult)) as Messages_ReadRepliesResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_ReadRepliesResult create() => Messages_ReadRepliesResult._();
+  @$core.override
+  Messages_ReadRepliesResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_ReadRepliesResult getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_ReadRepliesResult>(create);
+  static Messages_ReadRepliesResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  Updates get updates => $_getN(0);
+  @$pb.TagNumber(1)
+  set updates(Updates value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasUpdates() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearUpdates() => $_clearField(1);
+  @$pb.TagNumber(1)
+  Updates ensureUpdates() => $_ensure(0);
+}
+
 class Messages_SetCommentsClosedResult extends $pb.GeneratedMessage {
   factory Messages_SetCommentsClosedResult({
     Updates? updates,
@@ -17443,6 +17919,8 @@ enum Messages_Request_Request {
   getViews,
   openComments,
   setCommentsClosed,
+  replies,
+  readReplies,
   notSet
 }
 
@@ -17475,6 +17953,8 @@ class Messages_Request extends $pb.GeneratedMessage {
     Messages_GetViews? getViews,
     Messages_OpenComments? openComments,
     Messages_SetCommentsClosed? setCommentsClosed,
+    Messages_Replies? replies,
+    Messages_ReadReplies? readReplies,
   }) {
     final result = create();
     if (history != null) result.history = history;
@@ -17504,6 +17984,8 @@ class Messages_Request extends $pb.GeneratedMessage {
     if (getViews != null) result.getViews = getViews;
     if (openComments != null) result.openComments = openComments;
     if (setCommentsClosed != null) result.setCommentsClosed = setCommentsClosed;
+    if (replies != null) result.replies = replies;
+    if (readReplies != null) result.readReplies = readReplies;
     return result;
   }
 
@@ -17542,11 +18024,13 @@ class Messages_Request extends $pb.GeneratedMessage {
     25: Messages_Request_Request.getViews,
     26: Messages_Request_Request.openComments,
     27: Messages_Request_Request.setCommentsClosed,
+    28: Messages_Request_Request.replies,
+    29: Messages_Request_Request.readReplies,
     0: Messages_Request_Request.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29])
     ..aOM<Messages_History>(1, _omitFieldNames ? '' : 'history', subBuilder: Messages_History.create)
     ..aOM<Messages_Send>(2, _omitFieldNames ? '' : 'send', subBuilder: Messages_Send.create)
     ..aOM<Messages_Edit>(3, _omitFieldNames ? '' : 'edit', subBuilder: Messages_Edit.create)
@@ -17586,6 +18070,8 @@ class Messages_Request extends $pb.GeneratedMessage {
         protoName: 'openComments', subBuilder: Messages_OpenComments.create)
     ..aOM<Messages_SetCommentsClosed>(27, _omitFieldNames ? '' : 'setCommentsClosed',
         protoName: 'setCommentsClosed', subBuilder: Messages_SetCommentsClosed.create)
+    ..aOM<Messages_Replies>(28, _omitFieldNames ? '' : 'replies', subBuilder: Messages_Replies.create)
+    ..aOM<Messages_ReadReplies>(29, _omitFieldNames ? '' : 'readReplies', protoName: 'readReplies', subBuilder: Messages_ReadReplies.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -17632,6 +18118,8 @@ class Messages_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(25)
   @$pb.TagNumber(26)
   @$pb.TagNumber(27)
+  @$pb.TagNumber(28)
+  @$pb.TagNumber(29)
   Messages_Request_Request whichRequest() => _Messages_Request_RequestByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -17660,6 +18148,8 @@ class Messages_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(25)
   @$pb.TagNumber(26)
   @$pb.TagNumber(27)
+  @$pb.TagNumber(28)
+  @$pb.TagNumber(29)
   void clearRequest() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -17958,6 +18448,28 @@ class Messages_Request extends $pb.GeneratedMessage {
   void clearSetCommentsClosed() => $_clearField(27);
   @$pb.TagNumber(27)
   Messages_SetCommentsClosed ensureSetCommentsClosed() => $_ensure(26);
+
+  @$pb.TagNumber(28)
+  Messages_Replies get replies => $_getN(27);
+  @$pb.TagNumber(28)
+  set replies(Messages_Replies value) => $_setField(28, value);
+  @$pb.TagNumber(28)
+  $core.bool hasReplies() => $_has(27);
+  @$pb.TagNumber(28)
+  void clearReplies() => $_clearField(28);
+  @$pb.TagNumber(28)
+  Messages_Replies ensureReplies() => $_ensure(27);
+
+  @$pb.TagNumber(29)
+  Messages_ReadReplies get readReplies => $_getN(28);
+  @$pb.TagNumber(29)
+  set readReplies(Messages_ReadReplies value) => $_setField(29, value);
+  @$pb.TagNumber(29)
+  $core.bool hasReadReplies() => $_has(28);
+  @$pb.TagNumber(29)
+  void clearReadReplies() => $_clearField(29);
+  @$pb.TagNumber(29)
+  Messages_ReadReplies ensureReadReplies() => $_ensure(28);
 }
 
 enum Messages_Response_Response {
@@ -17988,6 +18500,8 @@ enum Messages_Response_Response {
   getViews,
   openComments,
   setCommentsClosed,
+  replies,
+  readReplies,
   notSet
 }
 
@@ -18020,6 +18534,8 @@ class Messages_Response extends $pb.GeneratedMessage {
     Messages_GetViewsResult? getViews,
     Messages_OpenCommentsResult? openComments,
     Messages_SetCommentsClosedResult? setCommentsClosed,
+    Messages_RepliesResult? replies,
+    Messages_ReadRepliesResult? readReplies,
   }) {
     final result = create();
     if (history != null) result.history = history;
@@ -18049,6 +18565,8 @@ class Messages_Response extends $pb.GeneratedMessage {
     if (getViews != null) result.getViews = getViews;
     if (openComments != null) result.openComments = openComments;
     if (setCommentsClosed != null) result.setCommentsClosed = setCommentsClosed;
+    if (replies != null) result.replies = replies;
+    if (readReplies != null) result.readReplies = readReplies;
     return result;
   }
 
@@ -18087,11 +18605,13 @@ class Messages_Response extends $pb.GeneratedMessage {
     25: Messages_Response_Response.getViews,
     26: Messages_Response_Response.openComments,
     27: Messages_Response_Response.setCommentsClosed,
+    28: Messages_Response_Response.replies,
+    29: Messages_Response_Response.readReplies,
     0: Messages_Response_Response.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29])
     ..aOM<Messages_HistoryResult>(1, _omitFieldNames ? '' : 'history', subBuilder: Messages_HistoryResult.create)
     ..aOM<Messages_SendResult>(2, _omitFieldNames ? '' : 'send', subBuilder: Messages_SendResult.create)
     ..aOM<Messages_EditResult>(3, _omitFieldNames ? '' : 'edit', subBuilder: Messages_EditResult.create)
@@ -18133,6 +18653,9 @@ class Messages_Response extends $pb.GeneratedMessage {
         protoName: 'openComments', subBuilder: Messages_OpenCommentsResult.create)
     ..aOM<Messages_SetCommentsClosedResult>(27, _omitFieldNames ? '' : 'setCommentsClosed',
         protoName: 'setCommentsClosed', subBuilder: Messages_SetCommentsClosedResult.create)
+    ..aOM<Messages_RepliesResult>(28, _omitFieldNames ? '' : 'replies', subBuilder: Messages_RepliesResult.create)
+    ..aOM<Messages_ReadRepliesResult>(29, _omitFieldNames ? '' : 'readReplies',
+        protoName: 'readReplies', subBuilder: Messages_ReadRepliesResult.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -18179,6 +18702,8 @@ class Messages_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(25)
   @$pb.TagNumber(26)
   @$pb.TagNumber(27)
+  @$pb.TagNumber(28)
+  @$pb.TagNumber(29)
   Messages_Response_Response whichResponse() => _Messages_Response_ResponseByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -18207,6 +18732,8 @@ class Messages_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(25)
   @$pb.TagNumber(26)
   @$pb.TagNumber(27)
+  @$pb.TagNumber(28)
+  @$pb.TagNumber(29)
   void clearResponse() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -18505,6 +19032,28 @@ class Messages_Response extends $pb.GeneratedMessage {
   void clearSetCommentsClosed() => $_clearField(27);
   @$pb.TagNumber(27)
   Messages_SetCommentsClosedResult ensureSetCommentsClosed() => $_ensure(26);
+
+  @$pb.TagNumber(28)
+  Messages_RepliesResult get replies => $_getN(27);
+  @$pb.TagNumber(28)
+  set replies(Messages_RepliesResult value) => $_setField(28, value);
+  @$pb.TagNumber(28)
+  $core.bool hasReplies() => $_has(27);
+  @$pb.TagNumber(28)
+  void clearReplies() => $_clearField(28);
+  @$pb.TagNumber(28)
+  Messages_RepliesResult ensureReplies() => $_ensure(27);
+
+  @$pb.TagNumber(29)
+  Messages_ReadRepliesResult get readReplies => $_getN(28);
+  @$pb.TagNumber(29)
+  set readReplies(Messages_ReadRepliesResult value) => $_setField(29, value);
+  @$pb.TagNumber(29)
+  $core.bool hasReadReplies() => $_has(28);
+  @$pb.TagNumber(29)
+  void clearReadReplies() => $_clearField(29);
+  @$pb.TagNumber(29)
+  Messages_ReadRepliesResult ensureReadReplies() => $_ensure(28);
 }
 
 /// MESSAGES — сообщения.

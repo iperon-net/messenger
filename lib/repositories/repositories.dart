@@ -944,6 +944,19 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(47, (tx) async {
+        // «Ответы» (подэтап 4.6, docs/plans/chats-channels.md): ответы на мои
+        // комментарии и упоминания меня в ветках, их состояние (readMaxID,
+        // непрочитанные, курсор страниц) и сведения каналов / веток для
+        // подписей «в комментариях к …».
+        await tx.execute(ChatsRepository.repliesSchema);
+        await tx.execute('CREATE INDEX idx_chatReplies_message ON chatReplies(userID, threadChatID, messageID);');
+        await tx.execute(ChatsRepository.repliesStateSchema);
+        await tx.execute(ChatsRepository.repliesChatsSchema);
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

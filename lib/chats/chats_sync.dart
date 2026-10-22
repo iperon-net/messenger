@@ -401,7 +401,7 @@ class ChatsSync {
     // Скрыли/показали профиль — его личный чат входит в счётчик или выходит.
     final changes = StreamController<void>();
     final dialogsSub = repositories.db
-        .onChange([ChatsRepository.dialogsTable, ...SecretChatsRepository.tables])
+        .onChange([ChatsRepository.dialogsTable, ChatsRepository.repliesStateTable, ...SecretChatsRepository.tables])
         .listen(changes.add, onError: changes.addError);
     final hiddenSub = repositories.hiddenProfiles.changes.listen(changes.add);
     final groupsSub = _groupsChanged.stream.listen(changes.add);
@@ -442,7 +442,9 @@ class ChatsSync {
   /// чатов. Ветки комментариев и каналы без подписки не считаем. Личные чаты с локально скрытыми
   /// профилями (HiddenProfiles) не считаем — сервер о них не знает, поэтому
   /// бейдж из пуша в фоне их ещё включает. Секретные чаты этого устройства
-  /// считаем тоже (заглушить их нельзя) — сервер их не видит.
+  /// считаем тоже (заглушить их нельзя) — сервер их не видит. «Ответы» (4.6)
+  /// с непрочитанными — тоже 1 чат (с флагом «Каналы»; заглушения нет), как
+  /// элемент `replies` в `badge:<user>` на сервере.
   @visibleForTesting
   Future<ChatsUnread> countUnread() => _countUnread();
 
@@ -468,6 +470,10 @@ class ChatsSync {
       if (record.unreadCount <= 0 || hidden.containsKey(idHex(record.peerUserID))) continue;
       byChat[secretChatListID(record.secretChatID)] = record.unreadCount;
     }
+    if (_channels) {
+      final replies = await _store.repliesState(userID: me);
+      if (replies != null && replies.unreadCount > 0) byChat[models.repliesChatID] = replies.unreadCount;
+    }
     return ChatsUnread(byChat);
   }
 
@@ -479,6 +485,12 @@ class ChatsSync {
   /// обновлением — тогда событие повторяется с `mentioned` (пробивает «Без
   /// звука»).
   Stream<ChatsIncoming> get incoming => _incoming.stream;
+
+  final _repliesIncoming = StreamController<pb.ThreadReply>.broadcast();
+
+  /// Новые непрочитанные «Ответы» (4.6), пришедшие вживую push'ем `UPDATES`
+  /// (не догон) — для баннера в приложении. Событие — после записи в БД.
+  Stream<pb.ThreadReply> get repliesIncoming => _repliesIncoming.stream;
 
   /// Для кого уже убедились, что «Избранное» есть (hex userID).
   final _selfEnsured = <String>{};
@@ -502,6 +514,7 @@ class ChatsSync {
     await flushReactions();
     await flushDrafts();
     await flushContents();
+    await flushRepliesRead();
     if (!_browsedPruned) {
       _browsedPruned = true;
       unawaited(pruneBrowsed().catchError((Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace)));
@@ -677,6 +690,8 @@ class ChatsSync {
     await _getDifference();
     // Журналы групп и каналов — каждый свой: что изменилось, пока нас не было.
     if (_groups || _channels) await _syncGroups();
+    // «Ответы» (4.6) — первая страница, если её ещё нет или журнал отстал.
+    if (_channels) await _syncReplies();
     await _ensureSelfChat(user);
   }
 
@@ -702,6 +717,8 @@ class ChatsSync {
     final user = me;
     // Кэш несверен — «старше нет» больше не верно.
     if (staleHistory) _noOlder.clear();
+    // Обновления «Ответов» тоже могли пропасть — первая страница заново.
+    _repliesReload = true;
     final dialogs = <pb.Dialog>[];
     pb.UpdatesState? state;
     var offsetDate = Int64.ZERO;
@@ -982,6 +999,7 @@ class ChatsSync {
       for (final mention in followUps.mentions) {
         _incoming.add((chatID: mention.chatID, messageID: mention.messageID, fromUserID: '', mentioned: true));
       }
+      followUps.replies.forEach(_repliesIncoming.add);
     }
     if (followUps.reloadDialogs || followUps.refreshTop.isNotEmpty || followUps.refreshPinned.isNotEmpty) {
       unawaited(_runFollowUps(followUps));
@@ -1063,6 +1081,8 @@ class ChatsSync {
           await tx.upsertMessage(userID: user, message: message, shared: update.chatPts > 0);
         }
         if (dialog != null && dialog.topMessageID == id) await tx.setTopMessage(userID: user, chatID: chatID, message: message);
+        // Комментарий из «Ответов» (4.6) — и там.
+        if (dialog?.type == pb.ChatType.CHAT_TYPE_THREAD.value) await tx.updateReplyMessage(userID: user, message: message);
 
       case pb.Update_Update.deleteMessages:
         final chatID = update.deleteMessages.chatID;
@@ -1299,6 +1319,23 @@ class ChatsSync {
         final info = thread == null ? null : (await tx.group(userID: user, chatID: thread))?.info;
         if (info != null && info.commentsCloseDate != changed.comments.closeDate) {
           await tx.setGroupInfo(userID: user, info: info.deepCopy()..commentsCloseDate = changed.comments.closeDate);
+        }
+
+      case pb.Update_Update.replies:
+        // «Ответы» (4.6, журнал пользователя): новый ответ / прочитано /
+        // удалено; число непрочитанных — как на сервере.
+        final changed = update.replies;
+        if (changed.hasReply()) await tx.upsertReply(userID: user, reply: changed.reply);
+        await tx.deleteReplies(userID: user, replyIDs: [for (final id in changed.deletedIDs) id.toInt()]);
+        // Прочитаны чтением своей ветки (readMaxID «Ответов» не меняется).
+        await tx.markRepliesRead(userID: user, replyIDs: [for (final id in changed.readIDs) id.toInt()]);
+        await tx.setRepliesState(userID: user, readMaxID: changed.readMaxID.toInt(), unreadCount: changed.unreadCount);
+        if (changed.hasReply() &&
+            !changed.reply.read &&
+            !changed.deletedIDs.contains(changed.reply.replyID) &&
+            !changed.readIDs.contains(changed.reply.replyID)) {
+          final read = (await tx.repliesState(userID: user))?.readMaxID ?? 0;
+          if (changed.reply.replyID > read) followUps.replies.add(changed.reply);
         }
 
       case pb.Update_Update.notSet:
@@ -1676,6 +1713,152 @@ class ChatsSync {
     } finally {
       _backfilling = false;
     }
+  }
+
+  // --- «Ответы» (подэтап 4.6) ---
+
+  /// Страница `Messages.Replies` (≤ 100, сервер по умолчанию — 50).
+  static const _repliesPage = 50;
+
+  /// Журнал отстал (полный список диалогов) — первая страница «Ответов»
+  /// заново при следующем догоне.
+  bool _repliesReload = false;
+
+  Future<pb.Messages_RepliesResult> _requestReplies(int offsetID) async {
+    final response = await messages(
+      pb.Messages_Request(
+        replies: pb.Messages_Replies(offsetID: Int64(offsetID), limit: _repliesPage),
+      ),
+    );
+    return response.replies;
+  }
+
+  /// Страница «Ответов» — в кэш. [first] — первая (с начала): readMaxID и
+  /// число непрочитанных из неё; [replace] — кэш с нуля (и курсор — её);
+  /// иначе (более старая) — только курсор дальше.
+  Future<void> _saveRepliesPage(
+    ChatsRepository tx,
+    Uint8List user,
+    pb.Messages_RepliesResult page, {
+    required bool first,
+    bool replace = false,
+  }) async {
+    if (replace) await tx.clearReplies(userID: user);
+    for (final reply in page.replies) {
+      await tx.upsertReply(userID: user, reply: reply);
+    }
+    await tx.saveRepliesChats(userID: user, chats: page.chats);
+    if (first) {
+      await tx.setRepliesState(
+        userID: user,
+        readMaxID: page.readMaxID.toInt(),
+        unreadCount: page.unreadCount,
+        nextOffsetID: replace ? page.nextOffsetID.toInt() : null,
+        loaded: true,
+      );
+    } else {
+      await tx.setRepliesState(userID: user, nextOffsetID: page.nextOffsetID.toInt());
+    }
+  }
+
+  /// Догон (внутри [_locked]): первой страницы ещё не было или журнал
+  /// отстал — кэш «Ответов» с нуля. Сбой — не повод ронять догон.
+  Future<void> _syncReplies() async {
+    final user = me;
+    if (!_repliesReload && ((await _store.repliesState(userID: user))?.loaded ?? false)) return;
+    try {
+      final page = await _requestReplies(0);
+      await _store.transaction((tx) => _saveRepliesPage(tx, user, page, first: true, replace: true));
+      _repliesReload = false;
+    } on ChatsRequestException catch (error) {
+      _logger.warning('chats: replies load failed: $error');
+    }
+  }
+
+  /// Экран «Ответы» открыт: свежая первая страница поверх кэша (без сети —
+  /// молча, показываем кэш).
+  Future<void> refreshReplies() async {
+    if (!_channels || !_auth.isAuthorized || !await hasNetwork()) return;
+    final page = await _requestReplies(0);
+    final user = me;
+    await _locked(
+      () => _store.transaction((tx) async {
+        final loaded = (await tx.repliesState(userID: user))?.loaded ?? false;
+        await _saveRepliesPage(tx, user, page, first: true, replace: !loaded);
+      }),
+    );
+  }
+
+  /// Следующая (более старая) страница «Ответов»; `false` — дальше нет. Нет
+  /// сети — [ChatsOfflineException] (попробуем при следующей прокрутке).
+  Future<bool> loadOlderReplies() async {
+    if (!_channels || !_auth.isAuthorized) return false;
+    final user = me;
+    final state = await _store.repliesState(userID: user);
+    if (state != null && state.loaded && state.nextOffsetID == 0) return false;
+    if (!await hasNetwork()) throw const ChatsOfflineException();
+    if (state == null || !state.loaded) {
+      await refreshReplies();
+      return ((await _store.repliesState(userID: user))?.nextOffsetID ?? 0) != 0;
+    }
+    final page = await _requestReplies(state.nextOffsetID);
+    await _locked(() => _store.transaction((tx) => _saveRepliesPage(tx, user, page, first: false)));
+    return page.nextOffsetID != 0;
+  }
+
+  /// До какого replyID прочитать (ещё не ушло на сервер); 0 — нечего.
+  int _repliesReadPending = 0;
+  bool _readingReplies = false;
+
+  /// Показали «Ответы» до [maxID] — на сервер сейчас или при подключении
+  /// (как ReadHistory: без сети счётчик честно остаётся до ответа сервера).
+  Future<void> readReplies(int maxID) async {
+    if (maxID <= _repliesReadPending || !_auth.isAuthorized) return;
+    if (maxID <= ((await _store.repliesState(userID: me))?.readMaxID ?? 0)) return;
+    _repliesReadPending = maxID;
+    await flushRepliesRead();
+  }
+
+  /// «Прочитать все» (меню строки «Ответы»): явное действие — без сети
+  /// [ChatsOfflineException].
+  Future<void> readAllReplies() async {
+    if (!await hasNetwork()) throw const ChatsOfflineException();
+    final newest = await _store.replies(userID: me, limit: 1);
+    if (newest.isEmpty) return;
+    await readReplies(newest.first.replyID.toInt());
+  }
+
+  /// Отправить отложенное прочтение «Ответов» ([readReplies]).
+  Future<void> flushRepliesRead() async {
+    if (_readingReplies || _repliesReadPending == 0 || !_auth.isAuthorized) return;
+    if (!await hasNetwork()) return;
+    _readingReplies = true;
+    final maxID = _repliesReadPending;
+    try {
+      final response = await messages(pb.Messages_Request(readReplies: pb.Messages_ReadReplies(maxID: Int64(maxID))));
+      if (_repliesReadPending == maxID) _repliesReadPending = 0;
+      final user = me;
+      await _locked(() async {
+        await _applyUpdatesLocked(response.readReplies.updates);
+        // Обновления в ответе не оказалось (уже применено / журнал не загружен)
+        // — прочитано всё равно: readMaxID и счётчик по кэшу.
+        final state = await _store.repliesState(userID: user);
+        if ((state?.readMaxID ?? 0) < maxID) {
+          final left = await _store.countRepliesAfter(userID: user, afterID: maxID);
+          await _store.setRepliesState(userID: user, readMaxID: maxID, unreadCount: math.min(state?.unreadCount ?? 0, left));
+        }
+      });
+    } on ChatsOfflineException {
+      // Уйдёт при подключении.
+    } on ChatsRequestException catch (error) {
+      _logger.warning('chats: read replies failed: $error');
+      if (_repliesReadPending == maxID) _repliesReadPending = 0;
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace);
+    } finally {
+      _readingReplies = false;
+    }
+    if (_repliesReadPending > maxID) await flushRepliesRead();
   }
 
   // --- outbox ---
@@ -2206,6 +2389,9 @@ class _FollowUps {
 
   /// Новые упоминания меня.
   final mentions = <({String chatID, int messageID})>{};
+
+  /// Новые непрочитанные «Ответы» (для [ChatsSync.repliesIncoming]).
+  final replies = <pb.ThreadReply>[];
 }
 
 /// Новое входящее сообщение ([ChatsSync.incoming]): hex chatID, id сообщения,

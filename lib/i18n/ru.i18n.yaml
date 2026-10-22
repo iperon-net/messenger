@@ -106,6 +106,10 @@
   "editFolder": "Изменить папку"
   "editFolders": "Изменить папки"
   "reorderFolders": "Изменить порядок"
+  "replies": "Ответы"
+  "repliesEmpty": "Здесь появятся ответы на ваши комментарии и упоминания вас в комментариях к постам каналов."
+  "repliesInComments": "в комментариях к {title}"
+  "repliesInCommentsUnknown": "в комментариях"
 
 
 "screenChatFolders":

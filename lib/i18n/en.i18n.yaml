@@ -104,6 +104,10 @@
   "editFolder": "Edit folder"
   "editFolders": "Edit folders"
   "reorderFolders": "Reorder"
+  "replies": "Replies"
+  "repliesEmpty": "Replies to your comments and mentions of you in channel post comments will appear here."
+  "repliesInComments": "in comments to {title}"
+  "repliesInCommentsUnknown": "in comments"
 
 
 "screenChatFolders":

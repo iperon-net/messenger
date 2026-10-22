@@ -633,6 +633,21 @@ message ChatMessage {
   MessageComments comments = 18;
 }
 
+// Элемент «Ответов»: сообщение ветки комментариев (message.chatID — ветка),
+// которое отвечает на мой комментарий или упоминает меня. channelID / postID —
+// канал и пост (тап открывает ветку на message.messageID). Удалённое в ветке
+// пропадает из «Ответов».
+message ThreadReply {
+  int64 replyID = 1;
+  ChatMessage message = 2;
+  bytes channelID = 3;
+  int64 postID = 4;
+  bool mention = 5; // упоминание, а не ответ
+  // Прочитан, хотя replyID > readMaxID: прочитали саму ветку до этого
+  // сообщения (ReadHistory в ветке).
+  bool read = 6;
+}
+
 // Комментарии к посту канала (подэтап 4.3, как MessageReplies в Telegram).
 message MessageComments {
   int32 count = 1;
@@ -944,6 +959,21 @@ message Update {
 
   // Комментарии к посту изменились (подэтап 4.3): журнал канала, слитно (не
   // чаще раза в 5 с на пост), без readMaxID. Закрытие / открытие — сразу.
+  // «Ответы» (как Replies в Telegram): в мой журнал пользователя — новый
+  // ответ на мой комментарий или упоминание меня в ветке комментариев
+  // (reply задан), прочитано / удалено (readMaxID / deletedIDs). unreadCount —
+  // текущее число непрочитанных ответов. Только сессиям с capability
+  // «channels».
+  message RepliesChanged {
+    ThreadReply reply = 1;
+    int64 readMaxID = 2;
+    repeated int64 deletedIDs = 3;
+    int32 unreadCount = 4;
+    // Прочитаны чтением ветки (ReadHistory в ней): отметить read у этих
+    // replyID, readMaxID не меняется.
+    repeated int64 readIDs = 5;
+  }
+
   message PostCommentsChanged {
     bytes chatID = 1;
     int64 postID = 2;
@@ -974,6 +1004,7 @@ message Update {
     MentionsChanged mentions = 21;
     MessagePollChanged messagePoll = 22;
     PostCommentsChanged postComments = 23;
+    RepliesChanged replies = 24;
   }
 }
 
@@ -2187,6 +2218,33 @@ message Messages {
     bool closed = 3;
   }
 
+  // «Ответы»: ответы на мои комментарии и упоминания меня в ветках, от новых к
+  // старым. replyID — собственная нумерация «Ответов» у пользователя
+  // (возрастает), курсор — offsetID (0 — с начала). chats — каналы и ветки
+  // для заголовков и аватаров.
+  message Replies {
+    int64 offsetID = 1;
+    int32 limit = 2; // ≤ 100, по умолчанию 50
+  }
+
+  message RepliesResult {
+    repeated ThreadReply replies = 1;
+    repeated ChatInfo chats = 2;
+    int64 nextOffsetID = 3; // 0 — дальше нет
+    int32 unreadCount = 4;
+    int64 readMaxID = 5;
+  }
+
+  // Прочитал «Ответы» до maxID включительно (на всех устройствах —
+  // Update.replies с readMaxID).
+  message ReadReplies {
+    int64 maxID = 1;
+  }
+
+  message ReadRepliesResult {
+    Updates updates = 1;
+  }
+
   message SetCommentsClosedResult {
     Updates updates = 1;
   }
@@ -2230,6 +2288,8 @@ message Messages {
       GetViews getViews = 25;
       OpenComments openComments = 26;
       SetCommentsClosed setCommentsClosed = 27;
+      Replies replies = 28;
+      ReadReplies readReplies = 29;
     }
   }
 
@@ -2262,6 +2322,8 @@ message Messages {
       GetViewsResult getViews = 25;
       OpenCommentsResult openComments = 26;
       SetCommentsClosedResult setCommentsClosed = 27;
+      RepliesResult replies = 28;
+      ReadRepliesResult readReplies = 29;
     }
   }
 }

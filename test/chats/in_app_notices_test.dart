@@ -35,6 +35,12 @@ void main() {
       expect((InAppNoticeContent.title(t, hidden), InAppNoticeContent.text(t, hidden)), ('Iperon', 'Новое сообщение'));
     });
 
+    test('«Ответы» (4.6): заголовок «Ответы», текст «Имя: текст»', () {
+      final replies = models.Chat(id: models.repliesChatID, type: models.ChatType.private, title: 'Ответы', lastMessage: message);
+      final notice = InAppNotice(chat: replies, route: '/chats/comments/c/5?message=7', alsoOpenAt: const ['/chats/replies']);
+      expect((InAppNoticeContent.title(t, notice), InAppNoticeContent.text(t, notice)), ('Ответы', 'Анна: Привет'));
+    });
+
     test('фото без подписи — вид вложения', () {
       final photo = private.copyWith(
         lastMessage: message.copyWith(kind: models.MessageKind.photo, text: ''),

@@ -63,6 +63,8 @@ class ChatFolder with ChatFolderMappable {
   bool matches(Chat chat) {
     if (chat.archived) return false;
     if (isAll) return true;
+    // «Ответы» — только во «Всех чатах» (как Replies в Telegram).
+    if (chat.isReplies) return false;
     if (excludeChatIDs.contains(chat.id)) return false;
     if (includeChatIDs.contains(chat.id)) return true;
     if (excludeMuted && chat.muted) return false;

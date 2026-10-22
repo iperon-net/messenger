@@ -414,6 +414,18 @@ class Translations$screenChats$en {
 
 	/// en: 'Reorder'
 	String get reorderFolders => 'Reorder';
+
+	/// en: 'Replies'
+	String get replies => 'Replies';
+
+	/// en: 'Replies to your comments and mentions of you in channel post comments will appear here.'
+	String get repliesEmpty => 'Replies to your comments and mentions of you in channel post comments will appear here.';
+
+	/// en: 'in comments to {title}'
+	String repliesInComments({required Object title}) => 'in comments to ${title}';
+
+	/// en: 'in comments'
+	String get repliesInCommentsUnknown => 'in comments';
 }
 
 // Path: screenChatFolders
@@ -4675,6 +4687,10 @@ extension on Translations {
 			'screenChats.editFolder' => 'Edit folder',
 			'screenChats.editFolders' => 'Edit folders',
 			'screenChats.reorderFolders' => 'Reorder',
+			'screenChats.replies' => 'Replies',
+			'screenChats.repliesEmpty' => 'Replies to your comments and mentions of you in channel post comments will appear here.',
+			'screenChats.repliesInComments' => ({required Object title}) => 'in comments to ${title}',
+			'screenChats.repliesInCommentsUnknown' => 'in comments',
 			'screenChatFolders.folders' => 'Folders',
 			'screenChatFolders.intro' => 'Create folders for different groups of chats and quickly switch between them by swiping the list.',
 			'screenChatFolders.myFolders' => 'My folders',
@@ -5090,12 +5106,12 @@ extension on Translations {
 			'screenChat.keyboard' => 'Keyboard',
 			'screenChat.pinnedServiceYou' => ({required Object text}) => 'You pinned «${text}»',
 			'screenChat.pinnedServiceYouMessage' => 'You pinned a message',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.pinnedService' => ({required Object name, required Object text}) => '${name} pinned «${text}»',
 			'screenChat.pinnedServiceMessage' => ({required Object name}) => '${name} pinned a message',
 			'screenChat.pinnedList' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} pinned message', other: '${n} pinned messages', ), 
 			'screenChat.pinnedAll' => 'All pinned messages',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.unpinAll' => 'Unpin all messages',
 			'screenChat.unpinAllTitle' => 'Unpin all messages?',
 			'screenChat.goToMessage' => 'Go to message',
@@ -5604,12 +5620,12 @@ extension on Translations {
 			'screenContacts.addByNumber' => 'Add by number',
 			'screenContacts.addContact' => 'Add contact',
 			'screenContacts.addByNumberHint' => 'Phone number',
+			_ => null,
+		} ?? switch (path) {
 			'screenContacts.addFirstName' => 'First name',
 			'screenContacts.addLastName' => 'Last name',
 			'screenContacts.add' => 'Add',
 			'screenContacts.addInvalidNumber' => 'Invalid phone number',
-			_ => null,
-		} ?? switch (path) {
 			'screenContacts.addFailed' => 'Couldn’t add contact',
 			'screenContacts.validationCloudLimitReached' => 'Cloud contacts limit reached',
 			'screenContacts.addSyncHint' => 'This contact will be available on all your devices',

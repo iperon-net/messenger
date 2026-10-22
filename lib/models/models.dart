@@ -16,3 +16,4 @@ export 'chat.dart';
 export 'chat_folder.dart';
 export 'chat_invite.dart';
 export 'message.dart';
+export 'chat_reply.dart';

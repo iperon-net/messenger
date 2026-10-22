@@ -10,6 +10,11 @@ const systemUserID = '000000000000000000000001';
 /// Имя системного аккаунта (не переводится).
 const systemAccountName = 'Iperon';
 
+/// id виртуальной строки «Ответы» в списке чатов (подэтап 4.6, как Replies в
+/// Telegram): ответы на мои комментарии и упоминания меня в ветках
+/// комментариев. Это не диалог сервера — строку собирает `ChatsReplies`.
+const repliesChatID = 'replies';
+
 /// Тип чата (см. docs/plans/chats-groups-channels.md). Сообщество — страница
 /// организации и контейнер над её группами и каналами ([Chat.communityID]);
 /// своей ленты у него нет, в списке чатов — одной строкой.
@@ -611,6 +616,10 @@ class Chat with ChatMappable {
 
   /// Комментарии к посту канала.
   bool get isThread => threadOf.isNotEmpty;
+
+  /// Виртуальная строка «Ответы» ([repliesChatID]): только «Прочитать все»,
+  /// тап — экран «Ответы».
+  bool get isReplies => id == repliesChatID;
 
   /// Ветка комментариев закрыта: писать нельзя, только читать.
   bool commentsClosed([DateTime? now]) => commentsCloseDate != null && !commentsCloseDate!.isAfter(now ?? DateTime.now());

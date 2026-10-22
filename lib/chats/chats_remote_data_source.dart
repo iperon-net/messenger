@@ -100,7 +100,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   /// «Группы», с ролями и правами (3.2), вступлением (3.3) и сообщениями в
   /// группе (3.4: реакции, опросы, упоминания …); каналы — по флагу «Каналы»
   /// (4.1: посты, подписи, подписчики, админы). Сообществ нет;
-  /// опрос пересылается только в группу — тем же опросом (голоса общие).
+  /// опрос пересылается только в группу или канал — тем же опросом (голоса
+  /// общие).
   @override
   ChatsFeatures get features => ChatsFeatures(
     reactions: true,
@@ -117,7 +118,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     channelExtras: true,
     channelComments: true,
     forwardPolls: true,
-    pollsGroupsOnly: true,
+    pollsGroupsChannelsOnly: true,
   );
 
   /// Сервер удаляет отозванные ссылки только все сразу.
@@ -624,6 +625,21 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       return '';
     }
   }
+
+  /// Имена людей по общему правилу (hex userID → имя) — для «Ответов» (4.6);
+  /// профили неизвестных — запросом (список перечитается, когда придут).
+  Future<Map<String, String>> peopleNames(List<Uint8List> userIDs) async {
+    final unique = {
+      for (final id in userIDs)
+        if (id.isNotEmpty) idHex(id): id,
+    };
+    final peers = _Peers(await _loadPeers(unique.values.toList()));
+    _requestProfiles([for (final id in unique.values) (userID: id, cached: peers.of(id).profile != null)]);
+    return {for (final MapEntry(:key, value: id) in unique.entries) key: peers.of(id).title};
+  }
+
+  /// Уже скачанный файл по cdnID (превью медиа в «Ответах»); пусто — нет.
+  Future<String> cachedFilePath(List<int> cdnID) => _avatarPath(cdnID);
 
   /// Папки — из снимка в SQLite (видны без сети), перечитываются при каждой
   /// его записи (ответ GetFolders / обновление folders).

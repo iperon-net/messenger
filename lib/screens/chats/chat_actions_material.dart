@@ -16,6 +16,7 @@ Future<void> showChatActionsMaterial(BuildContext context, models.Chat chat) asy
   final cubit = context.read<ChatsCubit>();
   final t = context.t.screenChats;
   if (chat.isSecret) return _secretChatActionsMaterial(context, chat, cubit);
+  if (chat.isReplies) return _repliesActionsMaterial(context, cubit);
 
   Widget action(BuildContext sheetContext, IconData icon, String label, Future<void> Function() onTap) {
     return ListTile(
@@ -234,4 +235,25 @@ Future<void> _secretChatActionsMaterial(BuildContext context, models.Chat chat, 
     ),
   );
   if (confirmed == true) await cubit.deleteSecret(chat);
+}
+
+/// «Ответы» (4.6): только «Прочитать все».
+Future<void> _repliesActionsMaterial(BuildContext context, ChatsCubit cubit) async {
+  final read = await showModalBottomSheet<bool>(
+    context: context,
+    showDragHandle: true,
+    builder: (sheetContext) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.mark_chat_read_outlined),
+            title: Text(context.t.screenChats.readAll),
+            onTap: () => Navigator.of(sheetContext).pop(true),
+          ),
+        ],
+      ),
+    ),
+  );
+  if (read == true) await cubit.readReplies();
 }

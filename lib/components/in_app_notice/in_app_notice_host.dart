@@ -86,7 +86,8 @@ class _InAppNoticeHostState extends State<InAppNoticeHost> with SingleTickerProv
     return !_inChat(location, notice);
   }
 
-  bool _inChat(String location, InAppNotice notice) => location == notice.route || location.startsWith('${notice.route}/');
+  bool _inChat(String location, InAppNotice notice) =>
+      [notice.route, ...notice.alsoOpenAt].any((route) => location == route || location.startsWith('$route/'));
 
   /// Открыли чат показанного баннера (или ушли туда, где баннеров нет) — убрать.
   void _onRoute() {

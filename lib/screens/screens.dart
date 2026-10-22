@@ -77,6 +77,8 @@ export 'chats/chat_create_form_material.dart';
 export 'chats/chats_archive_material.dart';
 export 'chats/chat_comments_open_cupertino.dart';
 export 'chats/chat_comments_open_material.dart';
+export 'chats/replies_cupertino.dart';
+export 'chats/replies_material.dart';
 export 'chats/chat_cupertino.dart';
 export 'chats/chat_material.dart';
 export 'chats/secret_chat_cupertino.dart';

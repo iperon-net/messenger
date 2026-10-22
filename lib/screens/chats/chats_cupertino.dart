@@ -221,6 +221,17 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
         if (index == chats.length + offset) return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: global);
         if (index < offset) return _ArchiveTileCupertino(archived: archived, onTap: () => context.push('/chats/archive'));
         final chat = chats[index - offset];
+        // «Ответы» (4.6): без свайпов, в меню — только «Прочитать все».
+        if (chat.isReplies) {
+          return chat.hasUnread
+              ? ChatContextMenuCupertino(
+                  key: ValueKey(chat.id),
+                  chat: chat,
+                  confirmDelete: ({afterContextMenu = false}) async => null,
+                  onTap: () => context.push(chatRoute(chat)),
+                )
+              : ChatTileCupertino(key: ValueKey(chat.id), chat: chat, onTap: () => context.push(chatRoute(chat)));
+        }
         return ChatDeleteMenuAnchorCupertino(
           key: ValueKey(chat.id),
           chat: chat,

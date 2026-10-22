@@ -228,6 +228,10 @@ class _Translations$screenChats$ru extends Translations$screenChats$en {
 	@override String get editFolder => 'Изменить папку';
 	@override String get editFolders => 'Изменить папки';
 	@override String get reorderFolders => 'Изменить порядок';
+	@override String get replies => 'Ответы';
+	@override String get repliesEmpty => 'Здесь появятся ответы на ваши комментарии и упоминания вас в комментариях к постам каналов.';
+	@override String repliesInComments({required Object title}) => 'в комментариях к ${title}';
+	@override String get repliesInCommentsUnknown => 'в комментариях';
 }
 
 // Path: screenChatFolders
@@ -2040,6 +2044,10 @@ extension on TranslationsRu {
 			'screenChats.editFolder' => 'Изменить папку',
 			'screenChats.editFolders' => 'Изменить папки',
 			'screenChats.reorderFolders' => 'Изменить порядок',
+			'screenChats.replies' => 'Ответы',
+			'screenChats.repliesEmpty' => 'Здесь появятся ответы на ваши комментарии и упоминания вас в комментариях к постам каналов.',
+			'screenChats.repliesInComments' => ({required Object title}) => 'в комментариях к ${title}',
+			'screenChats.repliesInCommentsUnknown' => 'в комментариях',
 			'screenChatFolders.folders' => 'Папки',
 			'screenChatFolders.intro' => 'Создавайте папки для разных групп чатов и быстро переключайтесь между ними свайпом по списку.',
 			'screenChatFolders.myFolders' => 'Мои папки',
@@ -2455,12 +2463,12 @@ extension on TranslationsRu {
 			'screenChat.keyboard' => 'Клавиатура',
 			'screenChat.pinnedServiceYou' => ({required Object text}) => 'Вы закрепили «${text}»',
 			'screenChat.pinnedServiceYouMessage' => 'Вы закрепили сообщение',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.pinnedService' => ({required Object name, required Object text}) => '${name} закрепил(а) «${text}»',
 			'screenChat.pinnedServiceMessage' => ({required Object name}) => '${name} закрепил(а) сообщение',
 			'screenChat.pinnedList' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} закреплённое сообщение', few: '${n} закреплённых сообщения', many: '${n} закреплённых сообщений', other: '${n} закреплённых сообщения', ), 
 			'screenChat.pinnedAll' => 'Все закреплённые',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.unpinAll' => 'Открепить все сообщения',
 			'screenChat.unpinAllTitle' => 'Открепить все сообщения?',
 			'screenChat.goToMessage' => 'Перейти к сообщению',
@@ -2969,12 +2977,12 @@ extension on TranslationsRu {
 			'screenContacts.addByNumber' => 'Добавить по номеру',
 			'screenContacts.addContact' => 'Добавить контакт',
 			'screenContacts.addByNumberHint' => 'Номер телефона',
+			_ => null,
+		} ?? switch (path) {
 			'screenContacts.addFirstName' => 'Имя',
 			'screenContacts.addLastName' => 'Фамилия',
 			'screenContacts.add' => 'Добавить',
 			'screenContacts.addInvalidNumber' => 'Неверный номер телефона',
-			_ => null,
-		} ?? switch (path) {
 			'screenContacts.addFailed' => 'Не удалось добавить контакт',
 			'screenContacts.validationCloudLimitReached' => 'Достигнут лимит облачных контактов',
 			'screenContacts.addSyncHint' => 'Контакт будет доступен на всех ваших устройствах',

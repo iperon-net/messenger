@@ -100,13 +100,14 @@ class ChatsFeatures {
   /// под постом и блок комментариев в «Изменить». `false` — скрыты.
   final bool channelComments;
 
-  /// Опрос можно переслать (демо — куда угодно, сервер — см. [pollsGroupsOnly]).
+  /// Опрос можно переслать (демо — куда угодно, сервер — см.
+  /// [pollsGroupsChannelsOnly]).
   final bool forwardPolls;
 
-  /// Опросы — только в группах (сервер): пересланный опрос — тот же опрос
-  /// (голоса общие с исходным), и переслать его можно только в группу (в
-  /// личный чат сервер ответит «pollInvalid»).
-  final bool pollsGroupsOnly;
+  /// Опросы — только в группах и каналах (сервер, 4.6): пересланный опрос —
+  /// тот же опрос (голоса общие с исходным), и переслать его можно только в
+  /// группу или канал (в личный чат сервер ответит «pollInvalid»).
+  final bool pollsGroupsChannelsOnly;
 
   const ChatsFeatures({
     required this.reactions,
@@ -122,7 +123,7 @@ class ChatsFeatures {
     this.channelExtras = false,
     this.channelComments = false,
     this.forwardPolls = false,
-    this.pollsGroupsOnly = false,
+    this.pollsGroupsChannelsOnly = false,
   });
 
   const ChatsFeatures.all()
@@ -139,7 +140,7 @@ class ChatsFeatures {
       channelExtras = true,
       channelComments = true,
       forwardPolls = true,
-      pollsGroupsOnly = false;
+      pollsGroupsChannelsOnly = false;
 
   const ChatsFeatures.none()
     : reactions = false,
@@ -155,7 +156,7 @@ class ChatsFeatures {
       channelExtras = false,
       channelComments = false,
       forwardPolls = false,
-      pollsGroupsOnly = false;
+      pollsGroupsChannelsOnly = false;
 
   /// Доступное в чате [chat]: в группе без [groupExtras] — без реакций, а
   /// закреп — только с [groupRoles] (у всех — по праву pinMessages); в канале
@@ -178,7 +179,7 @@ class ChatsFeatures {
       channelExtras: channelExtras,
       channelComments: channelComments,
       forwardPolls: forwardPolls,
-      pollsGroupsOnly: pollsGroupsOnly,
+      pollsGroupsChannelsOnly: pollsGroupsChannelsOnly,
     );
   }
 }

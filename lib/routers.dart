@@ -158,7 +158,22 @@ class Routers {
                   parentNavigatorKey: rootNavigatorKey,
                   pageBuilder: (context, state) => _page(
                     state,
-                    ChatCommentsOpenCupertino(channelID: state.pathParameters['channelID']!, postID: state.pathParameters['postID']!),
+                    ChatCommentsOpenCupertino(
+                      channelID: state.pathParameters['channelID']!,
+                      postID: state.pathParameters['postID']!,
+                      // ?message=<id> — прокрутить к комментарию (из «Ответов»).
+                      messageID: state.uri.queryParameters['message'] ?? '',
+                    ),
+                  ),
+                ),
+                // «Ответы» (4.6): ответы на мои комментарии и упоминания меня
+                // в ветках комментариев — только чтение.
+                GoRoute(
+                  path: "replies",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _page(
+                    state,
+                    BlocProvider<RepliesCubit>(create: (context) => RepliesCubit()..initialization(), child: const RepliesCupertino()),
                   ),
                 ),
                 // Секретный чат (E2EE, только на этом устройстве) и его «Ключ
@@ -1068,7 +1083,22 @@ class Routers {
                   parentNavigatorKey: rootNavigatorKey,
                   pageBuilder: (context, state) => _pageMaterial(
                     state,
-                    ChatCommentsOpenMaterial(channelID: state.pathParameters['channelID']!, postID: state.pathParameters['postID']!),
+                    ChatCommentsOpenMaterial(
+                      channelID: state.pathParameters['channelID']!,
+                      postID: state.pathParameters['postID']!,
+                      // ?message=<id> — прокрутить к комментарию (из «Ответов»).
+                      messageID: state.uri.queryParameters['message'] ?? '',
+                    ),
+                  ),
+                ),
+                // «Ответы» (4.6): ответы на мои комментарии и упоминания меня
+                // в ветках комментариев — только чтение.
+                GoRoute(
+                  path: "replies",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<RepliesCubit>(create: (context) => RepliesCubit()..initialization(), child: const RepliesMaterial()),
                   ),
                 ),
                 // Секретный чат (E2EE, только на этом устройстве) и его «Ключ

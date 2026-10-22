@@ -8,6 +8,7 @@ import '../../di.dart';
 import '../../logger.dart';
 import '../../chats/chats_data_source.dart';
 import '../../chats/chats_remote_data_source.dart';
+import '../../chats/chats_replies.dart';
 import '../../chats/chats_sync.dart';
 import '../../chats/users_search.dart';
 import '../../chats/secret/secret_chats_list.dart';
@@ -28,11 +29,13 @@ class ChatsCubit extends Cubit<ChatsState> {
   ChatsDataSource? _source;
   StreamSubscription<List<models.Chat>>? _chatsSubscription;
   StreamSubscription<List<models.Chat>>? _secretSubscription;
+  StreamSubscription<models.Chat?>? _repliesSubscription;
 
-  /// Обычные (из источника) и секретные (только этого устройства) чаты —
-  /// список показывает их вместе.
+  /// Обычные (из источника) и секретные (только этого устройства) чаты и
+  /// строка «Ответы» (4.6, только серверные) — список показывает их вместе.
   List<models.Chat> _regular = const [];
   List<models.Chat> _secret = const [];
+  models.Chat? _replies;
   StreamSubscription<List<models.ChatFolder>>? _foldersSubscription;
   StreamSubscription<void>? _hiddenSubscription;
 
@@ -90,9 +93,12 @@ class ChatsCubit extends Cubit<ChatsState> {
     _foldersSubscription?.cancel();
     _secretSubscription?.cancel();
     _secretSubscription = null;
+    _repliesSubscription?.cancel();
+    _repliesSubscription = null;
     _source = next;
     _regular = const [];
     _secret = const [];
+    _replies = null;
     emit(state.copyWith(demo: demo, chats: const [], folders: const [], folderIndex: 0));
 
     final source = _source;
@@ -101,10 +107,14 @@ class ChatsCubit extends Cubit<ChatsState> {
       _regular = chats;
       _emitChats();
     });
-    // Секретные чаты — только у настоящих (не в демо).
+    // Секретные чаты и «Ответы» — только у настоящих (не в демо).
     if (!demo) {
       _secretSubscription = watchSecretChats().listen((chats) {
         _secret = chats;
+        _emitChats();
+      });
+      _repliesSubscription = ChatsReplies.instance.watchChat().listen((chat) {
+        _replies = chat;
         _emitChats();
       });
     }
@@ -120,7 +130,8 @@ class ChatsCubit extends Cubit<ChatsState> {
   }
 
   void _emitChats() {
-    if (!isClosed) emit(state.copyWith(chats: [..._regular, ..._secret]));
+    final replies = _replies;
+    if (!isClosed) emit(state.copyWith(chats: [..._regular, ..._secret, ?replies]));
   }
 
   void setFolderIndex(int index) {
@@ -224,14 +235,29 @@ class ChatsCubit extends Cubit<ChatsState> {
 
   Future<void> setMuted(models.Chat chat, bool muted, {DateTime? until}) => _online(() => _source?.setMuted(chat.id, muted, until: until));
   Future<void> setArchived(models.Chat chat, bool archived) => _online(() => _source?.setArchived(chat.id, archived));
-  Future<void> setRead(models.Chat chat, bool read) => _online(() => _source?.setRead(chat.id, read));
+  Future<void> setRead(models.Chat chat, bool read) =>
+      // «Ответы» — только «Прочитать все» (ReadReplies до последнего).
+      chat.isReplies ? (read ? readReplies() : Future.value()) : _online(() => _source?.setRead(chat.id, read));
+
+  /// «Прочитать все» у строки «Ответы»: без сети — «Нет соединения».
+  Future<void> readReplies() async {
+    try {
+      await _online(ChatsSync.instance.readAllReplies);
+    } on ChatsRequestException catch (error) {
+      logger.warning('chats: read replies failed: $error');
+    }
+  }
+
   Future<void> readReactions(models.Chat chat) => _online(() => _source?.readAllReactions(chat.id));
 
   /// [forEveryone] — и у собеседника (личный чат: его история тоже очищается).
   Future<void> delete(models.Chat chat, {bool forEveryone = false}) => _online(() => _source?.delete(chat.id, forEveryone: forEveryone));
 
-  Future<void> readAll(models.ChatFolder folder) async =>
-      _source?.readAll(state.chats.where((c) => folder.matches(c) && !c.isSecret).map((c) => c.id).toList());
+  Future<void> readAll(models.ChatFolder folder) async {
+    final chats = state.chats.where((c) => folder.matches(c) && !c.isSecret);
+    if (chats.any((c) => c.isReplies && c.hasUnread)) unawaited(readReplies());
+    await _source?.readAll(chats.where((c) => !c.isReplies).map((c) => c.id).toList());
+  }
 
   /// Удалить секретный чат: закрыть у собеседника (с перепиской) и убрать с
   /// устройства. Без сети — «Нет соединения» (закрыть на сервере нужно сразу,
@@ -251,6 +277,7 @@ class ChatsCubit extends Cubit<ChatsState> {
     await _chatsSubscription?.cancel();
     await _foldersSubscription?.cancel();
     await _secretSubscription?.cancel();
+    await _repliesSubscription?.cancel();
     await _hiddenSubscription?.cancel();
     _usersSearch.cancel();
     return super.close();

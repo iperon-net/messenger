@@ -27,8 +27,9 @@ class ChatPreview {
 /// Общая для Cupertino и Material логика строки списка чатов — оформление в
 /// `ChatTileCupertino` / `ChatTileMaterial`.
 abstract final class ChatTileContent {
-  static String title(Translations t, models.Chat chat) =>
-      chat.isSelf ? t.screenChats.savedMessages : (chat.isThread ? t.screenChat.commentsTitle : chat.title);
+  static String title(Translations t, models.Chat chat) => chat.isSelf
+      ? t.screenChats.savedMessages
+      : (chat.isThread ? t.screenChat.commentsTitle : (chat.isReplies ? t.screenChats.replies : chat.title));
 
   /// «печатает…» / «Анна отправляет фото…» / «Анна и Олег печатают…»; пусто
   /// — никто ничего не делает. Общее для строки списка и шапки чата.
@@ -105,7 +106,8 @@ abstract final class ChatTileContent {
       models.MessageKind.call => message.phoneCall == null ? '' : callPreview(t, outgoing: message.outgoing, call: message.phoneCall!),
     };
     final text = message.text.isNotEmpty ? (message.kind == models.MessageKind.poll ? '📊 ${message.text}' : message.text) : media;
-    final showSender = chat.type == models.ChatType.group || chat.type == models.ChatType.community;
+    // «Ответы» — «Имя: текст» последнего ответа, как в группе.
+    final showSender = chat.type == models.ChatType.group || chat.type == models.ChatType.community || chat.isReplies;
     // Сообщество: из какого его чата — «Группа › Анна».
     final prefix = [
       if (message.chatTitle.isNotEmpty) message.chatTitle,
@@ -120,6 +122,7 @@ abstract final class ChatTileContent {
   /// Иконка типа перед названием (у личных чатов нет).
   static FaIconData? typeIcon(models.Chat chat) => switch (chat.type) {
     _ when chat.isSecret => FontAwesomeIcons.lock,
+    _ when chat.isReplies => null,
     models.ChatType.private => null,
     models.ChatType.group => FontAwesomeIcons.userGroup,
     models.ChatType.channel => FontAwesomeIcons.bullhorn,

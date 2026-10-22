@@ -8,8 +8,11 @@ import '../di.dart';
 import '../logger.dart';
 import '../models.dart' as models;
 import '../protobuf.dart' as pb;
+import '../protobuf/protos/chats_v1.pb.dart' show ThreadReply;
 import '../repositories.dart';
+import 'chats_mapping.dart' show contentKind, idHex;
 import 'chats_remote_data_source.dart';
+import 'chats_replies.dart';
 import 'chats_sync.dart';
 import 'secret/secret_chats_list.dart';
 import 'secret/secret_chats_sync.dart';
@@ -23,6 +26,10 @@ class InAppNotice {
   /// Окно чата: пока оно открыто, баннер о нём не показывается; туда ведёт тап.
   final String route;
 
+  /// Ещё экраны, где баннер не нужен (ответ в «Ответах», 4.6: открыт экран
+  /// «Ответы» или сама ветка).
+  final List<String> alsoOpenAt;
+
   /// От локально скрытого профиля — без имени, текста и аватара, тап ведёт в
   /// список чатов (как у пуша, см. `PushManager._fromHiddenUser`).
   final bool anonymous;
@@ -30,7 +37,7 @@ class InAppNotice {
   /// Текст сообщения («Уведомления → Показывать текст»); иначе «Новое сообщение».
   final bool showPreview;
 
-  const InAppNotice({required this.chat, required this.route, this.anonymous = false, this.showPreview = true});
+  const InAppNotice({required this.chat, required this.route, this.alsoOpenAt = const [], this.anonymous = false, this.showPreview = true});
 }
 
 /// Новые сообщения, о которых показать баннер, пока приложение открыто (как
@@ -59,9 +66,11 @@ class InAppNotices {
 
   StreamSubscription<ChatsIncoming>? _chats;
   StreamSubscription<({Uint8List chatID, int randomID})>? _secret;
+  StreamSubscription<ThreadReply>? _replies;
 
   void _start() {
     _chats = ChatsSync.instance.incoming.listen((event) => _enqueue(event.chatID, () => _fromChat(event)));
+    _replies = ChatsSync.instance.repliesIncoming.listen((reply) => _enqueue(models.repliesChatID, () => _fromReply(reply)));
     _secret = SecretChatsSync.instance.incoming.listen((event) {
       final id = secretChatListID(event.chatID);
       _enqueue(id, () => _fromSecret(id, event.randomID));
@@ -71,8 +80,10 @@ class InAppNotices {
   Future<void> _stop() async {
     await _chats?.cancel();
     await _secret?.cancel();
+    await _replies?.cancel();
     _chats = null;
     _secret = null;
+    _replies = null;
   }
 
   /// Очередь сборки по чатам: пачка сообщений в один чат — один баннер (о
@@ -132,6 +143,41 @@ class InAppNotices {
     );
   }
 
+  /// Новый ответ в «Ответах» (4.6) — как сообщение в другом чате, по правилам
+  /// «Каналы» в «Уведомлениях» (заглушения у «Ответов» нет). Тап — ветка на
+  /// этом комментарии; не показывается на экране «Ответы» и в самой ветке.
+  Future<InAppNotice?> _fromReply(ThreadReply reply) async {
+    final key = '${models.repliesChatID}:${reply.replyID}';
+    if (_shown.contains(key)) return null;
+    final chat = await ChatsReplies.instance.loadChat();
+    // Пока собирали, прочитали (на экране «Ответы» или на другом устройстве).
+    if (chat == null || chat.unreadCount == 0) return null;
+    final message = reply.message;
+    final settings = await _settings();
+    final scope = settings != null && settings.hasChannels() ? settings.channels : null;
+    if (scope != null && !scope.enabled) return null;
+    final hidden = await _repositories.hiddenProfiles.hashByHex();
+    final author = idHex(message.fromUserID);
+    final names = await ChatsReplies.names([Uint8List.fromList(message.fromUserID)]);
+    _remember(key);
+    final channelID = idHex(reply.channelID);
+    return InAppNotice(
+      // Строка «Ответы» с этим ответом последним («Имя: текст»).
+      chat: chat.copyWith(
+        lastMessage: chat.lastMessage?.copyWith(
+          kind: contentKind(message.content),
+          text: message.content.hasPoll() ? message.content.poll.question : message.content.text,
+          senderName: names[author] ?? '',
+          date: DateTime.fromMillisecondsSinceEpoch(message.date.toInt()),
+        ),
+      ),
+      route: '/chats/comments/$channelID/${reply.postID}?message=${message.messageID}',
+      alsoOpenAt: ['/chats/replies', '/chats/chat/${idHex(message.chatID)}', '/chats/comments/$channelID/${reply.postID}'],
+      anonymous: hidden.containsKey(author),
+      showPreview: scope?.showPreviews ?? true,
+    );
+  }
+
   Future<InAppNotice?> _fromSecret(String id, int randomID) async {
     final key = '$id:$randomID';
     if (_shown.contains(key)) return null;
@@ -150,12 +196,18 @@ class InAppNotices {
     );
   }
 
+  /// Настройки уведомлений (общие для устройств, кэш в SQLite); null — ещё
+  /// не приходили.
+  Future<pb.NotifySettings_Response?> _settings() async {
+    final buffer = await _repositories.notifySettings.get(userID: _auth.session.userID);
+    return buffer == null ? null : pb.NotifySettings_Response.fromBuffer(buffer);
+  }
+
   /// Настройка уведомлений типа чатов (общая для устройств, кэш в SQLite);
   /// null — ещё не приходила (по умолчанию всё включено, как на сервере).
   Future<pb.NotifySettings_ScopeSettings?> _scope(models.Chat chat) async {
-    final buffer = await _repositories.notifySettings.get(userID: _auth.session.userID);
-    if (buffer == null) return null;
-    final settings = pb.NotifySettings_Response.fromBuffer(buffer);
+    final settings = await _settings();
+    if (settings == null) return null;
     return switch (chat.type) {
       models.ChatType.private => settings.hasPrivateChats() ? settings.privateChats : null,
       models.ChatType.group || models.ChatType.community => settings.hasGroups() ? settings.groups : null,

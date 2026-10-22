@@ -46,7 +46,10 @@ class ChatContextMenuCupertino extends StatelessWidget {
 
     return CupertinoContextMenu.builder(
       enableHapticFeedback: true,
-      actions: chat.isSecret
+      actions: chat.isReplies
+          // «Ответы» (4.6) — только «Прочитать все».
+          ? [action(t.readAll, CupertinoIcons.chat_bubble, cubit.readReplies)]
+          : chat.isSecret
           // Секретный живёт только на устройстве — закрепы, папки и архив у
           // него нет, только удаление.
           ? [
