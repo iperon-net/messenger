@@ -75,6 +75,12 @@ class NotificationService: UNNotificationServiceExtension {
     userInfo["fromUserID"] = PushKeychain.hex(payload.fromUserID)
     // По нему READ_HISTORY / MESSAGE_DELETED снимают только своё (PushBridge).
     userInfo["messageID"] = NSNumber(value: payload.messageID)
+    // Комментарий к посту канала (4.3): chatID — ветка, тап открывает её по
+    // каналу и посту (на устройстве её может ещё не быть).
+    if !payload.parentChatID.isEmpty {
+      userInfo["parentChatID"] = PushKeychain.hex(payload.parentChatID)
+      userInfo["postID"] = NSNumber(value: payload.postID)
+    }
     content.userInfo = userInfo
 
     let appName = Self.text("PUSH_APP_NAME")
@@ -121,7 +127,8 @@ class NotificationService: UNNotificationServiceExtension {
         content.title = title
         content.body = body
       } else {
-        // Группа: заголовок — её название, отправитель — в начале текста.
+        // Группа и комментарий к посту канала (parentChatID; chatTitle —
+        // название канала): заголовок — название, отправитель — в начале текста.
         content.title = payload.chatTitle
         content.body = senderName.isEmpty ? body : senderName + ": " + body
       }
@@ -199,7 +206,9 @@ class NotificationService: UNNotificationServiceExtension {
       sender: sender,
       attachments: nil
     )
-    if isGroup, let image = PushAvatars.chat(payload.chatID) {
+    // Комментарий (4.3): аватар — канала (у ветки своего нет).
+    let avatarChatID = payload.parentChatID.isEmpty ? payload.chatID : payload.parentChatID
+    if isGroup, let image = PushAvatars.chat(avatarChatID) {
       intent.setImage(INImage(imageData: image), forParameterNamed: \.speakableGroupName)
     }
     return intent

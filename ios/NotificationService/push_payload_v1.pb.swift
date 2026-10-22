@@ -37,69 +37,125 @@ fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobu
 /// session[0:8] — первые 8 байт 32-байтного идентификатора сессии (session.session
 /// на клиенте): по нему устройство выбирает ключ (задел под несколько аккаунтов).
 /// См. docs/plans/push-notifications.md.
-nonisolated struct Iperon_V1_PushPayload: Sendable {
+nonisolated struct Iperon_V1_PushPayload: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var kind: Iperon_V1_PushPayload.Kind = .unknown
+  var kind: Iperon_V1_PushPayload.Kind {
+    get {_storage._kind}
+    set {_uniqueStorage()._kind = newValue}
+  }
 
   /// Идентификатор уведомления: им же помечается системное уведомление
   /// (iOS request identifier, Android tag) — повтор доставки заменяет, а не
   /// дублирует; по нему же уведомление потом снимают.
-  var id: String = String()
+  var id: String {
+    get {_storage._id}
+    set {_uniqueStorage()._id = newValue}
+  }
 
-  var fromUserID: Data = Data()
+  var fromUserID: Data {
+    get {_storage._fromUserID}
+    set {_uniqueStorage()._fromUserID = newValue}
+  }
 
-  var chatID: Data = Data()
+  var chatID: Data {
+    get {_storage._chatID}
+    set {_uniqueStorage()._chatID = newValue}
+  }
 
-  var messageID: Int64 = 0
+  var messageID: Int64 {
+    get {_storage._messageID}
+    set {_uniqueStorage()._messageID = newValue}
+  }
 
   /// Готовый заголовок (имя отправителя: из облачного контакта, профиля или
   /// номер). Пусто — клиент подставит свой (например, для TEST).
-  var title: String = String()
+  var title: String {
+    get {_storage._title}
+    set {_uniqueStorage()._title = newValue}
+  }
 
   /// Текст. Пусто — без превью (настройки/код-пароль) или текст строит клиент.
-  var body: String = String()
+  var body: String {
+    get {_storage._body}
+    set {_uniqueStorage()._body = newValue}
+  }
 
-  var args: [String] = []
+  var args: [String] {
+    get {_storage._args}
+    set {_uniqueStorage()._args = newValue}
+  }
 
   /// Счётчик на иконке приложения (непрочитанные в незаглушённых чатах). Не
   /// задан — не трогать, 0 — снять. На iOS alert-пуш несёт его ещё и в
   /// aps.badge (система ставит сама), тихий — только здесь (ставит приложение).
   var badge: Int32 {
-    get {_badge ?? 0}
-    set {_badge = newValue}
+    get {_storage._badge ?? 0}
+    set {_uniqueStorage()._badge = newValue}
   }
   /// Returns true if `badge` has been explicitly set.
-  var hasBadge: Bool {self._badge != nil}
+  var hasBadge: Bool {_storage._badge != nil}
   /// Clears the value of `badge`. Subsequent reads from it will return its default value.
-  mutating func clearBadge() {self._badge = nil}
+  mutating func clearBadge() {_uniqueStorage()._badge = nil}
 
   /// unix millis события
-  var date: Int64 = 0
+  var date: Int64 {
+    get {_storage._date}
+    set {_uniqueStorage()._date = newValue}
+  }
 
   /// READ_HISTORY / MESSAGE_DELETED
-  var messageIds: [Int64] = []
+  var messageIds: [Int64] {
+    get {_storage._messageIds}
+    set {_uniqueStorage()._messageIds = newValue}
+  }
 
   /// Номер отправителя (E.164, «+7…»). titleFromContact = false — устройство
   /// ищет номер в своей адресной книге и, если нашло, показывает имя оттуда
   /// вместо title (имён из книги на сервере нет). Порядок имени везде:
   /// облачный контакт → адресная книга → профиль → номер.
-  var senderPhone: String = String()
+  var senderPhone: String {
+    get {_storage._senderPhone}
+    set {_uniqueStorage()._senderPhone = newValue}
+  }
 
   /// title — имя из облачного контакта получателя: главнее адресной книги.
-  var titleFromContact: Bool = false
+  var titleFromContact: Bool {
+    get {_storage._titleFromContact}
+    set {_uniqueStorage()._titleFromContact = newValue}
+  }
 
   /// Сообщение в группе: название группы. Устройство показывает его
   /// заголовком, а имя отправителя (title / книга) — в начале текста
   /// («Имя: текст»). Пусто — личный чат. Скрытый на устройстве чат — как
   /// скрытый профиль: без названия и текста.
-  var chatTitle: String = String()
+  var chatTitle: String {
+    get {_storage._chatTitle}
+    set {_uniqueStorage()._chatTitle = newValue}
+  }
 
   /// Пост канала (срез 4): chatTitle — название канала, отправителя нет —
   /// текст без «Имя:».
-  var isChannel: Bool = false
+  var isChannel: Bool {
+    get {_storage._isChannel}
+    set {_uniqueStorage()._isChannel = newValue}
+  }
+
+  /// Комментарий к посту канала (подэтап 4.3: ответ на мой комментарий или
+  /// упоминание — только адресату): chatID — ветка, parentChatID / postID —
+  /// канал и пост (тап открывает ветку); chatTitle — название канала, текст —
+  /// «Имя: текст», как в группе.
+  var parentChatID: Data {
+    get {_storage._parentChatID}
+    set {_uniqueStorage()._parentChatID = newValue}
+  }
+
+  var postID: Int64 {
+    get {_storage._postID}
+    set {_uniqueStorage()._postID = newValue}
+  }
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -195,7 +251,7 @@ nonisolated struct Iperon_V1_PushPayload: Sendable {
 
   init() {}
 
-  fileprivate var _badge: Int32? = nil
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
@@ -204,103 +260,181 @@ fileprivate nonisolated let _protobuf_package = "iperon.v1"
 
 nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".PushPayload"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}kind\0\u{1}id\0\u{1}fromUserID\0\u{1}chatID\0\u{1}messageID\0\u{1}title\0\u{1}body\0\u{1}args\0\u{1}badge\0\u{1}date\0\u{1}messageIDs\0\u{1}senderPhone\0\u{1}titleFromContact\0\u{1}chatTitle\0\u{1}isChannel\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}kind\0\u{1}id\0\u{1}fromUserID\0\u{1}chatID\0\u{1}messageID\0\u{1}title\0\u{1}body\0\u{1}args\0\u{1}badge\0\u{1}date\0\u{1}messageIDs\0\u{1}senderPhone\0\u{1}titleFromContact\0\u{1}chatTitle\0\u{1}isChannel\0\u{1}parentChatID\0\u{1}postID\0")
+
+  fileprivate class _StorageClass {
+    var _kind: Iperon_V1_PushPayload.Kind = .unknown
+    var _id: String = String()
+    var _fromUserID: Data = Data()
+    var _chatID: Data = Data()
+    var _messageID: Int64 = 0
+    var _title: String = String()
+    var _body: String = String()
+    var _args: [String] = []
+    var _badge: Int32? = nil
+    var _date: Int64 = 0
+    var _messageIds: [Int64] = []
+    var _senderPhone: String = String()
+    var _titleFromContact: Bool = false
+    var _chatTitle: String = String()
+    var _isChannel: Bool = false
+    var _parentChatID: Data = Data()
+    var _postID: Int64 = 0
+
+      // This property is used as the initial default value for new instances of the type.
+      // The type itself is protecting the reference to its storage via CoW semantics.
+      // This will force a copy to be made of this reference when the first mutation occurs;
+      // hence, it is safe to mark this as `nonisolated(unsafe)`.
+      static nonisolated(unsafe) let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _kind = source._kind
+      _id = source._id
+      _fromUserID = source._fromUserID
+      _chatID = source._chatID
+      _messageID = source._messageID
+      _title = source._title
+      _body = source._body
+      _args = source._args
+      _badge = source._badge
+      _date = source._date
+      _messageIds = source._messageIds
+      _senderPhone = source._senderPhone
+      _titleFromContact = source._titleFromContact
+      _chatTitle = source._chatTitle
+      _isChannel = source._isChannel
+      _parentChatID = source._parentChatID
+      _postID = source._postID
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularEnumField(value: &self.kind) }()
-      case 2: try { try decoder.decodeSingularStringField(value: &self.id) }()
-      case 3: try { try decoder.decodeSingularBytesField(value: &self.fromUserID) }()
-      case 4: try { try decoder.decodeSingularBytesField(value: &self.chatID) }()
-      case 5: try { try decoder.decodeSingularInt64Field(value: &self.messageID) }()
-      case 6: try { try decoder.decodeSingularStringField(value: &self.title) }()
-      case 7: try { try decoder.decodeSingularStringField(value: &self.body) }()
-      case 8: try { try decoder.decodeRepeatedStringField(value: &self.args) }()
-      case 9: try { try decoder.decodeSingularInt32Field(value: &self._badge) }()
-      case 10: try { try decoder.decodeSingularInt64Field(value: &self.date) }()
-      case 11: try { try decoder.decodeRepeatedInt64Field(value: &self.messageIds) }()
-      case 12: try { try decoder.decodeSingularStringField(value: &self.senderPhone) }()
-      case 13: try { try decoder.decodeSingularBoolField(value: &self.titleFromContact) }()
-      case 14: try { try decoder.decodeSingularStringField(value: &self.chatTitle) }()
-      case 15: try { try decoder.decodeSingularBoolField(value: &self.isChannel) }()
-      default: break
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularEnumField(value: &_storage._kind) }()
+        case 2: try { try decoder.decodeSingularStringField(value: &_storage._id) }()
+        case 3: try { try decoder.decodeSingularBytesField(value: &_storage._fromUserID) }()
+        case 4: try { try decoder.decodeSingularBytesField(value: &_storage._chatID) }()
+        case 5: try { try decoder.decodeSingularInt64Field(value: &_storage._messageID) }()
+        case 6: try { try decoder.decodeSingularStringField(value: &_storage._title) }()
+        case 7: try { try decoder.decodeSingularStringField(value: &_storage._body) }()
+        case 8: try { try decoder.decodeRepeatedStringField(value: &_storage._args) }()
+        case 9: try { try decoder.decodeSingularInt32Field(value: &_storage._badge) }()
+        case 10: try { try decoder.decodeSingularInt64Field(value: &_storage._date) }()
+        case 11: try { try decoder.decodeRepeatedInt64Field(value: &_storage._messageIds) }()
+        case 12: try { try decoder.decodeSingularStringField(value: &_storage._senderPhone) }()
+        case 13: try { try decoder.decodeSingularBoolField(value: &_storage._titleFromContact) }()
+        case 14: try { try decoder.decodeSingularStringField(value: &_storage._chatTitle) }()
+        case 15: try { try decoder.decodeSingularBoolField(value: &_storage._isChannel) }()
+        case 16: try { try decoder.decodeSingularBytesField(value: &_storage._parentChatID) }()
+        case 17: try { try decoder.decodeSingularInt64Field(value: &_storage._postID) }()
+        default: break
+        }
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    if self.kind != .unknown {
-      try visitor.visitSingularEnumField(value: self.kind, fieldNumber: 1)
-    }
-    if !self.id.isEmpty {
-      try visitor.visitSingularStringField(value: self.id, fieldNumber: 2)
-    }
-    if !self.fromUserID.isEmpty {
-      try visitor.visitSingularBytesField(value: self.fromUserID, fieldNumber: 3)
-    }
-    if !self.chatID.isEmpty {
-      try visitor.visitSingularBytesField(value: self.chatID, fieldNumber: 4)
-    }
-    if self.messageID != 0 {
-      try visitor.visitSingularInt64Field(value: self.messageID, fieldNumber: 5)
-    }
-    if !self.title.isEmpty {
-      try visitor.visitSingularStringField(value: self.title, fieldNumber: 6)
-    }
-    if !self.body.isEmpty {
-      try visitor.visitSingularStringField(value: self.body, fieldNumber: 7)
-    }
-    if !self.args.isEmpty {
-      try visitor.visitRepeatedStringField(value: self.args, fieldNumber: 8)
-    }
-    try { if let v = self._badge {
-      try visitor.visitSingularInt32Field(value: v, fieldNumber: 9)
-    } }()
-    if self.date != 0 {
-      try visitor.visitSingularInt64Field(value: self.date, fieldNumber: 10)
-    }
-    if !self.messageIds.isEmpty {
-      try visitor.visitPackedInt64Field(value: self.messageIds, fieldNumber: 11)
-    }
-    if !self.senderPhone.isEmpty {
-      try visitor.visitSingularStringField(value: self.senderPhone, fieldNumber: 12)
-    }
-    if self.titleFromContact != false {
-      try visitor.visitSingularBoolField(value: self.titleFromContact, fieldNumber: 13)
-    }
-    if !self.chatTitle.isEmpty {
-      try visitor.visitSingularStringField(value: self.chatTitle, fieldNumber: 14)
-    }
-    if self.isChannel != false {
-      try visitor.visitSingularBoolField(value: self.isChannel, fieldNumber: 15)
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      if _storage._kind != .unknown {
+        try visitor.visitSingularEnumField(value: _storage._kind, fieldNumber: 1)
+      }
+      if !_storage._id.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._id, fieldNumber: 2)
+      }
+      if !_storage._fromUserID.isEmpty {
+        try visitor.visitSingularBytesField(value: _storage._fromUserID, fieldNumber: 3)
+      }
+      if !_storage._chatID.isEmpty {
+        try visitor.visitSingularBytesField(value: _storage._chatID, fieldNumber: 4)
+      }
+      if _storage._messageID != 0 {
+        try visitor.visitSingularInt64Field(value: _storage._messageID, fieldNumber: 5)
+      }
+      if !_storage._title.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._title, fieldNumber: 6)
+      }
+      if !_storage._body.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._body, fieldNumber: 7)
+      }
+      if !_storage._args.isEmpty {
+        try visitor.visitRepeatedStringField(value: _storage._args, fieldNumber: 8)
+      }
+      try { if let v = _storage._badge {
+        try visitor.visitSingularInt32Field(value: v, fieldNumber: 9)
+      } }()
+      if _storage._date != 0 {
+        try visitor.visitSingularInt64Field(value: _storage._date, fieldNumber: 10)
+      }
+      if !_storage._messageIds.isEmpty {
+        try visitor.visitPackedInt64Field(value: _storage._messageIds, fieldNumber: 11)
+      }
+      if !_storage._senderPhone.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._senderPhone, fieldNumber: 12)
+      }
+      if _storage._titleFromContact != false {
+        try visitor.visitSingularBoolField(value: _storage._titleFromContact, fieldNumber: 13)
+      }
+      if !_storage._chatTitle.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._chatTitle, fieldNumber: 14)
+      }
+      if _storage._isChannel != false {
+        try visitor.visitSingularBoolField(value: _storage._isChannel, fieldNumber: 15)
+      }
+      if !_storage._parentChatID.isEmpty {
+        try visitor.visitSingularBytesField(value: _storage._parentChatID, fieldNumber: 16)
+      }
+      if _storage._postID != 0 {
+        try visitor.visitSingularInt64Field(value: _storage._postID, fieldNumber: 17)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Iperon_V1_PushPayload, rhs: Iperon_V1_PushPayload) -> Bool {
-    if lhs.kind != rhs.kind {return false}
-    if lhs.id != rhs.id {return false}
-    if lhs.fromUserID != rhs.fromUserID {return false}
-    if lhs.chatID != rhs.chatID {return false}
-    if lhs.messageID != rhs.messageID {return false}
-    if lhs.title != rhs.title {return false}
-    if lhs.body != rhs.body {return false}
-    if lhs.args != rhs.args {return false}
-    if lhs._badge != rhs._badge {return false}
-    if lhs.date != rhs.date {return false}
-    if lhs.messageIds != rhs.messageIds {return false}
-    if lhs.senderPhone != rhs.senderPhone {return false}
-    if lhs.titleFromContact != rhs.titleFromContact {return false}
-    if lhs.chatTitle != rhs.chatTitle {return false}
-    if lhs.isChannel != rhs.isChannel {return false}
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._kind != rhs_storage._kind {return false}
+        if _storage._id != rhs_storage._id {return false}
+        if _storage._fromUserID != rhs_storage._fromUserID {return false}
+        if _storage._chatID != rhs_storage._chatID {return false}
+        if _storage._messageID != rhs_storage._messageID {return false}
+        if _storage._title != rhs_storage._title {return false}
+        if _storage._body != rhs_storage._body {return false}
+        if _storage._args != rhs_storage._args {return false}
+        if _storage._badge != rhs_storage._badge {return false}
+        if _storage._date != rhs_storage._date {return false}
+        if _storage._messageIds != rhs_storage._messageIds {return false}
+        if _storage._senderPhone != rhs_storage._senderPhone {return false}
+        if _storage._titleFromContact != rhs_storage._titleFromContact {return false}
+        if _storage._chatTitle != rhs_storage._chatTitle {return false}
+        if _storage._isChannel != rhs_storage._isChannel {return false}
+        if _storage._parentChatID != rhs_storage._parentChatID {return false}
+        if _storage._postID != rhs_storage._postID {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

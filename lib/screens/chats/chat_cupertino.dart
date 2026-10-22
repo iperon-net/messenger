@@ -932,6 +932,11 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
           }
         }, destructive: true),
       ],
+      // Ветка комментариев: автора — в «Заблокированные» канала.
+      if (_cubit.canBanCommenter(message))
+        action(t.banCommenter, CupertinoIcons.nosign, () async {
+          if (await confirmBanCommenter(context, message.senderName)) await _cubit.banCommenter(message);
+        }, destructive: true),
       if (canRetractVote(message)) action(t.retractVote, CupertinoIcons.arrow_uturn_left, () => _cubit.votePoll(message, const [])),
       if (canClosePoll(chat, message, members: _cubit.state.members))
         action(t.closePoll, CupertinoIcons.stop_circle, () async {

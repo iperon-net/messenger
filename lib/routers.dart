@@ -149,6 +149,16 @@ class Routers {
                     ),
                   ),
                 ),
+                // Комментарии к посту канала по ссылке (тап по пушу ответа в ветке):
+                // открывает ветку и заменяется её окном чата.
+                GoRoute(
+                  path: "comments/:channelID/:postID",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _page(
+                    state,
+                    ChatCommentsOpenCupertino(channelID: state.pathParameters['channelID']!, postID: state.pathParameters['postID']!),
+                  ),
+                ),
                 // Секретный чат (E2EE, только на этом устройстве) и его «Ключ
                 // шифрования» — у каждого экрана свой SecretChatCubit.
                 GoRoute(
@@ -1045,6 +1055,16 @@ class Routers {
                         ),
                       child: const ChatScreenMaterial(),
                     ),
+                  ),
+                ),
+                // Комментарии к посту канала по ссылке (тап по пушу ответа в ветке):
+                // открывает ветку и заменяется её окном чата.
+                GoRoute(
+                  path: "comments/:channelID/:postID",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    ChatCommentsOpenMaterial(channelID: state.pathParameters['channelID']!, postID: state.pathParameters['postID']!),
                   ),
                 ),
                 // Секретный чат (E2EE, только на этом устройстве) и его «Ключ

@@ -284,7 +284,21 @@
   - Опросы в канале (анонимные).
   - Миграция счётчиков реакций групп на `chatReactionCounts` — по желанию, если `$group` у
     больших групп окажется медленным.
-- [ ] **4.3 Комментарии.**
+- [ ] **4.3 Комментарии.** Написано 2026-10-22 (сервер + клиент), на устройствах не проверено.
+  - Протокол (2026-10-22): `CHAT_TYPE_THREAD`, `ChatCommentsWho`; `ChatInfo.comments*` (23–26) и у
+    ветки `parentChatID` / `postID` / `commentsCloseDate` (27–29); `ChatMessage.comments` (18) =
+    `MessageComments {count, recentUserIDs, closeDate, threadChatID, readMaxID, maxID}`;
+    `CreateGroup.comments*` (10–13), `EditChat.comments*` (15–18), у канала разрешены slowMode /
+    newcomerMediaDelay (для веток); `Chats.Watch` (43); `Messages.OpenComments` (26),
+    `SetCommentsClosed` (27, право editMessages); `Update.postComments` (23, слитно);
+    `PostViews.comments` (3); `PushPayload.parentChatID` / `postID` (16–17). Ошибки
+    «commentsDisabled», «commentsClosed», «commentsSubscribersOnly», «commentsTooNew:N».
+  - Клиент написан 2026-10-22 (не закоммичено, на устройствах не проверено). Миграция 45:
+    `chatMessages.comments` (BLOB `MessageComments`, мой readMaxID не уменьшается общим
+    журналом) и `chatThreads (chatID, postID, threadChatID)`. Ветка — диалог `type = 4` +
+    `chatGroups` (её ChatInfo и pts), в список / счётчики / баннеры не попадает; её
+    readInboxMaxID — в диалоге, непрочитанные считаются по кэшу. Пост — шапкой ленты ветки
+    (`post:<id>`). Тап по пушу комментария — `/chats/comments/<канал>/<пост>`.
   - Ветка-чат, `OpenComments` / `Watch`.
   - Проверки `commentsWho` / `commentsMinSubscription` / сроков, «Закрыть / открыть
     комментарии».

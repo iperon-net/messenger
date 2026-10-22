@@ -454,7 +454,12 @@ class PushManager {
   Future<void> _handleTap(Object? arguments) async {
     final tap = arguments as Map?;
     final kind = PushPayload_Kind.valueOf((tap?['kind'] as int?) ?? 0);
-    var route = routeForKind(kind, chatID: (tap?['chatID'] as String?) ?? '');
+    var route = routeForKind(
+      kind,
+      chatID: (tap?['chatID'] as String?) ?? '',
+      parentChatID: (tap?['parentChatID'] as String?) ?? '',
+      postID: '${tap?['postID'] ?? ''}',
+    );
     // От скрытого профиля — не открываем его чат (он бы выдал собеседника),
     // только список: раскрыть его можно «/код-фразой» в поиске.
     if (route != null && route.startsWith('/chats/') && await _fromHiddenUser(tap)) route = '/chats';
@@ -482,11 +487,16 @@ class PushManager {
 
   /// Куда вести по тапу. null — просто открыть приложение. Сообщение и
   /// реакция — в чат [chatID] (hex, натив кладёт его из расшифрованного
-  /// пуша); без него — в список чатов.
+  /// пуша); без него — в список чатов. Комментарий к посту канала (4.3,
+  /// [parentChatID] — канал, [postID] — пост) — в его ветку (откроется и не
+  /// бывавшая на устройстве).
   @visibleForTesting
-  static String? routeForKind(PushPayload_Kind? kind, {String chatID = ''}) => switch (kind) {
+  static String? routeForKind(PushPayload_Kind? kind, {String chatID = '', String parentChatID = '', String postID = ''}) => switch (kind) {
     PushPayload_Kind.CONTACT_JOINED => '/contacts',
     PushPayload_Kind.CALL_MISSED => '/calls',
+    PushPayload_Kind.MESSAGE || PushPayload_Kind.MESSAGE_REACTION
+        when _chatIDPattern.hasMatch(parentChatID) && (int.tryParse(postID) ?? 0) > 0 =>
+      '/chats/comments/${parentChatID.toLowerCase()}/${int.parse(postID)}',
     PushPayload_Kind.MESSAGE ||
     PushPayload_Kind.MESSAGE_REACTION ||
     // Уведомление «Iperon» — его чат.

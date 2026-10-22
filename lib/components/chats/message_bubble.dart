@@ -1987,7 +1987,7 @@ class _CommentsBar extends StatelessWidget {
                       height: size,
                       padding: const EdgeInsets.all(1.5),
                       decoration: BoxDecoration(color: background, shape: BoxShape.circle),
-                      child: BoringAvatar(name: names[i], type: BoringAvatarType.beam, shape: const CircleBorder()),
+                      child: _commenterAvatar(names[i], size - 3),
                     ),
                   ),
               ],
@@ -2019,6 +2019,15 @@ class _CommentsBar extends StatelessWidget {
                     ),
                   ),
                   if (closed) ...[const SizedBox(width: 6), FaIcon(FontAwesomeIcons.lock, size: 12, color: metaColor)],
+                  // Новое в ветке с моего последнего чтения.
+                  if (message.commentsUnread) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(color: colors.link, shape: BoxShape.circle),
+                    ),
+                  ],
                   const SizedBox(width: 6),
                   FaIcon(FontAwesomeIcons.chevronRight, size: 12, color: colors.link),
                 ],
@@ -2029,6 +2038,14 @@ class _CommentsBar extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Комментатор в строке «N комментариев»: на сервере — hex userID (фото из
+/// кэша профилей, нет — плейсхолдер), в демо — имя (плейсхолдер по нему).
+Widget _commenterAvatar(String commenter, double size) {
+  final id = commenter.length >= 16 ? idBytes(commenter) : null;
+  if (id != null && id.isNotEmpty) return UserAvatar(userID: id, placeholderName: commenter, size: size);
+  return BoringAvatar(name: commenter, type: BoringAvatarType.beam, shape: const CircleBorder());
 }
 
 /// Опрос в пузыре: вопрос, тип («Анонимный опрос» / «Викторина»), варианты.

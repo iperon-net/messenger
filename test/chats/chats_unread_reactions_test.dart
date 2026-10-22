@@ -47,11 +47,12 @@ void main() {
           reactions BLOB NULL,
           reactionsUnread INTEGER NOT NULL DEFAULT 0,
           expireAt INTEGER NOT NULL DEFAULT 0, poll BLOB NULL, searchHit INTEGER NOT NULL DEFAULT 0,
-          authorSignature TEXT NOT NULL DEFAULT '', postOut INTEGER NOT NULL DEFAULT 0, views INTEGER NOT NULL DEFAULT 0, viewed INTEGER NOT NULL DEFAULT 0,
+          authorSignature TEXT NOT NULL DEFAULT '', postOut INTEGER NOT NULL DEFAULT 0, views INTEGER NOT NULL DEFAULT 0, viewed INTEGER NOT NULL DEFAULT 0, comments BLOB NULL,
           PRIMARY KEY (userID, chatID, messageID)
         );
       ''');
       await db.execute(ChatsRepository.mentionsSchema);
+      await db.execute(ChatsRepository.threadsSchema);
       for (final (id, from) in [(1, me), (2, peer), (3, me)]) {
         await db.execute('INSERT INTO chatMessages (userID, chatID, messageID, fromUserID) VALUES (?, ?, ?, ?);', [me, chat, id, from]);
       }

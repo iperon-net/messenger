@@ -73,6 +73,8 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
         joinMode: communityID.isNotEmpty ? models.ChatJoinMode.open : state.joinMode,
         // Новая частная группа — со скрытой историей (как в Telegram).
         historyHidden: type == models.ChatType.group && communityID.isEmpty,
+        // Новый канал — с комментариями (меняются в «Изменить»).
+        commentsEnabled: type == models.ChatType.channel,
       ),
     );
     // [exclude] — уже участники («Добавить участников» в профиле группы).
@@ -274,6 +276,11 @@ class ChatCreateCubit extends Cubit<ChatCreateState> {
           communityID: state.communityID,
           joinMode: state.joinMode,
           historyHidden: state.historyHidden && !state.isPublic,
+          commentsEnabled: state.commentsEnabled,
+          commentsTimeLimit: state.commentsTimeLimit,
+          commentsWho: state.commentsWho,
+          commentsMinSubscription: state.commentsMinSubscription,
+          newcomerMediaDelay: state.newcomerMediaDelay,
         );
       } on ChatsMembersRestrictedException catch (error) {
         // Группа создана без тех, кого нельзя добавить.

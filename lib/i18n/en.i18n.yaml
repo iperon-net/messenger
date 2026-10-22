@@ -443,6 +443,10 @@
   "openComments": "Open Comments"
   "closeCommentsTitle": "Close comments?"
   "closeCommentsMessage": "No one will be able to comment on this post anymore; existing comments will stay."
+  "banCommenter": "Ban from Channel"
+  "banCommenterTitle": "Ban {name}?"
+  "banCommenterMessage": "They won't be able to comment on posts or subscribe to the channel until unbanned."
+  "retry": "Retry"
   "subscribe": "Subscribe"
   "joinGroup": "Join Group"
   "requestJoin": "Request to Join"
@@ -1323,6 +1327,10 @@ dateTime:
   "pollClosed": "This poll has already ended."
   "pollForward": "Polls can't be forwarded."
   "reactionsLimit": "This post already has the maximum number of different reactions. You can only add one that's already there."
+  "commentsDisabled": "Comments are turned off for this post."
+  "commentsClosed": "Comments on this post are closed — you can only read them."
+  "commentsSubscribersOnly": "Only channel subscribers can comment."
+  "commentsTooNew": "You subscribed to the channel recently — you can comment from {time}."
 
 "chatTtl":
   "title": "Auto-delete"

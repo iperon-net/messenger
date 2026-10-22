@@ -22,17 +22,41 @@ class ChatType extends $pb.ProtobufEnum {
   static const ChatType CHAT_TYPE_CHANNEL = ChatType._(2, _omitEnumNames ? '' : 'CHAT_TYPE_CHANNEL');
   static const ChatType CHAT_TYPE_COMMUNITY = ChatType._(3, _omitEnumNames ? '' : 'CHAT_TYPE_COMMUNITY');
 
+  /// Ветка комментариев поста канала (подэтап 4.3): скрытый чат без
+  /// участников, в списке диалогов не бывает (ChatInfo.parentChatID / postID).
+  static const ChatType CHAT_TYPE_THREAD = ChatType._(4, _omitEnumNames ? '' : 'CHAT_TYPE_THREAD');
+
   static const $core.List<ChatType> values = <ChatType>[
     CHAT_TYPE_PRIVATE,
     CHAT_TYPE_GROUP,
     CHAT_TYPE_CHANNEL,
     CHAT_TYPE_COMMUNITY,
+    CHAT_TYPE_THREAD,
   ];
 
-  static final $core.List<ChatType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 3);
+  static final $core.List<ChatType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 4);
   static ChatType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const ChatType._(super.value, super.name);
+}
+
+/// Канал (подэтап 4.3): кто может комментировать посты. Читать комментарии
+/// могут все, кто видит пост; админов канала ограничения не касаются.
+class ChatCommentsWho extends $pb.ProtobufEnum {
+  static const ChatCommentsWho CHAT_COMMENTS_WHO_ALL = ChatCommentsWho._(0, _omitEnumNames ? '' : 'CHAT_COMMENTS_WHO_ALL');
+
+  /// Только подписчики, подписанные не меньше ChatInfo.commentsMinSubscription.
+  static const ChatCommentsWho CHAT_COMMENTS_WHO_SUBSCRIBERS = ChatCommentsWho._(1, _omitEnumNames ? '' : 'CHAT_COMMENTS_WHO_SUBSCRIBERS');
+
+  static const $core.List<ChatCommentsWho> values = <ChatCommentsWho>[
+    CHAT_COMMENTS_WHO_ALL,
+    CHAT_COMMENTS_WHO_SUBSCRIBERS,
+  ];
+
+  static final $core.List<ChatCommentsWho?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 1);
+  static ChatCommentsWho? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const ChatCommentsWho._(super.value, super.name);
 }
 
 /// Роль участника группы (docs/plans/chats-groups.md). Владелец — создатель:

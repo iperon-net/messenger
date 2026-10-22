@@ -293,6 +293,20 @@ class ChatsRepository {
   static const groupMembersTable = 'chatGroupMembers';
   static const inviteLinksTable = 'chatInviteLinks';
   static const mentionsTable = 'chatMentions';
+  static const threadsTable = 'chatThreads';
+
+  /// Ветки комментариев постов канала (миграция 45, подэтап 4.3): канал
+  /// [chatID], пост [postID] → чат-ветка [threadChatID]. Сама ветка — диалог
+  /// (type = 4, в списке не показывается) + сведения и pts в chatGroups.
+  static const threadsSchema = '''
+    CREATE TABLE chatThreads (
+      userID BLOB NOT NULL,
+      chatID BLOB NOT NULL,
+      postID INTEGER NOT NULL,
+      threadChatID BLOB NOT NULL,
+      PRIMARY KEY (userID, chatID, postID)
+    );
+  ''';
 
   /// Мои непрочитанные упоминания в группах (миграция 38).
   static const mentionsSchema = '''
@@ -504,6 +518,11 @@ class ChatsRepository {
 
   /// Диалог удалён у меня — вместе с историей и неотправленным.
   Future<void> deleteDialog({required List<int> userID, required List<int> chatID}) async {
+    // Канал — и ветки комментариев его постов (сами по себе они не нужны).
+    for (final thread in await threadsOf(userID: userID, chatID: chatID)) {
+      await deleteDialog(userID: userID, chatID: thread);
+    }
+    await ctx.execute('DELETE FROM chatThreads WHERE userID = ? AND (chatID = ? OR threadChatID = ?);', [userID, chatID, chatID]);
     await _releaseMedia('chatMessages', 'content', 'userID = ? AND chatID = ?', [userID, chatID]);
     await _releaseMedia('chatPinned', 'message', 'userID = ? AND chatID = ?', [userID, chatID], chatMessage: true);
     await _releaseMedia('chatDialogs', 'topMessage', 'userID = ? AND chatID = ?', [userID, chatID], chatMessage: true);
@@ -540,6 +559,8 @@ class ChatsRepository {
     for (final row in await this.dialogs(userID: userID)) {
       if (keep.contains(_hex(row.chatID)) || (row.topMessageID == 0 && row.type == 0)) continue;
       if (keepTypes.contains(row.type)) continue;
+      // Ветки комментариев — не диалоги списка: сервер их в нём не отдаёт.
+      if (row.type == pb.ChatType.CHAT_TYPE_THREAD.value) continue;
       // Есть неотправленное — не теряем его вместе с диалогом.
       if ((await outbox(userID: userID, chatID: row.chatID)).any((r) => !r.failed)) {
         logger.warning('chats: dialog ${_hex(row.chatID)} missing on server, kept (outbox not empty)');
@@ -574,6 +595,12 @@ class ChatsRepository {
   }) async {
     var reactions = message.hasReactions() ? message.reactions : null;
     var poll = message.hasPoll() ? message.poll : null;
+    var comments = message.hasComments() ? message.comments : null;
+    if (comments != null) {
+      // Мой readMaxID в ветке приходит только в ответах мне (история, Get,
+      // GetViews) — общий журнал канала (0) его не сбрасывает.
+      comments = mergeComments(await postComments(userID: userID, chatID: message.chatID, postID: message.messageID.toInt()), comments);
+    }
     if (shared && (reactions != null || poll != null)) {
       final stored = await ctx.getOptional('SELECT reactions, poll FROM chatMessages WHERE userID = ? AND chatID = ? AND messageID = ?;', [
         userID,
@@ -592,8 +619,8 @@ class ChatsRepository {
     await ctx.execute(
       '''
       INSERT INTO chatMessages (userID, chatID, messageID, fromUserID, date, editDate, randomID, mediaUnread, silent, content, searchText, reactions,
-        reactionsUnread, expireAt, poll, searchHit, authorSignature, postOut, views)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        reactionsUnread, expireAt, poll, searchHit, authorSignature, postOut, views, comments)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(userID, chatID, messageID) DO UPDATE SET
         fromUserID = excluded.fromUserID,
         date = excluded.date,
@@ -613,7 +640,9 @@ class ChatsRepository {
         -- общее обновление журнала его не несёт — не сбрасываем.
         postOut = MAX(chatMessages.postOut, excluded.postOut),
         -- Просмотры только растут; журнал их не несёт (0) — не сбрасываем.
-        views = MAX(chatMessages.views, excluded.views);
+        views = MAX(chatMessages.views, excluded.views),
+        -- Комментарии поста (4.3): обновление без них (правка) не стирает.
+        comments = COALESCE(excluded.comments, chatMessages.comments);
       ''',
       [
         userID,
@@ -635,6 +664,7 @@ class ChatsRepository {
         message.authorSignature,
         message.postOut ? 1 : 0,
         message.views,
+        comments?.writeToBuffer(),
       ],
     );
     if (message.mentionUnread) await addMentions(userID: userID, chatID: message.chatID, messageIDs: [message.messageID.toInt()]);
@@ -1375,6 +1405,130 @@ class ChatsRepository {
     return {for (final row in rows) row['messageID'] as int};
   }
 
+  // --- комментарии к постам канала (подэтап 4.3) ---
+
+  /// Комментарии поста из кэша; `null` — поста нет или комментариев у него нет.
+  Future<pb.MessageComments?> postComments({required List<int> userID, required List<int> chatID, required int postID}) async {
+    final row = await ctx.getOptional('SELECT comments FROM chatMessages WHERE userID = ? AND chatID = ? AND messageID = ?;', [
+      userID,
+      chatID,
+      postID,
+    ]);
+    final blob = row?['comments'] as List<int>?;
+    return blob == null ? null : pb.MessageComments.fromBuffer(blob);
+  }
+
+  /// Свежие комментарии поста (Update.postComments, GetViews, SetCommentsClosed):
+  /// мой readMaxID не уменьшается ([mergeComments]). Поста нет в кэше — ничего.
+  Future<void> setPostComments({
+    required List<int> userID,
+    required List<int> chatID,
+    required int postID,
+    required pb.MessageComments comments,
+  }) async {
+    final stored = await postComments(userID: userID, chatID: chatID, postID: postID);
+    await ctx.execute('UPDATE chatMessages SET comments = ? WHERE userID = ? AND chatID = ? AND messageID = ?;', [
+      mergeComments(stored, comments).writeToBuffer(),
+      userID,
+      chatID,
+      postID,
+    ]);
+  }
+
+  /// Ветка поста [postID] канала [chatID] (открыта на этом устройстве); `null`
+  /// — не открывали.
+  Future<Uint8List?> thread({required List<int> userID, required List<int> chatID, required int postID}) async {
+    final row = await ctx.getOptional('SELECT threadChatID FROM chatThreads WHERE userID = ? AND chatID = ? AND postID = ?;', [
+      userID,
+      chatID,
+      postID,
+    ]);
+    return row == null ? null : Uint8List.fromList(row['threadChatID'] as List<int>);
+  }
+
+  /// Канал и пост ветки [threadChatID]; `null` — это не ветка.
+  Future<({Uint8List chatID, int postID})?> threadPost({required List<int> userID, required List<int> threadChatID}) async {
+    final row = await ctx.getOptional('SELECT chatID, postID FROM chatThreads WHERE userID = ? AND threadChatID = ?;', [
+      userID,
+      threadChatID,
+    ]);
+    if (row == null) return null;
+    return (chatID: Uint8List.fromList(row['chatID'] as List<int>), postID: row['postID'] as int);
+  }
+
+  /// Ветки постов канала [chatID].
+  Future<List<Uint8List>> threadsOf({required List<int> userID, required List<int> chatID}) async {
+    final rows = await ctx.getAll('SELECT threadChatID FROM chatThreads WHERE userID = ? AND chatID = ?;', [userID, chatID]);
+    return [for (final row in rows) Uint8List.fromList(row['threadChatID'] as List<int>)];
+  }
+
+  /// Ветка открыта (ответ OpenComments): связь с постом, диалог (type =
+  /// THREAD, мой readInboxMaxID) и сведения ветки с её pts. Уже открывали —
+  /// только сведения и readInboxMaxID (не меньше прежнего): последнее
+  /// сообщение и pts ведут история и журнал ветки.
+  Future<void> saveThread({required List<int> userID, required pb.ChatInfo info, required int readInboxMaxID}) async {
+    await ctx.execute('INSERT OR REPLACE INTO chatThreads (userID, chatID, postID, threadChatID) VALUES (?, ?, ?, ?);', [
+      userID,
+      info.parentChatID,
+      info.postID.toInt(),
+      info.chatID,
+    ]);
+    final existing = await dialog(userID: userID, chatID: info.chatID);
+    if (existing == null) {
+      await upsertDialog(
+        userID: userID,
+        dialog: pb.Dialog(
+          chatID: info.chatID,
+          type: pb.ChatType.CHAT_TYPE_THREAD,
+          role: pb.ChatRole.CHAT_ROLE_WRITER,
+          readInboxMaxID: Int64(readInboxMaxID),
+          createdAt: Int64(DateTime.now().millisecondsSinceEpoch),
+          chat: info,
+        ),
+      );
+      return;
+    }
+    await setGroupInfo(userID: userID, info: info);
+    if (readInboxMaxID > existing.readInboxMaxID) await setThreadRead(userID: userID, threadChatID: info.chatID, maxID: readInboxMaxID);
+  }
+
+  /// Прочитал ветку до [maxID] (ReadHistory здесь или на другом устройстве):
+  /// readInboxMaxID ветки, непрочитанные в ней и мой readMaxID у поста (точка
+  /// на плашке «N комментариев» гаснет).
+  Future<void> setThreadRead({required List<int> userID, required List<int> threadChatID, required int maxID}) async {
+    final row = await dialog(userID: userID, chatID: threadChatID);
+    if (row == null) return;
+    final read = max(row.readInboxMaxID, maxID);
+    await updateDialog(
+      userID: userID,
+      chatID: threadChatID,
+      fields: {
+        'readInboxMaxID': read,
+        'unreadCount': await countIncomingAfter(userID: userID, chatID: threadChatID, afterID: read),
+      },
+    );
+    final post = await threadPost(userID: userID, threadChatID: threadChatID);
+    if (post == null) return;
+    final comments = await postComments(userID: userID, chatID: post.chatID, postID: post.postID);
+    if (comments == null || comments.readMaxID >= read) return;
+    await ctx.execute('UPDATE chatMessages SET comments = ? WHERE userID = ? AND chatID = ? AND messageID = ?;', [
+      (comments.deepCopy()..readMaxID = Int64(read)).writeToBuffer(),
+      userID,
+      post.chatID,
+      post.postID,
+    ]);
+  }
+
+  /// Чужих сообщений в кэше чата новее [afterID] — непрочитанные ветки
+  /// (сервер счётчик ветки не ведёт).
+  Future<int> countIncomingAfter({required List<int> userID, required List<int> chatID, required int afterID}) async {
+    final row = await ctx.get(
+      'SELECT COUNT(*) AS n FROM chatMessages WHERE userID = ? AND chatID = ? AND messageID > ? AND fromUserID != ? AND searchHit = 0;',
+      [userID, chatID, afterID, userID],
+    );
+    return row['n'] as int;
+  }
+
   pb.ChatMessage _messageFromRow(Map<String, dynamic> row) => pb.ChatMessage(
     chatID: row['chatID'] as List<int>,
     messageID: Int64(row['messageID'] as int),
@@ -1392,6 +1546,7 @@ class ChatsRepository {
     authorSignature: row['authorSignature'] as String? ?? '',
     postOut: (row['postOut'] as int? ?? 0) != 0,
     views: row['views'] as int? ?? 0,
+    comments: row['comments'] == null ? null : pb.MessageComments.fromBuffer(row['comments'] as List<int>),
   );
 
   static int _ttlFromRow(Map<String, dynamic> row) {

@@ -50,6 +50,8 @@ class PushPayload extends $pb.GeneratedMessage {
     $core.bool? titleFromContact,
     $core.String? chatTitle,
     $core.bool? isChannel,
+    $core.List<$core.int>? parentChatID,
+    $fixnum.Int64? postID,
   }) {
     final result = create();
     if (kind != null) result.kind = kind;
@@ -67,6 +69,8 @@ class PushPayload extends $pb.GeneratedMessage {
     if (titleFromContact != null) result.titleFromContact = titleFromContact;
     if (chatTitle != null) result.chatTitle = chatTitle;
     if (isChannel != null) result.isChannel = isChannel;
+    if (parentChatID != null) result.parentChatID = parentChatID;
+    if (postID != null) result.postID = postID;
     return result;
   }
 
@@ -94,6 +98,8 @@ class PushPayload extends $pb.GeneratedMessage {
     ..aOB(13, _omitFieldNames ? '' : 'titleFromContact', protoName: 'titleFromContact')
     ..aOS(14, _omitFieldNames ? '' : 'chatTitle', protoName: 'chatTitle')
     ..aOB(15, _omitFieldNames ? '' : 'isChannel', protoName: 'isChannel')
+    ..a<$core.List<$core.int>>(16, _omitFieldNames ? '' : 'parentChatID', $pb.PbFieldType.OY, protoName: 'parentChatID')
+    ..aInt64(17, _omitFieldNames ? '' : 'postID', protoName: 'postID')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -254,6 +260,28 @@ class PushPayload extends $pb.GeneratedMessage {
   $core.bool hasIsChannel() => $_has(14);
   @$pb.TagNumber(15)
   void clearIsChannel() => $_clearField(15);
+
+  /// Комментарий к посту канала (подэтап 4.3: ответ на мой комментарий или
+  /// упоминание — только адресату): chatID — ветка, parentChatID / postID —
+  /// канал и пост (тап открывает ветку); chatTitle — название канала, текст —
+  /// «Имя: текст», как в группе.
+  @$pb.TagNumber(16)
+  $core.List<$core.int> get parentChatID => $_getN(15);
+  @$pb.TagNumber(16)
+  set parentChatID($core.List<$core.int> value) => $_setBytes(15, value);
+  @$pb.TagNumber(16)
+  $core.bool hasParentChatID() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearParentChatID() => $_clearField(16);
+
+  @$pb.TagNumber(17)
+  $fixnum.Int64 get postID => $_getI64(16);
+  @$pb.TagNumber(17)
+  set postID($fixnum.Int64 value) => $_setInt64(16, value);
+  @$pb.TagNumber(17)
+  $core.bool hasPostID() => $_has(16);
+  @$pb.TagNumber(17)
+  void clearPostID() => $_clearField(17);
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

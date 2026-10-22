@@ -932,6 +932,13 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
                   title: Text(t.delete, style: TextStyle(color: error)),
                   onTap: () => Navigator.of(sheetContext).pop('delete'),
                 ),
+              // Ветка комментариев: автора — в «Заблокированные» канала.
+              if (_cubit.canBanCommenter(message))
+                ListTile(
+                  leading: Icon(Icons.block, color: error),
+                  title: Text(t.banCommenter, style: TextStyle(color: error)),
+                  onTap: () => Navigator.of(sheetContext).pop('banCommenter'),
+                ),
               if (canRetractVote(message))
                 ListTile(
                   leading: const Icon(Icons.undo),
@@ -1004,6 +1011,8 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
         if (await confirmCloseComments(context)) await _cubit.setCommentsClosed(message, true);
       case 'openComments':
         await _cubit.setCommentsClosed(message, false);
+      case 'banCommenter':
+        if (await confirmBanCommenter(context, message.senderName)) await _cubit.banCommenter(message);
       case 'readers':
         await showMessageReaders(context, readers);
       case 'reactions':

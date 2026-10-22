@@ -626,6 +626,10 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get openComments => 'Открыть комментарии';
 	@override String get closeCommentsTitle => 'Закрыть комментарии?';
 	@override String get closeCommentsMessage => 'Комментировать пост больше будет нельзя, оставленные комментарии останутся.';
+	@override String get banCommenter => 'Заблокировать в канале';
+	@override String banCommenterTitle({required Object name}) => 'Заблокировать ${name}?';
+	@override String get banCommenterMessage => 'Пользователь не сможет комментировать посты и подписаться на канал, пока его не разблокируют.';
+	@override String get retry => 'Повторить';
 	@override String get subscribe => 'Подписаться';
 	@override String get joinGroup => 'Вступить в группу';
 	@override String get requestJoin => 'Подать заявку';
@@ -1728,6 +1732,10 @@ class _Translations$chatAction$ru extends Translations$chatAction$en {
 	@override String get pollClosed => 'Опрос уже завершён.';
 	@override String get pollForward => 'Опрос нельзя переслать.';
 	@override String get reactionsLimit => 'Под этим постом уже набран максимум разных реакций. Можно поставить только ту, что уже есть.';
+	@override String get commentsDisabled => 'Комментарии к этому посту выключены.';
+	@override String get commentsClosed => 'Комментарии к этому посту закрыты — их можно только читать.';
+	@override String get commentsSubscribersOnly => 'Комментировать могут только подписчики канала.';
+	@override String commentsTooNew({required Object time}) => 'Вы недавно подписались на канал — комментировать можно с ${time}.';
 }
 
 // Path: chatTtl
@@ -2345,6 +2353,10 @@ extension on TranslationsRu {
 			'screenChat.openComments' => 'Открыть комментарии',
 			'screenChat.closeCommentsTitle' => 'Закрыть комментарии?',
 			'screenChat.closeCommentsMessage' => 'Комментировать пост больше будет нельзя, оставленные комментарии останутся.',
+			'screenChat.banCommenter' => 'Заблокировать в канале',
+			'screenChat.banCommenterTitle' => ({required Object name}) => 'Заблокировать ${name}?',
+			'screenChat.banCommenterMessage' => 'Пользователь не сможет комментировать посты и подписаться на канал, пока его не разблокируют.',
+			'screenChat.retry' => 'Повторить',
 			'screenChat.subscribe' => 'Подписаться',
 			'screenChat.joinGroup' => 'Вступить в группу',
 			'screenChat.requestJoin' => 'Подать заявку',
@@ -2446,12 +2458,12 @@ extension on TranslationsRu {
 			'screenChat.pinnedServiceMessage' => ({required Object name}) => '${name} закрепил(а) сообщение',
 			'screenChat.pinnedList' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} закреплённое сообщение', few: '${n} закреплённых сообщения', many: '${n} закреплённых сообщений', other: '${n} закреплённых сообщения', ), 
 			'screenChat.pinnedAll' => 'Все закреплённые',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.unpinAll' => 'Открепить все сообщения',
 			'screenChat.unpinAllTitle' => 'Открепить все сообщения?',
 			'screenChat.goToMessage' => 'Перейти к сообщению',
 			'screenChat.sendSilent' => 'Отправить без звука',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.sendLater' => 'Отправить позже',
 			'screenChat.slowMode' => 'Медленный режим',
 			'screenChat.slowModeWait' => ({required Object time}) => 'В этом чате включён медленный режим. Следующее сообщение можно отправить через ${time}.',
@@ -2960,12 +2972,12 @@ extension on TranslationsRu {
 			'screenContacts.addLastName' => 'Фамилия',
 			'screenContacts.add' => 'Добавить',
 			'screenContacts.addInvalidNumber' => 'Неверный номер телефона',
+			_ => null,
+		} ?? switch (path) {
 			'screenContacts.addFailed' => 'Не удалось добавить контакт',
 			'screenContacts.validationCloudLimitReached' => 'Достигнут лимит облачных контактов',
 			'screenContacts.addSyncHint' => 'Контакт будет доступен на всех ваших устройствах',
 			'screenContacts.remove' => 'Удалить',
-			_ => null,
-		} ?? switch (path) {
 			'screenContacts.removeTitle' => 'Удалить контакт?',
 			'screenContacts.removeMessage' => 'Он больше не сможет вам звонить, если в настройках приватности не разрешены звонки от всех.',
 			'screenContacts.editContact' => 'Изменить контакт',
@@ -3154,6 +3166,10 @@ extension on TranslationsRu {
 			'chatAction.pollClosed' => 'Опрос уже завершён.',
 			'chatAction.pollForward' => 'Опрос нельзя переслать.',
 			'chatAction.reactionsLimit' => 'Под этим постом уже набран максимум разных реакций. Можно поставить только ту, что уже есть.',
+			'chatAction.commentsDisabled' => 'Комментарии к этому посту выключены.',
+			'chatAction.commentsClosed' => 'Комментарии к этому посту закрыты — их можно только читать.',
+			'chatAction.commentsSubscribersOnly' => 'Комментировать могут только подписчики канала.',
+			'chatAction.commentsTooNew' => ({required Object time}) => 'Вы недавно подписались на канал — комментировать можно с ${time}.',
 			'chatTtl.title' => 'Автоудаление',
 			'chatTtl.titleLong' => 'Автоудаление сообщений',
 			'chatTtl.off' => 'Выкл',

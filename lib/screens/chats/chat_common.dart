@@ -11,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart' as m;
 import 'package:path/path.dart' as p;
 
+import '../../chats/channel_rights.dart';
 import '../../chats/chats_remote_data_source.dart';
 import '../../chats/chats_sync.dart';
 import '../../chats/media_files.dart';
@@ -81,9 +82,26 @@ Future<bool> confirmClosePoll(BuildContext context) {
 }
 
 /// Пост канала: «Закрыть комментарии» / «Открыть комментарии» — админ канала
-/// с включёнными комментариями.
+/// с включёнными комментариями (с известными правами — с правом править
+/// посты, как на сервере).
 bool canToggleComments(models.Chat chat, models.Message message) =>
-    chat.type == models.ChatType.channel && chat.commentsEnabled && chat.canManage && !message.service;
+    chat.type == models.ChatType.channel &&
+    chat.commentsEnabled &&
+    chat.canManage &&
+    !message.service &&
+    (chat.myRights == null || channelCan(chat, const [], ChannelAction.editOthers));
+
+/// «Заблокировать {name}?» (автор комментария — в канале) — `true`, если
+/// подтвердили.
+Future<bool> confirmBanCommenter(BuildContext context, String name) {
+  final t = context.t.screenChat;
+  return _confirmDestructive(
+    context,
+    title: t.banCommenterTitle(name: name),
+    message: t.banCommenterMessage,
+    action: t.banCommenter,
+  );
+}
 
 /// «Закрыть комментарии?» — `true`, если подтвердили.
 Future<bool> confirmCloseComments(BuildContext context) {
@@ -439,33 +457,63 @@ Future<void> showChatsRestricted(BuildContext context, int count) {
 }
 
 /// Сервер отклонил действие с группой ([error] — ключ ошибки сервера).
-void showChatsFailed(BuildContext context, String error) {
-  final t = context.t.chatAction;
-  unawaited(
-    _showNotice(context, switch (error) {
-      'titleInvalid' => t.titleInvalid,
-      'groupsDisabled' => t.groupsDisabled,
-      'channelsDisabled' => t.channelsDisabled,
-      'rightsTooWide' => t.rightsTooWide,
-      'rankInvalid' => t.rankInvalid,
-      'membersLimit' => t.membersLimit,
-      'chatWriteForbidden' => t.chatWriteForbidden,
-      'passwordInvalid' => t.passwordInvalid,
-      'permissionDenied' => t.permissionDenied,
-      'banned' => t.banned,
-      'groupsLimit' => t.groupsLimit,
-      'linkInvalid' || 'inviteInvalid' => t.linkInvalid,
-      'linksLimit' => t.linksLimit,
-      'usernameTaken' => t.usernameTaken,
-      'usernameInvalid' => t.usernameInvalid,
-      'newcomerRestricted' => t.newcomerRestricted,
-      'slowModeWait' => t.slowModeWait,
-      'pollClosed' => t.pollClosed,
-      'pollForward' => t.pollForward,
-      'reactionsLimit' => t.reactionsLimit,
-      _ => t.failed,
-    }),
-  );
+void showChatsFailed(BuildContext context, String error) => unawaited(_showNotice(context, chatsFailedText(context.t, error)));
+
+/// Текст отказа сервера по ключу [error] (см. [showChatsFailed]).
+String chatsFailedText(Translations translations, String error) {
+  final t = translations.chatAction;
+  return switch (error) {
+    'titleInvalid' => t.titleInvalid,
+    'groupsDisabled' => t.groupsDisabled,
+    'channelsDisabled' => t.channelsDisabled,
+    'rightsTooWide' => t.rightsTooWide,
+    'rankInvalid' => t.rankInvalid,
+    'membersLimit' => t.membersLimit,
+    'chatWriteForbidden' => t.chatWriteForbidden,
+    'passwordInvalid' => t.passwordInvalid,
+    'permissionDenied' => t.permissionDenied,
+    'banned' => t.banned,
+    'groupsLimit' => t.groupsLimit,
+    'linkInvalid' || 'inviteInvalid' => t.linkInvalid,
+    'linksLimit' => t.linksLimit,
+    'usernameTaken' => t.usernameTaken,
+    'usernameInvalid' => t.usernameInvalid,
+    'newcomerRestricted' => t.newcomerRestricted,
+    'slowModeWait' => t.slowModeWait,
+    'pollClosed' => t.pollClosed,
+    'pollForward' => t.pollForward,
+    'reactionsLimit' => t.reactionsLimit,
+    // Комментарии к постам канала (4.3).
+    'commentsDisabled' => t.commentsDisabled,
+    'commentsClosed' => t.commentsClosed,
+    'commentsSubscribersOnly' => t.commentsSubscribersOnly,
+    final tooNew when commentsTooNewSeconds(tooNew) != null => t.commentsTooNew(
+      time: untilTimeLabel(DateTime.now().add(Duration(seconds: commentsTooNewSeconds(tooNew)!))),
+    ),
+    _ => t.failed,
+  };
+}
+
+/// Тап по пушу комментария: ветка поста [postID] канала [channelID] — из
+/// кэша или с сервера. `threadID` пусто — не открылась, `error` — почему.
+Future<({String threadID, String error})> openCommentsThread(
+  Translations t, {
+  required bool demo,
+  required String channelID,
+  required String postID,
+}) async {
+  final source = chatsDataSource(demo: demo);
+  if (source == null) return (threadID: '', error: t.chatAction.failed);
+  try {
+    final id = await source.openComments(channelID, postID);
+    return (threadID: id, error: id.isEmpty ? t.chatAction.failed : '');
+  } on ChatsOfflineException {
+    return (threadID: '', error: t.common.noConnectionMessage);
+  } on ChatsFloodException {
+    return (threadID: '', error: t.chatAction.failed);
+  } on ChatsRequestException catch (error) {
+    return (threadID: '', error: chatsFailedText(t, error.error));
+  }
 }
 
 /// Показывает [showChatsRestricted] / [showChatsFailed], когда cubit сообщает

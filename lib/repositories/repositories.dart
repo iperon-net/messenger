@@ -16,7 +16,7 @@ import '../logger.dart';
 import '../settings.dart';
 import '../models.dart' as models;
 import '../protobuf/protos/chats_v1.pb.dart' as pb;
-import '../chats/chats_mapping.dart' show mergePollResults, mergeSharedReactions;
+import '../chats/chats_mapping.dart' show mergeComments, mergePollResults, mergeSharedReactions;
 import '../chats/message_search.dart';
 
 part "cache.dart";
@@ -918,6 +918,20 @@ class Repositories {
         // перезапуска не шлём).
         await tx.execute('ALTER TABLE chatMessages ADD COLUMN views INTEGER NOT NULL DEFAULT 0;');
         await tx.execute('ALTER TABLE chatMessages ADD COLUMN viewed INTEGER NOT NULL DEFAULT 0;');
+      }),
+    );
+
+    migrations.add(
+      SqliteMigration(45, (tx) async {
+        // Комментарии к постам канала (подэтап 4.3, docs/plans/chats-channels.md):
+        // у поста — `MessageComments` BLOB (число, последние комментаторы, срок,
+        // ветка, мои readMaxID / maxID). Ветка — скрытый чат (type = 4 в
+        // chatDialogs, ChatInfo ветки и её pts — в chatGroups, сообщения — в
+        // chatMessages под её chatID); chatThreads — какая ветка у поста
+        // (открыть её снова без сети, тап по пушу).
+        await tx.execute('ALTER TABLE chatMessages ADD COLUMN comments BLOB NULL;');
+        await tx.execute(ChatsRepository.threadsSchema);
+        await tx.execute('CREATE INDEX idx_chatThreads_thread ON chatThreads(userID, threadChatID);');
       }),
     );
 

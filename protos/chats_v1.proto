@@ -24,6 +24,17 @@ enum ChatType {
   CHAT_TYPE_GROUP = 1;
   CHAT_TYPE_CHANNEL = 2;
   CHAT_TYPE_COMMUNITY = 3;
+  // Ветка комментариев поста канала (подэтап 4.3): скрытый чат без
+  // участников, в списке диалогов не бывает (ChatInfo.parentChatID / postID).
+  CHAT_TYPE_THREAD = 4;
+}
+
+// Канал (подэтап 4.3): кто может комментировать посты. Читать комментарии
+// могут все, кто видит пост; админов канала ограничения не касаются.
+enum ChatCommentsWho {
+  CHAT_COMMENTS_WHO_ALL = 0;
+  // Только подписчики, подписанные не меньше ChatInfo.commentsMinSubscription.
+  CHAT_COMMENTS_WHO_SUBSCRIBERS = 1;
 }
 
 // Роль участника группы (docs/plans/chats-groups.md). Владелец — создатель:
@@ -115,6 +126,22 @@ message ChatInfo {
   // как в Telegram). Набрано — ставить можно только уже стоящие (иначе
   // INVALID_ARGUMENT «reactionsLimit»). У группы — 0 (без лимита).
   int32 maxReactions = 22;
+  // Канал (подэтап 4.3): комментарии под постами. commentsTimeLimit — сколько
+  // секунд после публикации можно комментировать (0 — бессрочно; действует на
+  // новые посты: срок записывается в пост, MessageComments.closeDate).
+  bool commentsEnabled = 23;
+  int32 commentsTimeLimit = 24;
+  ChatCommentsWho commentsWho = 25;
+  // При SUBSCRIBERS: подписанным меньше стольких секунд — отказ
+  // FAILED_PRECONDITION «commentsTooNew:N» (N — секунд до разрешения); 0 —
+  // без срока.
+  int32 commentsMinSubscription = 26;
+  // Ветка (CHAT_TYPE_THREAD): канал и пост; commentsCloseDate — когда ветка
+  // закрывается (unix millis; 0 — открыта бессрочно), после — только чтение.
+  // Название, аватар, slowMode / newcomerMediaDelay и права — от канала.
+  bytes parentChatID = 27;
+  int64 postID = 28;
+  int64 commentsCloseDate = 29;
 }
 
 // Ссылка-приглашение (как chatInviteExported в Telegram). Путь ссылки —
@@ -592,6 +619,25 @@ message ChatMessage {
   // Пост канала (подэтап 4.2): уникальных зрителей на момент выдачи (свежие —
   // Messages.GetViews; в журнал числа не пишутся). Не канал — 0.
   int32 views = 17;
+  // Пост канала с включёнными комментариями (подэтап 4.3); нет — не задано.
+  MessageComments comments = 18;
+}
+
+// Комментарии к посту канала (подэтап 4.3, как MessageReplies в Telegram).
+message MessageComments {
+  int32 count = 1;
+  // Последние комментаторы (≤ 3, от поздних к ранним) — аватары в строке «N
+  // комментариев».
+  repeated bytes recentUserIDs = 2;
+  // С этого момента комментировать нельзя (срок канала на момент публикации
+  // или админ закрыл — SetCommentsClosed); 0 — бессрочно.
+  int64 closeDate = 3;
+  // Ветка; пусто — ещё не создана (никто не открывал).
+  bytes threadChatID = 4;
+  // Мой readInboxMaxID в ветке (глазами запросившего; в общем журнале — 0).
+  int64 readMaxID = 5;
+  // Максимальный messageID в ветке: есть непрочитанные, если > readMaxID.
+  int64 maxID = 6;
 }
 
 // Диалог пользователя: общий чат + моё состояние в нём.
@@ -886,6 +932,14 @@ message Update {
     Dialog dialog = 1;
   }
 
+  // Комментарии к посту изменились (подэтап 4.3): журнал канала, слитно (не
+  // чаще раза в 5 с на пост), без readMaxID. Закрытие / открытие — сразу.
+  message PostCommentsChanged {
+    bytes chatID = 1;
+    int64 postID = 2;
+    MessageComments comments = 3;
+  }
+
   oneof update {
     NewMessage newMessage = 3;
     EditMessage editMessage = 4;
@@ -909,6 +963,7 @@ message Update {
     JoinRequestsChanged joinRequests = 20;
     MentionsChanged mentions = 21;
     MessagePollChanged messagePoll = 22;
+    PostCommentsChanged postComments = 23;
   }
 }
 
@@ -1152,6 +1207,21 @@ message Chats {
     bool member = 2;
   }
 
+  // Временная подписка сессии на журнал чата без членства (подэтап 4.3 — ветка
+  // комментариев; 4.4 — публичный канал): пока окно открыто, стрим получает
+  // UPDATES этого чата, как у своих групп. on = false — снять. Подписка живёт
+  // до конца стрима (переподключение — подписаться заново); ≤ 20 на сессию
+  // (сверх — снимается самая старая). Не видит канал — PERMISSION_DENIED.
+  message Watch {
+    bytes chatID = 1;
+    bool on = 2;
+  }
+
+  message WatchResult {
+    // Текущее состояние (pts) — догнать GetChatDifference.
+    ChatInfo chat = 1;
+  }
+
   message SearchChatsResult {
     repeated FoundChat chats = 1;
   }
@@ -1186,6 +1256,11 @@ message Chats {
     // что у групп); joinMode — только OPEN или LINK; historyHidden —
     // INVALID_ARGUMENT. В ленте — только CREATED (без ADDED).
     bool channel = 9;
+    // Канал (подэтап 4.3): комментарии — как EditChat.comments*.
+    bool commentsEnabled = 10;
+    int32 commentsTimeLimit = 11;
+    ChatCommentsWho commentsWho = 12;
+    int32 commentsMinSubscription = 13;
   }
 
   message CreateGroupResult {
@@ -1231,6 +1306,14 @@ message Chats {
     // Канал: «Подписывать сообщения» (право changeInfo, ChatInfo.signMessages);
     // у группы — INVALID_ARGUMENT.
     optional bool signMessages = 14;
+    // Канал (подэтап 4.3, право changeInfo; у группы — INVALID_ARGUMENT).
+    // commentsTimeLimit / commentsMinSubscription — 0…31 дней в секундах.
+    // У канала теперь допустимы и slowMode / newcomerMediaDelay — они
+    // действуют в ветках комментариев.
+    optional bool commentsEnabled = 15;
+    optional int32 commentsTimeLimit = 16;
+    optional ChatCommentsWho commentsWho = 17;
+    optional int32 commentsMinSubscription = 18;
   }
 
   message ChatReactionsSettings {
@@ -1614,6 +1697,7 @@ message Chats {
       JoinRequests joinRequests = 40;
       AnswerJoinRequest answerJoinRequest = 41;
       SearchChats searchChats = 42;
+      Watch watch = 43;
     }
   }
 
@@ -1661,6 +1745,7 @@ message Chats {
       JoinRequestsResult joinRequests = 40;
       AnswerJoinRequestResult answerJoinRequest = 41;
       SearchChatsResult searchChats = 42;
+      WatchResult watch = 43;
     }
   }
 }
@@ -2052,10 +2137,47 @@ message Messages {
   message PostViews {
     int64 messageID = 1;
     int32 views = 2;
+    // Подэтап 4.3: свежие комментарии поста (с моим readMaxID).
+    MessageComments comments = 3;
   }
 
   message GetViewsResult {
     repeated PostViews views = 1;
+  }
+
+  // Открыть комментарии к посту (подэтап 4.3): ветка создаётся при первом
+  // обращении (идемпотентно). Дальше — обычный чат: History / Send / правка /
+  // удаление / реакции / ReadHistory / GetChatDifference по thread.chatID,
+  // живые обновления — Chats.Watch. Не канал, служебное или комментарии
+  // выключены (и не создана ветка) — FAILED_PRECONDITION «commentsDisabled»;
+  // не видит канал — PERMISSION_DENIED.
+  //
+  // Отправка в ветку: закрыта — FAILED_PRECONDITION «commentsClosed»;
+  // commentsWho / commentsMinSubscription — «commentsSubscribersOnly» /
+  // «commentsTooNew:N»; бан в канале — PERMISSION_DENIED; slowMode /
+  // newcomerMediaDelay канала — как в группе. Админов канала не касается.
+  // Модерация ветки — права админа канала (deleteMessages, banUsers).
+  message OpenComments {
+    bytes chatID = 1;
+    int64 postID = 2;
+  }
+
+  message OpenCommentsResult {
+    ChatInfo thread = 1;
+    // Мой readInboxMaxID в ветке.
+    int64 readInboxMaxID = 2;
+  }
+
+  // Закрыть / открыть комментарии к посту (право editMessages): closed —
+  // closeDate = сейчас, иначе 0 (бессрочно). Update.postComments — сразу.
+  message SetCommentsClosed {
+    bytes chatID = 1;
+    int64 postID = 2;
+    bool closed = 3;
+  }
+
+  message SetCommentsClosedResult {
+    Updates updates = 1;
   }
 
   message SearchResult {
@@ -2095,6 +2217,8 @@ message Messages {
       ReactionsList reactionsList = 23;
       Search search = 24;
       GetViews getViews = 25;
+      OpenComments openComments = 26;
+      SetCommentsClosed setCommentsClosed = 27;
     }
   }
 
@@ -2125,6 +2249,8 @@ message Messages {
       ReactionsListResult reactionsList = 23;
       SearchResult search = 24;
       GetViewsResult getViews = 25;
+      OpenCommentsResult openComments = 26;
+      SetCommentsClosedResult setCommentsClosed = 27;
     }
   }
 }

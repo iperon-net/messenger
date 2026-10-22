@@ -1429,6 +1429,18 @@ class Translations$screenChat$en {
 	/// en: 'No one will be able to comment on this post anymore; existing comments will stay.'
 	String get closeCommentsMessage => 'No one will be able to comment on this post anymore; existing comments will stay.';
 
+	/// en: 'Ban from Channel'
+	String get banCommenter => 'Ban from Channel';
+
+	/// en: 'Ban {name}?'
+	String banCommenterTitle({required Object name}) => 'Ban ${name}?';
+
+	/// en: 'They won't be able to comment on posts or subscribe to the channel until unbanned.'
+	String get banCommenterMessage => 'They won\'t be able to comment on posts or subscribe to the channel until unbanned.';
+
+	/// en: 'Retry'
+	String get retry => 'Retry';
+
 	/// en: 'Subscribe'
 	String get subscribe => 'Subscribe';
 
@@ -4125,6 +4137,18 @@ class Translations$chatAction$en {
 
 	/// en: 'This post already has the maximum number of different reactions. You can only add one that's already there.'
 	String get reactionsLimit => 'This post already has the maximum number of different reactions. You can only add one that\'s already there.';
+
+	/// en: 'Comments are turned off for this post.'
+	String get commentsDisabled => 'Comments are turned off for this post.';
+
+	/// en: 'Comments on this post are closed — you can only read them.'
+	String get commentsClosed => 'Comments on this post are closed — you can only read them.';
+
+	/// en: 'Only channel subscribers can comment.'
+	String get commentsSubscribersOnly => 'Only channel subscribers can comment.';
+
+	/// en: 'You subscribed to the channel recently — you can comment from {time}.'
+	String commentsTooNew({required Object time}) => 'You subscribed to the channel recently — you can comment from ${time}.';
 }
 
 // Path: chatTtl
@@ -4962,6 +4986,10 @@ extension on Translations {
 			'screenChat.openComments' => 'Open Comments',
 			'screenChat.closeCommentsTitle' => 'Close comments?',
 			'screenChat.closeCommentsMessage' => 'No one will be able to comment on this post anymore; existing comments will stay.',
+			'screenChat.banCommenter' => 'Ban from Channel',
+			'screenChat.banCommenterTitle' => ({required Object name}) => 'Ban ${name}?',
+			'screenChat.banCommenterMessage' => 'They won\'t be able to comment on posts or subscribe to the channel until unbanned.',
+			'screenChat.retry' => 'Retry',
 			'screenChat.subscribe' => 'Subscribe',
 			'screenChat.joinGroup' => 'Join Group',
 			'screenChat.requestJoin' => 'Request to Join',
@@ -5063,12 +5091,12 @@ extension on Translations {
 			'screenChat.pinnedServiceMessage' => ({required Object name}) => '${name} pinned a message',
 			'screenChat.pinnedList' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} pinned message', other: '${n} pinned messages', ), 
 			'screenChat.pinnedAll' => 'All pinned messages',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.unpinAll' => 'Unpin all messages',
 			'screenChat.unpinAllTitle' => 'Unpin all messages?',
 			'screenChat.goToMessage' => 'Go to message',
 			'screenChat.sendSilent' => 'Send without sound',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.sendLater' => 'Schedule message',
 			'screenChat.slowMode' => 'Slow mode',
 			'screenChat.slowModeWait' => ({required Object time}) => 'Slow mode is enabled in this chat. You can send your next message in ${time}.',
@@ -5577,12 +5605,12 @@ extension on Translations {
 			'screenContacts.addLastName' => 'Last name',
 			'screenContacts.add' => 'Add',
 			'screenContacts.addInvalidNumber' => 'Invalid phone number',
+			_ => null,
+		} ?? switch (path) {
 			'screenContacts.addFailed' => 'Couldn’t add contact',
 			'screenContacts.validationCloudLimitReached' => 'Cloud contacts limit reached',
 			'screenContacts.addSyncHint' => 'This contact will be available on all your devices',
 			'screenContacts.remove' => 'Remove',
-			_ => null,
-		} ?? switch (path) {
 			'screenContacts.removeTitle' => 'Remove contact?',
 			'screenContacts.removeMessage' => 'They will no longer be able to call you unless your call privacy allows everyone.',
 			'screenContacts.editContact' => 'Edit Contact',
@@ -5771,6 +5799,10 @@ extension on Translations {
 			'chatAction.pollClosed' => 'This poll has already ended.',
 			'chatAction.pollForward' => 'Polls can\'t be forwarded.',
 			'chatAction.reactionsLimit' => 'This post already has the maximum number of different reactions. You can only add one that\'s already there.',
+			'chatAction.commentsDisabled' => 'Comments are turned off for this post.',
+			'chatAction.commentsClosed' => 'Comments on this post are closed — you can only read them.',
+			'chatAction.commentsSubscribersOnly' => 'Only channel subscribers can comment.',
+			'chatAction.commentsTooNew' => ({required Object time}) => 'You subscribed to the channel recently — you can comment from ${time}.',
 			'chatTtl.title' => 'Auto-delete',
 			'chatTtl.titleLong' => 'Auto-delete messages',
 			'chatTtl.off' => 'Off',

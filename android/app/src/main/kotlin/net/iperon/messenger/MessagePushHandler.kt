@@ -44,6 +44,8 @@ object MessagePushHandler {
     const val EXTRA_ID = "push_id"
     const val EXTRA_CHAT_ID = "push_chat_id"
     const val EXTRA_FROM_USER_ID = "push_from_user_id"
+    const val EXTRA_PARENT_CHAT_ID = "push_parent_chat_id"
+    const val EXTRA_POST_ID = "push_post_id"
 
     // Сколько последних сообщений чата держать в MessagingStyle.
     private const val MAX_STYLE_MESSAGES = 7
@@ -147,7 +149,9 @@ object MessagePushHandler {
                     messageStyle(context, builder, payload, tag, sender, appName)
                     // Секретный — без кнопок: текста в пуше нет, а ответ в
                     // него — отдельный E2EE-путь. В канал подписчик не пишет.
-                    if (!secret && !channel) addActions(context, builder, payload, tag)
+                    // Комментарий — ветки на устройстве может не быть (ответ
+                    // и «прочитано» — из её окна).
+                    if (!secret && !channel && !payload.isComment) addActions(context, builder, payload, tag)
                 } else {
                     // Реакция: отдельное уведомление (свой тег), но в той же беседе.
                     val text = reactionText(context, payload)
@@ -307,7 +311,8 @@ object MessagePushHandler {
     ) {
         val group = payload.chatTitle.isNotEmpty()
         val name = if (group) payload.chatTitle else senderName
-        val avatar = (if (group) PushAvatars.chat(context, payload.chatID) else senderAvatar)
+        // Комментарий (4.3): у ветки своего аватара нет — канала.
+        val avatar = (if (group) PushAvatars.chat(context, if (payload.isComment) payload.parentChatID else payload.chatID) else senderAvatar)
             ?: PushAvatars.placeholder(name, if (group) payload.chatID else payload.fromUserID)
         val id = chatTag(payload)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) builder.setLargeIcon(avatar)
@@ -323,6 +328,8 @@ object MessagePushHandler {
                 putExtra(EXTRA_ID, "")
                 putExtra(EXTRA_CHAT_ID, hex(payload.chatID))
                 putExtra(EXTRA_FROM_USER_ID, hex(payload.fromUserID))
+                putExtra(EXTRA_PARENT_CHAT_ID, hex(payload.parentChatID))
+                putExtra(EXTRA_POST_ID, payload.postID)
             }
             val shortcut = ShortcutInfoCompat.Builder(context, id)
                 .setShortLabel(name)
@@ -513,6 +520,9 @@ object MessagePushHandler {
             putExtra(EXTRA_ID, payload.id)
             putExtra(EXTRA_CHAT_ID, hex(payload.chatID))
             putExtra(EXTRA_FROM_USER_ID, hex(payload.fromUserID))
+            // Комментарий к посту канала: ветка открывается по каналу и посту.
+            putExtra(EXTRA_PARENT_CHAT_ID, hex(payload.parentChatID))
+            putExtra(EXTRA_POST_ID, payload.postID)
         }
         return PendingIntent.getActivity(
             context, tag.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
@@ -527,6 +537,8 @@ object MessagePushHandler {
             "id" to (intent.getStringExtra(EXTRA_ID) ?: ""),
             "chatID" to (intent.getStringExtra(EXTRA_CHAT_ID) ?: ""),
             "fromUserID" to (intent.getStringExtra(EXTRA_FROM_USER_ID) ?: ""),
+            "parentChatID" to (intent.getStringExtra(EXTRA_PARENT_CHAT_ID) ?: ""),
+            "postID" to intent.getLongExtra(EXTRA_POST_ID, 0L),
         )
     }
 

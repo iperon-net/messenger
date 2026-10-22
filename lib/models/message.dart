@@ -423,10 +423,16 @@ class Message with MessageMappable {
   /// Просмотры поста канала (глазок у времени); 0 — не показываем.
   final int views;
 
-  /// Комментарии к посту канала и имена последних комментаторов (до 3 — их
-  /// аватары в строке «N комментариев»).
+  /// Комментарии к посту канала и последние комментаторы (до 3 — их аватары
+  /// в строке «N комментариев», от поздних к ранним): на сервере — hex userID
+  /// (фото — из кэша профилей), в демо — имена (у людей демо нет userID).
   final int commentsCount;
   final List<String> commenters;
+
+  /// Пост канала: id ветки комментариев (пусто — ещё не создана) и есть ли в
+  /// ней новое с моего последнего чтения (точка на плашке «N комментариев»).
+  final String commentsThreadID;
+  final bool commentsUnread;
 
   /// Пост канала: с этого момента комментировать нельзя (срок канала на момент
   /// публикации или админ закрыл досрочно); `null` — без ограничения.
@@ -483,6 +489,8 @@ class Message with MessageMappable {
     this.views = 0,
     this.commentsCount = 0,
     this.commenters = const [],
+    this.commentsThreadID = '',
+    this.commentsUnread = false,
     this.commentsCloseDate,
     this.selfDestructTtl = 0,
     this.selfDestructAt,

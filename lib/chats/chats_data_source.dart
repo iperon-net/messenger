@@ -273,6 +273,8 @@ abstract class ChatsDataSource {
   /// канал внутри сообщества (своих ссылок нет, [joinMode] — одним нажатием
   /// ([models.ChatJoinMode.open]) или по заявке; настройки по умолчанию — от
   /// сообщества). [historyHidden] — «Скрыть историю» (только частная группа).
+  /// Канал: [commentsEnabled] и остальные `comments*` — комментарии к постам
+  /// (как в [updateChat]), [newcomerMediaDelay] — «новички» в комментариях.
   /// Возвращает id нового чата.
   Future<String> createChat({
     required models.ChatType type,
@@ -285,6 +287,11 @@ abstract class ChatsDataSource {
     String communityID = '',
     models.ChatJoinMode joinMode = models.ChatJoinMode.open,
     bool historyHidden = false,
+    bool commentsEnabled = false,
+    int commentsTimeLimit = 0,
+    models.ChatCommentsWho commentsWho = models.ChatCommentsWho.all,
+    int commentsMinSubscription = 0,
+    int newcomerMediaDelay = 0,
   });
 
   /// Изменить группу/канал/сообщество (профиль чата → «Изменить», админ):
@@ -341,10 +348,14 @@ abstract class ChatsDataSource {
 
   /// Комментарии к посту [postID] канала [channelID]: id чата-ветки (создаётся
   /// при первом открытии; первым в ней — сам пост). Пусто — комментариев нет.
+  /// Сервер: уже открытая на устройстве — сразу из кэша (и без сети); новая —
+  /// без сети [ChatsOfflineException], комментарии выключены —
+  /// `ChatsRequestException` «commentsDisabled».
   Future<String> openComments(String channelID, String postID);
 
   /// Админ канала: закрыть комментарии к посту досрочно ([closed]) или снова
-  /// открыть (бессрочно). Закрытую ветку можно только читать.
+  /// открыть (бессрочно). Закрытую ветку можно только читать. Сервер: право
+  /// editMessages, без сети — [ChatsOfflineException].
   Future<void> setCommentsClosed(String channelID, String postID, bool closed);
 
   /// Ссылки-приглашения чата (админ): основная первой, затем дополнительные

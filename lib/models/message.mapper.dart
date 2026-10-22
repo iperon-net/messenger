@@ -2327,6 +2327,20 @@ class MessageMapper extends ClassMapperBase<Message> {
     opt: true,
     def: const [],
   );
+  static String _$commentsThreadID(Message v) => v.commentsThreadID;
+  static const Field<Message, String> _f$commentsThreadID = Field(
+    'commentsThreadID',
+    _$commentsThreadID,
+    opt: true,
+    def: '',
+  );
+  static bool _$commentsUnread(Message v) => v.commentsUnread;
+  static const Field<Message, bool> _f$commentsUnread = Field(
+    'commentsUnread',
+    _$commentsUnread,
+    opt: true,
+    def: false,
+  );
   static DateTime? _$commentsCloseDate(Message v) => v.commentsCloseDate;
   static const Field<Message, DateTime> _f$commentsCloseDate = Field(
     'commentsCloseDate',
@@ -2393,6 +2407,8 @@ class MessageMapper extends ClassMapperBase<Message> {
     #views: _f$views,
     #commentsCount: _f$commentsCount,
     #commenters: _f$commenters,
+    #commentsThreadID: _f$commentsThreadID,
+    #commentsUnread: _f$commentsUnread,
     #commentsCloseDate: _f$commentsCloseDate,
     #selfDestructTtl: _f$selfDestructTtl,
     #selfDestructAt: _f$selfDestructAt,
@@ -2444,6 +2460,8 @@ class MessageMapper extends ClassMapperBase<Message> {
       views: data.dec(_f$views),
       commentsCount: data.dec(_f$commentsCount),
       commenters: data.dec(_f$commenters),
+      commentsThreadID: data.dec(_f$commentsThreadID),
+      commentsUnread: data.dec(_f$commentsUnread),
       commentsCloseDate: data.dec(_f$commentsCloseDate),
       selfDestructTtl: data.dec(_f$selfDestructTtl),
       selfDestructAt: data.dec(_f$selfDestructAt),
@@ -2579,6 +2597,8 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     int? views,
     int? commentsCount,
     List<String>? commenters,
+    String? commentsThreadID,
+    bool? commentsUnread,
     DateTime? commentsCloseDate,
     int? selfDestructTtl,
     DateTime? selfDestructAt,
@@ -2706,6 +2726,8 @@ class _MessageCopyWithImpl<$R, $Out>
     int? views,
     int? commentsCount,
     List<String>? commenters,
+    String? commentsThreadID,
+    bool? commentsUnread,
     Object? commentsCloseDate = $none,
     int? selfDestructTtl,
     Object? selfDestructAt = $none,
@@ -2756,6 +2778,8 @@ class _MessageCopyWithImpl<$R, $Out>
       if (views != null) #views: views,
       if (commentsCount != null) #commentsCount: commentsCount,
       if (commenters != null) #commenters: commenters,
+      if (commentsThreadID != null) #commentsThreadID: commentsThreadID,
+      if (commentsUnread != null) #commentsUnread: commentsUnread,
       if (commentsCloseDate != $none) #commentsCloseDate: commentsCloseDate,
       if (selfDestructTtl != null) #selfDestructTtl: selfDestructTtl,
       if (selfDestructAt != $none) #selfDestructAt: selfDestructAt,
@@ -2813,6 +2837,8 @@ class _MessageCopyWithImpl<$R, $Out>
     views: data.get(#views, or: $value.views),
     commentsCount: data.get(#commentsCount, or: $value.commentsCount),
     commenters: data.get(#commenters, or: $value.commenters),
+    commentsThreadID: data.get(#commentsThreadID, or: $value.commentsThreadID),
+    commentsUnread: data.get(#commentsUnread, or: $value.commentsUnread),
     commentsCloseDate: data.get(
       #commentsCloseDate,
       or: $value.commentsCloseDate,

@@ -112,10 +112,10 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     groupJoining: true,
     groupExtras: true,
     // Каналы (срез 4.1) — по флагу «Каналы»; просмотры, реакции и опросы в
-    // канале — подэтап 4.2, комментарии — 4.3 (пока скрыты).
+    // канале — подэтап 4.2, комментарии (ветки) — 4.3.
     channels: _sync.channels,
     channelExtras: true,
-    channelComments: false,
+    channelComments: true,
     forwardPolls: true,
     pollsGroupsOnly: true,
   );
@@ -268,13 +268,12 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final groupsShown = _sync.groups || _sync.channels;
     final rows = await _store.dialogs(userID: me);
     final outbox = await _store.outbox(userID: me);
+    final allGroups = groupsShown ? {for (final g in await _store.groups(userID: me)) idHex(g.chatID): g} : const <String, ChatGroupRow>{};
     // Группы и каналы — каждые по своему флагу (кэш выключенных остаётся).
-    final groups = groupsShown
-        ? {
-            for (final g in await _store.groups(userID: me))
-              if (_sync.showsChatType(g.info.type.value)) idHex(g.chatID): g,
-          }
-        : const <String, ChatGroupRow>{};
+    final groups = {
+      for (final MapEntry(:key, :value) in allGroups.entries)
+        if (_sync.showsChatType(value.info.type.value)) key: value,
+    };
     // Люди списка: собеседники личных, авторы последних сообщений групп и те,
     // кого касается служебное (добавил / исключил), печатающие в группах.
     final people = <String, Uint8List>{};
@@ -310,6 +309,26 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final chats = <models.Chat>[];
     for (final row in rows) {
       final id = idHex(row.chatID);
+      if (row.type == pb.ChatType.CHAT_TYPE_THREAD.value) {
+        // Ветка комментариев (4.3): в списке не видна (`Chat.isThread`), но
+        // окно чата берёт её отсюда — как и канал, от которого её настройки.
+        final thread = allGroups[id];
+        if (!_sync.channels || thread == null) continue;
+        final channel = allGroups[idHex(thread.info.parentChatID)];
+        chats.add(
+          threadChatFromPb(
+            thread.info,
+            channel: channel?.info,
+            channelAdmin: channel != null && (channel.role == pb.ChatRole.CHAT_ROLE_ADMIN || channel.role == pb.ChatRole.CHAT_ROLE_OWNER),
+            avatarPath: channel == null ? '' : await _groupAvatar(channel.info),
+            unreadCount: row.unreadCount,
+            slowModeUntil: thread.slowModeUntil,
+            draft: row.draft,
+            createdAt: row.createdAt > 0 ? DateTime.fromMillisecondsSinceEpoch(row.createdAt) : null,
+          ),
+        );
+        continue;
+      }
       final group = groups[id];
       // Личные и (по флагам) группы и каналы; сообщества — следующий срез.
       if (row.type != pb.ChatType.CHAT_TYPE_PRIVATE.value && group == null) continue;
@@ -386,6 +405,11 @@ class ChatsRemoteDataSource implements ChatsDataSource {
             signMessages: group.info.signMessages,
             // Канал: «Максимум реакций под постом» (4.2).
             maxReactions: maxReactionsOf(group.info),
+            // Канал: комментарии к постам (4.3).
+            commentsEnabled: channel && group.info.commentsEnabled,
+            commentsTimeLimit: group.info.commentsTimeLimit,
+            commentsWho: commentsWhoFromPb(group.info.commentsWho),
+            commentsMinSubscription: group.info.commentsMinSubscription,
             unreadMentions: row.unreadMentions,
             lastMessage: lastMessage,
             unreadCount: row.unreadCount,
@@ -682,6 +706,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           ),
         );
         await _sync.applyUpdates(response.readHistory.updates);
+        // Ветка: счётчик ведём сами, и readMaxID у поста (точка гаснет).
+        if (row.type == pb.ChatType.CHAT_TYPE_THREAD.value) await _sync.markThreadRead(row.chatID, row.topMessageID);
       }
       if (row.markedUnread) await _setDialog(chatID, markedUnread: false);
     } on ChatsOfflineException {
@@ -917,6 +943,11 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     String communityID = '',
     models.ChatJoinMode joinMode = models.ChatJoinMode.open,
     bool historyHidden = false,
+    bool commentsEnabled = false,
+    int commentsTimeLimit = 0,
+    models.ChatCommentsWho commentsWho = models.ChatCommentsWho.all,
+    int commentsMinSubscription = 0,
+    int newcomerMediaDelay = 0,
   }) async {
     final channel = type == models.ChatType.channel;
     if (communityID.isNotEmpty || !(channel ? _sync.channels : type == models.ChatType.group && _sync.groups)) {
@@ -945,6 +976,14 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           // канала «Скрыть историю» нет.
           historyHidden: historyHidden && !open && !channel,
           channel: channel ? true : null,
+          // Канал: комментарии к постам (4.3); у группы полей нет.
+          commentsEnabled: channel && commentsEnabled ? true : null,
+          commentsTimeLimit: channel && commentsEnabled && commentsTimeLimit > 0 ? commentsTimeLimit : null,
+          commentsWho: channel && commentsEnabled ? commentsWhoToPb(commentsWho) : null,
+          commentsMinSubscription:
+              channel && commentsEnabled && commentsWho == models.ChatCommentsWho.subscribers && commentsMinSubscription > 0
+              ? commentsMinSubscription
+              : null,
         ),
       ),
     );
@@ -952,6 +991,15 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     await _sync.applyUpdates(result.updates);
     if (result.hasDialog()) await _sync.saveDialog(result.dialog);
     final chatID = idHex(result.dialog.chatID);
+    // «Новичкам — без ссылок и медиа» в комментариях — в CreateGroup поля нет:
+    // отдельной правкой (канал уже создан — сбой не отменяет создание).
+    if (channel && commentsEnabled && newcomerMediaDelay > 0 && result.dialog.chatID.isNotEmpty) {
+      try {
+        await _editChat(pb.Chats_EditChat(chatID: result.dialog.chatID, newcomerMediaDelay: newcomerMediaDelay));
+      } catch (error, stackTrace) {
+        _logger.handle(error, stackTrace);
+      }
+    }
     if (result.restrictedUserIDs.isNotEmpty) throw ChatsMembersRestrictedException(chatID, result.restrictedUserIDs.length);
     return chatID;
   }
@@ -1012,13 +1060,20 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         defaultRole != roleFromPb(info.defaultRole);
     final channel = info.type == pb.ChatType.CHAT_TYPE_CHANNEL;
     final join = editJoinChanges(info, joinMode: joinMode, username: username, historyHidden: channel ? false : historyHidden);
-    // У канала нет «новичков» (только в комментариях — 4.3) и роли вступающих
-    // (подписчик только читает).
-    final newcomerChanged = !channel && newcomerMediaDelay != info.newcomerMediaDelay;
+    // У канала роли вступающих нет (подписчик только читает); «новички» —
+    // в комментариях (4.3).
+    final newcomerChanged = newcomerMediaDelay != info.newcomerMediaDelay;
     final membersHiddenChanged = membersHidden != info.membersHidden;
     final noForwardsChanged = noForwards != info.noForwards;
     final signChanged = channel && signMessages != info.signMessages;
-    final extrasChanged = newcomerChanged || membersHiddenChanged || noForwardsChanged || signChanged;
+    // Канал: комментарии (4.3) — только изменившееся.
+    final minSubscription = commentsWho == models.ChatCommentsWho.subscribers ? commentsMinSubscription : 0;
+    final commentsEnabledChanged = channel && commentsEnabled != info.commentsEnabled;
+    final commentsLimitChanged = channel && commentsTimeLimit != info.commentsTimeLimit;
+    final commentsWhoChanged = channel && commentsWhoToPb(commentsWho) != info.commentsWho;
+    final minSubscriptionChanged = channel && minSubscription != info.commentsMinSubscription;
+    final commentsChanged = commentsEnabledChanged || commentsLimitChanged || commentsWhoChanged || minSubscriptionChanged;
+    final extrasChanged = newcomerChanged || membersHiddenChanged || noForwardsChanged || signChanged || commentsChanged;
     if (!titleChanged && !aboutChanged && !avatarChanged && !roleChanged && join.isEmpty && !extrasChanged) return;
     await _requireNetwork();
     final avatar = !avatarChanged ? null : (avatarPath.isEmpty ? Uint8List(0) : await _uploadChatAvatar(avatarPath));
@@ -1037,6 +1092,10 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           membersHidden: membersHiddenChanged ? membersHidden : null,
           noForwards: noForwardsChanged ? noForwards : null,
           signMessages: signChanged ? signMessages : null,
+          commentsEnabled: commentsEnabledChanged ? commentsEnabled : null,
+          commentsTimeLimit: commentsLimitChanged ? commentsTimeLimit : null,
+          commentsWho: commentsWhoChanged ? commentsWhoToPb(commentsWho) : null,
+          commentsMinSubscription: minSubscriptionChanged ? minSubscription : null,
         ),
       ),
     );
@@ -1162,6 +1221,10 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       noForwards: info.noForwards,
       signMessages: info.signMessages,
       maxReactions: maxReactionsOf(info),
+      commentsEnabled: info.type == pb.ChatType.CHAT_TYPE_CHANNEL && info.commentsEnabled,
+      commentsTimeLimit: info.commentsTimeLimit,
+      commentsWho: commentsWhoFromPb(info.commentsWho),
+      commentsMinSubscription: info.commentsMinSubscription,
       isMember: false,
       joinRequested: preview.requested,
       createdAt: info.createdAt > 0 ? DateTime.fromMillisecondsSinceEpoch(info.createdAt.toInt()) : null,
@@ -1232,11 +1295,131 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     }
   }
 
+  /// Ветка уже открывалась на этом устройстве — сразу из кэша (и без сети;
+  /// сведения освежаются в фоне), иначе `Messages.OpenComments` (ветка
+  /// создаётся на сервере при первом обращении): без сети —
+  /// [ChatsOfflineException], отказ («commentsDisabled») —
+  /// `ChatsRequestException`.
   @override
-  Future<String> openComments(String channelID, String postID) async => _unsupported('Комментарии каналов');
+  Future<String> openComments(String channelID, String postID) async {
+    final channel = idBytes(channelID);
+    final post = int.tryParse(postID);
+    if (channel.isEmpty || post == null || !_auth.isAuthorized) return '';
+    final me = _sync.me;
+    final cached = await _store.thread(userID: me, chatID: channel, postID: post);
+    if (cached != null && await _store.dialog(userID: me, chatID: cached) != null) {
+      unawaited(_refreshThread(channel, post));
+      return idHex(cached);
+    }
+    await _requireNetwork();
+    return _openThread(channel, post);
+  }
 
+  Future<String> _openThread(Uint8List channel, int post) async {
+    final response = await _sync.messages(
+      pb.Messages_Request(
+        openComments: pb.Messages_OpenComments(chatID: channel, postID: Int64(post)),
+      ),
+    );
+    final result = response.openComments;
+    if (!result.hasThread() || result.thread.chatID.isEmpty) return '';
+    // Канал и пост ветки — из запроса, если сервер их не повторил.
+    final info = result.thread.deepCopy()..type = pb.ChatType.CHAT_TYPE_THREAD;
+    if (info.parentChatID.isEmpty) info.parentChatID = channel;
+    if (info.postID == 0) info.postID = Int64(post);
+    await _sync.saveThread(info, result.readInboxMaxID.toInt());
+    return idHex(info.chatID);
+  }
+
+  /// Открыли ветку из кэша — сведения (срок, мой readMaxID) с сервера, если
+  /// есть сеть; нет — покажем кэш.
+  Future<void> _refreshThread(Uint8List channel, int post) async {
+    try {
+      if (await _sync.hasNetwork()) await _openThread(channel, post);
+    } on ChatsOfflineException {
+      // Освежим при следующем открытии.
+    } on ChatsRequestException catch (error) {
+      _logger.warning('chats: refresh thread failed: $error');
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace);
+    }
+  }
+
+  /// Право editMessages; новые комментарии поста (и срок открытой ветки)
+  /// приходят обновлением `postComments`.
   @override
-  Future<void> setCommentsClosed(String channelID, String postID, bool closed) async => _unsupported('Комментарии каналов');
+  Future<void> setCommentsClosed(String channelID, String postID, bool closed) async {
+    final channel = idBytes(channelID);
+    final post = int.tryParse(postID);
+    if (channel.isEmpty || post == null) return;
+    await _requireNetwork();
+    final response = await _sync.messages(
+      pb.Messages_Request(
+        setCommentsClosed: pb.Messages_SetCommentsClosed(chatID: channel, postID: Int64(post), closed: closed),
+      ),
+    );
+    await _sync.applyUpdates(response.setCommentsClosed.updates);
+  }
+
+  /// Канал ветки и пост (для шапки ленты ветки); `null` — не ветка.
+  Future<({Uint8List chatID, int postID})?> _threadPost(Uint8List chat) => _store.threadPost(userID: _sync.me, threadChatID: chat);
+
+  /// Посты, которых нет в кэше канала, уже запрошены (hex канал:пост).
+  final _postFetches = <String>{};
+
+  /// Пост ветки — шапкой её ленты, как пересланный из канала (в демо — так
+  /// же). Нет в кэше канала — запрашиваем (раз за запуск) и кладём скрытым из
+  /// ленты канала (как найденное поиском), лента ветки перечитается.
+  Future<models.Message?> _threadHeader(String chatID, ({Uint8List chatID, int postID}) thread) async {
+    final me = _sync.me;
+    final post = await _store.message(userID: me, chatID: thread.chatID, messageID: thread.postID);
+    if (post == null) {
+      final key = '${idHex(thread.chatID)}:${thread.postID}';
+      if (_postFetches.add(key)) unawaited(_fetchPost(thread.chatID, thread.postID, key));
+      return null;
+    }
+    final channel = await _store.group(userID: me, chatID: thread.chatID);
+    final header = messageFromPb(post, chatID: chatID, myUserID: me, readOutboxMaxID: 0, isSelf: false, channel: true);
+    final message = header.copyWith(
+      id: threadPostMessageID(thread.postID),
+      outgoing: false,
+      status: models.MessageStatus.read,
+      forward: models.MessageForward(
+        name: channel?.info.title ?? '',
+        chatID: idHex(thread.chatID),
+        messageID: '${thread.postID}',
+        signature: post.authorSignature,
+      ),
+      reactions: const [],
+      views: 0,
+      commentsCount: 0,
+      commenters: const [],
+      commentsThreadID: '',
+      commentsUnread: false,
+      pinned: false,
+    );
+    return _withServerMedia(message, post.content, chatID);
+  }
+
+  Future<void> _fetchPost(Uint8List channel, int postID, String key) async {
+    try {
+      if (!await _sync.hasNetwork()) {
+        _postFetches.remove(key);
+        return;
+      }
+      final response = await _sync.messages(
+        pb.Messages_Request(
+          get: pb.Messages_Get(chatID: channel, messageIDs: [Int64(postID)]),
+        ),
+      );
+      final found = response.get.messages.where((m) => m.messageID.toInt() == postID).toList();
+      if (found.isNotEmpty) await _sync.saveSearchHits(channel, found);
+    } on ChatsOfflineException {
+      _postFetches.remove(key);
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace);
+    }
+  }
 
   // --- ссылки-приглашения и заявки (владелец / админ с правом приглашать) ---
 
@@ -1783,6 +1966,18 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     StreamSubscription<void>? changes;
     StreamSubscription<String>? refresh;
     StreamSubscription<void>? uploads;
+    // Ветка комментариев (4.3): пока окно открыто — временная подписка на её
+    // журнал (`Chats.Watch`).
+    var watching = false;
+    var cancelled = false;
+    Future<void> watchThread() async {
+      if (chat.isEmpty || !_auth.isAuthorized) return;
+      final row = await _store.dialog(userID: _sync.me, chatID: chat);
+      if (cancelled || row?.type != pb.ChatType.CHAT_TYPE_THREAD.value) return;
+      watching = true;
+      _sync.watch(chat);
+    }
+
     var pending = Future<void>.value();
     void reload() {
       pending = pending
@@ -1798,8 +1993,11 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         changes = _repositories.db.onChange(_messageTables).listen((_) => reload());
         refresh = _windowChanged.stream.where((id) => id == chatID).listen((_) => reload());
         uploads = _sync.uploadChanged.listen((_) => reload());
+        unawaited(watchThread().catchError((Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace)));
       },
       onCancel: () async {
+        cancelled = true;
+        if (watching) _sync.unwatch(chat);
         await changes?.cancel();
         await refresh?.cancel();
         await uploads?.cancel();
@@ -2049,7 +2247,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final channel =
         (row != null && row.type == pb.ChatType.CHAT_TYPE_CHANNEL.value) ||
         (preview != null && preview.preview.chat.type == pb.ChatType.CHAT_TYPE_CHANNEL);
-    final group = !channel && (preview != null || (row != null && row.type == pb.ChatType.CHAT_TYPE_GROUP.value))
+    // Ветка комментариев (4.3) — лента как у группы (авторы — люди).
+    final thread = row != null && row.type == pb.ChatType.CHAT_TYPE_THREAD.value;
+    final group = !channel && (preview != null || (row != null && (row.type == pb.ChatType.CHAT_TYPE_GROUP.value || thread)))
         ? await _groupPeople(history)
         : null;
 
@@ -2099,6 +2299,15 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     }
 
     final messages = [for (final m in history) await _withServerMedia(map(m), m.content, chatID, messageID: m.messageID.toInt())];
+    // Ветка: пост — шапкой ленты, когда видно её начало.
+    if (thread && window == null) {
+      final post = await _threadPost(chat);
+      final start =
+          history.isEmpty ||
+          (history.first.messageID.toInt() == await _store.oldestMessageID(userID: me, chatID: chat) && await _sync.historyComplete(chat));
+      final header = post == null || !start ? null : await _threadHeader(chatID, post);
+      if (header != null) messages.insert(0, header);
+    }
     if (window != null) return _withForwardNames(messages);
     final pending = <models.Message>[];
     for (final queued in await _store.outbox(userID: me, chatID: chat)) {
@@ -2551,6 +2760,11 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     }
     final views = {for (final v in response.getViews.views) v.messageID.toInt(): v.views};
     await _store.setViews(userID: _sync.me, chatID: chat, views: views);
+    // Свежие комментарии видимых постов (4.3) — с моим readMaxID.
+    await _sync.savePostComments(chat, {
+      for (final v in response.getViews.views)
+        if (v.hasComments()) v.messageID.toInt(): v.comments,
+    });
     return views;
   }
 
@@ -2799,7 +3013,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final peerName = peer == null || isSelf ? '' : _Peers(await _loadPeers([peer])).of(peer).title;
     final sharedIDs = await _store.sharedPinnedIDs(userID: me, chatID: chat);
     final pinned = await _store.pinned(userID: me, chatID: chat);
-    final group = row != null && row.type == pb.ChatType.CHAT_TYPE_GROUP.value ? await _groupPeople(pinned) : null;
+    final group = row != null && (row.type == pb.ChatType.CHAT_TYPE_GROUP.value || row.type == pb.ChatType.CHAT_TYPE_THREAD.value)
+        ? await _groupPeople(pinned)
+        : null;
     final channel = row != null && row.type == pb.ChatType.CHAT_TYPE_CHANNEL.value;
     return [
       for (final m in pinned)

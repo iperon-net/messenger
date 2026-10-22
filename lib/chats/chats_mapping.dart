@@ -22,6 +22,12 @@ Uint8List idBytes(String hex) {
   return Uint8List.fromList([for (var i = 0; i < hex.length; i += 2) int.parse(hex.substring(i, i + 2), radix: 16)]);
 }
 
+/// Пост канала шапкой ленты своей ветки комментариев (4.3): `post:<postID>` —
+/// не сообщение ветки (ни ответить, ни реакции, ни правки).
+const threadPostPrefix = 'post:';
+
+String threadPostMessageID(int postID) => '$threadPostPrefix$postID';
+
 /// id отложенного, принятого сервером: `scheduled:<scheduledID>`.
 const scheduledMessagePrefix = 'scheduled:';
 
@@ -404,6 +410,69 @@ int maxReactionsOf(pb.ChatInfo info) => info.type == pb.ChatType.CHAT_TYPE_CHANN
     ? math.min(info.maxReactions, maxReactionsPerPost)
     : maxReactionsPerPost;
 
+/// Канал (4.3): кто может комментировать — сервер → модель и обратно.
+models.ChatCommentsWho commentsWhoFromPb(pb.ChatCommentsWho who) =>
+    who == pb.ChatCommentsWho.CHAT_COMMENTS_WHO_SUBSCRIBERS ? models.ChatCommentsWho.subscribers : models.ChatCommentsWho.all;
+
+pb.ChatCommentsWho commentsWhoToPb(models.ChatCommentsWho who) => switch (who) {
+  models.ChatCommentsWho.all => pb.ChatCommentsWho.CHAT_COMMENTS_WHO_ALL,
+  models.ChatCommentsWho.subscribers => pb.ChatCommentsWho.CHAT_COMMENTS_WHO_SUBSCRIBERS,
+};
+
+/// Комментарии поста: свежие ([incoming] — журнал канала, GetViews, ответ
+/// SetCommentsClosed) поверх сохранённых [stored]: всё — из свежих, кроме
+/// моего readMaxID (общий журнал его не несёт — 0) — он не уменьшается.
+pb.MessageComments mergeComments(pb.MessageComments? stored, pb.MessageComments incoming) {
+  if (stored == null || stored.readMaxID <= incoming.readMaxID) return incoming;
+  return incoming.deepCopy()..readMaxID = stored.readMaxID;
+}
+
+/// Есть ли в ветке новое с моего чтения. Ветку ни разу не открывал (readMaxID
+/// 0) — не помечаем: иначе точка горела бы у каждого поста с комментариями.
+bool commentsUnreadOf(pb.MessageComments comments) => comments.readMaxID > 0 && comments.maxID > comments.readMaxID;
+
+/// Срок (unix millis) → дата; 0 — нет.
+DateTime? dateFromMillis(Int64 millis) => millis > 0 ? DateTime.fromMillisecondsSinceEpoch(millis.toInt()) : null;
+
+/// Ветка комментариев (4.3) → модель: скрытый чат (`Chat.threadOf`, в списке
+/// не показывается) — как группа, но название, аватар, медленный режим и
+/// «новички» — от канала [channel] (нет в кэше — из сведений ветки), а кто
+/// может писать решают настройки канала (окно чата, `ChatCubit`).
+models.Chat threadChatFromPb(
+  pb.ChatInfo thread, {
+  pb.ChatInfo? channel,
+  bool channelAdmin = false,
+  String avatarPath = '',
+  int unreadCount = 0,
+  int slowModeUntil = 0,
+  String draft = '',
+  DateTime? createdAt,
+}) {
+  final source = channel ?? thread;
+  return models.Chat(
+    id: idHex(thread.chatID),
+    type: models.ChatType.group,
+    title: source.title,
+    avatarPath: avatarPath,
+    threadOf: idHex(thread.parentChatID),
+    threadPostID: thread.postID.toString(),
+    commentsCloseDate: dateFromMillis(thread.commentsCloseDate),
+    membersCount: math.max(source.membersCount, 2),
+    reactionsMode: reactionsModeFromPb(thread.reactionsMode),
+    reactions: thread.reactions,
+    // Медленный режим админов канала не касается (как админов группы).
+    slowMode: channelAdmin ? 0 : source.slowMode,
+    slowModeUntil: slowModeUntil > 0 ? DateTime.fromMillisecondsSinceEpoch(slowModeUntil) : null,
+    newcomerMediaDelay: source.newcomerMediaDelay,
+    noForwards: source.noForwards,
+    // Писать в ветку может любой (ограничения — от канала).
+    myRole: models.ChatRole.writer,
+    unreadCount: unreadCount,
+    draft: draft,
+    createdAt: createdAt,
+  );
+}
+
 /// Режим реакций группы — сервер → модель и обратно (порядок совпадает).
 models.ChatReactionsMode reactionsModeFromPb(pb.ChatReactionsMode mode) => switch (mode) {
   pb.ChatReactionsMode.CHAT_REACTIONS_SOME => models.ChatReactionsMode.some,
@@ -520,6 +589,13 @@ models.Message messageFromPb(
     silent: m.silent,
     phoneCall: callFromPb(content),
     reactions: m.hasReactions() ? reactionsFromPb(m.reactions, myUserID: myUserID) : const [],
+    // Комментарии к посту канала (4.3): последние комментаторы — userID, их
+    // фото — из кэша профилей.
+    commentsCount: channel && m.hasComments() ? m.comments.count : 0,
+    commenters: channel && m.hasComments() ? [for (final id in m.comments.recentUserIDs.take(3)) idHex(id)] : const [],
+    commentsCloseDate: channel && m.hasComments() ? dateFromMillis(m.comments.closeDate) : null,
+    commentsThreadID: channel && m.comments.threadChatID.isNotEmpty ? idHex(m.comments.threadChatID) : '',
+    commentsUnread: channel && m.hasComments() && commentsUnreadOf(m.comments),
   );
 }
 

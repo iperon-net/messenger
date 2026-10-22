@@ -34,6 +34,8 @@ const PushPayload$json = {
     {'1': 'titleFromContact', '3': 13, '4': 1, '5': 8, '10': 'titleFromContact'},
     {'1': 'chatTitle', '3': 14, '4': 1, '5': 9, '10': 'chatTitle'},
     {'1': 'isChannel', '3': 15, '4': 1, '5': 8, '10': 'isChannel'},
+    {'1': 'parentChatID', '3': 16, '4': 1, '5': 12, '10': 'parentChatID'},
+    {'1': 'postID', '3': 17, '4': 1, '5': 3, '10': 'postID'},
   ],
   '4': [PushPayload_Kind$json],
   '8': [
@@ -67,8 +69,9 @@ final $typed_data.Uint8List pushPayloadDescriptor =
         'YXJncxIZCgViYWRnZRgJIAEoBUgAUgViYWRnZYgBARISCgRkYXRlGAogASgDUgRkYXRlEh4KCm'
         '1lc3NhZ2VJRHMYCyADKANSCm1lc3NhZ2VJRHMSIAoLc2VuZGVyUGhvbmUYDCABKAlSC3NlbmRl'
         'clBob25lEioKEHRpdGxlRnJvbUNvbnRhY3QYDSABKAhSEHRpdGxlRnJvbUNvbnRhY3QSHAoJY2'
-        'hhdFRpdGxlGA4gASgJUgljaGF0VGl0bGUSHAoJaXNDaGFubmVsGA8gASgIUglpc0NoYW5uZWwi'
-        'swEKBEtpbmQSCwoHVU5LTk9XThAAEggKBFRFU1QQARISCg5DT05UQUNUX0pPSU5FRBACEg8KC0'
-        'NBTExfTUlTU0VEEAMSCwoHTUVTU0FHRRAKEhAKDFJFQURfSElTVE9SWRALEhMKD01FU1NBR0Vf'
-        'REVMRVRFRBAMEhQKEE1FU1NBR0VfUkVBQ1RJT04QDRISCg5TRUNSRVRfTUVTU0FHRRAOEhEKDV'
-        'NZU1RFTV9OT1RJQ0UQD0IICgZfYmFkZ2U=');
+        'hhdFRpdGxlGA4gASgJUgljaGF0VGl0bGUSHAoJaXNDaGFubmVsGA8gASgIUglpc0NoYW5uZWwS'
+        'IgoMcGFyZW50Q2hhdElEGBAgASgMUgxwYXJlbnRDaGF0SUQSFgoGcG9zdElEGBEgASgDUgZwb3'
+        'N0SUQiswEKBEtpbmQSCwoHVU5LTk9XThAAEggKBFRFU1QQARISCg5DT05UQUNUX0pPSU5FRBAC'
+        'Eg8KC0NBTExfTUlTU0VEEAMSCwoHTUVTU0FHRRAKEhAKDFJFQURfSElTVE9SWRALEhMKD01FU1'
+        'NBR0VfREVMRVRFRBAMEhQKEE1FU1NBR0VfUkVBQ1RJT04QDRISCg5TRUNSRVRfTUVTU0FHRRAO'
+        'EhEKDVNZU1RFTV9OT1RJQ0UQD0IICgZfYmFkZ2U=');

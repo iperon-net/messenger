@@ -195,6 +195,9 @@ final class PushBridge {
       "id": (userInfo["id"] as? String) ?? "",
       "chatID": (userInfo["chatID"] as? String) ?? "",
       "fromUserID": (userInfo["fromUserID"] as? String) ?? "",
+      // Комментарий к посту канала: ветка открывается по каналу и посту.
+      "parentChatID": (userInfo["parentChatID"] as? String) ?? "",
+      "postID": (userInfo["postID"] as? NSNumber)?.int64Value ?? 0,
     ]
     if dartReady, let channel {
       channel.invokeMethod("onNotificationTap", arguments: tap)

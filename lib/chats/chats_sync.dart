@@ -83,6 +83,21 @@ class ChatsSlowModeException implements Exception {
   String toString() => 'ChatsSlowModeException: следующее через $seconds с';
 }
 
+/// Отказы комментариев к постам канала (подэтап 4.3, `FailedPrecondition`):
+/// комментарии выключены, ветка закрыта, только подписчики. Ещё —
+/// «commentsTooNew:N» ([commentsTooNewPrefix]).
+const commentsErrors = {'commentsDisabled', 'commentsClosed', 'commentsSubscribersOnly'};
+
+/// «commentsTooNew:N» — подписан недавно, комментировать через N секунд.
+const commentsTooNewPrefix = 'commentsTooNew:';
+
+/// Сколько секунд ждать по отказу «commentsTooNew:N»; `null` — не он.
+int? commentsTooNewSeconds(String error) {
+  if (!error.startsWith(commentsTooNewPrefix)) return null;
+  final seconds = int.tryParse(error.substring(commentsTooNewPrefix.length));
+  return seconds == null ? null : (seconds < 0 ? 0 : seconds);
+}
+
 /// Сервер отклонил запрос чатов; [error] — i18n-ключ или текст ошибки из
 /// [APICallStatus].
 class ChatsRequestException implements Exception {
@@ -471,8 +486,102 @@ class ChatsSync {
     await flushReactions();
     await flushDrafts();
     await flushContents();
+    // Временные подписки (открытые ветки комментариев) живут до конца стрима —
+    // после переподключения подписываемся заново и догоняем пропущенное.
+    for (final watched in _watched.values.toList()) {
+      unawaited(_sendWatch(watched.chatID, true));
+    }
     // Докачка истории открытых чатов, прерванная обрывом связи.
     unawaited(_runBackfill());
+  }
+
+  // --- временные подписки (Chats.Watch, подэтап 4.3) ---
+
+  /// Открытые окна чатов без членства (ветки комментариев): hex chatID →
+  /// chatID и сколько окон его держат.
+  final _watched = <String, ({Uint8List chatID, int refs})>{};
+
+  /// Что сейчас держим подпиской (hex chatID) — для тестов.
+  @visibleForTesting
+  Set<String> get watched => _watched.keys.toSet();
+
+  /// Окно ветки открыто: пока оно открыто, стрим получает её журнал
+  /// (`Chats.Watch`), а пропущенное догоняется `GetChatDifference`. Нет сети
+  /// — подпишемся при подключении ([onConnected]).
+  void watch(Uint8List chatID) {
+    final key = idHex(chatID);
+    final current = _watched[key];
+    _watched[key] = (chatID: chatID, refs: (current?.refs ?? 0) + 1);
+    if (current == null) unawaited(_sendWatch(chatID, true));
+  }
+
+  /// Окно ветки закрыто — снять подписку (последнее из открытых окон). Ушли в
+  /// фон — стрим закрывается, а с ним и подписки на сервере.
+  void unwatch(Uint8List chatID) {
+    final key = idHex(chatID);
+    final current = _watched[key];
+    if (current == null) return;
+    if (current.refs > 1) {
+      _watched[key] = (chatID: chatID, refs: current.refs - 1);
+      return;
+    }
+    _watched.remove(key);
+    unawaited(_sendWatch(chatID, false));
+  }
+
+  Future<void> _sendWatch(Uint8List chatID, bool on) async {
+    if (!_enabled || !_auth.isAuthorized) return;
+    // Без стрима подписка не нужна (и не переживёт его открытие).
+    if (!getIt.isRegistered<API>() || _api.connectionStatus != ApiConnectionStatus.connected) return;
+    try {
+      final response = await chats(
+        pb.Chats_Request(
+          watch: pb.Chats_Watch(chatID: chatID, on: on),
+        ),
+      );
+      if (!on || !_watched.containsKey(idHex(chatID))) return;
+      final user = me;
+      final info = response.watch.hasChat() ? response.watch.chat : null;
+      await _locked(() async {
+        if (info != null && await _store.group(userID: user, chatID: chatID) != null) {
+          await _store.setGroupInfo(userID: user, info: info);
+        }
+        await _catchUpChats([chatID]);
+      });
+    } on ChatsOfflineException {
+      // Подпишемся при следующем подключении.
+    } on ChatsRequestException catch (error) {
+      _logger.warning('chats: watch ${idHex(chatID)} on=$on failed: $error');
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace);
+    }
+  }
+
+  // --- ветки комментариев (подэтап 4.3) ---
+
+  /// Ответ OpenComments — ветка в кэш (см. [ChatsRepository.saveThread]).
+  Future<void> saveThread(pb.ChatInfo info, int readInboxMaxID) {
+    final user = me;
+    return _locked(() => _store.transaction((tx) => tx.saveThread(userID: user, info: info, readInboxMaxID: readInboxMaxID)));
+  }
+
+  /// Ветку прочитали до [maxID] (ответ ReadHistory): у ветки и у поста.
+  Future<void> markThreadRead(Uint8List threadChatID, int maxID) {
+    final user = me;
+    return _locked(() => _store.transaction((tx) => tx.setThreadRead(userID: user, threadChatID: threadChatID, maxID: maxID)));
+  }
+
+  /// Свежие комментарии постов (GetViews, SetCommentsClosed) — в кэш.
+  Future<void> savePostComments(Uint8List chatID, Map<int, pb.MessageComments> comments) {
+    if (comments.isEmpty) return Future.value();
+    final user = me;
+    return _locked(
+      () => _store.transaction((tx) async {
+        for (final MapEntry(key: postID, value: c) in comments.entries) {
+          await tx.setPostComments(userID: user, chatID: chatID, postID: postID, comments: c);
+        }
+      }),
+    );
   }
 
   Future<void> _catchUp() async {
@@ -846,7 +955,9 @@ class ChatsSync {
         }
         // Баннер в приложении — о новом непрочитанном (звонок — не сообщение:
         // о пропущенном есть свои уведомления).
-        if (!outgoing && !skipsUnread(message.content) && !message.content.hasCall() && id > (dialog?.readInboxMaxID ?? 0)) {
+        // Ветка комментариев — не диалог списка: ни баннера, ни счётчиков.
+        final thread = dialog?.type == pb.ChatType.CHAT_TYPE_THREAD.value;
+        if (!outgoing && !thread && !skipsUnread(message.content) && !message.content.hasCall() && id > (dialog?.readInboxMaxID ?? 0)) {
           followUps.incoming.add((chatID: idHex(chatID), messageID: id, fromUserID: idHex(message.fromUserID)));
         }
 
@@ -874,6 +985,11 @@ class ChatsSync {
         unawaited(PushManager.clearChatNotifications(read.chatID, maxID: read.maxID.toInt()));
         final dialog = await tx.dialog(userID: user, chatID: read.chatID);
         if (dialog == null) return;
+        if (dialog.type == pb.ChatType.CHAT_TYPE_THREAD.value) {
+          // Ветка: счётчик — по кэшу, и readMaxID у поста (точка гаснет).
+          await tx.setThreadRead(userID: user, threadChatID: read.chatID, maxID: read.maxID.toInt());
+          return;
+        }
         await tx.updateDialog(
           userID: user,
           chatID: read.chatID,
@@ -1082,6 +1198,20 @@ class ChatsSync {
         await tx.setGroupPendingRequests(userID: user, chatID: requests.chatID, pending: requests.pendingCount);
         followUps.joinRequestsChanged.add(idHex(requests.chatID));
 
+      case pb.Update_Update.postComments:
+        // Комментарии к посту (журнал канала, слитно): число, последние
+        // комментаторы, срок / «закрыто», ветка. Моего readMaxID в нём нет —
+        // не уменьшаем ([mergeComments]).
+        final changed = update.postComments;
+        final chatID = changed.chatID.isNotEmpty ? changed.chatID : update.chatID;
+        await tx.setPostComments(userID: user, chatID: chatID, postID: changed.postID.toInt(), comments: changed.comments);
+        // Ветка уже открыта у меня — её срок тоже (закрыли / открыли).
+        final thread = await tx.thread(userID: user, chatID: chatID, postID: changed.postID.toInt());
+        final info = thread == null ? null : (await tx.group(userID: user, chatID: thread))?.info;
+        if (info != null && info.commentsCloseDate != changed.comments.closeDate) {
+          await tx.setGroupInfo(userID: user, info: info.deepCopy()..commentsCloseDate = changed.comments.closeDate);
+        }
+
       case pb.Update_Update.notSet:
         // Пустое обновление (например, новое сообщение, которое потом удалили):
         // ничего не меняем, но pts сдвигается — это не дыра.
@@ -1227,6 +1357,12 @@ class ChatsSync {
         final stale = await tx.applyHistoryPage(userID: user, chatID: chatID, messages: history, offsetID: 0, hasMore: hasMore);
         // Ниже есть несверенное — [loadOlder] пойдёт к нему.
         if (stale > 0) _noOlder.remove(idHex(chatID));
+        // Ветка: сервер счётчик непрочитанного не ведёт — считаем по кэшу (окно
+        // чата прочитает их и сдвинет readMaxID у поста).
+        if (dialog.type == pb.ChatType.CHAT_TYPE_THREAD.value) {
+          final unread = await tx.countIncomingAfter(userID: user, chatID: chatID, afterID: dialog.readInboxMaxID);
+          if (unread != dialog.unreadCount) await tx.updateDialog(userID: user, chatID: chatID, fields: {'unreadCount': unread});
+        }
         // История DESC: первое — самое новое.
         final newest = history.isEmpty ? null : history.first;
         if (newest != null && newest.messageID.toInt() >= dialog.topMessageID) {

@@ -24,7 +24,15 @@ data class PushPayload(
     val chatTitle: String = "",
     // Пост канала: chatTitle — название канала, автора нет — текст без «Имя:».
     val isChannel: Boolean = false,
+    // Комментарий к посту канала (ответ на мой / упоминание): chatID — ветка,
+    // parentChatID / postID — канал и пост (тап открывает ветку); chatTitle —
+    // название канала, текст — «Имя: текст», как в группе.
+    val parentChatID: ByteArray = ByteArray(0),
+    val postID: Long = 0,
 ) {
+    /// Комментарий к посту канала (есть канал ветки).
+    val isComment: Boolean get() = parentChatID.isNotEmpty()
+
     companion object {
         // PushPayload.Kind
         const val KIND_UNKNOWN = 0
@@ -83,6 +91,8 @@ data class PushPayload(
                     13 -> payload.copy(titleFromContact = reader.expectVarint(wire) != 0L)
                     14 -> payload.copy(chatTitle = reader.expectString(wire))
                     15 -> payload.copy(isChannel = reader.expectVarint(wire) != 0L)
+                    16 -> payload.copy(parentChatID = reader.expectBytes(wire))
+                    17 -> payload.copy(postID = reader.expectVarint(wire))
                     else -> { reader.skip(wire); payload }
                 }
             }
@@ -149,7 +159,8 @@ data class PushPayload(
         other is PushPayload && kind == other.kind && id == other.id &&
             fromUserID.contentEquals(other.fromUserID) && chatID.contentEquals(other.chatID) &&
             messageID == other.messageID && title == other.title && body == other.body &&
-            args == other.args && badge == other.badge && date == other.date && messageIDs == other.messageIDs
+            args == other.args && badge == other.badge && date == other.date && messageIDs == other.messageIDs &&
+            parentChatID.contentEquals(other.parentChatID) && postID == other.postID
 
     override fun hashCode(): Int = id.hashCode() * 31 + kind
 }

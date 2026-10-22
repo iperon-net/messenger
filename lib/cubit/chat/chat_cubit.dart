@@ -152,7 +152,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
       // («новичкам — без ссылок и медиа», опрос не пересылается, медленный
       // режим …); общие отказы — без пояснения, как раньше («!» у сообщения).
       _rejectedSubscription = ChatsSync.instance.sendRejected.listen((event) {
-        if (isClosed || idHex(event.chatID) != chatID || !_sendErrors.contains(event.error)) return;
+        if (isClosed || idHex(event.chatID) != chatID || !_explainsSend(event.error)) return;
         emit(state.copyWith(failNotice: state.failNotice + 1, failError: event.error));
       });
       _connectionSubscription = getIt.get<API>().connectionStatusStream.listen((status) {
@@ -976,6 +976,17 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   /// пост — публиковать, чужой — удалять чужие ([canDeleteChannelPost]).
   bool canDelete(models.Message message) {
     final chat = state.chat;
+    // Пост шапкой ветки — не её сообщение.
+    if (message.id.startsWith(threadPostPrefix)) return false;
+    // Ветка комментариев: свой — всегда, чужой — по праву админа канала
+    // удалять сообщения.
+    if (chat != null && chat.isThread) {
+      if (message.outgoing) return true;
+      final channel = _channel;
+      if (message.service || channel == null) return false;
+      // Демо прав не знает — любой админ канала.
+      return channel.myRights == null ? channel.canManage : channelCan(channel, const [], ChannelAction.deleteOthers);
+    }
     if (chat != null && chat.type == models.ChatType.channel && chat.myRights != null) {
       return canDeleteChannelPost(chat, state.members, message);
     }
@@ -1288,10 +1299,22 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     'pollClosed',
     'pollForward',
     'reactionsLimit',
+    ...commentsErrors,
   };
 
   /// Отказы при отправке из outbox, которые объясняем ([ChatsSync.sendRejected]).
-  static const _sendErrors = {'newcomerRestricted', 'pollForward', 'chatWriteForbidden', 'slowModeWait', 'reactionsLimit'};
+  static const _sendErrors = {
+    'newcomerRestricted',
+    'pollForward',
+    'chatWriteForbidden',
+    'slowModeWait',
+    'reactionsLimit',
+    ...commentsErrors,
+  };
+
+  /// Объясняем ли отказ отправки [error]: из [_sendErrors] или
+  /// «commentsTooNew:N» (N — секунд до разрешения).
+  static bool _explainsSend(String error) => _sendErrors.contains(error) || error.startsWith(commentsTooNewPrefix);
 
   /// Назначить админом / изменить права и «звание». false — не сохранено.
   Future<bool> setAdmin(models.ChatMember member, models.ChatAdminRights rights, String rank) =>
@@ -1400,8 +1423,37 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   /// заявка).
   Future<void> joinCommunityChat(models.Chat chat) async => _source?.joinChat(chat.id);
 
-  /// Комментарии к посту канала — id чата-ветки (пусто — не открыть).
-  Future<String> openComments(models.Message post) async => await _source?.openComments(_chatID, post.id) ?? '';
+  /// Комментарии к посту канала — id чата-ветки (пусто — не открыть: без
+  /// сети — «Нет соединения», отказ — пояснение, например «commentsDisabled»).
+  Future<String> openComments(models.Message post) async {
+    var threadID = '';
+    await _serverAction(() async => threadID = await _source?.openComments(_chatID, post.id) ?? '');
+    return threadID;
+  }
+
+  /// Ветка комментариев: заблокировать автора [message] в канале — админ
+  /// канала с правом блокировать (свои и чужие посты-шапку — нет).
+  bool canBanCommenter(models.Message message) {
+    final chat = state.chat;
+    final channel = _channel;
+    if (chat == null || !chat.isThread || channel == null) return false;
+    if (message.outgoing || message.service || message.senderUserID.isEmpty) return false;
+    if (channel.myRights == null) return channel.canManage;
+    return channelCan(
+      channel,
+      const [],
+      ChannelAction.ban,
+      target: models.ChatMember(id: message.senderUserID, name: message.senderName),
+    );
+  }
+
+  /// Заблокировать автора комментария в канале (дальше не прокомментирует и
+  /// не подпишется). Сервер: без сети — «Нет соединения». false — не вышло.
+  Future<bool> banCommenter(models.Message message) {
+    final channelID = state.chat?.threadOf ?? '';
+    if (channelID.isEmpty) return Future.value(false);
+    return _serverAction(() => _source?.banUser(channelID, models.ChatMember(id: message.senderUserID, name: message.senderName)));
+  }
 
   /// «Новичкам — без ссылок и медиа»: действует ли на нас и до когда. Группа /
   /// сообщество — по дате вступления; ветка — по подписке на канал (не
@@ -1433,7 +1485,8 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   }
 
   /// Админ канала: закрыть комментарии к посту досрочно / снова открыть.
-  Future<void> setCommentsClosed(models.Message post, bool closed) async => _source?.setCommentsClosed(_chatID, post.id, closed);
+  Future<bool> setCommentsClosed(models.Message post, bool closed) =>
+      _serverAction(() => _source?.setCommentsClosed(_chatID, post.id, closed));
 
   /// «Написать сообщение» участнику — id личного чата с ним.
   Future<String?> privateChatWith(models.ChatMember member) async => _source?.openPrivateChat(member.id);

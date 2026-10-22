@@ -550,6 +550,11 @@ class ChatsDemoDataSource implements ChatsDataSource {
     String communityID = '',
     models.ChatJoinMode joinMode = models.ChatJoinMode.open,
     bool historyHidden = false,
+    bool commentsEnabled = false,
+    int commentsTimeLimit = 0,
+    models.ChatCommentsWho commentsWho = models.ChatCommentsWho.all,
+    int commentsMinSubscription = 0,
+    int newcomerMediaDelay = 0,
   }) async {
     final now = DateTime.now();
     final id = 'new${_nextChatID++}';
@@ -595,7 +600,11 @@ class ChatsDemoDataSource implements ChatsDataSource {
       inviteLink: username.isEmpty ? inviteLink : '',
       joinMode: username.isEmpty ? models.ChatJoinMode.link : models.ChatJoinMode.open,
       avatarPath: avatarPath,
-      commentsEnabled: type == models.ChatType.channel,
+      commentsEnabled: type == models.ChatType.channel && commentsEnabled,
+      commentsTimeLimit: type == models.ChatType.channel ? commentsTimeLimit : 0,
+      commentsWho: commentsWho,
+      commentsMinSubscription: commentsWho == models.ChatCommentsWho.subscribers ? commentsMinSubscription : 0,
+      newcomerMediaDelay: type == models.ChatType.channel ? newcomerMediaDelay : 0,
       // Подписчиков канала и участников сообщества (их могут быть сотни
       // тысяч) по умолчанию видят только админы.
       membersHidden: type == models.ChatType.channel || type == models.ChatType.community,
