@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../../chats/edit_media.dart';
 import '../../chats/message_formatting.dart';
 import '../../components/chats/emoji_panel.dart';
 import '../../chats/reactions.dart';
@@ -20,6 +21,7 @@ import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_actions_cupertino.dart';
 import 'chat_common.dart';
+import 'edit_media_common.dart';
 import 'reactions_list_common.dart';
 import 'chat_info_common.dart';
 import 'comments_limit.dart';
@@ -439,8 +441,9 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
 
   void _send({bool silent = false, DateTime? scheduleDate}) {
     final text = _input.text;
-    // Пересылка уходит и без текста.
-    if (text.trim().isEmpty && _cubit.state.forwarding.isEmpty) return;
+    final editing = _cubit.state.editing;
+    // Пересылка уходит и без текста, подпись вложений при правке — пустой.
+    if (text.trim().isEmpty && _cubit.state.forwarding.isEmpty && !editCaptionMayBeEmpty(_cubit.state)) return;
     // Медленный режим: правка — можно; иначе текст и пересылаемые — отдельные
     // сообщения, а разрешено одно.
     if (_cubit.state.editing == null && !checkSlowMode(context, count: (text.trim().isEmpty ? 0 : 1) + _cubit.state.forwarding.length)) {
@@ -448,6 +451,16 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
     }
     // Новичку — только текст без ссылок (и пересылать — тоже).
     if (!checkNewcomer(context, raw: text, forwarding: _cubit.state.forwarding)) return;
+    // Правка с вложениями: текст остаётся в поле, пока она не сохранится (без
+    // сети / отказ — остаётся как был).
+    if (editing != null && _cubit.state.editMedia != null) {
+      unawaited(
+        _cubit.send(text, mentions: _mentions.take()).then((saved) {
+          if (saved && mounted && _cubit.state.editing == null) _input.clear();
+        }),
+      );
+      return;
+    }
     _input.clear();
     _cubit.send(text, silent: silent, scheduleDate: scheduleDate, mentions: _mentions.take());
   }
@@ -938,8 +951,7 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
           _forward(context, single: true);
         }),
       // Пересланное не правится (как в Telegram).
-      if (_cubit.canEdit(message) && message.kind == models.MessageKind.text && message.forward == null)
-        action(t.edit, CupertinoIcons.pencil, () => _cubit.startEdit(message)),
+      if (_cubit.canEditMessage(message)) action(t.edit, CupertinoIcons.pencil, () => _cubit.startEdit(message)),
       // В группе чужие — с правом удалять сообщения (у всех).
       if (_cubit.canDelete(message)) ...[
         action(t.delete, CupertinoIcons.delete, () async {
@@ -1159,6 +1171,16 @@ class _ComposeBar extends StatelessWidget {
                   ],
                 ),
               ),
+            // Правка: вложения сообщения — тап заменяет, новое — с ×.
+            if (editing)
+              EditMediaStrip(
+                state: state,
+                style: EditMediaStripStyle(
+                  accent: primary,
+                  secondary: secondary,
+                  placeholder: CupertinoColors.tertiarySystemFill.resolveFrom(context),
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 6, 8, 6),
               // Пока пишется голосовое — вместо скрепки и поля панель записи.
@@ -1171,7 +1193,11 @@ class _ComposeBar extends StatelessWidget {
                       CupertinoButton(
                         padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
                         minimumSize: Size.zero,
-                        onPressed: editing ? null : () => pickAndSendAttachments(context, input: input),
+                        onPressed: !editing
+                            ? () => pickAndSendAttachments(context, input: input)
+                            : context.read<ChatCubit>().canEditMedia
+                            ? () => pickEditAttachments(context, index: editMediaMode(state.editing!) == EditMediaMode.album ? -1 : 0)
+                            : null,
                         child: FaIcon(FontAwesomeIcons.paperclip, size: 22, color: secondary),
                       ),
                     Expanded(
@@ -1224,7 +1250,9 @@ class _ComposeBar extends StatelessWidget {
                       child: ValueListenableBuilder<TextEditingValue>(
                         valueListenable: input,
                         builder: (context, value, _) {
-                          final canSend = value.text.trim().isNotEmpty || state.forwarding.isNotEmpty;
+                          final canSend =
+                              (value.text.trim().isNotEmpty || state.forwarding.isNotEmpty || editCaptionMayBeEmpty(state)) &&
+                              state.editUploadProgress == null;
                           // Пусто — микрофон (голосовое), как в Telegram.
                           // Слот фиксированный: поле ввода не дёргается при смене кнопки.
                           return ComposeActionSlot(

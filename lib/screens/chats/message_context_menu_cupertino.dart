@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/rendering.dart';
 
@@ -5,7 +7,10 @@ import '../../components/chats/message_double_tap.dart';
 
 /// Пузырь сообщения с `CupertinoContextMenu`. Превью открытого меню —
 /// тот же пузырь той же ширины, что в ленте (ширину запоминаем при раскладке),
-/// ужатый под выданный меню прямоугольник.
+/// ужатый под выданный меню прямоугольник. Длинное сообщение в превью не
+/// ужимается по высоте (меню отдаёт превью почти весь экран — текст мельчал и
+/// «уезжал», а действия сжимались), а обрезается снизу, чтобы под ним
+/// поместились действия, — как в Telegram.
 class MessageContextMenuCupertino extends StatefulWidget {
   final List<Widget> actions;
   final Widget bubble;
@@ -66,10 +71,32 @@ class MessageContextMenuCupertinoCupertinoState extends State<MessageContextMenu
             ),
           );
         }
-        return FittedBox(fit: BoxFit.scaleDown, child: widget.preview(width));
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: _maxPreviewHeight(context, widget.actions.length)),
+            child: ClipRect(
+              child: OverflowBox(
+                minHeight: 0,
+                maxHeight: double.infinity,
+                alignment: Alignment.topCenter,
+                fit: OverflowBoxFit.deferToChild,
+                child: widget.preview(width),
+              ),
+            ),
+          ),
+        );
       },
     );
   }
+}
+
+/// Высота экрана без безопасных зон, отступов меню (сверху, между превью и
+/// действиями, снизу — по 20) и самих действий (43 на строку, как у
+/// `CupertinoContextMenuAction`).
+double _maxPreviewHeight(BuildContext context, int actions) {
+  final media = MediaQuery.of(context);
+  return math.max(120.0, media.size.height - media.padding.vertical - 3 * 20 - actions * 44);
 }
 
 /// Сообщает размер ребёнка после каждой раскладки (без GlobalKey: превью

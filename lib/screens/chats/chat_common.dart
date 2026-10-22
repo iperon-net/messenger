@@ -508,6 +508,8 @@ String chatsFailedText(Translations translations, String error) {
     'slowModeWait' => t.slowModeWait,
     'pollClosed' => t.pollClosed,
     'pollForward' => t.pollForward,
+    // Правка вложений (замена / добавление) — недопустимое сочетание.
+    'mediaInvalid' => t.mediaInvalid,
     'reactionsLimit' => t.reactionsLimit,
     // Канал без подписки (4.4): реакции и голосование — подписчикам.
     'subscribeRequired' => t.subscribeRequired,
@@ -949,6 +951,30 @@ Future<void> sendAttachmentDrafts(BuildContext context, List<AttachmentDraft> it
   }
 }
 
+/// Вложения для правки сообщения (скрепка в режиме «Изменить»): фото и видео
+/// — сжатые, как при отправке (окно «Сжатие видео» с «Отменой» —
+/// [ChatVideoCancelled]), файлы — как есть; в исходном порядке. Без листа
+/// подписи: подпись — текст в поле ввода.
+Future<List<models.MessageMedia>> prepareEditAttachments(BuildContext context, List<AttachmentDraft> items) async {
+  final media = await _prepareMedia(
+    context,
+    [
+      for (final i in items)
+        if (i.isMedia) i,
+    ],
+    spoiler: false,
+    quality: ChatVideoQuality.standard,
+  );
+  var next = 0;
+  return [
+    for (final i in items)
+      if (i.isMedia)
+        media[next++]
+      else
+        models.MessageMedia(kind: models.MessageKind.file, localPath: i.path, size: await File(i.path).length()),
+  ];
+}
+
 /// Сжатие фото и видео перед отправкой, в исходном порядке. Видео дольше —
 /// если его подготовка заметна (> 0,4 с), показывается окно «Сжатие видео» с
 /// прогрессом по всем видео и «Отменой» ([ChatVideoCancelled]).
@@ -1329,7 +1355,19 @@ class _ThumbBadge extends StatelessWidget {
   final message = state.editing ?? state.reply;
   if (message == null) return null;
   final text = message.text.isNotEmpty ? message.text : messageKindLabel(t, message.kind);
-  if (state.editing != null) return (title: t.screenChat.editing, text: text.replaceAll('\n', ' '), quote: false, entities: const []);
+  if (state.editing != null) {
+    // Вложения меняются — что с ними будет (и загрузка при сохранении).
+    final draft = state.editMedia;
+    final progress = state.editUploadProgress;
+    final note = progress != null
+        ? t.screenChat.editMediaUploading(percent: (progress * 100).round())
+        : draft == null || draft.isEmpty
+        ? null
+        : draft.added.isNotEmpty
+        ? t.screenChat.editMediaAdd(n: draft.added.length)
+        : t.screenChat.editMediaReplace;
+    return (title: t.screenChat.editing, text: note ?? text.replaceAll('\n', ' '), quote: false, entities: const []);
+  }
   final name = message.outgoing ? t.screenChat.you : (message.senderName.isNotEmpty ? message.senderName : state.chat?.title ?? '');
   final quote = state.replyQuote;
   if (quote != null) {

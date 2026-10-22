@@ -259,6 +259,26 @@ class MessageMedia with MessageMediaMappable {
   double? get aspectRatio => width > 0 && height > 0 ? width / height : null;
 }
 
+/// Правка вложений сообщения в режиме «Изменить» (скрепка, как editMessage с
+/// media в Telegram): [replaced] — индекс вложения исходного сообщения
+/// ([Message.media]; у одиночного файла — 0) → новое на его место; [added] —
+/// новые вложения текстового сообщения (текст становится подписью). Новые —
+/// локальные, уже подготовленные (сжатые фото / видео, файл как есть: `kind`
+/// [MessageKind.file], имя — по `localPath`); на CDN грузятся при сохранении.
+@MappableClass()
+class EditMedia with EditMediaMappable {
+  final Map<int, MessageMedia> replaced;
+  final List<MessageMedia> added;
+
+  const EditMedia({this.replaced = const {}, this.added = const []});
+
+  bool get isEmpty => replaced.isEmpty && added.isEmpty;
+
+  /// Все новые вложения (их грузить на CDN): заменяющие по порядку индексов,
+  /// затем добавленные.
+  List<MessageMedia> get fresh => [for (final i in replaced.keys.toList()..sort()) replaced[i]!, ...added];
+}
+
 /// Вид служебного уведомления системного аккаунта — порядок как в proto
 /// `MessageSystemNotice.Kind`.
 @MappableEnum()

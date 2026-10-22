@@ -1885,6 +1885,176 @@ class _MessageMediaCopyWithImpl<$R, $Out>
   ) => _MessageMediaCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
+class EditMediaMapper extends ClassMapperBase<EditMedia> {
+  EditMediaMapper._();
+
+  static EditMediaMapper? _instance;
+  static EditMediaMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = EditMediaMapper._());
+      MessageMediaMapper.ensureInitialized();
+    }
+    return _instance!;
+  }
+
+  @override
+  final String id = 'EditMedia';
+
+  static Map<int, MessageMedia> _$replaced(EditMedia v) => v.replaced;
+  static const Field<EditMedia, Map<int, MessageMedia>> _f$replaced = Field(
+    'replaced',
+    _$replaced,
+    opt: true,
+    def: const {},
+  );
+  static List<MessageMedia> _$added(EditMedia v) => v.added;
+  static const Field<EditMedia, List<MessageMedia>> _f$added = Field(
+    'added',
+    _$added,
+    opt: true,
+    def: const [],
+  );
+
+  @override
+  final MappableFields<EditMedia> fields = const {
+    #replaced: _f$replaced,
+    #added: _f$added,
+  };
+
+  static EditMedia _instantiate(DecodingData data) {
+    return EditMedia(
+      replaced: data.dec(_f$replaced),
+      added: data.dec(_f$added),
+    );
+  }
+
+  @override
+  final Function instantiate = _instantiate;
+
+  static EditMedia fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<EditMedia>(map);
+  }
+
+  static EditMedia fromJson(String json) {
+    return ensureInitialized().decodeJson<EditMedia>(json);
+  }
+}
+
+mixin EditMediaMappable {
+  String toJson() {
+    return EditMediaMapper.ensureInitialized().encodeJson<EditMedia>(
+      this as EditMedia,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return EditMediaMapper.ensureInitialized().encodeMap<EditMedia>(
+      this as EditMedia,
+    );
+  }
+
+  EditMediaCopyWith<EditMedia, EditMedia, EditMedia> get copyWith =>
+      _EditMediaCopyWithImpl<EditMedia, EditMedia>(
+        this as EditMedia,
+        $identity,
+        $identity,
+      );
+  @override
+  String toString() {
+    return EditMediaMapper.ensureInitialized().stringifyValue(
+      this as EditMedia,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return EditMediaMapper.ensureInitialized().equalsValue(
+      this as EditMedia,
+      other,
+    );
+  }
+
+  @override
+  int get hashCode {
+    return EditMediaMapper.ensureInitialized().hashValue(this as EditMedia);
+  }
+}
+
+extension EditMediaValueCopy<$R, $Out> on ObjectCopyWith<$R, EditMedia, $Out> {
+  EditMediaCopyWith<$R, EditMedia, $Out> get $asEditMedia =>
+      $base.as((v, t, t2) => _EditMediaCopyWithImpl<$R, $Out>(v, t, t2));
+}
+
+abstract class EditMediaCopyWith<$R, $In extends EditMedia, $Out>
+    implements ClassCopyWith<$R, $In, $Out> {
+  MapCopyWith<
+    $R,
+    int,
+    MessageMedia,
+    MessageMediaCopyWith<$R, MessageMedia, MessageMedia>
+  >
+  get replaced;
+  ListCopyWith<
+    $R,
+    MessageMedia,
+    MessageMediaCopyWith<$R, MessageMedia, MessageMedia>
+  >
+  get added;
+  $R call({Map<int, MessageMedia>? replaced, List<MessageMedia>? added});
+  EditMediaCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
+}
+
+class _EditMediaCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, EditMedia, $Out>
+    implements EditMediaCopyWith<$R, EditMedia, $Out> {
+  _EditMediaCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<EditMedia> $mapper =
+      EditMediaMapper.ensureInitialized();
+  @override
+  MapCopyWith<
+    $R,
+    int,
+    MessageMedia,
+    MessageMediaCopyWith<$R, MessageMedia, MessageMedia>
+  >
+  get replaced => MapCopyWith(
+    $value.replaced,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(replaced: v),
+  );
+  @override
+  ListCopyWith<
+    $R,
+    MessageMedia,
+    MessageMediaCopyWith<$R, MessageMedia, MessageMedia>
+  >
+  get added => ListCopyWith(
+    $value.added,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(added: v),
+  );
+  @override
+  $R call({Map<int, MessageMedia>? replaced, List<MessageMedia>? added}) =>
+      $apply(
+        FieldCopyWithData({
+          if (replaced != null) #replaced: replaced,
+          if (added != null) #added: added,
+        }),
+      );
+  @override
+  EditMedia $make(CopyWithData data) => EditMedia(
+    replaced: data.get(#replaced, or: $value.replaced),
+    added: data.get(#added, or: $value.added),
+  );
+
+  @override
+  EditMediaCopyWith<$R2, EditMedia, $Out2> $chain<$R2, $Out2>(
+    Then<$Out2, $R2> t,
+  ) => _EditMediaCopyWithImpl<$R2, $Out2>($value, $cast, t);
+}
+
 class SystemNoticeMapper extends ClassMapperBase<SystemNotice> {
   SystemNoticeMapper._();
 

@@ -27,6 +27,7 @@ import 'chats_mapping.dart';
 import 'chats_presence.dart';
 import 'chats_typing.dart';
 import 'chats_media.dart';
+import 'edit_media.dart';
 import 'chats_sync.dart';
 import 'message_search.dart';
 import 'reactions.dart';
@@ -2969,7 +2970,18 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   /// Неотправленное правится прямо в outbox (уйдёт уже исправленным);
   /// отправленное — на сервере.
   @override
-  Future<void> editMessage(String chatID, String messageID, String text, List<models.MessageEntity> entities) async {
+  Future<void> editMessage(
+    String chatID,
+    String messageID,
+    String text,
+    List<models.MessageEntity> entities, {
+    models.EditMedia? media,
+    void Function(int sent, int total)? onUpload,
+    bool Function()? isCancelled,
+  }) async {
+    if (media != null && !media.isEmpty) {
+      return _editWithMedia(chatID, messageID, text, entities, media, onUpload: onUpload, isCancelled: isCancelled);
+    }
     final me = _sync.me;
     final randomID = randomIDOfLocal(messageID);
     if (randomID != null) {
@@ -2994,6 +3006,44 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           entities: [for (final e in entities) entityToPb(e)],
         ),
       ),
+    );
+    await _sync.applyUpdates(response.edit.updates);
+  }
+
+  /// Правка с заменой / добавлением вложений: только для принятого сервером
+  /// и только с сетью (проверка — до загрузки, без «оптимистичного» пузыря).
+  /// Новые файлы — на CDN, как вложения при отправке (обложка видео — тоже;
+  /// загруженное ложится в кэш скачиваний под своим cdnID), затем
+  /// `Edit {replaceMedia, media}` со всем итоговым списком; пузырь меняет
+  /// пришедшее обновление `editMessage`.
+  Future<void> _editWithMedia(
+    String chatID,
+    String messageID,
+    String text,
+    List<models.MessageEntity> entities,
+    models.EditMedia draft, {
+    void Function(int sent, int total)? onUpload,
+    bool Function()? isCancelled,
+  }) async {
+    final id = serverMessageID(messageID);
+    if (id == null) throw const ChatsRequestException(editMediaInvalid, StatusCode.invalidArgument);
+    final chat = idBytes(chatID);
+    late pb.Messages_Response response;
+    await editMessageMedia(
+      edit: pb.Messages_Edit(chatID: chat, messageID: Int64(id), text: text, entities: [for (final e in entities) entityToPb(e)]),
+      draft: draft,
+      hasNetwork: _sync.hasNetwork,
+      original: () async => (await _store.message(userID: _sync.me, chatID: chat, messageID: id))?.content,
+      upload: (file, onProgress) async => (await _cdn.uploadFile(
+        file: file,
+        folder: chatMediaFolder,
+        contentType: chatMediaContentType(file.path),
+        isCancelled: isCancelled,
+        onProgress: onProgress,
+      )).cdnID,
+      send: (edit) async => response = await _sync.messages(pb.Messages_Request(edit: edit)),
+      onUpload: onUpload,
+      isCancelled: isCancelled,
     );
     await _sync.applyUpdates(response.edit.updates);
   }

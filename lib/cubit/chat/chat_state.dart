@@ -46,6 +46,14 @@ class ChatState with ChatStateMappable {
   /// Редактируем это сообщение — поле ввода заполнено его текстом.
   final models.Message? editing;
 
+  /// Правка вложений [editing] (скрепка в режиме «Изменить»): заменить /
+  /// добавить; `null` — вложения не меняются.
+  final models.EditMedia? editMedia;
+
+  /// Сохранение правки с вложениями: доля загрузки новых файлов на CDN (0..1);
+  /// `null` — не сохраняется. Пузырь не меняется, пока сервер не принял.
+  final double? editUploadProgress;
+
   /// Первое непрочитанное на момент открытия чата — над ним разделитель
   /// «Непрочитанные сообщения», к нему лента прокручивается при открытии.
   final String? unreadFromID;
@@ -180,6 +188,8 @@ class ChatState with ChatStateMappable {
     this.reply,
     this.replyQuote,
     this.editing,
+    this.editMedia,
+    this.editUploadProgress,
     this.unreadFromID,
     this.selecting = false,
     this.selectedIDs = const [],

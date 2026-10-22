@@ -1651,6 +1651,33 @@ class Translations$screenChat$en {
 	/// en: 'Editing'
 	String get editing => 'Editing';
 
+	/// en: 'The attachment will be replaced'
+	String get editMediaReplace => 'The attachment will be replaced';
+
+	/// en: '(one) {{n} attachment will be added} (other) {{n} attachments will be added}'
+	String editMediaAdd({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} attachment will be added',
+		other: '${n} attachments will be added',
+	);
+
+	/// en: 'Uploading… {percent}%'
+	String editMediaUploading({required Object percent}) => 'Uploading… ${percent}%';
+
+	/// en: 'Tap a photo or video above the input field to replace it'
+	String get editMediaAlbumHint => 'Tap a photo or video above the input field to replace it';
+
+	/// en: 'A message can have at most {n} photos and videos'
+	String editMediaLimit({required Object n}) => 'A message can have at most ${n} photos and videos';
+
+	/// en: 'An album item can only be replaced with a photo or video'
+	String get editMediaAlbumOnlyMedia => 'An album item can only be replaced with a photo or video';
+
+	/// en: 'Replace'
+	String get editMediaReplaceItem => 'Replace';
+
+	/// en: 'Undo replacement'
+	String get editMediaUndo => 'Undo replacement';
+
 	/// en: 'edited'
 	String get edited => 'edited';
 
@@ -4147,6 +4174,9 @@ class Translations$chatAction$en {
 	/// en: 'Polls can't be forwarded.'
 	String get pollForward => 'Polls can\'t be forwarded.';
 
+	/// en: 'Couldn't change the attachments: this combination or type of attachments isn't allowed in this message.'
+	String get mediaInvalid => 'Couldn\'t change the attachments: this combination or type of attachments isn\'t allowed in this message.';
+
 	/// en: 'This post already has the maximum number of different reactions. You can only add one that's already there.'
 	String get reactionsLimit => 'This post already has the maximum number of different reactions. You can only add one that\'s already there.';
 
@@ -5074,6 +5104,14 @@ extension on Translations {
 			'screenChat.pasteFailed' => 'Couldn\'t paste the photo or video',
 			'screenChat.edit' => 'Edit',
 			'screenChat.editing' => 'Editing',
+			'screenChat.editMediaReplace' => 'The attachment will be replaced',
+			'screenChat.editMediaAdd' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} attachment will be added', other: '${n} attachments will be added', ), 
+			'screenChat.editMediaUploading' => ({required Object percent}) => 'Uploading… ${percent}%',
+			'screenChat.editMediaAlbumHint' => 'Tap a photo or video above the input field to replace it',
+			'screenChat.editMediaLimit' => ({required Object n}) => 'A message can have at most ${n} photos and videos',
+			'screenChat.editMediaAlbumOnlyMedia' => 'An album item can only be replaced with a photo or video',
+			'screenChat.editMediaReplaceItem' => 'Replace',
+			'screenChat.editMediaUndo' => 'Undo replacement',
 			'screenChat.edited' => 'edited',
 			'screenChat.delete' => 'Delete',
 			'screenChat.deleteTitle' => 'Delete message?',
@@ -5098,6 +5136,8 @@ extension on Translations {
 			'screenChat.pinnedTitle' => 'Pinned message',
 			'screenChat.pinnedNumber' => ({required Object n}) => 'Pinned message #${n}',
 			'screenChat.unpinTitle' => 'Unpin message?',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.pinTitle' => 'Pin message?',
 			'screenChat.scopeForBoth' => 'For me and the other person',
 			'screenChat.scopeForMe' => 'Only for me',
@@ -5106,8 +5146,6 @@ extension on Translations {
 			'screenChat.keyboard' => 'Keyboard',
 			'screenChat.pinnedServiceYou' => ({required Object text}) => 'You pinned «${text}»',
 			'screenChat.pinnedServiceYouMessage' => 'You pinned a message',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.pinnedService' => ({required Object name, required Object text}) => '${name} pinned «${text}»',
 			'screenChat.pinnedServiceMessage' => ({required Object name}) => '${name} pinned a message',
 			'screenChat.pinnedList' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} pinned message', other: '${n} pinned messages', ), 
@@ -5612,6 +5650,8 @@ extension on Translations {
 			'screenContacts.permissionMessage' => 'Allow access to your contacts to find friends already on Iperon. Your phone numbers are matched privately and never revealed to the server.',
 			'screenContacts.allowAccess' => 'Allow access',
 			'screenContacts.openSettings' => 'Open settings',
+			_ => null,
+		} ?? switch (path) {
 			'screenContacts.empty' => 'No contacts found',
 			'screenContacts.inviteMessage' => 'Let\'s chat on Iperon',
 			'screenContacts.statusOnline' => 'online',
@@ -5620,8 +5660,6 @@ extension on Translations {
 			'screenContacts.addByNumber' => 'Add by number',
 			'screenContacts.addContact' => 'Add contact',
 			'screenContacts.addByNumberHint' => 'Phone number',
-			_ => null,
-		} ?? switch (path) {
 			'screenContacts.addFirstName' => 'First name',
 			'screenContacts.addLastName' => 'Last name',
 			'screenContacts.add' => 'Add',
@@ -5817,6 +5855,7 @@ extension on Translations {
 			'chatAction.slowModeWait' => 'Slow mode is on in this group — the message will be sent when the wait is over.',
 			'chatAction.pollClosed' => 'This poll has already ended.',
 			'chatAction.pollForward' => 'Polls can\'t be forwarded.',
+			'chatAction.mediaInvalid' => 'Couldn\'t change the attachments: this combination or type of attachments isn\'t allowed in this message.',
 			'chatAction.reactionsLimit' => 'This post already has the maximum number of different reactions. You can only add one that\'s already there.',
 			'chatAction.subscribeRequired' => 'Subscribe to the channel to react and vote in polls.',
 			'chatAction.commentsDisabled' => 'Comments are turned off for this post.',

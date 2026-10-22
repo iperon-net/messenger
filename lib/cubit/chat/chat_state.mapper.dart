@@ -84,6 +84,7 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       models.ChatMapper.ensureInitialized();
       models.MessageMapper.ensureInitialized();
       models.MessageQuoteMapper.ensureInitialized();
+      models.EditMediaMapper.ensureInitialized();
       models.ChatMemberMapper.ensureInitialized();
       ChatCommentsBlockMapper.ensureInitialized();
     }
@@ -184,6 +185,18 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
   static const Field<ChatState, models.Message> _f$editing = Field(
     'editing',
     _$editing,
+    opt: true,
+  );
+  static models.EditMedia? _$editMedia(ChatState v) => v.editMedia;
+  static const Field<ChatState, models.EditMedia> _f$editMedia = Field(
+    'editMedia',
+    _$editMedia,
+    opt: true,
+  );
+  static double? _$editUploadProgress(ChatState v) => v.editUploadProgress;
+  static const Field<ChatState, double> _f$editUploadProgress = Field(
+    'editUploadProgress',
+    _$editUploadProgress,
     opt: true,
   );
   static String? _$unreadFromID(ChatState v) => v.unreadFromID;
@@ -417,6 +430,8 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #reply: _f$reply,
     #replyQuote: _f$replyQuote,
     #editing: _f$editing,
+    #editMedia: _f$editMedia,
+    #editUploadProgress: _f$editUploadProgress,
     #unreadFromID: _f$unreadFromID,
     #selecting: _f$selecting,
     #selectedIDs: _f$selectedIDs,
@@ -466,6 +481,8 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       reply: data.dec(_f$reply),
       replyQuote: data.dec(_f$replyQuote),
       editing: data.dec(_f$editing),
+      editMedia: data.dec(_f$editMedia),
+      editUploadProgress: data.dec(_f$editUploadProgress),
       unreadFromID: data.dec(_f$unreadFromID),
       selecting: data.dec(_f$selecting),
       selectedIDs: data.dec(_f$selectedIDs),
@@ -577,6 +594,8 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
   models.MessageQuoteCopyWith<$R, models.MessageQuote, models.MessageQuote>?
   get replyQuote;
   models.MessageCopyWith<$R, models.Message, models.Message>? get editing;
+  models.EditMediaCopyWith<$R, models.EditMedia, models.EditMedia>?
+  get editMedia;
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get selectedIDs;
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get vanishingIDs;
   ListCopyWith<
@@ -634,6 +653,8 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     models.Message? reply,
     models.MessageQuote? replyQuote,
     models.Message? editing,
+    models.EditMedia? editMedia,
+    double? editUploadProgress,
     String? unreadFromID,
     bool? selecting,
     List<String>? selectedIDs,
@@ -715,6 +736,9 @@ class _ChatStateCopyWithImpl<$R, $Out>
   @override
   models.MessageCopyWith<$R, models.Message, models.Message>? get editing =>
       $value.editing?.copyWith.$chain((v) => call(editing: v));
+  @override
+  models.EditMediaCopyWith<$R, models.EditMedia, models.EditMedia>?
+  get editMedia => $value.editMedia?.copyWith.$chain((v) => call(editMedia: v));
   @override
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>>
   get selectedIDs => ListCopyWith(
@@ -825,6 +849,8 @@ class _ChatStateCopyWithImpl<$R, $Out>
     Object? reply = $none,
     Object? replyQuote = $none,
     Object? editing = $none,
+    Object? editMedia = $none,
+    Object? editUploadProgress = $none,
     Object? unreadFromID = $none,
     bool? selecting,
     List<String>? selectedIDs,
@@ -872,6 +898,8 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (reply != $none) #reply: reply,
       if (replyQuote != $none) #replyQuote: replyQuote,
       if (editing != $none) #editing: editing,
+      if (editMedia != $none) #editMedia: editMedia,
+      if (editUploadProgress != $none) #editUploadProgress: editUploadProgress,
       if (unreadFromID != $none) #unreadFromID: unreadFromID,
       if (selecting != null) #selecting: selecting,
       if (selectedIDs != null) #selectedIDs: selectedIDs,
@@ -922,6 +950,11 @@ class _ChatStateCopyWithImpl<$R, $Out>
     reply: data.get(#reply, or: $value.reply),
     replyQuote: data.get(#replyQuote, or: $value.replyQuote),
     editing: data.get(#editing, or: $value.editing),
+    editMedia: data.get(#editMedia, or: $value.editMedia),
+    editUploadProgress: data.get(
+      #editUploadProgress,
+      or: $value.editUploadProgress,
+    ),
     unreadFromID: data.get(#unreadFromID, or: $value.unreadFromID),
     selecting: data.get(#selecting, or: $value.selecting),
     selectedIDs: data.get(#selectedIDs, or: $value.selectedIDs),

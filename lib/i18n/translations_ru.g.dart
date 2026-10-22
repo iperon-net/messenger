@@ -704,6 +704,19 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get pasteFailed => 'Не удалось вставить фото или видео';
 	@override String get edit => 'Изменить';
 	@override String get editing => 'Редактирование';
+	@override String get editMediaReplace => 'Вложение будет заменено';
+	@override String editMediaAdd({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: 'Будет добавлено ${n} вложение',
+		few: 'Будет добавлено ${n} вложения',
+		many: 'Будет добавлено ${n} вложений',
+		other: 'Будет добавлено ${n} вложения',
+	);
+	@override String editMediaUploading({required Object percent}) => 'Загрузка… ${percent}%';
+	@override String get editMediaAlbumHint => 'Нажмите на фото или видео над полем ввода, чтобы заменить его';
+	@override String editMediaLimit({required Object n}) => 'В одном сообщении — не больше ${n} фото и видео';
+	@override String get editMediaAlbumOnlyMedia => 'В альбоме можно заменить только на фото или видео';
+	@override String get editMediaReplaceItem => 'Заменить';
+	@override String get editMediaUndo => 'Отменить замену';
 	@override String get edited => 'изм.';
 	@override String get delete => 'Удалить';
 	@override String get deleteTitle => 'Удалить сообщение?';
@@ -1735,6 +1748,7 @@ class _Translations$chatAction$ru extends Translations$chatAction$en {
 	@override String get slowModeWait => 'В группе включён медленный режим — сообщение отправится, когда закончится ожидание.';
 	@override String get pollClosed => 'Опрос уже завершён.';
 	@override String get pollForward => 'Опрос нельзя переслать.';
+	@override String get mediaInvalid => 'Не удалось изменить вложения: такое сочетание или вид вложений в этом сообщении недопустим.';
 	@override String get reactionsLimit => 'Под этим постом уже набран максимум разных реакций. Можно поставить только ту, что уже есть.';
 	@override String get subscribeRequired => 'Подпишитесь на канал, чтобы ставить реакции и голосовать в опросах.';
 	@override String get commentsDisabled => 'Комментарии к этому посту выключены.';
@@ -2431,6 +2445,14 @@ extension on TranslationsRu {
 			'screenChat.pasteFailed' => 'Не удалось вставить фото или видео',
 			'screenChat.edit' => 'Изменить',
 			'screenChat.editing' => 'Редактирование',
+			'screenChat.editMediaReplace' => 'Вложение будет заменено',
+			'screenChat.editMediaAdd' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Будет добавлено ${n} вложение', few: 'Будет добавлено ${n} вложения', many: 'Будет добавлено ${n} вложений', other: 'Будет добавлено ${n} вложения', ), 
+			'screenChat.editMediaUploading' => ({required Object percent}) => 'Загрузка… ${percent}%',
+			'screenChat.editMediaAlbumHint' => 'Нажмите на фото или видео над полем ввода, чтобы заменить его',
+			'screenChat.editMediaLimit' => ({required Object n}) => 'В одном сообщении — не больше ${n} фото и видео',
+			'screenChat.editMediaAlbumOnlyMedia' => 'В альбоме можно заменить только на фото или видео',
+			'screenChat.editMediaReplaceItem' => 'Заменить',
+			'screenChat.editMediaUndo' => 'Отменить замену',
 			'screenChat.edited' => 'изм.',
 			'screenChat.delete' => 'Удалить',
 			'screenChat.deleteTitle' => 'Удалить сообщение?',
@@ -2455,6 +2477,8 @@ extension on TranslationsRu {
 			'screenChat.pinnedTitle' => 'Закреплённое сообщение',
 			'screenChat.pinnedNumber' => ({required Object n}) => 'Закреплённое сообщение #${n}',
 			'screenChat.unpinTitle' => 'Открепить сообщение?',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.pinTitle' => 'Закрепить сообщение?',
 			'screenChat.scopeForBoth' => 'У меня и у собеседника',
 			'screenChat.scopeForMe' => 'Только у меня',
@@ -2463,8 +2487,6 @@ extension on TranslationsRu {
 			'screenChat.keyboard' => 'Клавиатура',
 			'screenChat.pinnedServiceYou' => ({required Object text}) => 'Вы закрепили «${text}»',
 			'screenChat.pinnedServiceYouMessage' => 'Вы закрепили сообщение',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.pinnedService' => ({required Object name, required Object text}) => '${name} закрепил(а) «${text}»',
 			'screenChat.pinnedServiceMessage' => ({required Object name}) => '${name} закрепил(а) сообщение',
 			'screenChat.pinnedList' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} закреплённое сообщение', few: '${n} закреплённых сообщения', many: '${n} закреплённых сообщений', other: '${n} закреплённых сообщения', ), 
@@ -2969,6 +2991,8 @@ extension on TranslationsRu {
 			'screenContacts.permissionMessage' => 'Разрешите доступ к контактам, чтобы найти друзей, которые уже в Iperon. Ваши номера сверяются приватно и не раскрываются серверу.',
 			'screenContacts.allowAccess' => 'Разрешить доступ',
 			'screenContacts.openSettings' => 'Открыть настройки',
+			_ => null,
+		} ?? switch (path) {
 			'screenContacts.empty' => 'Контакты не найдены',
 			'screenContacts.inviteMessage' => 'Давай общаться в Iperon',
 			'screenContacts.statusOnline' => 'в сети',
@@ -2977,8 +3001,6 @@ extension on TranslationsRu {
 			'screenContacts.addByNumber' => 'Добавить по номеру',
 			'screenContacts.addContact' => 'Добавить контакт',
 			'screenContacts.addByNumberHint' => 'Номер телефона',
-			_ => null,
-		} ?? switch (path) {
 			'screenContacts.addFirstName' => 'Имя',
 			'screenContacts.addLastName' => 'Фамилия',
 			'screenContacts.add' => 'Добавить',
@@ -3174,6 +3196,7 @@ extension on TranslationsRu {
 			'chatAction.slowModeWait' => 'В группе включён медленный режим — сообщение отправится, когда закончится ожидание.',
 			'chatAction.pollClosed' => 'Опрос уже завершён.',
 			'chatAction.pollForward' => 'Опрос нельзя переслать.',
+			'chatAction.mediaInvalid' => 'Не удалось изменить вложения: такое сочетание или вид вложений в этом сообщении недопустим.',
 			'chatAction.reactionsLimit' => 'Под этим постом уже набран максимум разных реакций. Можно поставить только ту, что уже есть.',
 			'chatAction.subscribeRequired' => 'Подпишитесь на канал, чтобы ставить реакции и голосовать в опросах.',
 			'chatAction.commentsDisabled' => 'Комментарии к этому посту выключены.',

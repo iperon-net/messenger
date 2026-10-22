@@ -569,7 +569,21 @@ abstract class ChatsDataSource {
   Future<void> rescheduleMessage(String chatID, String messageID, DateTime date);
   Future<void> deleteScheduled(String chatID, String messageID);
 
-  Future<void> editMessage(String chatID, String messageID, String text, List<models.MessageEntity> entities);
+  /// Править сообщение: текст и разметка; [media] — ещё и вложения (замена /
+  /// добавление, см. `edit_media.dart`): новые файлы сначала грузятся на CDN
+  /// ([onUpload] — отправлено / всего байт, [isCancelled] — отменили), затем
+  /// весь итоговый список уходит одной правкой. С вложениями нужна сеть сразу —
+  /// без неё [ChatsOfflineException] до любых изменений; отказ сервера —
+  /// `ChatsRequestException` («mediaInvalid»), отмена — `UploadCancelledException`.
+  Future<void> editMessage(
+    String chatID,
+    String messageID,
+    String text,
+    List<models.MessageEntity> entities, {
+    models.EditMedia? media,
+    void Function(int sent, int total)? onUpload,
+    bool Function()? isCancelled,
+  });
 
   /// Удалить сообщение: [forEveryone] — у всех (в личном чате — и у
   /// собеседника), `false` — только у себя.

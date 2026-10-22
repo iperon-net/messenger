@@ -19,6 +19,7 @@ import '../repositories.dart';
 import '../utils.dart';
 import 'chats_mapping.dart';
 import 'chats_media.dart';
+import 'edit_media.dart';
 import 'updates_plan.dart';
 import 'chats_media_cleanup.dart';
 import 'chats_typing.dart';
@@ -1079,6 +1080,14 @@ class ChatsSync {
         // Нет в кэше — не заводим «островок» в истории, подтянется с историей.
         if (cached != null || dialog?.topMessageID == id) {
           await tx.upsertMessage(userID: user, message: message, shared: update.chatPts > 0);
+        }
+        // Вложения заменили (Edit.replaceMedia) — скачанные старые на
+        // устройстве больше не нужны, если на них ничто не ссылается; новые
+        // скачаются под своими cdnID (кэш файлов — по cdnID, старый не
+        // покажется вместо нового).
+        if (cached != null) {
+          final replaced = replacedMediaIDs(cached.content, message.content);
+          if (replaced.isNotEmpty) ChatsRepository.onMediaReleased?.call(replaced);
         }
         if (dialog != null && dialog.topMessageID == id) await tx.setTopMessage(userID: user, chatID: chatID, message: message);
         // Комментарий из «Ответов» (4.6) — и там.

@@ -15,6 +15,7 @@ import '../chats/read_receipts.dart';
 import '../chats/users_search.dart';
 import '../models.dart' as models;
 import '../chats/chats_mapping.dart';
+import '../chats/edit_media.dart';
 import '../i18n/translations.g.dart';
 import '../protobuf/protos/chats_v1.pb.dart' as pb;
 
@@ -2000,12 +2001,20 @@ class ChatsDemoDataSource implements ChatsDataSource {
   }
 
   @override
-  Future<void> editMessage(String chatID, String messageID, String text, List<models.MessageEntity> entities) async {
-    _updateMessage(
-      chatID,
-      messageID,
-      (m) => m.copyWith(text: text, entities: entities, edited: true, linkPreview: _linkPreviewOf(text, entities)),
-    );
+  Future<void> editMessage(
+    String chatID,
+    String messageID,
+    String text,
+    List<models.MessageEntity> entities, {
+    models.EditMedia? media,
+    void Function(int sent, int total)? onUpload,
+    bool Function()? isCancelled,
+  }) async {
+    _updateMessage(chatID, messageID, (m) {
+      final edited = m.copyWith(text: text, entities: entities, edited: true, linkPreview: _linkPreviewOf(text, entities));
+      // Вложения — локальные файлы как есть (сервера и CDN в демо нет).
+      return media == null || media.isEmpty ? edited : applyEditMedia(edited, media);
+    });
     _syncLast(chatID);
   }
 

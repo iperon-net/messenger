@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../chats/edit_media.dart';
 import '../../chats/message_formatting.dart';
 import '../../components/chats/emoji_panel.dart';
 import '../../chats/reactions.dart';
@@ -20,6 +21,7 @@ import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_actions_material.dart';
 import 'chat_common.dart';
+import 'edit_media_common.dart';
 import 'reactions_list_common.dart';
 import 'chat_no_forwards.dart';
 import 'chat_info_common.dart';
@@ -459,8 +461,9 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
 
   void _send({bool silent = false, DateTime? scheduleDate}) {
     final text = _input.text;
-    // Пересылка уходит и без текста.
-    if (text.trim().isEmpty && _cubit.state.forwarding.isEmpty) return;
+    final editing = _cubit.state.editing;
+    // Пересылка уходит и без текста, подпись вложений при правке — пустой.
+    if (text.trim().isEmpty && _cubit.state.forwarding.isEmpty && !editCaptionMayBeEmpty(_cubit.state)) return;
     // Медленный режим: правка — можно; иначе текст и пересылаемые — отдельные
     // сообщения, а разрешено одно.
     if (_cubit.state.editing == null && !checkSlowMode(context, count: (text.trim().isEmpty ? 0 : 1) + _cubit.state.forwarding.length)) {
@@ -468,6 +471,16 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
     }
     // Новичку — только текст без ссылок (и пересылать — тоже).
     if (!checkNewcomer(context, raw: text, forwarding: _cubit.state.forwarding)) return;
+    // Правка с вложениями: текст остаётся в поле, пока она не сохранится (без
+    // сети / отказ — остаётся как был).
+    if (editing != null && _cubit.state.editMedia != null) {
+      unawaited(
+        _cubit.send(text, mentions: _mentions.take()).then((saved) {
+          if (saved && mounted && _cubit.state.editing == null) _input.clear();
+        }),
+      );
+      return;
+    }
     _input.clear();
     _cubit.send(text, silent: silent, scheduleDate: scheduleDate, mentions: _mentions.take());
   }
@@ -938,7 +951,7 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
                   onTap: () => Navigator.of(sheetContext).pop('forward'),
                 ),
               // Пересланное не правится (как в Telegram).
-              if (_cubit.canEdit(message) && message.kind == models.MessageKind.text && message.forward == null)
+              if (_cubit.canEditMessage(message))
                 ListTile(
                   leading: const Icon(Icons.edit_outlined),
                   title: Text(t.edit),
@@ -1268,6 +1281,16 @@ class _ComposeBar extends StatelessWidget {
                   ],
                 ),
               ),
+            // Правка: вложения сообщения — тап заменяет, новое — с ×.
+            if (editing)
+              EditMediaStrip(
+                state: state,
+                style: EditMediaStripStyle(
+                  accent: scheme.primary,
+                  secondary: scheme.onSurfaceVariant,
+                  placeholder: scheme.surfaceContainerHighest,
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
               // Пока пишется голосовое — вместо скрепки и поля панель записи.
@@ -1280,7 +1303,11 @@ class _ComposeBar extends StatelessWidget {
                       IconButton(
                         icon: const Icon(Icons.attach_file),
                         color: scheme.onSurfaceVariant,
-                        onPressed: editing ? null : () => pickAndSendAttachments(context, input: input),
+                        onPressed: !editing
+                            ? () => pickAndSendAttachments(context, input: input)
+                            : context.read<ChatCubit>().canEditMedia
+                            ? () => pickEditAttachments(context, index: editMediaMode(state.editing!) == EditMediaMode.album ? -1 : 0)
+                            : null,
                       ),
                     Expanded(
                       child: recorder.active
@@ -1335,7 +1362,9 @@ class _ComposeBar extends StatelessWidget {
                       child: ValueListenableBuilder<TextEditingValue>(
                         valueListenable: input,
                         builder: (context, value, _) {
-                          final canSend = value.text.trim().isNotEmpty || state.forwarding.isNotEmpty;
+                          final canSend =
+                              (value.text.trim().isNotEmpty || state.forwarding.isNotEmpty || editCaptionMayBeEmpty(state)) &&
+                              state.editUploadProgress == null;
                           // Пусто — микрофон (голосовое), как в Telegram.
                           // Слот фиксированный (как у скрепки слева): поле ввода не
                           // дёргается при смене кнопки.

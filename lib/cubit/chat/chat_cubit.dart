@@ -21,6 +21,8 @@ import '../../chats/chats_mapping.dart';
 import '../../chats/chats_presence.dart';
 import '../../chats/chats_sync.dart';
 import '../../chats/chats_typing.dart';
+import '../../chats/edit_media.dart';
+import '../../cdn.dart' show UploadCancelledException;
 import '../../chats/message_search.dart';
 import '../../chats/channel_rights.dart';
 import '../../chats/channel_views.dart';
@@ -455,19 +457,27 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   /// [scheduleDate] — отложить текст (пересылаемые уходят сразу).
   /// [mentions] — упомянутые по имени (без @username) из подсказки «@»:
   /// их имена в тексте становятся упоминаниями (`mentionName`).
-  Future<void> send(String raw, {bool silent = false, DateTime? scheduleDate, List<models.ChatMember> mentions = const []}) async {
+  ///
+  /// Правка с вложениями ([ChatState.editMedia]) — `true`, когда сохранилась
+  /// (тогда поле ввода можно очистить; иначе текст остаётся в нём).
+  Future<bool> send(String raw, {bool silent = false, DateTime? scheduleDate, List<models.ChatMember> mentions = const []}) async {
     final source = _source;
     final forwarding = state.forwarding;
-    if (source == null || (raw.trim().isEmpty && forwarding.isEmpty)) return;
+    final editMedia = state.editing == null ? null : state.editMedia;
+    // Подпись вложений может быть пустой.
+    final caption = state.editing != null && (editMedia != null || messageMediaCount(state.editing!) > 0);
+    if (source == null || (raw.trim().isEmpty && forwarding.isEmpty && !caption)) return false;
+    if (state.editUploadProgress != null) return false;
     if (_sendsTyping) ChatsTyping.instance.cancel(_chatID);
     // Правка сообщения медленным режимом не ограничена.
-    if (state.editing == null && (_slowModeWaiting || state.commentsBlocked)) return;
+    if (state.editing == null && (_slowModeWaiting || state.commentsBlocked)) return false;
     final (text, parsed) = parseMarkdownShortcuts(raw.trim());
     final entities = withMentionNames(text, parsed, mentions);
     // Новичку — только текст без ссылок (UI заранее объясняет, см.
     // `checkNewcomer`; здесь — страховка).
-    if (state.newcomerRestricted && (!isLinkFree(text, entities) || !forwarding.every(newcomerAllows))) return;
+    if (state.newcomerRestricted && (!isLinkFree(text, entities) || !forwarding.every(newcomerAllows))) return false;
     final editing = state.editing;
+    if (editing != null && editMedia != null && !editMedia.isEmpty) return _saveEditMedia(source, editing, text, entities, editMedia);
     final reply = _takeReply();
     final linkPreview = !state.linkPreviewDisabled;
     emit(state.copyWith(editing: null, forwarding: const [], linkPreviewDisabled: false));
@@ -480,7 +490,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
           ),
         );
       }
-      return;
+      return true;
     }
     // Как в Telegram: сначала комментарий, за ним пересылаемые.
     if (text.isNotEmpty) {
@@ -495,6 +505,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
       );
     }
     if (forwarding.isNotEmpty) await source.forwardMessages(_chatID, forwarding);
+    return true;
   }
 
   bool _loadingOlder = false;
@@ -932,14 +943,110 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
 
   /// Ответить на [message]; [quote] — на его фрагмент («Цитировать»).
   void startReply(models.Message message, {models.MessageQuote? quote}) =>
-      emit(state.copyWith(reply: message, replyQuote: quote, editing: null, forwarding: const []));
+      emit(state.copyWith(reply: message, replyQuote: quote, editing: null, editMedia: null, forwarding: const []));
 
-  void startEdit(models.Message message) => emit(state.copyWith(editing: message, reply: null, replyQuote: null, forwarding: const []));
+  void startEdit(models.Message message) {
+    _cancelEditUpload();
+    emit(state.copyWith(editing: message, editMedia: null, reply: null, replyQuote: null, forwarding: const []));
+  }
 
   /// × на превью ссылки над полем ввода.
   void disableLinkPreview() => emit(state.copyWith(linkPreviewDisabled: true));
 
-  void cancelCompose() => emit(state.copyWith(reply: null, replyQuote: null, editing: null, forwarding: const []));
+  void cancelCompose() {
+    _cancelEditUpload();
+    emit(state.copyWith(reply: null, replyQuote: null, editing: null, editMedia: null, forwarding: const []));
+  }
+
+  // --- правка вложений (скрепка в режиме «Изменить») ---
+
+  /// Сохранение правки с вложениями отменили (× в шапке) — загрузка
+  /// прерывается между чанками.
+  var _editUploadCancelled = false;
+
+  void _cancelEditUpload() {
+    if (state.editUploadProgress == null) return;
+    _editUploadCancelled = true;
+    emit(state.copyWith(editUploadProgress: null));
+  }
+
+  /// «Изменить» у [message]: есть право ([canEdit]) и такое сообщение правится
+  /// ([canEditMessageText]: текст, фото, видео, файл; не пересланное).
+  bool canEditMessage(models.Message message) => canEdit(message) && canEditMessageText(message);
+
+  /// Скрепка в режиме «Изменить»: заменить / добавить вложения (не голосовое,
+  /// не опрос, не пересланное, не неотправленное, не секретный чат); пока
+  /// правка сохраняется — нет.
+  bool get canEditMedia {
+    final editing = state.editing;
+    return editing != null && state.editUploadProgress == null && canEditMessageMedia(editing, secret: state.chat?.isSecret ?? false);
+  }
+
+  /// Выбранное в скрепке — в правку (см. [pickEditMedia]); [index] —
+  /// заменяемый элемент альбома.
+  EditMediaPick? addEditMedia(List<models.MessageMedia> picked, {int index = 0}) {
+    final editing = state.editing;
+    if (editing == null || !canEditMedia) return null;
+    final result = pickEditMedia(editing, state.editMedia ?? const models.EditMedia(), picked, index: index);
+    emit(state.copyWith(editMedia: result.draft.isEmpty ? null : result.draft));
+    return result;
+  }
+
+  /// Отменить замену элемента [replaced] / убрать добавленное [added].
+  void removeEditMedia({int? replaced, int? added}) {
+    final draft = state.editMedia;
+    if (draft == null || state.editUploadProgress != null) return;
+    var next = draft;
+    if (replaced != null) next = undoEditReplace(next, replaced);
+    if (added != null && added >= 0 && added < next.added.length) next = removeEditAdded(next, added);
+    emit(state.copyWith(editMedia: next.isEmpty ? null : next));
+  }
+
+  /// Сохранить правку с вложениями: сеть нужна сразу (нет — «Нет соединения»,
+  /// правка остаётся в поле ввода, пузырь не меняется), новые файлы грузятся
+  /// с прогрессом в шапке, потом одна правка на сервере. `true` — сохранено.
+  Future<bool> _saveEditMedia(
+    ChatsDataSource source,
+    models.Message editing,
+    String text,
+    List<models.MessageEntity> entities,
+    models.EditMedia media,
+  ) async {
+    _editUploadCancelled = false;
+    emit(state.copyWith(editUploadProgress: 0));
+    try {
+      await source.editMessage(
+        _chatID,
+        editing.id,
+        text,
+        entities,
+        media: media,
+        isCancelled: () => _editUploadCancelled || isClosed,
+        onUpload: (sent, total) {
+          final progress = state.editUploadProgress;
+          if (isClosed || progress == null || total <= 0) return;
+          final value = (sent / total).clamp(0.0, 1.0);
+          if (value - progress >= 0.01 || value == 1) emit(state.copyWith(editUploadProgress: value));
+        },
+      );
+      // Отменили, когда запрос уже ушёл, — правка всё равно сохранилась.
+      if (!isClosed && state.editing?.id == editing.id) {
+        emit(state.copyWith(editing: null, editMedia: null, editUploadProgress: null, linkPreviewDisabled: false));
+      }
+      return true;
+    } on ChatsOfflineException {
+      if (!isClosed) emit(state.copyWith(editUploadProgress: null, offlineNotice: state.offlineNotice + 1));
+    } on ChatsRequestException catch (error) {
+      if (!isClosed) emit(state.copyWith(editUploadProgress: null));
+      _failed(error);
+    } on UploadCancelledException {
+      if (!isClosed) emit(state.copyWith(editUploadProgress: null));
+    } catch (error, stackTrace) {
+      getIt.get<Logger>().handle(error, stackTrace);
+      if (!isClosed) emit(state.copyWith(editUploadProgress: null, failNotice: state.failNotice + 1, failError: 'failed'));
+    }
+    return false;
+  }
 
   /// Закрепить / открепить (меню сообщения, крестик в плашке); [forEveryone]
   /// — см. [ChatsDataSource.setMessagePinned].
@@ -1084,7 +1191,17 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     final messages = _forwardSelection();
     if (messages.isEmpty) return;
     if (toChatID == _chatID) {
-      emit(state.copyWith(selecting: false, selectedIDs: const [], forwarding: messages, reply: null, replyQuote: null, editing: null));
+      emit(
+        state.copyWith(
+          selecting: false,
+          selectedIDs: const [],
+          forwarding: messages,
+          reply: null,
+          replyQuote: null,
+          editing: null,
+          editMedia: null,
+        ),
+      );
     } else {
       forwardTo(toChatID, messages);
       clearSelection();
@@ -1305,6 +1422,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     'pollClosed',
     'pollForward',
     'reactionsLimit',
+    editMediaInvalid,
     subscribeRequiredError,
     ...commentsErrors,
   };

@@ -14830,19 +14830,32 @@ class Messages_DeleteScheduledResult extends $pb.GeneratedMessage {
   Updates ensureUpdates() => $_ensure(0);
 }
 
-/// Изменить своё (текст / разметку; медиа не меняются).
+/// Изменить своё (текст / разметку). replaceMedia (2026-10-23, как
+/// editMessage с media в Telegram) — вложения сообщения целиком заменяются на
+/// media (файлы уже загружены через Upload, как при Send): заменить одно в
+/// альбоме (клиент шлёт весь альбом с заменённым), добавить фото / видео /
+/// файл к текстовому (текст становится подписью). Нельзя: голосовые и
+/// кружки (ни заменить, ни добавить к ним), опрос, звонок, служебные,
+/// пересланные, пустое сообщение без текста и вложений, смешать в альбоме то,
+/// что нельзя смешать при Send, больше 10 вложений — INVALID_ARGUMENT
+/// «mediaInvalid». Срок правки и права — как у текста. Старые файлы уходят в
+/// сборку мусора, если больше нигде не используются.
 class Messages_Edit extends $pb.GeneratedMessage {
   factory Messages_Edit({
     $core.List<$core.int>? chatID,
     $fixnum.Int64? messageID,
     $core.String? text,
     $core.Iterable<MessageEntity>? entities,
+    $core.bool? replaceMedia,
+    $core.Iterable<MessageMedia>? media,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
     if (messageID != null) result.messageID = messageID;
     if (text != null) result.text = text;
     if (entities != null) result.entities.addAll(entities);
+    if (replaceMedia != null) result.replaceMedia = replaceMedia;
+    if (media != null) result.media.addAll(media);
     return result;
   }
 
@@ -14859,6 +14872,8 @@ class Messages_Edit extends $pb.GeneratedMessage {
     ..aInt64(2, _omitFieldNames ? '' : 'messageID', protoName: 'messageID')
     ..aOS(3, _omitFieldNames ? '' : 'text')
     ..pPM<MessageEntity>(4, _omitFieldNames ? '' : 'entities', subBuilder: MessageEntity.create)
+    ..aOB(5, _omitFieldNames ? '' : 'replaceMedia', protoName: 'replaceMedia')
+    ..pPM<MessageMedia>(6, _omitFieldNames ? '' : 'media', subBuilder: MessageMedia.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -14907,6 +14922,18 @@ class Messages_Edit extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(4)
   $pb.PbList<MessageEntity> get entities => $_getList(3);
+
+  @$pb.TagNumber(5)
+  $core.bool get replaceMedia => $_getBF(4);
+  @$pb.TagNumber(5)
+  set replaceMedia($core.bool value) => $_setBool(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasReplaceMedia() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearReplaceMedia() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $pb.PbList<MessageMedia> get media => $_getList(5);
 }
 
 class Messages_EditResult extends $pb.GeneratedMessage {
