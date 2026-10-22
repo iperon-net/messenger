@@ -21,6 +21,7 @@ import '../protobuf/protos/chats_v1.pb.dart' as pb;
 import '../repositories.dart';
 import '../demo/chats_demo_data_source.dart';
 import '../i18n/translations.g.dart';
+import 'channel_views.dart';
 import 'chats_data_source.dart';
 import 'chats_mapping.dart';
 import 'chats_presence.dart';
@@ -110,10 +111,11 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     groupRoles: true,
     groupJoining: true,
     groupExtras: true,
-    // Каналы (срез 4.1) — по флагу «Каналы»; комментарии, просмотры, реакции
-    // и опросы в канале — подэтапы 4.2–4.3.
+    // Каналы (срез 4.1) — по флагу «Каналы»; просмотры, реакции и опросы в
+    // канале — подэтап 4.2, комментарии — 4.3 (пока скрыты).
     channels: _sync.channels,
-    channelExtras: false,
+    channelExtras: true,
+    channelComments: false,
     forwardPolls: true,
     pollsGroupsOnly: true,
   );
@@ -382,6 +384,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
             noForwards: group.info.noForwards,
             // Канал: «Подписывать сообщения» (4.1).
             signMessages: group.info.signMessages,
+            // Канал: «Максимум реакций под постом» (4.2).
+            maxReactions: maxReactionsOf(group.info),
             unreadMentions: row.unreadMentions,
             lastMessage: lastMessage,
             unreadCount: row.unreadCount,
@@ -1157,6 +1161,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       membersHidden: info.membersHidden,
       noForwards: info.noForwards,
       signMessages: info.signMessages,
+      maxReactions: maxReactionsOf(info),
       isMember: false,
       joinRequested: preview.requested,
       createdAt: info.createdAt > 0 ? DateTime.fromMillisecondsSinceEpoch(info.createdAt.toInt()) : null,
@@ -1717,19 +1722,24 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     );
   }
 
-  /// Группа: режим и набор (`EditChat.reactions`). «Некоторые» без единой —
-  /// сервер не примет (1..всех), не отправляем.
+  /// Группа и канал: режим и набор (`EditChat.reactions`). «Некоторые» без
+  /// единой — сервер не примет (1..всех), не отправляем. Канал — ещё
+  /// [maxReactions] («Максимум реакций под постом», 1–11; `null` — не менять).
   @override
   Future<void> setChatReactions(String chatID, models.ChatReactionsMode mode, List<String> reactions, {int? maxReactions}) async {
     final chat = idBytes(chatID);
-    if (await _store.group(userID: _sync.me, chatID: chat) == null) _unsupported('Реакции каналов');
+    final group = await _store.group(userID: _sync.me, chatID: chat);
+    if (group == null) _unsupported('Реакции сообществ');
     if (mode == models.ChatReactionsMode.some && reactions.isEmpty) return;
+    final channel = group.info.type == pb.ChatType.CHAT_TYPE_CHANNEL;
     await _editChat(
       pb.Chats_EditChat(
         chatID: chat,
         reactions: pb.Chats_ChatReactionsSettings(
           mode: reactionsModeToPb(mode),
           emojis: mode == models.ChatReactionsMode.some ? reactions : const [],
+          // У группы поля нет (сервер — INVALID_ARGUMENT); 0 — не менять.
+          maxReactions: channel && maxReactions != null ? maxReactions.clamp(1, maxReactionsPerPost) : null,
         ),
       ),
     );
@@ -2509,6 +2519,41 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     );
   }
 
+  // --- просмотры постов канала (подэтап 4.2) ---
+
+  /// Очереди просмотров по каналам (hex id): живут дольше окна канала —
+  /// накопленное без сети уходит после подключения.
+  final _channelViews = <String, ChannelViews>{};
+
+  /// Просмотры постов канала [chatID] (см. [ChannelViews]).
+  ChannelViews channelViews(String chatID) => _channelViews.putIfAbsent(chatID, () {
+    final chat = idBytes(chatID);
+    return ChannelViews(
+      fetch: (ids, {required increment}) => _getViews(chat, ids, increment: increment),
+      viewed: (ids) => _store.viewedIDs(userID: _sync.me, chatID: chat, messageIDs: ids),
+      markViewed: (ids) => _store.markViewed(userID: _sync.me, chatID: chat, messageIDs: ids),
+    );
+  });
+
+  /// `Messages.GetViews`: числа — в кэш (лента перерисуется). Нет сети или
+  /// не авторизованы — `null` (повторить позже).
+  Future<Map<int, int>?> _getViews(Uint8List chat, List<int> ids, {required bool increment}) async {
+    if (!_auth.isAuthorized || !await _sync.hasNetwork()) return null;
+    final pb.Messages_Response response;
+    try {
+      response = await _sync.messages(
+        pb.Messages_Request(
+          getViews: pb.Messages_GetViews(chatID: chat, messageIDs: [for (final id in ids) Int64(id)], increment: increment),
+        ),
+      );
+    } on ChatsOfflineException {
+      return null;
+    }
+    final views = {for (final v in response.getViews.views) v.messageID.toInt(): v.views};
+    await _store.setViews(userID: _sync.me, chatID: chat, views: views);
+    return views;
+  }
+
   // --- отложенные ---
 
   /// Принятые сервером (кэш, при подписке — свежий список с сервера) и ещё
@@ -2823,7 +2868,17 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       if (source == null) continue;
       final content = pb.MessageContent.fromBuffer(source.content.writeToBuffer())..clearReplyTo();
       if (!content.hasForward()) {
-        content.forward = pb.MessageForward(fromUserID: source.fromUserID, fromName: m.forward?.name ?? '', date: source.date);
+        // Пост канала (4.2) — «Переслано из» канала с подписью автора.
+        final channel = (await _store.dialog(userID: me, chatID: from))?.type == pb.ChatType.CHAT_TYPE_CHANNEL.value;
+        content.forward = channel
+            ? pb.MessageForward(
+                fromChatID: from,
+                fromMessageID: Int64(id),
+                fromSignature: source.authorSignature,
+                fromName: m.forward?.name ?? '',
+                date: source.date,
+              )
+            : pb.MessageForward(fromUserID: source.fromUserID, fromName: m.forward?.name ?? '', date: source.date);
       }
       await _store.addOutbox(
         userID: me,

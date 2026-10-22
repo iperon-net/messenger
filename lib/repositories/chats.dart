@@ -592,8 +592,8 @@ class ChatsRepository {
     await ctx.execute(
       '''
       INSERT INTO chatMessages (userID, chatID, messageID, fromUserID, date, editDate, randomID, mediaUnread, silent, content, searchText, reactions,
-        reactionsUnread, expireAt, poll, searchHit, authorSignature, postOut)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        reactionsUnread, expireAt, poll, searchHit, authorSignature, postOut, views)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(userID, chatID, messageID) DO UPDATE SET
         fromUserID = excluded.fromUserID,
         date = excluded.date,
@@ -611,7 +611,9 @@ class ChatsRepository {
         authorSignature = excluded.authorSignature,
         -- «Мой пост» канала приходит только в ответах мне (Send, история);
         -- общее обновление журнала его не несёт — не сбрасываем.
-        postOut = MAX(chatMessages.postOut, excluded.postOut);
+        postOut = MAX(chatMessages.postOut, excluded.postOut),
+        -- Просмотры только растут; журнал их не несёт (0) — не сбрасываем.
+        views = MAX(chatMessages.views, excluded.views);
       ''',
       [
         userID,
@@ -632,6 +634,7 @@ class ChatsRepository {
         searchHit ? 1 : 0,
         message.authorSignature,
         message.postOut ? 1 : 0,
+        message.views,
       ],
     );
     if (message.mentionUnread) await addMentions(userID: userID, chatID: message.chatID, messageIDs: [message.messageID.toInt()]);
@@ -1342,6 +1345,36 @@ class ChatsRepository {
     return missing;
   }
 
+  // --- просмотры постов канала (подэтап 4.2) ---
+
+  /// Свежие числа просмотров ([views]: messageID → число) из GetViews.
+  /// Только растут (как и при записи сообщения).
+  Future<void> setViews({required List<int> userID, required List<int> chatID, required Map<int, int> views}) async {
+    if (views.isEmpty) return;
+    await ctx.executeBatch('UPDATE chatMessages SET views = MAX(views, ?) WHERE userID = ? AND chatID = ? AND messageID = ?;', [
+      for (final MapEntry(key: id, value: count) in views.entries) [count, userID, chatID, id],
+    ]);
+  }
+
+  /// Посты [messageIDs] учтены сервером как просмотренные мной (GetViews с
+  /// increment) — повторно не слать.
+  Future<void> markViewed({required List<int> userID, required List<int> chatID, required List<int> messageIDs}) async {
+    if (messageIDs.isEmpty) return;
+    await ctx.executeBatch('UPDATE chatMessages SET viewed = 1 WHERE userID = ? AND chatID = ? AND messageID = ?;', [
+      for (final id in messageIDs) [userID, chatID, id],
+    ]);
+  }
+
+  /// Какие из [messageIDs] уже учтены ([markViewed]).
+  Future<Set<int>> viewedIDs({required List<int> userID, required List<int> chatID, required List<int> messageIDs}) async {
+    if (messageIDs.isEmpty) return const {};
+    final rows = await ctx.getAll(
+      'SELECT messageID FROM chatMessages WHERE userID = ? AND chatID = ? AND viewed = 1 AND messageID IN (${List.filled(messageIDs.length, '?').join(', ')});',
+      [userID, chatID, ...messageIDs],
+    );
+    return {for (final row in rows) row['messageID'] as int};
+  }
+
   pb.ChatMessage _messageFromRow(Map<String, dynamic> row) => pb.ChatMessage(
     chatID: row['chatID'] as List<int>,
     messageID: Int64(row['messageID'] as int),
@@ -1358,6 +1391,7 @@ class ChatsRepository {
     poll: row['poll'] == null ? null : pb.PollResults.fromBuffer(row['poll'] as List<int>),
     authorSignature: row['authorSignature'] as String? ?? '',
     postOut: (row['postOut'] as int? ?? 0) != 0,
+    views: row['views'] as int? ?? 0,
   );
 
   static int _ttlFromRow(Map<String, dynamic> row) {

@@ -575,6 +575,8 @@
   "forwardTo": "Forward to…"
   "forwardedFrom": "Forwarded from {name}"
   "forwardHidden": "The account was hidden by the user"
+  "forwardedFromChannel": "Forwarded from {name}"
+  "forwardChannelUnavailable": "The channel is unavailable: you are not subscribed to it"
   "forwardFrom": "From: {names}"
   "savedToFavorites(plural)":
     one: "Message saved to Saved Messages"
@@ -1320,6 +1322,7 @@ dateTime:
   "slowModeWait": "Slow mode is on in this group — the message will be sent when the wait is over."
   "pollClosed": "This poll has already ended."
   "pollForward": "Polls can't be forwarded."
+  "reactionsLimit": "This post already has the maximum number of different reactions. You can only add one that's already there."
 
 "chatTtl":
   "title": "Auto-delete"

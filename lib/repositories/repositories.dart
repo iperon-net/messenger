@@ -910,6 +910,17 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(44, (tx) async {
+        // Просмотры постов канала (подэтап 4.2, docs/plans/chats-channels.md):
+        // число (ChatMessage.views; свежее — Messages.GetViews, в журнал не
+        // пишется) и «я уже учтён» (GetViews с increment ушёл — повторно после
+        // перезапуска не шлём).
+        await tx.execute('ALTER TABLE chatMessages ADD COLUMN views INTEGER NOT NULL DEFAULT 0;');
+        await tx.execute('ALTER TABLE chatMessages ADD COLUMN viewed INTEGER NOT NULL DEFAULT 0;');
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

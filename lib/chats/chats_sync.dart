@@ -115,6 +115,11 @@ class ChatsRequestException implements Exception {
   /// capability `channels` (`FailedPrecondition` «channelsDisabled»).
   bool get isChannelsDisabled => statusCode == StatusCode.failedPrecondition && error == 'channelsDisabled';
 
+  /// Канал: под постом уже набран «Максимум реакций под постом» — новую
+  /// (не стоящую там) реакцию не поставить (`InvalidArgument`
+  /// «reactionsLimit», подэтап 4.2).
+  bool get isReactionsLimit => statusCode == StatusCode.invalidArgument && error == 'reactionsLimit';
+
   /// Не найдено (`NotFound`): например, пользователя с таким именем нет.
   bool get isNotFound => statusCode == StatusCode.notFound;
 
@@ -952,8 +957,16 @@ class ChatsSync {
       case pb.Update_Update.messageReactions:
         final changed = update.messageReactions;
         final messageID = changed.messageID.toInt();
+        // Канал (4.2): мой набор приходит в журнал пользователя без actor —
+        // счётчики глазами меня целиком (снял все — ни одной chosenOrder, и
+        // старые мои не должны остаться). Журнал канала — слитно, без actor:
+        // свои не трогаем ([mergeSharedReactions]).
+        final mine =
+            update.chatPts == 0 &&
+            changed.actorUserID.isEmpty &&
+            (await tx.dialog(userID: user, chatID: changed.chatID))?.type == pb.ChatType.CHAT_TYPE_CHANNEL.value;
         // Группа: счётчики без моего порядка + кто изменил ([mergeSharedReactions]).
-        final reactions = changed.reactions.counts.isEmpty
+        final reactions = changed.reactions.counts.isEmpty || mine
             ? changed.reactions
             : mergeSharedReactions(
                 await tx.messageReactions(userID: user, chatID: changed.chatID, messageID: messageID),
@@ -1664,6 +1677,8 @@ class ChatsSync {
         if (error.statusCode == StatusCode.unauthenticated) return false;
         _logger.warning('chats: reactions rejected chat=${idHex(row.chatID)} message=${row.messageID}: $error');
         if (error.isPrivacyRestricted) _writeRestricted.add((chatID: row.chatID, peerUserID: null, restricted: true));
+        // Канал: под постом уже набран «Максимум реакций» — окно объяснит.
+        if (error.isReactionsLimit) _sendRejected.add((chatID: row.chatID, error: error.error));
         await _store.deletePendingReactions(userID: user, chatID: row.chatID, messageID: row.messageID, createdAt: row.createdAt);
         continue;
       }

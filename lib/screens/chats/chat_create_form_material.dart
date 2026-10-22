@@ -492,13 +492,13 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                           const SizedBox(height: 8),
                           card([
                             // Комментарии на сервере — подэтап 4.3.
-                            if (state.channelExtras)
+                            if (state.channelComments)
                               SwitchListTile(
                                 title: Text(t.screenNewChat.commentsSwitch),
                                 value: state.commentsEnabled,
                                 onChanged: context.read<ChatCreateCubit>().setCommentsEnabled,
                               ),
-                            if (state.channelExtras && state.commentsEnabled) ...[
+                            if (state.channelComments && state.commentsEnabled) ...[
                               ListTile(
                                 title: Text(t.screenNewChat.commentsLimit),
                                 subtitle: Text(commentsLimitLabel(t, state.commentsTimeLimit)),
@@ -549,7 +549,7 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                           createNoteMaterial(
                             context,
                             [
-                              if (state.channelExtras) ...[
+                              if (state.channelComments) ...[
                                 t.screenNewChat.commentsFooter,
                                 if (state.commentsEnabled) t.screenNewChat.commentsLimitFooter,
                                 if (state.commentsEnabled && state.commentsWho == models.ChatCommentsWho.subscribers)

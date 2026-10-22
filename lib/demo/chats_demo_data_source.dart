@@ -2067,10 +2067,13 @@ class ChatsDemoDataSource implements ChatsDataSource {
           // Пересылка пересланного — автор оригинала остаётся прежним.
           forward:
               m.forward ??
-              models.MessageForward(
-                self: m.outgoing,
-                name: m.outgoing ? '' : (m.senderName.isNotEmpty ? m.senderName : source[m.chatID]?.title ?? ''),
-              ),
+              (source[m.chatID]?.type == models.ChatType.channel
+                  // Пост канала — «Переслано из» канала, с подписью автора.
+                  ? models.MessageForward(name: source[m.chatID]!.title, chatID: m.chatID, messageID: m.id, signature: m.authorSignature)
+                  : models.MessageForward(
+                      self: m.outgoing,
+                      name: m.outgoing ? '' : (m.senderName.isNotEmpty ? m.senderName : source[m.chatID]?.title ?? ''),
+                    )),
         ),
     ];
     if (copies.isEmpty) return;
@@ -3017,7 +3020,7 @@ class ChatsDemoDataSource implements ChatsDataSource {
         duration: post.duration,
         status: models.MessageStatus.read,
         date: post.date,
-        forward: models.MessageForward(name: channel.title),
+        forward: models.MessageForward(name: channel.title, chatID: channel.id, messageID: post.id, signature: post.authorSignature),
         linkPreview: post.linkPreview,
       ),
       models.Message(

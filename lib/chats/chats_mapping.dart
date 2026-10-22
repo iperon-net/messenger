@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:fixnum/fixnum.dart';
@@ -5,6 +6,7 @@ import 'package:fixnum/fixnum.dart';
 import '../i18n/translations.g.dart';
 import '../models.dart' as models;
 import '../protobuf/protos/chats_v1.pb.dart' as pb;
+import 'reactions.dart' show maxReactionsPerPost;
 
 /// Маппинг «сервер (chats_v1.proto) → клиентские модели» и обратно для
 /// [ChatsRemoteDataSource]: экраны работают с теми же `Chat`/`Message`, что
@@ -396,6 +398,12 @@ pb.PollResults mergePollResults(
   return result;
 }
 
+/// «Максимум реакций под постом» канала (`ChatInfo.maxReactions`, 1–11);
+/// у группы и у старого сервера (0) — без лимита ([maxReactionsPerPost]).
+int maxReactionsOf(pb.ChatInfo info) => info.type == pb.ChatType.CHAT_TYPE_CHANNEL && info.maxReactions > 0
+    ? math.min(info.maxReactions, maxReactionsPerPost)
+    : maxReactionsPerPost;
+
 /// Режим реакций группы — сервер → модель и обратно (порядок совпадает).
 models.ChatReactionsMode reactionsModeFromPb(pb.ChatReactionsMode mode) => switch (mode) {
   pb.ChatReactionsMode.CHAT_REACTIONS_SOME => models.ChatReactionsMode.some,
@@ -473,6 +481,8 @@ models.Message messageFromPb(
               : outgoingStatus(messageID: m.messageID.toInt(), readOutboxMaxID: readOutboxMaxID, isSelf: isSelf))
         : models.MessageStatus.read,
     authorSignature: channel ? m.authorSignature : '',
+    // Просмотры поста канала (4.2): из выдачи / кэша, свежие — GetViews.
+    views: channel && !_isService(m.content) ? m.views : 0,
     date: DateTime.fromMillisecondsSinceEpoch(m.date.toInt()),
     edited: m.editDate > 0,
     reply: content.hasReplyTo()
@@ -539,8 +549,18 @@ models.MessageReply replyFromPb(
   );
 }
 
-/// Без fromUserID — автор запретил ссылку на аккаунт при пересылке.
+/// Без fromUserID — автор запретил ссылку на аккаунт при пересылке. Пост
+/// канала (4.2) — fromChatID / fromMessageID / fromSignature, автора нет
+/// (это не «скрыт»).
 models.MessageForward forwardFromPb(pb.MessageForward f, {required List<int> myUserID}) {
+  if (f.fromChatID.isNotEmpty) {
+    return models.MessageForward(
+      name: f.fromName,
+      chatID: idHex(f.fromChatID),
+      messageID: f.fromMessageID > 0 ? f.fromMessageID.toString() : '',
+      signature: f.fromSignature,
+    );
+  }
   final self = f.fromUserID.isNotEmpty && sameID(f.fromUserID, myUserID);
   return models.MessageForward(
     name: f.fromName,

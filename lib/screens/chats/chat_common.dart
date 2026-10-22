@@ -341,13 +341,30 @@ void showChatsNoConnection(BuildContext context) {
 
 /// Тап по «Переслано от …»: личный чат с автором оригинала; автор запретил
 /// ссылку на аккаунт при пересылке — «Аккаунт скрыт пользователем».
-void openForwardAuthor(BuildContext context, models.Message message) {
+Future<void> openForwardAuthor(BuildContext context, models.Message message) async {
   final forward = message.forward;
   if (forward == null || forward.self) return;
+  if (forward.fromChannel) return _openForwardChannel(context, forward);
   if (forward.userID.isNotEmpty) {
     openMentionName(context, forward.userID);
   } else if (forward.hidden) {
     showChatToast(context, context.t.screenChat.forwardHidden);
+  }
+}
+
+/// «Переслано из <канал>» (подэтап 4.2): подписан — окно канала; нет —
+/// пояснение (предпросмотра по одному id канала у сервера нет — только по
+/// ссылке / имени, а их в пересылке нет).
+Future<void> _openForwardChannel(BuildContext context, models.MessageForward forward) async {
+  final source = chatsDataSource(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo);
+  if (source == null) return;
+  final chats = await source.watchChats().first;
+  if (!context.mounted) return;
+  final chat = chats.where((c) => c.id == forward.chatID).firstOrNull;
+  if (chat != null && chat.isMember) {
+    await context.push('/chats/chat/${forward.chatID}');
+  } else {
+    showChatToast(context, context.t.screenChat.forwardChannelUnavailable);
   }
 }
 
@@ -445,6 +462,7 @@ void showChatsFailed(BuildContext context, String error) {
       'slowModeWait' => t.slowModeWait,
       'pollClosed' => t.pollClosed,
       'pollForward' => t.pollForward,
+      'reactionsLimit' => t.reactionsLimit,
       _ => t.failed,
     }),
   );
@@ -699,8 +717,13 @@ Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController
   final chat = cubit.state.chat;
   if (!checkSlowMode(context) || !checkNewcomer(context, media: true)) return;
   // «Опрос» — в группах, сообществах, каналах и комментариях (не в личных);
-  // на сервере опросов пока нет.
-  final polls = chat != null && chat.type != models.ChatType.private && cubit.features.groupExtras;
+  // в канале — у тех, кто публикует (поле ввода есть только у них), с
+  // [ChatsFeatures.channelExtras] (на сервере — подэтап 4.2).
+  final features = cubit.features;
+  final polls =
+      chat != null &&
+      chat.type != models.ChatType.private &&
+      (chat.type == models.ChatType.channel ? features.channelExtras && chat.canPost : features.groupExtras);
   final result = await showToolbarAttachments(
     context,
     tabs: [ToolbarAttachmentTabKind.gallery, ToolbarAttachmentTabKind.file, if (polls) ToolbarAttachmentTabKind.poll],
@@ -2056,3 +2079,55 @@ class MentionSuggestions extends StatelessWidget {
 /// chat_actions_cupertino.dart), на Android шторкой ([pickScopeMaterial] в
 /// chat_actions_material.dart).
 bool chatDeleteScoped(models.Chat chat) => chat.type == models.ChatType.private && !chat.isSelf && !chat.isSystem;
+
+/// Просмотры постов канала (подэтап 4.2): раз в [_interval] — какие посты
+/// сейчас на экране ([ChatCubit.postsVisible]; дальше — `ChannelViews`).
+/// Окно не наверху (открыт другой экран) или приложение в фоне — на экране
+/// ничего. Только если [ChatCubit.tracksViews].
+class ChannelViewsSampler {
+  final ChatCubit cubit;
+  final ScrollController scroll;
+  final GlobalKey Function(String id) keyFor;
+
+  /// Окно чата сейчас видно пользователю (его маршрут — верхний).
+  final bool Function() active;
+
+  ChannelViewsSampler({required this.cubit, required this.scroll, required this.keyFor, required this.active}) {
+    _timer = Timer.periodic(_interval, (_) => _sample());
+  }
+
+  /// Чаще порога «≥ 0,5 с на экране», чтобы он соблюдался с точностью шага.
+  static const _interval = Duration(milliseconds: 250);
+
+  late final Timer _timer;
+
+  void dispose() => _timer.cancel();
+
+  void _sample() {
+    if (!cubit.tracksViews) return;
+    final shown = active() && WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+    cubit.postsVisible(shown ? visibleMessageIDs(scroll, cubit.state.messages, keyFor) : const []);
+  }
+}
+
+/// id сообщений [messages], которые сейчас на экране ленты [scroll]: видна
+/// хотя бы половина пузыря (у длинного — половина высоты ленты).
+List<String> visibleMessageIDs(ScrollController scroll, List<models.Message> messages, GlobalKey Function(String id) keyFor) {
+  if (!scroll.hasClients) return const [];
+  final viewport = scroll.position.context.storageContext.findRenderObject();
+  if (viewport is! RenderBox || !viewport.attached || !viewport.hasSize) return const [];
+  final top = viewport.localToGlobal(Offset.zero).dy;
+  final height = viewport.size.height;
+  final bottom = top + height;
+  return [
+    for (final message in messages)
+      if (keyFor(message.id).currentContext?.findRenderObject() case final RenderBox box when box.attached && box.hasSize)
+        if (_overlap(box, top, bottom) case final overlap when overlap > 0 && (overlap >= box.size.height / 2 || overlap >= height / 2))
+          message.id,
+  ];
+}
+
+double _overlap(RenderBox box, double top, double bottom) {
+  final y = box.localToGlobal(Offset.zero).dy;
+  return math.min(bottom, y + box.size.height) - math.max(top, y);
+}

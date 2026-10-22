@@ -23,6 +23,7 @@ import '../../chats/chats_sync.dart';
 import '../../chats/chats_typing.dart';
 import '../../chats/message_search.dart';
 import '../../chats/channel_rights.dart';
+import '../../chats/channel_views.dart';
 import '../../chats/group_rights.dart';
 import '../../models.dart' as models;
 import '../../privacy_blocks.dart';
@@ -632,6 +633,37 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     await _source?.setReactions(_chatID, message.id, toggleMyReaction(mine, emoji));
   }
 
+  // --- просмотры постов канала (подэтап 4.2) ---
+
+  ChannelViews? _views;
+
+  /// Лента канала на сервере с просмотрами ([ChatsFeatures.channelExtras]),
+  /// где я подписчик (без подписки — подэтап 4.4): экран сообщает, какие
+  /// посты на экране ([postsVisible]).
+  bool get tracksViews {
+    final chat = state.chat;
+    return _source is ChatsRemoteDataSource &&
+        chat != null &&
+        chat.type == models.ChatType.channel &&
+        chat.isMember &&
+        features.channelExtras &&
+        !isClosed;
+  }
+
+  /// Посты [ids] сейчас на экране (снимок целиком). Служебные и
+  /// неотправленные (outbox) не считаются.
+  void postsVisible(Iterable<String> ids) {
+    final source = _source;
+    if (!tracksViews || source is! ChatsRemoteDataSource) return;
+    final views = _views ??= source.channelViews(_chatID)..attach();
+    final byID = {for (final m in state.messages) m.id: m};
+    views.visible([
+      for (final id in ids)
+        if (byID[id] case final m? when !m.service && m.status != models.MessageStatus.pending && m.status != models.MessageStatus.failed)
+          ?serverMessageID(m.id),
+    ]);
+  }
+
   /// Строка ленты оказалась на экране: наше сообщение с непрочитанными
   /// реакциями или упоминание нас — «просмотрено» (пачкой).
   void unreadShown(models.Message message) {
@@ -1005,6 +1037,11 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
       if (canForward(m))
         m.forward != null
             ? m
+            // Пост канала — «Переслано из» канала (с подписью автора).
+            : state.chat?.type == models.ChatType.channel
+            ? m.copyWith(
+                forward: models.MessageForward(name: state.chat!.title, chatID: _chatID, messageID: m.id, signature: m.authorSignature),
+              )
             : m.copyWith(
                 forward: models.MessageForward(
                   self: m.outgoing,
@@ -1250,10 +1287,11 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     'newcomerRestricted',
     'pollClosed',
     'pollForward',
+    'reactionsLimit',
   };
 
   /// Отказы при отправке из outbox, которые объясняем ([ChatsSync.sendRejected]).
-  static const _sendErrors = {'newcomerRestricted', 'pollForward', 'chatWriteForbidden', 'slowModeWait'};
+  static const _sendErrors = {'newcomerRestricted', 'pollForward', 'chatWriteForbidden', 'slowModeWait', 'reactionsLimit'};
 
   /// Назначить админом / изменить права и «звание». false — не сохранено.
   Future<bool> setAdmin(models.ChatMember member, models.ChatAdminRights rights, String rank) =>
@@ -1518,6 +1556,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     _commentsTimer?.cancel();
     _reactionsSeenTimer?.cancel();
     _mentionsSeenTimer?.cancel();
+    _views?.detach();
     return super.close();
   }
 }

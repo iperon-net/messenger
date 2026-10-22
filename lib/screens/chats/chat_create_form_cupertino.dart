@@ -477,7 +477,7 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                           section(
                             footer: createNoteCupertino(
                               [
-                                if (state.channelExtras) ...[
+                                if (state.channelComments) ...[
                                   t.screenNewChat.commentsFooter,
                                   if (state.commentsEnabled) t.screenNewChat.commentsLimitFooter,
                                   if (state.commentsEnabled && state.commentsWho == models.ChatCommentsWho.subscribers)
@@ -489,7 +489,7 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                             ),
                             children: [
                               // Комментарии на сервере — подэтап 4.3.
-                              if (state.channelExtras)
+                              if (state.channelComments)
                                 CupertinoListTile(
                                   title: Text(t.screenNewChat.commentsSwitch, style: const TextStyle(fontSize: AppFontSizes.body)),
                                   trailing: CupertinoSwitch(
@@ -498,7 +498,7 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                                   ),
                                 ),
                               // Выбор вариантов — выпадающее меню у строки (как в настройках iOS).
-                              if (state.channelExtras && state.commentsEnabled) ...[
+                              if (state.channelComments && state.commentsEnabled) ...[
                                 menuRow<int>(
                                   title: t.screenNewChat.commentsLimit,
                                   values: commentsLimitOptions,

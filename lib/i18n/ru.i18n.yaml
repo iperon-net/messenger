@@ -593,6 +593,8 @@
   "forwardTo": "Переслать в…"
   "forwardedFrom": "Переслано от {name}"
   "forwardHidden": "Аккаунт скрыт пользователем"
+  "forwardedFromChannel": "Переслано из {name}"
+  "forwardChannelUnavailable": "Канал недоступен: вы не подписаны на него"
   "forwardFrom": "От: {names}"
   "savedToFavorites(plural)":
     one: "Сообщение сохранено в Избранном"
@@ -1349,6 +1351,7 @@ dateTime:
   "slowModeWait": "В группе включён медленный режим — сообщение отправится, когда закончится ожидание."
   "pollClosed": "Опрос уже завершён."
   "pollForward": "Опрос нельзя переслать."
+  "reactionsLimit": "Под этим постом уже набран максимум разных реакций. Можно поставить только ту, что уже есть."
 
 "chatTtl":
   "title": "Автоудаление"

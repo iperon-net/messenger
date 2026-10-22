@@ -50,6 +50,7 @@ class ChatInfo extends $pb.GeneratedMessage {
     $core.Iterable<$core.String>? reactions,
     $core.bool? noForwards,
     $core.bool? signMessages,
+    $core.int? maxReactions,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -73,6 +74,7 @@ class ChatInfo extends $pb.GeneratedMessage {
     if (reactions != null) result.reactions.addAll(reactions);
     if (noForwards != null) result.noForwards = noForwards;
     if (signMessages != null) result.signMessages = signMessages;
+    if (maxReactions != null) result.maxReactions = maxReactions;
     return result;
   }
 
@@ -106,6 +108,7 @@ class ChatInfo extends $pb.GeneratedMessage {
     ..pPS(19, _omitFieldNames ? '' : 'reactions')
     ..aOB(20, _omitFieldNames ? '' : 'noForwards', protoName: 'noForwards')
     ..aOB(21, _omitFieldNames ? '' : 'signMessages', protoName: 'signMessages')
+    ..aI(22, _omitFieldNames ? '' : 'maxReactions', protoName: 'maxReactions')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -332,6 +335,18 @@ class ChatInfo extends $pb.GeneratedMessage {
   $core.bool hasSignMessages() => $_has(20);
   @$pb.TagNumber(21)
   void clearSignMessages() => $_clearField(21);
+
+  /// Канал (подэтап 4.2): сколько разных реакций может быть под постом (1–11,
+  /// как в Telegram). Набрано — ставить можно только уже стоящие (иначе
+  /// INVALID_ARGUMENT «reactionsLimit»). У группы — 0 (без лимита).
+  @$pb.TagNumber(22)
+  $core.int get maxReactions => $_getIZ(21);
+  @$pb.TagNumber(22)
+  set maxReactions($core.int value) => $_setSignedInt32(21, value);
+  @$pb.TagNumber(22)
+  $core.bool hasMaxReactions() => $_has(21);
+  @$pb.TagNumber(22)
+  void clearMaxReactions() => $_clearField(22);
 }
 
 /// Ссылка-приглашение (как chatInviteExported в Telegram). Путь ссылки —
@@ -1744,11 +1759,17 @@ class MessageForward extends $pb.GeneratedMessage {
     $core.List<$core.int>? fromUserID,
     $core.String? fromName,
     $fixnum.Int64? date,
+    $core.List<$core.int>? fromChatID,
+    $fixnum.Int64? fromMessageID,
+    $core.String? fromSignature,
   }) {
     final result = create();
     if (fromUserID != null) result.fromUserID = fromUserID;
     if (fromName != null) result.fromName = fromName;
     if (date != null) result.date = date;
+    if (fromChatID != null) result.fromChatID = fromChatID;
+    if (fromMessageID != null) result.fromMessageID = fromMessageID;
+    if (fromSignature != null) result.fromSignature = fromSignature;
     return result;
   }
 
@@ -1764,6 +1785,9 @@ class MessageForward extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'fromUserID', $pb.PbFieldType.OY, protoName: 'fromUserID')
     ..aOS(2, _omitFieldNames ? '' : 'fromName', protoName: 'fromName')
     ..aInt64(3, _omitFieldNames ? '' : 'date')
+    ..a<$core.List<$core.int>>(4, _omitFieldNames ? '' : 'fromChatID', $pb.PbFieldType.OY, protoName: 'fromChatID')
+    ..aInt64(5, _omitFieldNames ? '' : 'fromMessageID', protoName: 'fromMessageID')
+    ..aOS(6, _omitFieldNames ? '' : 'fromSignature', protoName: 'fromSignature')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1809,6 +1833,36 @@ class MessageForward extends $pb.GeneratedMessage {
   $core.bool hasDate() => $_has(2);
   @$pb.TagNumber(3)
   void clearDate() => $_clearField(3);
+
+  /// Пересланный пост канала (подэтап 4.2): канал и пост в нём — «Переслано
+  /// из» ведёт в канал (fromUserID пуст, fromName — название канала на момент
+  /// пересылки). fromSignature — подпись автора поста, если была.
+  @$pb.TagNumber(4)
+  $core.List<$core.int> get fromChatID => $_getN(3);
+  @$pb.TagNumber(4)
+  set fromChatID($core.List<$core.int> value) => $_setBytes(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasFromChatID() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearFromChatID() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $fixnum.Int64 get fromMessageID => $_getI64(4);
+  @$pb.TagNumber(5)
+  set fromMessageID($fixnum.Int64 value) => $_setInt64(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasFromMessageID() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearFromMessageID() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.String get fromSignature => $_getSZ(5);
+  @$pb.TagNumber(6)
+  set fromSignature($core.String value) => $_setString(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasFromSignature() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearFromSignature() => $_clearField(6);
 }
 
 /// Звонок — служебное сообщение в личном чате (как messageActionPhoneCall в
@@ -2233,13 +2287,14 @@ class ChatTyping extends $pb.GeneratedMessage {
   void clearAction() => $_clearField(3);
 }
 
-/// Опрос / викторина (подэтап 3.4, только группы; в личном чате —
-/// INVALID_ARGUMENT). Вопрос ≤ 255 символов, 2–10 вариантов по ≤ 100,
+/// Опрос / викторина (подэтап 3.4, группы и каналы; в личном чате —
+/// INVALID_ARGUMENT). В канале (подэтап 4.2) опрос всегда анонимный: сервер
+/// ставит anonymous = true сам. Вопрос ≤ 255 символов, 2–10 вариантов по ≤ 100,
 /// пояснение ≤ 200. Викторина — один верный вариант (correctOption), без
 /// multiple. Верный вариант и пояснение сервер при выдаче из содержимого
 /// УБИРАЕТ (correctOption = -1, explanation пусто) — они приходят в
 /// PollResults тому, кто уже проголосовал, или всем после завершения.
-/// Править опрос нельзя. Пересылка (только в группу; в личный чат —
+/// Править опрос нельзя. Пересылка (только в группу или канал; в личный чат —
 /// INVALID_ARGUMENT «pollInvalid») — тот же опрос, как в Telegram: итоги у
 /// копии — исходного опроса, голос в копии идёт в исходный (голосует тот, кто
 /// видит пересланное), завершить копию нельзя (завершает автор оригинала).
@@ -2907,6 +2962,7 @@ class ChatMessage extends $pb.GeneratedMessage {
     PollResults? poll,
     $core.String? authorSignature,
     $core.bool? postOut,
+    $core.int? views,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -2925,6 +2981,7 @@ class ChatMessage extends $pb.GeneratedMessage {
     if (poll != null) result.poll = poll;
     if (authorSignature != null) result.authorSignature = authorSignature;
     if (postOut != null) result.postOut = postOut;
+    if (views != null) result.views = views;
     return result;
   }
 
@@ -2953,6 +3010,7 @@ class ChatMessage extends $pb.GeneratedMessage {
     ..aOM<PollResults>(14, _omitFieldNames ? '' : 'poll', subBuilder: PollResults.create)
     ..aOS(15, _omitFieldNames ? '' : 'authorSignature', protoName: 'authorSignature')
     ..aOB(16, _omitFieldNames ? '' : 'postOut', protoName: 'postOut')
+    ..aI(17, _omitFieldNames ? '' : 'views')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -3141,6 +3199,17 @@ class ChatMessage extends $pb.GeneratedMessage {
   $core.bool hasPostOut() => $_has(15);
   @$pb.TagNumber(16)
   void clearPostOut() => $_clearField(16);
+
+  /// Пост канала (подэтап 4.2): уникальных зрителей на момент выдачи (свежие —
+  /// Messages.GetViews; в журнал числа не пишутся). Не канал — 0.
+  @$pb.TagNumber(17)
+  $core.int get views => $_getIZ(16);
+  @$pb.TagNumber(17)
+  set views($core.int value) => $_setSignedInt32(16, value);
+  @$pb.TagNumber(17)
+  $core.bool hasViews() => $_has(16);
+  @$pb.TagNumber(17)
+  void clearViews() => $_clearField(17);
 }
 
 /// Диалог пользователя: общий чат + моё состояние в нём.
@@ -4474,6 +4543,11 @@ class Update_PinnedMessages extends $pb.GeneratedMessage {
 /// это я — мои реакции теперь такие, иначе свои не менять. Автору сообщения
 /// при новой чужой реакции — ещё такое же обновление в журнал пользователя
 /// (pts > 0) с unreadReactionsCount / reactionsUnread.
+///
+/// Канал (подэтап 4.2): в журнал канала — только числа, слитно (не чаще раза
+/// в 5 с на пост), без actorUserID / actorEmojis. Мой набор — сразу, таким же
+/// обновлением в журнал пользователя (counts с chosenOrder глазами меня).
+/// Автору поста непрочитанных реакций нет.
 class Update_MessageReactionsChanged extends $pb.GeneratedMessage {
   factory Update_MessageReactionsChanged({
     $core.List<$core.int>? chatID,
@@ -5081,6 +5155,10 @@ class Update_MentionsChanged extends $pb.GeneratedMessage {
 /// иначе свой выбор не менять. Голосовавшему в журнал пользователя (на все
 /// его устройства) — такое же обновление с results глазами него (chosen,
 /// верный ответ и пояснение викторины), actorUserID пуст.
+///
+/// Канал (подэтап 4.2): в журнал канала — слитно (не чаще раза в 5 с на
+/// опрос), всегда без actorUserID / actorOptions; мой выбор — в журнал
+/// пользователя, как в группе. Завершение — сразу.
 class Update_MessagePollChanged extends $pb.GeneratedMessage {
   factory Update_MessagePollChanged({
     $core.List<$core.int>? chatID,
@@ -8208,10 +8286,12 @@ class Chats_ChatReactionsSettings extends $pb.GeneratedMessage {
   factory Chats_ChatReactionsSettings({
     ChatReactionsMode? mode,
     $core.Iterable<$core.String>? emojis,
+    $core.int? maxReactions,
   }) {
     final result = create();
     if (mode != null) result.mode = mode;
     if (emojis != null) result.emojis.addAll(emojis);
+    if (maxReactions != null) result.maxReactions = maxReactions;
     return result;
   }
 
@@ -8227,6 +8307,7 @@ class Chats_ChatReactionsSettings extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aE<ChatReactionsMode>(1, _omitFieldNames ? '' : 'mode', enumValues: ChatReactionsMode.values)
     ..pPS(2, _omitFieldNames ? '' : 'emojis')
+    ..aI(3, _omitFieldNames ? '' : 'maxReactions', protoName: 'maxReactions')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -8258,6 +8339,17 @@ class Chats_ChatReactionsSettings extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(2)
   $pb.PbList<$core.String> get emojis => $_getList(1);
+
+  /// Канал: ChatInfo.maxReactions (1–11); 0 — не менять. У группы —
+  /// INVALID_ARGUMENT.
+  @$pb.TagNumber(3)
+  $core.int get maxReactions => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set maxReactions($core.int value) => $_setSignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasMaxReactions() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearMaxReactions() => $_clearField(3);
 }
 
 class Chats_EditChatResult extends $pb.GeneratedMessage {
@@ -16210,6 +16302,182 @@ class Messages_Search extends $pb.GeneratedMessage {
   void clearLimit() => $_clearField(4);
 }
 
+/// Просмотры постов канала (подэтап 4.2, как messages.getMessagesViews в
+/// Telegram): increment — пометить посты просмотренными мной (первые 7 дней
+/// поста — уникальные зрители, дальше — простое приращение: повторы не шлёт
+/// клиент) и вернуть числа; false — только вернуть свежие числа. Не больше
+/// 100 id. Не
+/// участник — PERMISSION_DENIED (публичный без подписки — подэтап 4.4);
+/// лимит частоты — RESOURCE_EXHAUSTED «floodWait:N». Не канал или > 100 id —
+/// INVALID_ARGUMENT «viewsInvalid». Удалённых и служебных нет в ответе.
+class Messages_GetViews extends $pb.GeneratedMessage {
+  factory Messages_GetViews({
+    $core.List<$core.int>? chatID,
+    $core.Iterable<$fixnum.Int64>? messageIDs,
+    $core.bool? increment,
+  }) {
+    final result = create();
+    if (chatID != null) result.chatID = chatID;
+    if (messageIDs != null) result.messageIDs.addAll(messageIDs);
+    if (increment != null) result.increment = increment;
+    return result;
+  }
+
+  Messages_GetViews._();
+
+  factory Messages_GetViews.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_GetViews.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.GetViews',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
+    ..p<$fixnum.Int64>(2, _omitFieldNames ? '' : 'messageIDs', $pb.PbFieldType.K6, protoName: 'messageIDs')
+    ..aOB(3, _omitFieldNames ? '' : 'increment')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_GetViews clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_GetViews copyWith(void Function(Messages_GetViews) updates) =>
+      super.copyWith((message) => updates(message as Messages_GetViews)) as Messages_GetViews;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_GetViews create() => Messages_GetViews._();
+  @$core.override
+  Messages_GetViews createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_GetViews getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_GetViews>(create);
+  static Messages_GetViews? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get chatID => $_getN(0);
+  @$pb.TagNumber(1)
+  set chatID($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasChatID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearChatID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $pb.PbList<$fixnum.Int64> get messageIDs => $_getList(1);
+
+  @$pb.TagNumber(3)
+  $core.bool get increment => $_getBF(2);
+  @$pb.TagNumber(3)
+  set increment($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasIncrement() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearIncrement() => $_clearField(3);
+}
+
+class Messages_PostViews extends $pb.GeneratedMessage {
+  factory Messages_PostViews({
+    $fixnum.Int64? messageID,
+    $core.int? views,
+  }) {
+    final result = create();
+    if (messageID != null) result.messageID = messageID;
+    if (views != null) result.views = views;
+    return result;
+  }
+
+  Messages_PostViews._();
+
+  factory Messages_PostViews.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_PostViews.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.PostViews',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aInt64(1, _omitFieldNames ? '' : 'messageID', protoName: 'messageID')
+    ..aI(2, _omitFieldNames ? '' : 'views')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_PostViews clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_PostViews copyWith(void Function(Messages_PostViews) updates) =>
+      super.copyWith((message) => updates(message as Messages_PostViews)) as Messages_PostViews;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_PostViews create() => Messages_PostViews._();
+  @$core.override
+  Messages_PostViews createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_PostViews getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_PostViews>(create);
+  static Messages_PostViews? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get messageID => $_getI64(0);
+  @$pb.TagNumber(1)
+  set messageID($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasMessageID() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearMessageID() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get views => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set views($core.int value) => $_setSignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasViews() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearViews() => $_clearField(2);
+}
+
+class Messages_GetViewsResult extends $pb.GeneratedMessage {
+  factory Messages_GetViewsResult({
+    $core.Iterable<Messages_PostViews>? views,
+  }) {
+    final result = create();
+    if (views != null) result.views.addAll(views);
+    return result;
+  }
+
+  Messages_GetViewsResult._();
+
+  factory Messages_GetViewsResult.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory Messages_GetViewsResult.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.GetViewsResult',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..pPM<Messages_PostViews>(1, _omitFieldNames ? '' : 'views', subBuilder: Messages_PostViews.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_GetViewsResult clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  Messages_GetViewsResult copyWith(void Function(Messages_GetViewsResult) updates) =>
+      super.copyWith((message) => updates(message as Messages_GetViewsResult)) as Messages_GetViewsResult;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static Messages_GetViewsResult create() => Messages_GetViewsResult._();
+  @$core.override
+  Messages_GetViewsResult createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static Messages_GetViewsResult getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Messages_GetViewsResult>(create);
+  static Messages_GetViewsResult? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $pb.PbList<Messages_PostViews> get views => $_getList(0);
+}
+
 class Messages_SearchResult extends $pb.GeneratedMessage {
   factory Messages_SearchResult({
     Messages_SearchResult_Status? status,
@@ -16301,6 +16569,7 @@ enum Messages_Request_Request {
   pollVoters,
   reactionsList,
   search,
+  getViews,
   notSet
 }
 
@@ -16330,6 +16599,7 @@ class Messages_Request extends $pb.GeneratedMessage {
     Messages_PollVoters? pollVoters,
     Messages_ReactionsList? reactionsList,
     Messages_Search? search,
+    Messages_GetViews? getViews,
   }) {
     final result = create();
     if (history != null) result.history = history;
@@ -16356,6 +16626,7 @@ class Messages_Request extends $pb.GeneratedMessage {
     if (pollVoters != null) result.pollVoters = pollVoters;
     if (reactionsList != null) result.reactionsList = reactionsList;
     if (search != null) result.search = search;
+    if (getViews != null) result.getViews = getViews;
     return result;
   }
 
@@ -16391,11 +16662,12 @@ class Messages_Request extends $pb.GeneratedMessage {
     22: Messages_Request_Request.pollVoters,
     23: Messages_Request_Request.reactionsList,
     24: Messages_Request_Request.search,
+    25: Messages_Request_Request.getViews,
     0: Messages_Request_Request.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25])
     ..aOM<Messages_History>(1, _omitFieldNames ? '' : 'history', subBuilder: Messages_History.create)
     ..aOM<Messages_Send>(2, _omitFieldNames ? '' : 'send', subBuilder: Messages_Send.create)
     ..aOM<Messages_Edit>(3, _omitFieldNames ? '' : 'edit', subBuilder: Messages_Edit.create)
@@ -16430,6 +16702,7 @@ class Messages_Request extends $pb.GeneratedMessage {
     ..aOM<Messages_ReactionsList>(23, _omitFieldNames ? '' : 'reactionsList',
         protoName: 'reactionsList', subBuilder: Messages_ReactionsList.create)
     ..aOM<Messages_Search>(24, _omitFieldNames ? '' : 'search', subBuilder: Messages_Search.create)
+    ..aOM<Messages_GetViews>(25, _omitFieldNames ? '' : 'getViews', protoName: 'getViews', subBuilder: Messages_GetViews.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -16473,6 +16746,7 @@ class Messages_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(22)
   @$pb.TagNumber(23)
   @$pb.TagNumber(24)
+  @$pb.TagNumber(25)
   Messages_Request_Request whichRequest() => _Messages_Request_RequestByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -16498,6 +16772,7 @@ class Messages_Request extends $pb.GeneratedMessage {
   @$pb.TagNumber(22)
   @$pb.TagNumber(23)
   @$pb.TagNumber(24)
+  @$pb.TagNumber(25)
   void clearRequest() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -16763,6 +17038,17 @@ class Messages_Request extends $pb.GeneratedMessage {
   void clearSearch() => $_clearField(24);
   @$pb.TagNumber(24)
   Messages_Search ensureSearch() => $_ensure(23);
+
+  @$pb.TagNumber(25)
+  Messages_GetViews get getViews => $_getN(24);
+  @$pb.TagNumber(25)
+  set getViews(Messages_GetViews value) => $_setField(25, value);
+  @$pb.TagNumber(25)
+  $core.bool hasGetViews() => $_has(24);
+  @$pb.TagNumber(25)
+  void clearGetViews() => $_clearField(25);
+  @$pb.TagNumber(25)
+  Messages_GetViews ensureGetViews() => $_ensure(24);
 }
 
 enum Messages_Response_Response {
@@ -16790,6 +17076,7 @@ enum Messages_Response_Response {
   pollVoters,
   reactionsList,
   search,
+  getViews,
   notSet
 }
 
@@ -16819,6 +17106,7 @@ class Messages_Response extends $pb.GeneratedMessage {
     Messages_PollVotersResult? pollVoters,
     Messages_ReactionsListResult? reactionsList,
     Messages_SearchResult? search,
+    Messages_GetViewsResult? getViews,
   }) {
     final result = create();
     if (history != null) result.history = history;
@@ -16845,6 +17133,7 @@ class Messages_Response extends $pb.GeneratedMessage {
     if (pollVoters != null) result.pollVoters = pollVoters;
     if (reactionsList != null) result.reactionsList = reactionsList;
     if (search != null) result.search = search;
+    if (getViews != null) result.getViews = getViews;
     return result;
   }
 
@@ -16880,11 +17169,12 @@ class Messages_Response extends $pb.GeneratedMessage {
     22: Messages_Response_Response.pollVoters,
     23: Messages_Response_Response.reactionsList,
     24: Messages_Response_Response.search,
+    25: Messages_Response_Response.getViews,
     0: Messages_Response_Response.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Messages.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25])
     ..aOM<Messages_HistoryResult>(1, _omitFieldNames ? '' : 'history', subBuilder: Messages_HistoryResult.create)
     ..aOM<Messages_SendResult>(2, _omitFieldNames ? '' : 'send', subBuilder: Messages_SendResult.create)
     ..aOM<Messages_EditResult>(3, _omitFieldNames ? '' : 'edit', subBuilder: Messages_EditResult.create)
@@ -16921,6 +17211,7 @@ class Messages_Response extends $pb.GeneratedMessage {
     ..aOM<Messages_ReactionsListResult>(23, _omitFieldNames ? '' : 'reactionsList',
         protoName: 'reactionsList', subBuilder: Messages_ReactionsListResult.create)
     ..aOM<Messages_SearchResult>(24, _omitFieldNames ? '' : 'search', subBuilder: Messages_SearchResult.create)
+    ..aOM<Messages_GetViewsResult>(25, _omitFieldNames ? '' : 'getViews', protoName: 'getViews', subBuilder: Messages_GetViewsResult.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -16964,6 +17255,7 @@ class Messages_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(22)
   @$pb.TagNumber(23)
   @$pb.TagNumber(24)
+  @$pb.TagNumber(25)
   Messages_Response_Response whichResponse() => _Messages_Response_ResponseByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -16989,6 +17281,7 @@ class Messages_Response extends $pb.GeneratedMessage {
   @$pb.TagNumber(22)
   @$pb.TagNumber(23)
   @$pb.TagNumber(24)
+  @$pb.TagNumber(25)
   void clearResponse() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -17254,6 +17547,17 @@ class Messages_Response extends $pb.GeneratedMessage {
   void clearSearch() => $_clearField(24);
   @$pb.TagNumber(24)
   Messages_SearchResult ensureSearch() => $_ensure(23);
+
+  @$pb.TagNumber(25)
+  Messages_GetViewsResult get getViews => $_getN(24);
+  @$pb.TagNumber(25)
+  set getViews(Messages_GetViewsResult value) => $_setField(25, value);
+  @$pb.TagNumber(25)
+  $core.bool hasGetViews() => $_has(24);
+  @$pb.TagNumber(25)
+  void clearGetViews() => $_clearField(25);
+  @$pb.TagNumber(25)
+  Messages_GetViewsResult ensureGetViews() => $_ensure(24);
 }
 
 /// MESSAGES — сообщения.

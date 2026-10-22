@@ -147,6 +147,13 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
     _typedText = _input.text;
     _input.addListener(_onInputChanged);
     _recorder.addListener(() => _cubit.setRecording(_recorder.active));
+    // Просмотры постов канала — какие посты на экране.
+    _viewsSampler = ChannelViewsSampler(
+      cubit: _cubit,
+      scroll: _scroll,
+      keyFor: _keyFor,
+      active: () => mounted && (ModalRoute.of(context)?.isCurrent ?? true),
+    );
   }
 
   /// Последний текст поля — отличить ввод от смены выделения.
@@ -184,6 +191,7 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
     _emoji.dispose();
     _focus.dispose();
     _tracker.dispose();
+    _viewsSampler.dispose();
     _scroll.dispose();
     _searchInput.dispose();
     super.dispose();
@@ -426,6 +434,8 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
     if (_scroll.hasClients && _scroll.position.extentAfter < 800) _cubit.loadOlder();
   }
 
+  late final ChannelViewsSampler _viewsSampler;
+
   GlobalKey _keyFor(String messageID) => _messageKeys.putIfAbsent(messageID, GlobalKey.new);
 
   void _send({bool silent = false, DateTime? scheduleDate}) {
@@ -636,13 +646,16 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
                                           messages: state.messages,
                                           chatType: chat.type,
                                           // Комментарии к постам — только в канале, где они включены.
-                                          onCommentsTap: chat.type == models.ChatType.channel && chat.commentsEnabled
+                                          onCommentsTap:
+                                              chat.type == models.ChatType.channel &&
+                                                  chat.commentsEnabled &&
+                                                  _cubit.features.channelComments
                                               ? _openComments
                                               : null,
                                           commentsClosedIDs: state.commentsClosedIDs,
                                           // Опрос: голосовать — участникам (не подписавшимся — нет).
                                           onPollVote: chat.isMember ? (message, options) => _cubit.votePoll(message, options) : null,
-                                          onPollVoters: _pollVoters,
+                                          onPollVoters: chat.type == models.ChatType.channel ? null : _pollVoters,
                                           onReactionLongPress: (message, emoji) {
                                             if (_cubit.canListReactions(message)) showReactionsList(context, _cubit, message, emoji: emoji);
                                           },

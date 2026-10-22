@@ -916,9 +916,10 @@ class MessageBubble extends StatelessWidget {
         );
       }
       if (m.forward case final forward?) {
-        // «Переслано от Анна» — имя жирным, как в Telegram.
-        final name = forward.self ? t.screenChat.you : forward.name;
-        final label = t.screenChat.forwardedFrom(name: '\u0000');
+        // «Переслано от Анна» — имя жирным, как в Telegram; пост канала —
+        // «Переслано из Канал (подпись)».
+        final name = forward.self ? t.screenChat.you : forward.title;
+        final label = forward.fromChannel ? t.screenChat.forwardedFromChannel(name: '\u0000') : t.screenChat.forwardedFrom(name: '\u0000');
         final split = label.indexOf('\u0000');
         final linkStyle = style.textStyle.copyWith(fontSize: 13.5, height: 1.2, color: colors.link);
         // Своё — тап ничего не открывает.

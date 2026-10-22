@@ -92,10 +92,13 @@ class ChatsFeatures {
   /// срез 4).
   final bool channels;
 
-  /// Расширенное в каналах (на сервере — подэтапы 4.2–4.3): комментарии,
-  /// просмотры, реакции и «Максимум реакций под постом», опросы. `false` — в
-  /// канале это скрыто, «Изменить» — без блока комментариев.
+  /// Расширенное в каналах (на сервере — подэтап 4.2): просмотры, реакции и
+  /// «Максимум реакций под постом», опросы. `false` — в канале это скрыто.
   final bool channelExtras;
+
+  /// Комментарии к постам канала (на сервере — подэтап 4.3): «Комментарии»
+  /// под постом и блок комментариев в «Изменить». `false` — скрыты.
+  final bool channelComments;
 
   /// Опрос можно переслать (демо — куда угодно, сервер — см. [pollsGroupsOnly]).
   final bool forwardPolls;
@@ -117,6 +120,7 @@ class ChatsFeatures {
     this.demoRules = false,
     this.channels = false,
     this.channelExtras = false,
+    this.channelComments = false,
     this.forwardPolls = false,
     this.pollsGroupsOnly = false,
   });
@@ -133,6 +137,7 @@ class ChatsFeatures {
       demoRules = true,
       channels = true,
       channelExtras = true,
+      channelComments = true,
       forwardPolls = true,
       pollsGroupsOnly = false;
 
@@ -148,6 +153,7 @@ class ChatsFeatures {
       demoRules = false,
       channels = false,
       channelExtras = false,
+      channelComments = false,
       forwardPolls = false,
       pollsGroupsOnly = false;
 
@@ -170,6 +176,7 @@ class ChatsFeatures {
       demoRules: demoRules,
       channels: channels,
       channelExtras: channelExtras,
+      channelComments: channelComments,
       forwardPolls: forwardPolls,
       pollsGroupsOnly: pollsGroupsOnly,
     );

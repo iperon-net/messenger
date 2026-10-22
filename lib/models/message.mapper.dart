@@ -1152,6 +1152,27 @@ class MessageForwardMapper extends ClassMapperBase<MessageForward> {
     opt: true,
     def: false,
   );
+  static String _$chatID(MessageForward v) => v.chatID;
+  static const Field<MessageForward, String> _f$chatID = Field(
+    'chatID',
+    _$chatID,
+    opt: true,
+    def: '',
+  );
+  static String _$messageID(MessageForward v) => v.messageID;
+  static const Field<MessageForward, String> _f$messageID = Field(
+    'messageID',
+    _$messageID,
+    opt: true,
+    def: '',
+  );
+  static String _$signature(MessageForward v) => v.signature;
+  static const Field<MessageForward, String> _f$signature = Field(
+    'signature',
+    _$signature,
+    opt: true,
+    def: '',
+  );
 
   @override
   final MappableFields<MessageForward> fields = const {
@@ -1159,6 +1180,9 @@ class MessageForwardMapper extends ClassMapperBase<MessageForward> {
     #self: _f$self,
     #userID: _f$userID,
     #hidden: _f$hidden,
+    #chatID: _f$chatID,
+    #messageID: _f$messageID,
+    #signature: _f$signature,
   };
 
   static MessageForward _instantiate(DecodingData data) {
@@ -1167,6 +1191,9 @@ class MessageForwardMapper extends ClassMapperBase<MessageForward> {
       self: data.dec(_f$self),
       userID: data.dec(_f$userID),
       hidden: data.dec(_f$hidden),
+      chatID: data.dec(_f$chatID),
+      messageID: data.dec(_f$messageID),
+      signature: data.dec(_f$signature),
     );
   }
 
@@ -1232,7 +1259,15 @@ extension MessageForwardValueCopy<$R, $Out>
 
 abstract class MessageForwardCopyWith<$R, $In extends MessageForward, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({String? name, bool? self, String? userID, bool? hidden});
+  $R call({
+    String? name,
+    bool? self,
+    String? userID,
+    bool? hidden,
+    String? chatID,
+    String? messageID,
+    String? signature,
+  });
   MessageForwardCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
   );
@@ -1247,12 +1282,23 @@ class _MessageForwardCopyWithImpl<$R, $Out>
   late final ClassMapperBase<MessageForward> $mapper =
       MessageForwardMapper.ensureInitialized();
   @override
-  $R call({String? name, bool? self, String? userID, bool? hidden}) => $apply(
+  $R call({
+    String? name,
+    bool? self,
+    String? userID,
+    bool? hidden,
+    String? chatID,
+    String? messageID,
+    String? signature,
+  }) => $apply(
     FieldCopyWithData({
       if (name != null) #name: name,
       if (self != null) #self: self,
       if (userID != null) #userID: userID,
       if (hidden != null) #hidden: hidden,
+      if (chatID != null) #chatID: chatID,
+      if (messageID != null) #messageID: messageID,
+      if (signature != null) #signature: signature,
     }),
   );
   @override
@@ -1261,6 +1307,9 @@ class _MessageForwardCopyWithImpl<$R, $Out>
     self: data.get(#self, or: $value.self),
     userID: data.get(#userID, or: $value.userID),
     hidden: data.get(#hidden, or: $value.hidden),
+    chatID: data.get(#chatID, or: $value.chatID),
+    messageID: data.get(#messageID, or: $value.messageID),
+    signature: data.get(#signature, or: $value.signature),
   );
 
   @override

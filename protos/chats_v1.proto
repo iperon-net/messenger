@@ -111,6 +111,10 @@ message ChatInfo {
   // Канал (срез 4): «Подписывать сообщения» — у постов authorSignature (имя
   // опубликовавшего админа на момент публикации).
   bool signMessages = 21;
+  // Канал (подэтап 4.2): сколько разных реакций может быть под постом (1–11,
+  // как в Telegram). Набрано — ставить можно только уже стоящие (иначе
+  // INVALID_ARGUMENT «reactionsLimit»). У группы — 0 (без лимита).
+  int32 maxReactions = 22;
 }
 
 // Ссылка-приглашение (как chatInviteExported в Telegram). Путь ссылки —
@@ -361,6 +365,12 @@ message MessageForward {
   bytes fromUserID = 1;
   string fromName = 2;
   int64 date = 3;
+  // Пересланный пост канала (подэтап 4.2): канал и пост в нём — «Переслано
+  // из» ведёт в канал (fromUserID пуст, fromName — название канала на момент
+  // пересылки). fromSignature — подпись автора поста, если была.
+  bytes fromChatID = 4;
+  int64 fromMessageID = 5;
+  string fromSignature = 6;
 }
 
 // Звонок — служебное сообщение в личном чате (как messageActionPhoneCall в
@@ -444,13 +454,14 @@ message ChatTyping {
   Action action = 3;
 }
 
-// Опрос / викторина (подэтап 3.4, только группы; в личном чате —
-// INVALID_ARGUMENT). Вопрос ≤ 255 символов, 2–10 вариантов по ≤ 100,
+// Опрос / викторина (подэтап 3.4, группы и каналы; в личном чате —
+// INVALID_ARGUMENT). В канале (подэтап 4.2) опрос всегда анонимный: сервер
+// ставит anonymous = true сам. Вопрос ≤ 255 символов, 2–10 вариантов по ≤ 100,
 // пояснение ≤ 200. Викторина — один верный вариант (correctOption), без
 // multiple. Верный вариант и пояснение сервер при выдаче из содержимого
 // УБИРАЕТ (correctOption = -1, explanation пусто) — они приходят в
 // PollResults тому, кто уже проголосовал, или всем после завершения.
-// Править опрос нельзя. Пересылка (только в группу; в личный чат —
+// Править опрос нельзя. Пересылка (только в группу или канал; в личный чат —
 // INVALID_ARGUMENT «pollInvalid») — тот же опрос, как в Telegram: итоги у
 // копии — исходного опроса, голос в копии идёт в исходный (голосует тот, кто
 // видит пересланное), завершить копию нельзя (завершает автор оригинала).
@@ -578,6 +589,9 @@ message ChatMessage {
   // Send); в общем обновлении журнала чата — false. Нужен для «править /
   // удалять свои посты» без права editMessages / deleteMessages.
   bool postOut = 16;
+  // Пост канала (подэтап 4.2): уникальных зрителей на момент выдачи (свежие —
+  // Messages.GetViews; в журнал числа не пишутся). Не канал — 0.
+  int32 views = 17;
 }
 
 // Диалог пользователя: общий чат + моё состояние в нём.
@@ -762,6 +776,11 @@ message Update {
   // это я — мои реакции теперь такие, иначе свои не менять. Автору сообщения
   // при новой чужой реакции — ещё такое же обновление в журнал пользователя
   // (pts > 0) с unreadReactionsCount / reactionsUnread.
+  //
+  // Канал (подэтап 4.2): в журнал канала — только числа, слитно (не чаще раза
+  // в 5 с на пост), без actorUserID / actorEmojis. Мой набор — сразу, таким же
+  // обновлением в журнал пользователя (counts с chosenOrder глазами меня).
+  // Автору поста непрочитанных реакций нет.
   message MessageReactionsChanged {
     bytes chatID = 1;
     int64 messageID = 2;
@@ -848,6 +867,10 @@ message Update {
   // иначе свой выбор не менять. Голосовавшему в журнал пользователя (на все
   // его устройства) — такое же обновление с results глазами него (chosen,
   // верный ответ и пояснение викторины), actorUserID пуст.
+  //
+  // Канал (подэтап 4.2): в журнал канала — слитно (не чаще раза в 5 с на
+  // опрос), всегда без actorUserID / actorOptions; мой выбор — в журнал
+  // пользователя, как в группе. Завершение — сразу.
   message MessagePollChanged {
     bytes chatID = 1;
     int64 messageID = 2;
@@ -1213,6 +1236,9 @@ message Chats {
   message ChatReactionsSettings {
     ChatReactionsMode mode = 1;
     repeated string emojis = 2;
+    // Канал: ChatInfo.maxReactions (1–11); 0 — не менять. У группы —
+    // INVALID_ARGUMENT.
+    int32 maxReactions = 3;
   }
 
   message EditChatResult {
@@ -2009,6 +2035,29 @@ message Messages {
     int32 limit = 4;
   }
 
+  // Просмотры постов канала (подэтап 4.2, как messages.getMessagesViews в
+  // Telegram): increment — пометить посты просмотренными мной (первые 7 дней
+  // поста — уникальные зрители, дальше — простое приращение: повторы не шлёт
+  // клиент) и вернуть числа; false — только вернуть свежие числа. Не больше
+  // 100 id. Не
+  // участник — PERMISSION_DENIED (публичный без подписки — подэтап 4.4);
+  // лимит частоты — RESOURCE_EXHAUSTED «floodWait:N». Не канал или > 100 id —
+  // INVALID_ARGUMENT «viewsInvalid». Удалённых и служебных нет в ответе.
+  message GetViews {
+    bytes chatID = 1;
+    repeated int64 messageIDs = 2;
+    bool increment = 3;
+  }
+
+  message PostViews {
+    int64 messageID = 1;
+    int32 views = 2;
+  }
+
+  message GetViewsResult {
+    repeated PostViews views = 1;
+  }
+
   message SearchResult {
     enum Status {
       OK = 0;
@@ -2045,6 +2094,7 @@ message Messages {
       PollVoters pollVoters = 22;
       ReactionsList reactionsList = 23;
       Search search = 24;
+      GetViews getViews = 25;
     }
   }
 
@@ -2074,6 +2124,7 @@ message Messages {
       PollVotersResult pollVoters = 22;
       ReactionsListResult reactionsList = 23;
       SearchResult search = 24;
+      GetViewsResult getViews = 25;
     }
   }
 }

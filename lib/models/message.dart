@@ -152,14 +152,35 @@ class MessageQuote with MessageQuoteMappable {
 /// [self], в пузыре «Вы»). В пузыре — «Переслано от …» над содержимым; тап
 /// ведёт к автору ([userID], hex), а если автор запретил ссылку на аккаунт
 /// при пересылке ([hidden]) — «Аккаунт скрыт пользователем».
+///
+/// Пост канала (подэтап 4.2): [chatID] — канал (hex), [messageID] — пост в
+/// нём, [name] — название канала, [signature] — подпись автора поста; в
+/// пузыре — «Переслано из …», тап ведёт в канал.
 @MappableClass()
 class MessageForward with MessageForwardMappable {
   final String name;
   final bool self;
   final String userID;
   final bool hidden;
+  final String chatID;
+  final String messageID;
+  final String signature;
 
-  const MessageForward({this.name = '', this.self = false, this.userID = '', this.hidden = false});
+  const MessageForward({
+    this.name = '',
+    this.self = false,
+    this.userID = '',
+    this.hidden = false,
+    this.chatID = '',
+    this.messageID = '',
+    this.signature = '',
+  });
+
+  /// Пересланный пост канала.
+  bool get fromChannel => chatID.isNotEmpty;
+
+  /// Имя в «Переслано из …»: канал и подпись автора (если есть).
+  String get title => fromChannel && signature.isNotEmpty ? '$name ($signature)' : name;
 }
 
 /// Реакция на сообщение: эмодзи, сколько человек поставили и есть ли среди

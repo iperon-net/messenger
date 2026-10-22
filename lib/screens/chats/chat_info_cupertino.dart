@@ -1028,7 +1028,10 @@ class ChatReactionsSettingsCupertino extends StatelessWidget {
 /// на ходу, сохраняется, когда палец отпущен.
 class _MaxReactionsSlider extends StatefulWidget {
   final int value;
-  final ValueChanged<int> onChanged;
+
+  /// Сохранить; `false` — не сохранилось (нет сети / отказ — экран уже
+  /// объяснил): бегунок возвращается к сохранённому значению.
+  final Future<bool> Function(int value) onChanged;
 
   const _MaxReactionsSlider({required this.value, required this.onChanged});
 
@@ -1061,7 +1064,9 @@ class _MaxReactionsSliderState extends State<_MaxReactionsSlider> {
                 if (value.round() != _value.round()) HapticFeedback.selectionClick();
                 setState(() => _value = value);
               },
-              onChangeEnd: (value) => widget.onChanged(value.round()),
+              onChangeEnd: (value) async {
+                if (!await widget.onChanged(value.round()) && mounted) setState(() => _value = widget.value.toDouble());
+              },
             ),
           ),
           SizedBox(

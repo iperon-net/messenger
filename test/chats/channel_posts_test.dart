@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:messenger/auth.dart';
+import 'package:grpc/grpc.dart' show StatusCode;
 import 'package:messenger/chats/chats_mapping.dart';
+import 'package:messenger/chats/reactions.dart';
 import 'package:messenger/chats/chats_sync.dart';
 import 'package:messenger/di.dart';
 import 'package:messenger/i18n/translations.g.dart';
@@ -91,6 +93,78 @@ void main() {
       expect(text(pb.MessageChatAction_Kind.TITLE_CHANGED), 'Название канала изменено на «Новости»');
       expect(text(pb.MessageChatAction_Kind.PHOTO_CHANGED), 'Фото канала изменено');
       expect(text(pb.MessageChatAction_Kind.PHOTO_REMOVED), 'Фото канала удалено');
+    });
+  });
+
+  group('4.2: просмотры, пересылка, лимит реакций', () {
+    test('просмотры поста — только в канале и не у служебных', () {
+      models.Message map(pb.ChatMessage m, {bool channel = true}) =>
+          messageFromPb(m, chatID: idHex(channelChat), myUserID: me, readOutboxMaxID: 0, isSelf: false, channel: channel);
+      expect(map(post(3)..views = 42).views, 42);
+      expect(map(post(3)..views = 42, channel: false).views, 0);
+      final service = post(4)
+        ..views = 9
+        ..content = pb.MessageContent(
+          chatAction: pb.MessageChatAction(kind: pb.MessageChatAction_Kind.CREATED, title: 'Новости'),
+        );
+      expect(map(service).views, 0);
+    });
+
+    test('«Переслано из» канала: канал, пост, подпись', () {
+      final f = forwardFromPb(
+        pb.MessageForward(fromChatID: channelChat, fromMessageID: Int64(9), fromName: 'Новости', fromSignature: 'Анна'),
+        myUserID: me,
+      );
+      expect(f.fromChannel, isTrue);
+      expect((f.chatID, f.messageID, f.signature, f.hidden, f.self, f.userID), (idHex(channelChat), '9', 'Анна', false, false, ''));
+      expect(f.title, 'Новости (Анна)');
+      expect(
+        forwardFromPb(
+          pb.MessageForward(fromChatID: channelChat, fromName: 'Новости'),
+          myUserID: me,
+        ).title,
+        'Новости',
+      );
+
+      // От человека — как раньше; без автора — «скрыт».
+      final person = forwardFromPb(
+        pb.MessageForward(fromUserID: List<int>.filled(12, 3), fromName: 'Анна'),
+        myUserID: me,
+      );
+      expect((person.fromChannel, person.hidden), (false, false));
+      expect(forwardFromPb(pb.MessageForward(fromName: 'Анна'), myUserID: me).hidden, isTrue);
+    });
+
+    test('«Максимум реакций под постом» из ChatInfo; у группы — без лимита', () {
+      expect(maxReactionsOf(pb.ChatInfo(type: pb.ChatType.CHAT_TYPE_CHANNEL, maxReactions: 3)), 3);
+      expect(maxReactionsOf(pb.ChatInfo(type: pb.ChatType.CHAT_TYPE_CHANNEL)), maxReactionsPerPost);
+      expect(maxReactionsOf(pb.ChatInfo(type: pb.ChatType.CHAT_TYPE_CHANNEL, maxReactions: 50)), maxReactionsPerPost);
+      expect(maxReactionsOf(pb.ChatInfo(type: pb.ChatType.CHAT_TYPE_GROUP, maxReactions: 3)), maxReactionsPerPost);
+
+      // Лимит набран — только уже стоящие под постом.
+      final chat = models.Chat(id: idHex(channelChat), type: models.ChatType.channel, title: 'Новости', maxReactions: 2);
+      final full = models.Message(
+        id: '1',
+        chatID: chat.id,
+        date: DateTime(2026),
+        reactions: const [
+          models.MessageReaction(emoji: '👍'),
+          models.MessageReaction(emoji: '❤️'),
+        ],
+      );
+      expect(availableReactions(chat, message: full).toSet(), {'👍', '❤️'});
+      expect(
+        availableReactions(
+          chat,
+          message: full.copyWith(reactions: const [models.MessageReaction(emoji: '👍')]),
+        ),
+        allChatReactions,
+      );
+    });
+
+    test('отказ «reactionsLimit» распознаётся', () {
+      expect(const ChatsRequestException('reactionsLimit', StatusCode.invalidArgument).isReactionsLimit, isTrue);
+      expect(const ChatsRequestException('reactionsLimit', StatusCode.permissionDenied).isReactionsLimit, isFalse);
     });
   });
 
@@ -203,6 +277,154 @@ void main() {
       expect(pb.ChatMessage.fromBuffer(dialog!.topMessage!).postOut, isTrue);
     });
 
+    Future<void> apply(List<pb.Update> updates) => ChatsSync.instance.applyUpdates(pb.Updates(updates: updates));
+
+    test('просмотры: только растут, журнал (0) их не сбрасывает; пометка «учтён»', () async {
+      await store.upsertMessage(userID: me, message: post(2)..views = 5);
+      await store.upsertMessage(userID: me, message: post(2), shared: true);
+      expect((await store.message(userID: me, chatID: channelChat, messageID: 2))?.views, 5);
+      await store.setViews(userID: me, chatID: channelChat, views: {2: 8, 99: 1});
+      expect((await store.message(userID: me, chatID: channelChat, messageID: 2))?.views, 8);
+      await store.setViews(userID: me, chatID: channelChat, views: {2: 3});
+      expect((await store.message(userID: me, chatID: channelChat, messageID: 2))?.views, 8);
+
+      await store.upsertMessage(userID: me, message: post(3));
+      expect(await store.viewedIDs(userID: me, chatID: channelChat, messageIDs: [2, 3]), isEmpty);
+      await store.markViewed(userID: me, chatID: channelChat, messageIDs: [3]);
+      expect(await store.viewedIDs(userID: me, chatID: channelChat, messageIDs: [2, 3]), {3});
+      // Правка поста пометку не снимает.
+      await store.upsertMessage(userID: me, message: post(3)..editDate = Int64(9), shared: true);
+      expect(await store.viewedIDs(userID: me, chatID: channelChat, messageIDs: [3]), {3});
+    });
+
+    test('реакции: журнал канала без actor не трогает мои, мой набор — из журнала пользователя', () async {
+      await store.upsertDialog(userID: me, dialog: channelDialog());
+      await store.setPts(userID: me, pts: 10);
+      await store.upsertMessage(
+        userID: me,
+        message: post(2)
+          ..reactions = pb.MessageReactions(
+            counts: [
+              pb.ReactionCount(emoji: '👍', count: 3, chosenOrder: 1),
+              pb.ReactionCount(emoji: '❤️', count: 1),
+            ],
+          ),
+      );
+      pb.Update shared(int chatPts, List<pb.ReactionCount> counts) => pb.Update(
+        chatPts: Int64(chatPts),
+        chatID: channelChat,
+        messageReactions: pb.Update_MessageReactionsChanged(
+          chatID: channelChat,
+          messageID: Int64(2),
+          reactions: pb.MessageReactions(counts: counts),
+        ),
+      );
+      Future<Map<String, (int, int)>> chips() async {
+        final r = await store.messageReactions(userID: me, chatID: channelChat, messageID: 2);
+        return {for (final c in r!.counts) c.emoji: (c.count, c.chosenOrder)};
+      }
+
+      // Слитное обновление канала — числа новые, моя 👍 на месте.
+      await apply([
+        shared(2, [
+          pb.ReactionCount(emoji: '👍', count: 5),
+          pb.ReactionCount(emoji: '❤️', count: 2),
+          pb.ReactionCount(emoji: '🔥', count: 1),
+        ]),
+      ]);
+      expect(await chips(), {'👍': (5, 1), '❤️': (2, 0), '🔥': (1, 0)});
+
+      // Мой набор (журнал пользователя, глазами меня): поставил 🔥.
+      await apply([
+        pb.Update(
+          pts: Int64(11),
+          messageReactions: pb.Update_MessageReactionsChanged(
+            chatID: channelChat,
+            messageID: Int64(2),
+            reactions: pb.MessageReactions(
+              counts: [
+                pb.ReactionCount(emoji: '👍', count: 5, chosenOrder: 1),
+                pb.ReactionCount(emoji: '❤️', count: 2),
+                pb.ReactionCount(emoji: '🔥', count: 2, chosenOrder: 2),
+              ],
+            ),
+          ),
+        ),
+      ]);
+      expect(await chips(), {'👍': (5, 1), '❤️': (2, 0), '🔥': (2, 2)});
+
+      // Снял все свои (журнал пользователя без chosenOrder) — моих не остаётся.
+      await apply([
+        pb.Update(
+          pts: Int64(12),
+          messageReactions: pb.Update_MessageReactionsChanged(
+            chatID: channelChat,
+            messageID: Int64(2),
+            reactions: pb.MessageReactions(
+              counts: [
+                pb.ReactionCount(emoji: '👍', count: 4),
+                pb.ReactionCount(emoji: '❤️', count: 2),
+              ],
+            ),
+          ),
+        ),
+      ]);
+      expect(await chips(), {'👍': (4, 0), '❤️': (2, 0)});
+
+      // И слитное после этого — тоже без моих.
+      await apply([
+        shared(3, [pb.ReactionCount(emoji: '👍', count: 4), pb.ReactionCount(emoji: '❤️', count: 3)]),
+      ]);
+      expect(await chips(), {'👍': (4, 0), '❤️': (3, 0)});
+    });
+
+    test('опрос: журнал канала без actor не трогает мой выбор', () async {
+      await store.upsertDialog(userID: me, dialog: channelDialog());
+      await store.setPts(userID: me, pts: 10);
+      await store.upsertMessage(
+        userID: me,
+        message: post(2)
+          ..content = pb.MessageContent(
+            poll: pb.MessagePoll(question: 'Да?', options: ['Да', 'Нет'], anonymous: true),
+          )
+          ..poll = pb.PollResults(votes: [1, 0], totalVoters: 1, chosen: [0], correctOption: -1),
+      );
+      pb.Update shared(int chatPts, pb.PollResults results) => pb.Update(
+        chatPts: Int64(chatPts),
+        chatID: channelChat,
+        messagePoll: pb.Update_MessagePollChanged(chatID: channelChat, messageID: Int64(2), results: results),
+      );
+      await apply([
+        shared(2, pb.PollResults(votes: [3, 4], totalVoters: 7, correctOption: -1)),
+      ]);
+      var results = await store.pollResults(userID: me, chatID: channelChat, messageID: 2);
+      expect(results?.votes, [3, 4]);
+      expect(results?.chosen, [0]);
+      expect(results?.totalVoters, 7);
+
+      // Мой выбор (журнал пользователя, без actor) — как есть: переголосовал.
+      await apply([
+        pb.Update(
+          pts: Int64(11),
+          messagePoll: pb.Update_MessagePollChanged(
+            chatID: channelChat,
+            messageID: Int64(2),
+            results: pb.PollResults(votes: [2, 5], totalVoters: 7, chosen: [1], correctOption: -1),
+          ),
+        ),
+      ]);
+      results = await store.pollResults(userID: me, chatID: channelChat, messageID: 2);
+      expect(results?.chosen, [1]);
+
+      // Завершение (журнал канала) — итоги всем, мой выбор на месте.
+      await apply([
+        shared(3, pb.PollResults(votes: [2, 6], totalVoters: 8, closed: true, correctOption: -1)),
+      ]);
+      results = await store.pollResults(userID: me, chatID: channelChat, messageID: 2);
+      expect(results?.chosen, [1]);
+      expect((results?.closed, results?.totalVoters), (true, 8));
+    });
+
     test('без флага «Каналы» полный список не стирает кэш каналов; флаги — по типам', () async {
       await store.upsertDialog(userID: me, dialog: channelDialog());
       await store.replaceDialogs(userID: me, dialogs: const [], keepTypes: {pb.ChatType.CHAT_TYPE_CHANNEL.value});
@@ -248,7 +470,7 @@ class _FakeAuth implements Auth {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/// Таблицы чатов, которых касаются тесты (как в миграциях, до 43).
+/// Таблицы чатов, которых касаются тесты (как в миграциях, до 44).
 Future<void> _createSchema(SqliteDatabase db) async {
   await db.execute('''
     CREATE TABLE chatDialogs (
@@ -268,7 +490,7 @@ Future<void> _createSchema(SqliteDatabase db) async {
       editDate INTEGER NOT NULL DEFAULT 0, randomID INTEGER NOT NULL DEFAULT 0, mediaUnread INTEGER NOT NULL DEFAULT 0,
       silent INTEGER NOT NULL DEFAULT 0, content BLOB NOT NULL, searchText TEXT NOT NULL DEFAULT '', reactions BLOB NULL,
       reactionsUnread INTEGER NOT NULL DEFAULT 0, expireAt INTEGER NOT NULL DEFAULT 0, poll BLOB NULL, searchHit INTEGER NOT NULL DEFAULT 0,
-      authorSignature TEXT NOT NULL DEFAULT '', postOut INTEGER NOT NULL DEFAULT 0,
+      authorSignature TEXT NOT NULL DEFAULT '', postOut INTEGER NOT NULL DEFAULT 0, views INTEGER NOT NULL DEFAULT 0, viewed INTEGER NOT NULL DEFAULT 0,
       PRIMARY KEY (userID, chatID, messageID)
     );
   ''');

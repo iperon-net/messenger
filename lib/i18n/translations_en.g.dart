@@ -1819,6 +1819,12 @@ class Translations$screenChat$en {
 	/// en: 'The account was hidden by the user'
 	String get forwardHidden => 'The account was hidden by the user';
 
+	/// en: 'Forwarded from {name}'
+	String forwardedFromChannel({required Object name}) => 'Forwarded from ${name}';
+
+	/// en: 'The channel is unavailable: you are not subscribed to it'
+	String get forwardChannelUnavailable => 'The channel is unavailable: you are not subscribed to it';
+
 	/// en: 'From: {names}'
 	String forwardFrom({required Object names}) => 'From: ${names}';
 
@@ -4116,6 +4122,9 @@ class Translations$chatAction$en {
 
 	/// en: 'Polls can't be forwarded.'
 	String get pollForward => 'Polls can\'t be forwarded.';
+
+	/// en: 'This post already has the maximum number of different reactions. You can only add one that's already there.'
+	String get reactionsLimit => 'This post already has the maximum number of different reactions. You can only add one that\'s already there.';
 }
 
 // Path: chatTtl
@@ -5083,6 +5092,8 @@ extension on Translations {
 			'screenChat.forwardTo' => 'Forward to…',
 			'screenChat.forwardedFrom' => ({required Object name}) => 'Forwarded from ${name}',
 			'screenChat.forwardHidden' => 'The account was hidden by the user',
+			'screenChat.forwardedFromChannel' => ({required Object name}) => 'Forwarded from ${name}',
+			'screenChat.forwardChannelUnavailable' => 'The channel is unavailable: you are not subscribed to it',
 			'screenChat.forwardFrom' => ({required Object names}) => 'From: ${names}',
 			'screenChat.savedToFavorites' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Message saved to Saved Messages', other: 'Messages saved to Saved Messages', ), 
 			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Forward ${n} message', other: 'Forward ${n} messages', ), 
@@ -5570,10 +5581,10 @@ extension on Translations {
 			'screenContacts.validationCloudLimitReached' => 'Cloud contacts limit reached',
 			'screenContacts.addSyncHint' => 'This contact will be available on all your devices',
 			'screenContacts.remove' => 'Remove',
-			'screenContacts.removeTitle' => 'Remove contact?',
-			'screenContacts.removeMessage' => 'They will no longer be able to call you unless your call privacy allows everyone.',
 			_ => null,
 		} ?? switch (path) {
+			'screenContacts.removeTitle' => 'Remove contact?',
+			'screenContacts.removeMessage' => 'They will no longer be able to call you unless your call privacy allows everyone.',
 			'screenContacts.editContact' => 'Edit Contact',
 			'screenContacts.addToContacts' => 'Add to Contacts',
 			'screenContacts.removeContact' => 'Delete Contact',
@@ -5759,6 +5770,7 @@ extension on Translations {
 			'chatAction.slowModeWait' => 'Slow mode is on in this group — the message will be sent when the wait is over.',
 			'chatAction.pollClosed' => 'This poll has already ended.',
 			'chatAction.pollForward' => 'Polls can\'t be forwarded.',
+			'chatAction.reactionsLimit' => 'This post already has the maximum number of different reactions. You can only add one that\'s already there.',
 			'chatTtl.title' => 'Auto-delete',
 			'chatTtl.titleLong' => 'Auto-delete messages',
 			'chatTtl.off' => 'Off',

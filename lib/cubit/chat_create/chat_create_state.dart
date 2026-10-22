@@ -146,9 +146,10 @@ class ChatCreateState with ChatCreateStateMappable {
   /// момента вступления.
   final bool historyHidden;
 
-  /// Расширенное в канале ([ChatsFeatures.channelExtras]): блок комментариев
-  /// в «Изменить». Без него (сервер, 4.1) — только «Подписывать сообщения».
-  final bool channelExtras;
+  /// Комментарии в канале ([ChatsFeatures.channelComments]): блок
+  /// комментариев в «Изменить». Без него (сервер до 4.3) — только
+  /// «Подписывать сообщения».
+  final bool channelComments;
 
   const ChatCreateState({
     this.restrictedCount = 0,
@@ -159,7 +160,7 @@ class ChatCreateState with ChatCreateStateMappable {
     this.joining = false,
     this.serverLinks = false,
     this.historyHidden = false,
-    this.channelExtras = true,
+    this.channelComments = true,
     this.status = Status.initialization,
     this.offlineNotice = 0,
     this.floodNotice = 0,

@@ -147,10 +147,10 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     opt: true,
     def: false,
   );
-  static bool _$channelExtras(ChatCreateState v) => v.channelExtras;
-  static const Field<ChatCreateState, bool> _f$channelExtras = Field(
-    'channelExtras',
-    _$channelExtras,
+  static bool _$channelComments(ChatCreateState v) => v.channelComments;
+  static const Field<ChatCreateState, bool> _f$channelComments = Field(
+    'channelComments',
+    _$channelComments,
     opt: true,
     def: true,
   );
@@ -431,7 +431,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
     #joining: _f$joining,
     #serverLinks: _f$serverLinks,
     #historyHidden: _f$historyHidden,
-    #channelExtras: _f$channelExtras,
+    #channelComments: _f$channelComments,
     #status: _f$status,
     #offlineNotice: _f$offlineNotice,
     #floodNotice: _f$floodNotice,
@@ -482,7 +482,7 @@ class ChatCreateStateMapper extends ClassMapperBase<ChatCreateState> {
       joining: data.dec(_f$joining),
       serverLinks: data.dec(_f$serverLinks),
       historyHidden: data.dec(_f$historyHidden),
-      channelExtras: data.dec(_f$channelExtras),
+      channelComments: data.dec(_f$channelComments),
       status: data.dec(_f$status),
       offlineNotice: data.dec(_f$offlineNotice),
       floodNotice: data.dec(_f$floodNotice),
@@ -619,7 +619,7 @@ abstract class ChatCreateStateCopyWith<$R, $In extends ChatCreateState, $Out>
     bool? joining,
     bool? serverLinks,
     bool? historyHidden,
-    bool? channelExtras,
+    bool? channelComments,
     Status? status,
     int? offlineNotice,
     int? floodNotice,
@@ -726,7 +726,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     bool? joining,
     bool? serverLinks,
     bool? historyHidden,
-    bool? channelExtras,
+    bool? channelComments,
     Status? status,
     int? offlineNotice,
     int? floodNotice,
@@ -775,7 +775,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
       if (joining != null) #joining: joining,
       if (serverLinks != null) #serverLinks: serverLinks,
       if (historyHidden != null) #historyHidden: historyHidden,
-      if (channelExtras != null) #channelExtras: channelExtras,
+      if (channelComments != null) #channelComments: channelComments,
       if (status != null) #status: status,
       if (offlineNotice != null) #offlineNotice: offlineNotice,
       if (floodNotice != null) #floodNotice: floodNotice,
@@ -827,7 +827,7 @@ class _ChatCreateStateCopyWithImpl<$R, $Out>
     joining: data.get(#joining, or: $value.joining),
     serverLinks: data.get(#serverLinks, or: $value.serverLinks),
     historyHidden: data.get(#historyHidden, or: $value.historyHidden),
-    channelExtras: data.get(#channelExtras, or: $value.channelExtras),
+    channelComments: data.get(#channelComments, or: $value.channelComments),
     status: data.get(#status, or: $value.status),
     offlineNotice: data.get(#offlineNotice, or: $value.offlineNotice),
     floodNotice: data.get(#floodNotice, or: $value.floodNotice),

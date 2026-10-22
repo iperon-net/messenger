@@ -764,6 +764,8 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get forwardTo => 'Переслать в…';
 	@override String forwardedFrom({required Object name}) => 'Переслано от ${name}';
 	@override String get forwardHidden => 'Аккаунт скрыт пользователем';
+	@override String forwardedFromChannel({required Object name}) => 'Переслано из ${name}';
+	@override String get forwardChannelUnavailable => 'Канал недоступен: вы не подписаны на него';
 	@override String forwardFrom({required Object names}) => 'От: ${names}';
 	@override String savedToFavorites({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
 		one: 'Сообщение сохранено в Избранном',
@@ -1725,6 +1727,7 @@ class _Translations$chatAction$ru extends Translations$chatAction$en {
 	@override String get slowModeWait => 'В группе включён медленный режим — сообщение отправится, когда закончится ожидание.';
 	@override String get pollClosed => 'Опрос уже завершён.';
 	@override String get pollForward => 'Опрос нельзя переслать.';
+	@override String get reactionsLimit => 'Под этим постом уже набран максимум разных реакций. Можно поставить только ту, что уже есть.';
 }
 
 // Path: chatTtl
@@ -2472,6 +2475,8 @@ extension on TranslationsRu {
 			'screenChat.forwardTo' => 'Переслать в…',
 			'screenChat.forwardedFrom' => ({required Object name}) => 'Переслано от ${name}',
 			'screenChat.forwardHidden' => 'Аккаунт скрыт пользователем',
+			'screenChat.forwardedFromChannel' => ({required Object name}) => 'Переслано из ${name}',
+			'screenChat.forwardChannelUnavailable' => 'Канал недоступен: вы не подписаны на него',
 			'screenChat.forwardFrom' => ({required Object names}) => 'От: ${names}',
 			'screenChat.savedToFavorites' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Сообщение сохранено в Избранном', few: 'Сообщения сохранены в Избранном', many: 'Сообщения сохранены в Избранном', other: 'Сообщения сохранены в Избранном', ), 
 			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Переслать ${n} сообщение', few: 'Переслать ${n} сообщения', many: 'Переслать ${n} сообщений', other: 'Переслать ${n} сообщения', ), 
@@ -2959,10 +2964,10 @@ extension on TranslationsRu {
 			'screenContacts.validationCloudLimitReached' => 'Достигнут лимит облачных контактов',
 			'screenContacts.addSyncHint' => 'Контакт будет доступен на всех ваших устройствах',
 			'screenContacts.remove' => 'Удалить',
-			'screenContacts.removeTitle' => 'Удалить контакт?',
-			'screenContacts.removeMessage' => 'Он больше не сможет вам звонить, если в настройках приватности не разрешены звонки от всех.',
 			_ => null,
 		} ?? switch (path) {
+			'screenContacts.removeTitle' => 'Удалить контакт?',
+			'screenContacts.removeMessage' => 'Он больше не сможет вам звонить, если в настройках приватности не разрешены звонки от всех.',
 			'screenContacts.editContact' => 'Изменить контакт',
 			'screenContacts.addToContacts' => 'Добавить в контакты',
 			'screenContacts.removeContact' => 'Удалить контакт',
@@ -3148,6 +3153,7 @@ extension on TranslationsRu {
 			'chatAction.slowModeWait' => 'В группе включён медленный режим — сообщение отправится, когда закончится ожидание.',
 			'chatAction.pollClosed' => 'Опрос уже завершён.',
 			'chatAction.pollForward' => 'Опрос нельзя переслать.',
+			'chatAction.reactionsLimit' => 'Под этим постом уже набран максимум разных реакций. Можно поставить только ту, что уже есть.',
 			'chatTtl.title' => 'Автоудаление',
 			'chatTtl.titleLong' => 'Автоудаление сообщений',
 			'chatTtl.off' => 'Выкл',
