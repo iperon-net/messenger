@@ -57,6 +57,8 @@ class CommonCubit extends Cubit<CommonState> {
     ChatsSync.instance.setEnabled(true);
     // Группы — по флагу «Группы» (capability `groups` в Subscribe).
     ChatsSync.instance.setGroups(settingsDevice.chatsGroups, initial: true);
+    // Каналы — по флагу «Каналы» (capability `channels`).
+    ChatsSync.instance.setChannels(settingsDevice.chatsChannels, initial: true);
     // При холодном старте после принудительной блокировки биометрию сама не
     // показываем — только по кнопке. Обычная авто-блокировка биометрию разрешает.
     emit(
@@ -259,6 +261,14 @@ class CommonCubit extends Cubit<CommonState> {
     await repositories.settingsDevice.setChatsGroups(value);
     emit(state.copyWith(settingsDevice: state.settingsDevice.copyWith(chatsGroups: value)));
     ChatsSync.instance.setGroups(value);
+  }
+
+  /// Тумблер «Каналы» (срез 4): как [setChatsGroups], для capability
+  /// `channels`.
+  Future<void> setChatsChannels({required bool value}) async {
+    await repositories.settingsDevice.setChatsChannels(value);
+    emit(state.copyWith(settingsDevice: state.settingsDevice.copyWith(chatsChannels: value)));
+    ChatsSync.instance.setChannels(value);
   }
 
   /// «Темы для чатов»: узор и цвет обоев.

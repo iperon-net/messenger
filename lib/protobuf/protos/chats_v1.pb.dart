@@ -49,6 +49,7 @@ class ChatInfo extends $pb.GeneratedMessage {
     ChatReactionsMode? reactionsMode,
     $core.Iterable<$core.String>? reactions,
     $core.bool? noForwards,
+    $core.bool? signMessages,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -71,6 +72,7 @@ class ChatInfo extends $pb.GeneratedMessage {
     if (reactionsMode != null) result.reactionsMode = reactionsMode;
     if (reactions != null) result.reactions.addAll(reactions);
     if (noForwards != null) result.noForwards = noForwards;
+    if (signMessages != null) result.signMessages = signMessages;
     return result;
   }
 
@@ -103,6 +105,7 @@ class ChatInfo extends $pb.GeneratedMessage {
     ..aE<ChatReactionsMode>(18, _omitFieldNames ? '' : 'reactionsMode', protoName: 'reactionsMode', enumValues: ChatReactionsMode.values)
     ..pPS(19, _omitFieldNames ? '' : 'reactions')
     ..aOB(20, _omitFieldNames ? '' : 'noForwards', protoName: 'noForwards')
+    ..aOB(21, _omitFieldNames ? '' : 'signMessages', protoName: 'signMessages')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -318,6 +321,17 @@ class ChatInfo extends $pb.GeneratedMessage {
   $core.bool hasNoForwards() => $_has(19);
   @$pb.TagNumber(20)
   void clearNoForwards() => $_clearField(20);
+
+  /// Канал (срез 4): «Подписывать сообщения» — у постов authorSignature (имя
+  /// опубликовавшего админа на момент публикации).
+  @$pb.TagNumber(21)
+  $core.bool get signMessages => $_getBF(20);
+  @$pb.TagNumber(21)
+  set signMessages($core.bool value) => $_setBool(20, value);
+  @$pb.TagNumber(21)
+  $core.bool hasSignMessages() => $_has(20);
+  @$pb.TagNumber(21)
+  void clearSignMessages() => $_clearField(21);
 }
 
 /// Ссылка-приглашение (как chatInviteExported в Telegram). Путь ссылки —
@@ -2891,6 +2905,8 @@ class ChatMessage extends $pb.GeneratedMessage {
     $core.int? ttlPeriod,
     $core.bool? mentionUnread,
     PollResults? poll,
+    $core.String? authorSignature,
+    $core.bool? postOut,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -2907,6 +2923,8 @@ class ChatMessage extends $pb.GeneratedMessage {
     if (ttlPeriod != null) result.ttlPeriod = ttlPeriod;
     if (mentionUnread != null) result.mentionUnread = mentionUnread;
     if (poll != null) result.poll = poll;
+    if (authorSignature != null) result.authorSignature = authorSignature;
+    if (postOut != null) result.postOut = postOut;
     return result;
   }
 
@@ -2933,6 +2951,8 @@ class ChatMessage extends $pb.GeneratedMessage {
     ..aI(12, _omitFieldNames ? '' : 'ttlPeriod', protoName: 'ttlPeriod')
     ..aOB(13, _omitFieldNames ? '' : 'mentionUnread', protoName: 'mentionUnread')
     ..aOM<PollResults>(14, _omitFieldNames ? '' : 'poll', subBuilder: PollResults.create)
+    ..aOS(15, _omitFieldNames ? '' : 'authorSignature', protoName: 'authorSignature')
+    ..aOB(16, _omitFieldNames ? '' : 'postOut', protoName: 'postOut')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -3096,6 +3116,31 @@ class ChatMessage extends $pb.GeneratedMessage {
   void clearPoll() => $_clearField(14);
   @$pb.TagNumber(14)
   PollResults ensurePoll() => $_ensure(13);
+
+  /// Пост канала (срез 4): автор скрыт — fromUserID пуст, отправитель —
+  /// канал. authorSignature — имя опубликовавшего при ChatInfo.signMessages
+  /// на момент публикации (иначе пусто). Служебные в канале — тоже без
+  /// fromUserID.
+  @$pb.TagNumber(15)
+  $core.String get authorSignature => $_getSZ(14);
+  @$pb.TagNumber(15)
+  set authorSignature($core.String value) => $_setString(14, value);
+  @$pb.TagNumber(15)
+  $core.bool hasAuthorSignature() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearAuthorSignature() => $_clearField(15);
+
+  /// Пост канала опубликовал я — глазами запросившего (History / Get / ответ
+  /// Send); в общем обновлении журнала чата — false. Нужен для «править /
+  /// удалять свои посты» без права editMessages / deleteMessages.
+  @$pb.TagNumber(16)
+  $core.bool get postOut => $_getBF(15);
+  @$pb.TagNumber(16)
+  set postOut($core.bool value) => $_setBool(15, value);
+  @$pb.TagNumber(16)
+  $core.bool hasPostOut() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearPostOut() => $_clearField(16);
 }
 
 /// Диалог пользователя: общий чат + моё состояние в нём.
@@ -7727,6 +7772,7 @@ class Chats_CreateGroup extends $pb.GeneratedMessage {
     $core.String? username,
     ChatJoinMode? joinMode,
     $core.bool? historyHidden,
+    $core.bool? channel,
   }) {
     final result = create();
     if (title != null) result.title = title;
@@ -7737,6 +7783,7 @@ class Chats_CreateGroup extends $pb.GeneratedMessage {
     if (username != null) result.username = username;
     if (joinMode != null) result.joinMode = joinMode;
     if (historyHidden != null) result.historyHidden = historyHidden;
+    if (channel != null) result.channel = channel;
     return result;
   }
 
@@ -7757,6 +7804,7 @@ class Chats_CreateGroup extends $pb.GeneratedMessage {
     ..aOS(6, _omitFieldNames ? '' : 'username')
     ..aE<ChatJoinMode>(7, _omitFieldNames ? '' : 'joinMode', protoName: 'joinMode', enumValues: ChatJoinMode.values)
     ..aOB(8, _omitFieldNames ? '' : 'historyHidden', protoName: 'historyHidden')
+    ..aOB(9, _omitFieldNames ? '' : 'channel')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -7843,6 +7891,19 @@ class Chats_CreateGroup extends $pb.GeneratedMessage {
   $core.bool hasHistoryHidden() => $_has(7);
   @$pb.TagNumber(8)
   void clearHistoryHidden() => $_clearField(8);
+
+  /// Создать канал (срез 4, нужна capability «channels»): memberUserIDs —
+  /// подписчики (READER, «Добавить подписчиков», ≤ 200, приватность та же,
+  /// что у групп); joinMode — только OPEN или LINK; historyHidden —
+  /// INVALID_ARGUMENT. В ленте — только CREATED (без ADDED).
+  @$pb.TagNumber(9)
+  $core.bool get channel => $_getBF(8);
+  @$pb.TagNumber(9)
+  set channel($core.bool value) => $_setBool(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasChannel() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearChannel() => $_clearField(9);
 }
 
 class Chats_CreateGroupResult extends $pb.GeneratedMessage {
@@ -7949,6 +8010,7 @@ class Chats_EditChat extends $pb.GeneratedMessage {
     $core.bool? membersHidden,
     Chats_ChatReactionsSettings? reactions,
     $core.bool? noForwards,
+    $core.bool? signMessages,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -7964,6 +8026,7 @@ class Chats_EditChat extends $pb.GeneratedMessage {
     if (membersHidden != null) result.membersHidden = membersHidden;
     if (reactions != null) result.reactions = reactions;
     if (noForwards != null) result.noForwards = noForwards;
+    if (signMessages != null) result.signMessages = signMessages;
     return result;
   }
 
@@ -7989,6 +8052,7 @@ class Chats_EditChat extends $pb.GeneratedMessage {
     ..aOB(11, _omitFieldNames ? '' : 'membersHidden', protoName: 'membersHidden')
     ..aOM<Chats_ChatReactionsSettings>(12, _omitFieldNames ? '' : 'reactions', subBuilder: Chats_ChatReactionsSettings.create)
     ..aOB(13, _omitFieldNames ? '' : 'noForwards', protoName: 'noForwards')
+    ..aOB(14, _omitFieldNames ? '' : 'signMessages', protoName: 'signMessages')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -8127,6 +8191,17 @@ class Chats_EditChat extends $pb.GeneratedMessage {
   $core.bool hasNoForwards() => $_has(12);
   @$pb.TagNumber(13)
   void clearNoForwards() => $_clearField(13);
+
+  /// Канал: «Подписывать сообщения» (право changeInfo, ChatInfo.signMessages);
+  /// у группы — INVALID_ARGUMENT.
+  @$pb.TagNumber(14)
+  $core.bool get signMessages => $_getBF(13);
+  @$pb.TagNumber(14)
+  set signMessages($core.bool value) => $_setBool(13, value);
+  @$pb.TagNumber(14)
+  $core.bool hasSignMessages() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearSignMessages() => $_clearField(14);
 }
 
 class Chats_ChatReactionsSettings extends $pb.GeneratedMessage {

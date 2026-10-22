@@ -906,7 +906,7 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
                   onTap: () => Navigator.of(sheetContext).pop('forward'),
                 ),
               // Пересланное не правится (как в Telegram).
-              if (message.outgoing && message.kind == models.MessageKind.text && message.forward == null)
+              if (_cubit.canEdit(message) && message.kind == models.MessageKind.text && message.forward == null)
                 ListTile(
                   leading: const Icon(Icons.edit_outlined),
                   title: Text(t.edit),

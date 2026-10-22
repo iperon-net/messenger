@@ -477,24 +477,28 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                           section(
                             footer: createNoteCupertino(
                               [
-                                t.screenNewChat.commentsFooter,
-                                if (state.commentsEnabled) t.screenNewChat.commentsLimitFooter,
-                                if (state.commentsEnabled && state.commentsWho == models.ChatCommentsWho.subscribers)
-                                  t.screenNewChat.commentsWhoFooter,
-                                if (state.commentsEnabled) t.screenNewChat.newcomerMediaFooterChannel,
+                                if (state.channelExtras) ...[
+                                  t.screenNewChat.commentsFooter,
+                                  if (state.commentsEnabled) t.screenNewChat.commentsLimitFooter,
+                                  if (state.commentsEnabled && state.commentsWho == models.ChatCommentsWho.subscribers)
+                                    t.screenNewChat.commentsWhoFooter,
+                                  if (state.commentsEnabled) t.screenNewChat.newcomerMediaFooterChannel,
+                                ],
                                 t.screenNewChat.signFooter,
                               ].join(' '),
                             ),
                             children: [
-                              CupertinoListTile(
-                                title: Text(t.screenNewChat.commentsSwitch, style: const TextStyle(fontSize: AppFontSizes.body)),
-                                trailing: CupertinoSwitch(
-                                  value: state.commentsEnabled,
-                                  onChanged: context.read<ChatCreateCubit>().setCommentsEnabled,
+                              // Комментарии на сервере — подэтап 4.3.
+                              if (state.channelExtras)
+                                CupertinoListTile(
+                                  title: Text(t.screenNewChat.commentsSwitch, style: const TextStyle(fontSize: AppFontSizes.body)),
+                                  trailing: CupertinoSwitch(
+                                    value: state.commentsEnabled,
+                                    onChanged: context.read<ChatCreateCubit>().setCommentsEnabled,
+                                  ),
                                 ),
-                              ),
                               // Выбор вариантов — выпадающее меню у строки (как в настройках iOS).
-                              if (state.commentsEnabled) ...[
+                              if (state.channelExtras && state.commentsEnabled) ...[
                                 menuRow<int>(
                                   title: t.screenNewChat.commentsLimit,
                                   values: commentsLimitOptions,
@@ -598,18 +602,20 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                           ],
                         ),
 
-                      if (type == models.ChatType.group && !state.isEdit && !state.inCommunity)
+                      if ((type == models.ChatType.group || type == models.ChatType.channel) && !state.isEdit && !state.inCommunity)
                         state.selected.isEmpty
                             ? Padding(
                                 padding: const EdgeInsets.fromLTRB(32, 0, 32, 16),
                                 child: Text(
-                                  t.screenNewChat.noMembersHint,
+                                  type == models.ChatType.channel ? t.screenNewChat.noSubscribersHint : t.screenNewChat.noMembersHint,
                                   style: TextStyle(fontSize: AppFontSizes.caption, color: secondary),
                                 ),
                               )
                             : section(
                                 header: createHeaderCupertino(
-                                  t.screenChat.members(n: state.selected.length, count: state.selected.length.grouped),
+                                  type == models.ChatType.channel
+                                      ? t.screenChat.subscribers(n: state.selected.length, count: state.selected.length.grouped)
+                                      : t.screenChat.members(n: state.selected.length, count: state.selected.length.grouped),
                                 ),
                                 children: [for (final member in state.selected) ContactTileCupertino(contact: member)],
                               ),

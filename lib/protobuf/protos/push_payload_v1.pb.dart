@@ -49,6 +49,7 @@ class PushPayload extends $pb.GeneratedMessage {
     $core.String? senderPhone,
     $core.bool? titleFromContact,
     $core.String? chatTitle,
+    $core.bool? isChannel,
   }) {
     final result = create();
     if (kind != null) result.kind = kind;
@@ -65,6 +66,7 @@ class PushPayload extends $pb.GeneratedMessage {
     if (senderPhone != null) result.senderPhone = senderPhone;
     if (titleFromContact != null) result.titleFromContact = titleFromContact;
     if (chatTitle != null) result.chatTitle = chatTitle;
+    if (isChannel != null) result.isChannel = isChannel;
     return result;
   }
 
@@ -91,6 +93,7 @@ class PushPayload extends $pb.GeneratedMessage {
     ..aOS(12, _omitFieldNames ? '' : 'senderPhone', protoName: 'senderPhone')
     ..aOB(13, _omitFieldNames ? '' : 'titleFromContact', protoName: 'titleFromContact')
     ..aOS(14, _omitFieldNames ? '' : 'chatTitle', protoName: 'chatTitle')
+    ..aOB(15, _omitFieldNames ? '' : 'isChannel', protoName: 'isChannel')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -240,6 +243,17 @@ class PushPayload extends $pb.GeneratedMessage {
   $core.bool hasChatTitle() => $_has(13);
   @$pb.TagNumber(14)
   void clearChatTitle() => $_clearField(14);
+
+  /// Пост канала (срез 4): chatTitle — название канала, отправителя нет —
+  /// текст без «Имя:».
+  @$pb.TagNumber(15)
+  $core.bool get isChannel => $_getBF(14);
+  @$pb.TagNumber(15)
+  set isChannel($core.bool value) => $_setBool(14, value);
+  @$pb.TagNumber(15)
+  $core.bool hasIsChannel() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearIsChannel() => $_clearField(15);
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

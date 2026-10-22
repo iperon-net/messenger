@@ -43,6 +43,8 @@ class _ChatCreateMembersCupertino extends State<ChatCreateMembersCupertino> {
     return BlocBuilder<ChatCreateCubit, ChatCreateState>(
       builder: (context, state) {
         final contacts = state.filtered;
+        // Канал (срез 4.1): «Добавить подписчиков», дальше — форма канала.
+        final channel = state.type == models.ChatType.channel;
         return CupertinoPageScaffold(
           backgroundColor: ThemesCupertino.groupedBackground,
           navigationBar: AppCupertinoNavigationBar(
@@ -53,7 +55,7 @@ class _ChatCreateMembersCupertino extends State<ChatCreateMembersCupertino> {
               middle: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(t.screenNewChat.addMembers),
+                  Text(channel ? t.screenNewChat.addSubscribers : t.screenNewChat.addMembers),
                   if (state.selected.isNotEmpty)
                     Text(
                       t.screenNewChat.selected(n: state.selected.length),
@@ -77,7 +79,7 @@ class _ChatCreateMembersCupertino extends State<ChatCreateMembersCupertino> {
                     )
                   : CupertinoButton(
                       padding: EdgeInsets.zero,
-                      onPressed: () => context.push('/chats/new/group/info', extra: state.selected),
+                      onPressed: () => context.push(channel ? '/chats/new/channel/info' : '/chats/new/group/info', extra: state.selected),
                       child: Text(t.screenNewChat.next, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
                     ),
             ),
@@ -137,7 +139,9 @@ class _ChatCreateMembersCupertino extends State<ChatCreateMembersCupertino> {
                     margin: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                     backgroundColor: background,
                     decoration: BoxDecoration(color: card, borderRadius: const BorderRadius.all(Radius.circular(10))),
-                    footer: state.selected.isEmpty && widget.onDone == null ? createNoteCupertino(t.screenNewChat.noMembersHint) : null,
+                    footer: state.selected.isEmpty && widget.onDone == null
+                        ? createNoteCupertino(channel ? t.screenNewChat.noSubscribersHint : t.screenNewChat.noMembersHint)
+                        : null,
                     children: [
                       for (final contact in contacts)
                         ContactTileCupertino(

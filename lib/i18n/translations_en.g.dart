@@ -625,6 +625,12 @@ class Translations$screenNewChat$en {
 	/// en: 'You can create a group without members and invite them later.'
 	String get noMembersHint => 'You can create a group without members and invite them later.';
 
+	/// en: 'Add subscribers'
+	String get addSubscribers => 'Add subscribers';
+
+	/// en: 'You can create the channel without subscribers and invite them later with a link.'
+	String get noSubscribersHint => 'You can create the channel without subscribers and invite them later with a link.';
+
 	/// en: 'New Group'
 	String get groupTitle => 'New Group';
 
@@ -2133,6 +2139,9 @@ class Translations$screenDeveloper$en {
 
 	/// en: 'Groups'
 	String get chatsGroups => 'Groups';
+
+	/// en: 'Channels'
+	String get chatsChannels => 'Channels';
 
 	/// en: 'Test notification'
 	String get testPush => 'Test notification';
@@ -4027,6 +4036,9 @@ class Translations$chatAction$en {
 	/// en: 'The group will be deleted for all members.'
 	String get deleteGroupMessage => 'The group will be deleted for all members.';
 
+	/// en: 'The channel will be deleted for all subscribers.'
+	String get deleteChannelMessage => 'The channel will be deleted for all subscribers.';
+
 	/// en: 'Couldn't complete the action. Please try again.'
 	String get failed => 'Couldn\'t complete the action. Please try again.';
 
@@ -4035,6 +4047,21 @@ class Translations$chatAction$en {
 
 	/// en: 'Groups are unavailable right now.'
 	String get groupsDisabled => 'Groups are unavailable right now.';
+
+	/// en: 'Channels are unavailable right now.'
+	String get channelsDisabled => 'Channels are unavailable right now.';
+
+	/// en: 'Channel «{title}» created'
+	String channelCreated({required Object title}) => 'Channel «${title}» created';
+
+	/// en: 'Channel name changed to «{title}»'
+	String channelTitle({required Object title}) => 'Channel name changed to «${title}»';
+
+	/// en: 'Channel photo updated'
+	String get channelPhoto => 'Channel photo updated';
+
+	/// en: 'Channel photo removed'
+	String get channelPhotoRemoved => 'Channel photo removed';
 
 	/// en: 'You transferred group ownership: {names}'
 	String ownerYou({required Object names}) => 'You transferred group ownership: ${names}';
@@ -4675,6 +4702,8 @@ extension on Translations {
 			'screenNewChat.next' => 'Next',
 			'screenNewChat.selected' => ({required Object n}) => 'Selected: ${n}',
 			'screenNewChat.noMembersHint' => 'You can create a group without members and invite them later.',
+			'screenNewChat.addSubscribers' => 'Add subscribers',
+			'screenNewChat.noSubscribersHint' => 'You can create the channel without subscribers and invite them later with a link.',
 			'screenNewChat.groupTitle' => 'New Group',
 			'screenNewChat.channelTitle' => 'New Channel',
 			'screenNewChat.communityTitle' => 'New Community',
@@ -5029,10 +5058,10 @@ extension on Translations {
 			'screenChat.unpinAllTitle' => 'Unpin all messages?',
 			'screenChat.goToMessage' => 'Go to message',
 			'screenChat.sendSilent' => 'Send without sound',
-			'screenChat.sendLater' => 'Schedule message',
-			'screenChat.slowMode' => 'Slow mode',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.sendLater' => 'Schedule message',
+			'screenChat.slowMode' => 'Slow mode',
 			'screenChat.slowModeWait' => ({required Object time}) => 'Slow mode is enabled in this chat. You can send your next message in ${time}.',
 			'screenChat.floodTitle' => 'Too many requests',
 			'screenChat.floodWait' => ({required Object time}) => 'You are sending messages too often. You can send the next one in ${time}.',
@@ -5149,6 +5178,7 @@ extension on Translations {
 			'screenDeveloper.callPreview' => 'Call screen preview',
 			'screenDeveloper.chatsDemo' => 'Chats demo',
 			'screenDeveloper.chatsGroups' => 'Groups',
+			'screenDeveloper.chatsChannels' => 'Channels',
 			'screenDeveloper.testPush' => 'Test notification',
 			'screenDeveloper.testPushSent' => ({required Object apns, required Object fcm, required Object failed}) => 'Sent: APNs — ${apns}, FCM — ${fcm}, failed — ${failed}. Minimize the app or lock the screen to check background delivery.',
 			'screenDeveloper.testPushNoTokens' => 'None of your devices has a push token. Make sure notifications are allowed and restart the app.',
@@ -5542,11 +5572,11 @@ extension on Translations {
 			'screenContacts.remove' => 'Remove',
 			'screenContacts.removeTitle' => 'Remove contact?',
 			'screenContacts.removeMessage' => 'They will no longer be able to call you unless your call privacy allows everyone.',
+			_ => null,
+		} ?? switch (path) {
 			'screenContacts.editContact' => 'Edit Contact',
 			'screenContacts.addToContacts' => 'Add to Contacts',
 			'screenContacts.removeContact' => 'Delete Contact',
-			_ => null,
-		} ?? switch (path) {
 			'screenContacts.removeFailed' => 'Couldn\'t delete the contact',
 			'screenCalls.title' => 'Calls',
 			'screenCalls.empty' => 'Your calls will appear here',
@@ -5702,9 +5732,15 @@ extension on Translations {
 			'chatAction.restrictedTitle' => 'Not everyone was added',
 			'chatAction.restricted' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} person wasn\'t added: their privacy settings don\'t allow adding them to groups.', other: '${count} people weren\'t added: their privacy settings don\'t allow adding them to groups.', ), 
 			'chatAction.deleteGroupMessage' => 'The group will be deleted for all members.',
+			'chatAction.deleteChannelMessage' => 'The channel will be deleted for all subscribers.',
 			'chatAction.failed' => 'Couldn\'t complete the action. Please try again.',
 			'chatAction.titleInvalid' => 'The group name must be 1 to 128 characters.',
 			'chatAction.groupsDisabled' => 'Groups are unavailable right now.',
+			'chatAction.channelsDisabled' => 'Channels are unavailable right now.',
+			'chatAction.channelCreated' => ({required Object title}) => 'Channel «${title}» created',
+			'chatAction.channelTitle' => ({required Object title}) => 'Channel name changed to «${title}»',
+			'chatAction.channelPhoto' => 'Channel photo updated',
+			'chatAction.channelPhotoRemoved' => 'Channel photo removed',
 			'chatAction.ownerYou' => ({required Object names}) => 'You transferred group ownership: ${names}',
 			'chatAction.owner' => ({required Object name, required Object names}) => '${name} transferred group ownership: ${names}',
 			'chatAction.rightsTooWide' => 'You can\'t grant rights you don\'t have.',

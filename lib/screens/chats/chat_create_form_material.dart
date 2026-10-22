@@ -491,12 +491,14 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                         if (state.isEdit && type == models.ChatType.channel && !state.basic) ...[
                           const SizedBox(height: 8),
                           card([
-                            SwitchListTile(
-                              title: Text(t.screenNewChat.commentsSwitch),
-                              value: state.commentsEnabled,
-                              onChanged: context.read<ChatCreateCubit>().setCommentsEnabled,
-                            ),
-                            if (state.commentsEnabled) ...[
+                            // Комментарии на сервере — подэтап 4.3.
+                            if (state.channelExtras)
+                              SwitchListTile(
+                                title: Text(t.screenNewChat.commentsSwitch),
+                                value: state.commentsEnabled,
+                                onChanged: context.read<ChatCreateCubit>().setCommentsEnabled,
+                              ),
+                            if (state.channelExtras && state.commentsEnabled) ...[
                               ListTile(
                                 title: Text(t.screenNewChat.commentsLimit),
                                 subtitle: Text(commentsLimitLabel(t, state.commentsTimeLimit)),
@@ -547,11 +549,13 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                           createNoteMaterial(
                             context,
                             [
-                              t.screenNewChat.commentsFooter,
-                              if (state.commentsEnabled) t.screenNewChat.commentsLimitFooter,
-                              if (state.commentsEnabled && state.commentsWho == models.ChatCommentsWho.subscribers)
-                                t.screenNewChat.commentsWhoFooter,
-                              if (state.commentsEnabled) t.screenNewChat.newcomerMediaFooterChannel,
+                              if (state.channelExtras) ...[
+                                t.screenNewChat.commentsFooter,
+                                if (state.commentsEnabled) t.screenNewChat.commentsLimitFooter,
+                                if (state.commentsEnabled && state.commentsWho == models.ChatCommentsWho.subscribers)
+                                  t.screenNewChat.commentsWhoFooter,
+                                if (state.commentsEnabled) t.screenNewChat.newcomerMediaFooterChannel,
+                              ],
                               t.screenNewChat.signFooter,
                             ].join(' '),
                           ),
@@ -615,13 +619,18 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                         ),
                       ],
 
-                      if (type == models.ChatType.group && !state.isEdit && !state.inCommunity)
+                      if ((type == models.ChatType.group || type == models.ChatType.channel) && !state.isEdit && !state.inCommunity)
                         if (state.selected.isEmpty)
-                          createNoteMaterial(context, t.screenNewChat.noMembersHint)
+                          createNoteMaterial(
+                            context,
+                            type == models.ChatType.channel ? t.screenNewChat.noSubscribersHint : t.screenNewChat.noMembersHint,
+                          )
                         else ...[
                           createHeaderMaterial(
                             context,
-                            t.screenChat.members(n: state.selected.length, count: state.selected.length.grouped),
+                            type == models.ChatType.channel
+                                ? t.screenChat.subscribers(n: state.selected.length, count: state.selected.length.grouped)
+                                : t.screenChat.members(n: state.selected.length, count: state.selected.length.grouped),
                           ),
                           card([for (final member in state.selected) ContactTileMaterial(contact: member)]),
                         ],

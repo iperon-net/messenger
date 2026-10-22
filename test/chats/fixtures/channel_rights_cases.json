@@ -1,0 +1,5045 @@
+{
+  "_comment": "Общая таблица правил прав в канале (docs/plans/chats-channels.md, подэтап 4.1). Байт-в-байт одинакова в messenger (test/chats/fixtures/channel_rights_cases.json) и iperon (internal/services/testdata/channel_rights_cases.json); тесты обеих сторон прогоняют её целиком. Владелец имеет все права всегда. Подписчик (reader) только читает, ставит реакции и голосует. post / editOwn / deleteOwn — право postMessages (свои посты); editOthers — editMessages; deleteOthers — deleteMessages; pinForAll — editMessages (как в Telegram); addMembers — inviteUsers (добавлять подписчиков и ссылки); removeMember / ban / unban — banUsers; роли READER ⇄ WRITER в канале нет (setMemberRole всегда false). target \"self\" — сам актор. requested — выдаваемые права (setAdmin).",
+  "rights": [
+    "changeInfo",
+    "postMessages",
+    "editMessages",
+    "deleteMessages",
+    "banUsers",
+    "inviteUsers",
+    "manageCalls",
+    "addAdmins"
+  ],
+  "cases": [
+    {
+      "name": "react: подписчик",
+      "action": "react",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": true
+    },
+    {
+      "name": "react: владелец",
+      "action": "react",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": true
+    },
+    {
+      "name": "react: админ с changeInfo",
+      "action": "react",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "react: админ с postMessages",
+      "action": "react",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "react: админ с editMessages",
+      "action": "react",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "react: админ с deleteMessages",
+      "action": "react",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "react: админ с banUsers",
+      "action": "react",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "react: админ с inviteUsers",
+      "action": "react",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "react: админ с manageCalls",
+      "action": "react",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "react: админ с addAdmins",
+      "action": "react",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "react: админ без прав",
+      "action": "react",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": true
+    },
+    {
+      "name": "react: админ с changeInfo+addAdmins",
+      "action": "react",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "post: подписчик",
+      "action": "post",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false
+    },
+    {
+      "name": "post: владелец",
+      "action": "post",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": true
+    },
+    {
+      "name": "post: админ с changeInfo",
+      "action": "post",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "post: админ с postMessages",
+      "action": "post",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "post: админ с editMessages",
+      "action": "post",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "post: админ с deleteMessages",
+      "action": "post",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "post: админ с banUsers",
+      "action": "post",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "post: админ с inviteUsers",
+      "action": "post",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "post: админ с manageCalls",
+      "action": "post",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "post: админ с addAdmins",
+      "action": "post",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "post: админ без прав",
+      "action": "post",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false
+    },
+    {
+      "name": "post: админ с changeInfo+addAdmins",
+      "action": "post",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editOwn: подписчик",
+      "action": "editOwn",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false
+    },
+    {
+      "name": "editOwn: владелец",
+      "action": "editOwn",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": true
+    },
+    {
+      "name": "editOwn: админ с changeInfo",
+      "action": "editOwn",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editOwn: админ с postMessages",
+      "action": "editOwn",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "editOwn: админ с editMessages",
+      "action": "editOwn",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editOwn: админ с deleteMessages",
+      "action": "editOwn",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editOwn: админ с banUsers",
+      "action": "editOwn",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editOwn: админ с inviteUsers",
+      "action": "editOwn",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editOwn: админ с manageCalls",
+      "action": "editOwn",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editOwn: админ с addAdmins",
+      "action": "editOwn",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editOwn: админ без прав",
+      "action": "editOwn",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false
+    },
+    {
+      "name": "editOwn: админ с changeInfo+addAdmins",
+      "action": "editOwn",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "deleteOwn: подписчик",
+      "action": "deleteOwn",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false
+    },
+    {
+      "name": "deleteOwn: владелец",
+      "action": "deleteOwn",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": true
+    },
+    {
+      "name": "deleteOwn: админ с changeInfo",
+      "action": "deleteOwn",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "deleteOwn: админ с postMessages",
+      "action": "deleteOwn",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "deleteOwn: админ с editMessages",
+      "action": "deleteOwn",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "deleteOwn: админ с deleteMessages",
+      "action": "deleteOwn",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "deleteOwn: админ с banUsers",
+      "action": "deleteOwn",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "deleteOwn: админ с inviteUsers",
+      "action": "deleteOwn",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "deleteOwn: админ с manageCalls",
+      "action": "deleteOwn",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "deleteOwn: админ с addAdmins",
+      "action": "deleteOwn",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "deleteOwn: админ без прав",
+      "action": "deleteOwn",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false
+    },
+    {
+      "name": "deleteOwn: админ с changeInfo+addAdmins",
+      "action": "deleteOwn",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editOthers: подписчик",
+      "action": "editOthers",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false
+    },
+    {
+      "name": "editOthers: владелец",
+      "action": "editOthers",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": true
+    },
+    {
+      "name": "editOthers: админ с changeInfo",
+      "action": "editOthers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editOthers: админ с postMessages",
+      "action": "editOthers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editOthers: админ с editMessages",
+      "action": "editOthers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "editOthers: админ с deleteMessages",
+      "action": "editOthers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editOthers: админ с banUsers",
+      "action": "editOthers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editOthers: админ с inviteUsers",
+      "action": "editOthers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editOthers: админ с manageCalls",
+      "action": "editOthers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editOthers: админ с addAdmins",
+      "action": "editOthers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editOthers: админ без прав",
+      "action": "editOthers",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false
+    },
+    {
+      "name": "editOthers: админ с changeInfo+addAdmins",
+      "action": "editOthers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "deleteOthers: подписчик",
+      "action": "deleteOthers",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false
+    },
+    {
+      "name": "deleteOthers: владелец",
+      "action": "deleteOthers",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": true
+    },
+    {
+      "name": "deleteOthers: админ с changeInfo",
+      "action": "deleteOthers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "deleteOthers: админ с postMessages",
+      "action": "deleteOthers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "deleteOthers: админ с editMessages",
+      "action": "deleteOthers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "deleteOthers: админ с deleteMessages",
+      "action": "deleteOthers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "deleteOthers: админ с banUsers",
+      "action": "deleteOthers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "deleteOthers: админ с inviteUsers",
+      "action": "deleteOthers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "deleteOthers: админ с manageCalls",
+      "action": "deleteOthers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "deleteOthers: админ с addAdmins",
+      "action": "deleteOthers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "deleteOthers: админ без прав",
+      "action": "deleteOthers",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false
+    },
+    {
+      "name": "deleteOthers: админ с changeInfo+addAdmins",
+      "action": "deleteOthers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "pinForAll: подписчик",
+      "action": "pinForAll",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false
+    },
+    {
+      "name": "pinForAll: владелец",
+      "action": "pinForAll",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": true
+    },
+    {
+      "name": "pinForAll: админ с changeInfo",
+      "action": "pinForAll",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "pinForAll: админ с postMessages",
+      "action": "pinForAll",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "pinForAll: админ с editMessages",
+      "action": "pinForAll",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "pinForAll: админ с deleteMessages",
+      "action": "pinForAll",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "pinForAll: админ с banUsers",
+      "action": "pinForAll",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "pinForAll: админ с inviteUsers",
+      "action": "pinForAll",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "pinForAll: админ с manageCalls",
+      "action": "pinForAll",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "pinForAll: админ с addAdmins",
+      "action": "pinForAll",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "pinForAll: админ без прав",
+      "action": "pinForAll",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false
+    },
+    {
+      "name": "pinForAll: админ с changeInfo+addAdmins",
+      "action": "pinForAll",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editInfo: подписчик",
+      "action": "editInfo",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false
+    },
+    {
+      "name": "editInfo: владелец",
+      "action": "editInfo",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": true
+    },
+    {
+      "name": "editInfo: админ с changeInfo",
+      "action": "editInfo",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "editInfo: админ с postMessages",
+      "action": "editInfo",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editInfo: админ с editMessages",
+      "action": "editInfo",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editInfo: админ с deleteMessages",
+      "action": "editInfo",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editInfo: админ с banUsers",
+      "action": "editInfo",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editInfo: админ с inviteUsers",
+      "action": "editInfo",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editInfo: админ с manageCalls",
+      "action": "editInfo",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editInfo: админ с addAdmins",
+      "action": "editInfo",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "editInfo: админ без прав",
+      "action": "editInfo",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false
+    },
+    {
+      "name": "editInfo: админ с changeInfo+addAdmins",
+      "action": "editInfo",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "addMembers: подписчик",
+      "action": "addMembers",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false
+    },
+    {
+      "name": "addMembers: владелец",
+      "action": "addMembers",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": true
+    },
+    {
+      "name": "addMembers: админ с changeInfo",
+      "action": "addMembers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "addMembers: админ с postMessages",
+      "action": "addMembers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "addMembers: админ с editMessages",
+      "action": "addMembers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "addMembers: админ с deleteMessages",
+      "action": "addMembers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "addMembers: админ с banUsers",
+      "action": "addMembers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "addMembers: админ с inviteUsers",
+      "action": "addMembers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "addMembers: админ с manageCalls",
+      "action": "addMembers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "addMembers: админ с addAdmins",
+      "action": "addMembers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "addMembers: админ без прав",
+      "action": "addMembers",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false
+    },
+    {
+      "name": "addMembers: админ с changeInfo+addAdmins",
+      "action": "addMembers",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "unban: подписчик",
+      "action": "unban",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false
+    },
+    {
+      "name": "unban: владелец",
+      "action": "unban",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": true
+    },
+    {
+      "name": "unban: админ с changeInfo",
+      "action": "unban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "unban: админ с postMessages",
+      "action": "unban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "unban: админ с editMessages",
+      "action": "unban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "unban: админ с deleteMessages",
+      "action": "unban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "unban: админ с banUsers",
+      "action": "unban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": true
+    },
+    {
+      "name": "unban: админ с inviteUsers",
+      "action": "unban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "unban: админ с manageCalls",
+      "action": "unban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "unban: админ с addAdmins",
+      "action": "unban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "unban: админ без прав",
+      "action": "unban",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false
+    },
+    {
+      "name": "unban: админ с changeInfo+addAdmins",
+      "action": "unban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false
+    },
+    {
+      "name": "removeMember: подписчик → подписчика",
+      "action": "removeMember",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: подписчик → админа с changeInfo",
+      "action": "removeMember",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeMember: подписчик → владельца",
+      "action": "removeMember",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: владелец → подписчика",
+      "action": "removeMember",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": true,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: владелец → админа с changeInfo",
+      "action": "removeMember",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeMember: владелец → владельца",
+      "action": "removeMember",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: админ с changeInfo → подписчика",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: админ с changeInfo → админа с changeInfo",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeMember: админ с changeInfo → владельца",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: админ с postMessages → подписчика",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: админ с postMessages → админа с changeInfo",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeMember: админ с postMessages → владельца",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: админ с editMessages → подписчика",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: админ с editMessages → админа с changeInfo",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeMember: админ с editMessages → владельца",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: админ с deleteMessages → подписчика",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: админ с deleteMessages → админа с changeInfo",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeMember: админ с deleteMessages → владельца",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: админ с banUsers → подписчика",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": true,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: админ с banUsers → админа с changeInfo",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeMember: админ с banUsers → владельца",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: админ с inviteUsers → подписчика",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: админ с inviteUsers → админа с changeInfo",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeMember: админ с inviteUsers → владельца",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: админ с manageCalls → подписчика",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: админ с manageCalls → админа с changeInfo",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeMember: админ с manageCalls → владельца",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: админ с addAdmins → подписчика",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: админ с addAdmins → админа с changeInfo",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeMember: админ с addAdmins → владельца",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: админ без прав → подписчика",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: админ без прав → админа с changeInfo",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeMember: админ без прав → владельца",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: админ с changeInfo+addAdmins → подписчика",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: админ с changeInfo+addAdmins → админа с changeInfo",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeMember: админ с changeInfo+addAdmins → владельца",
+      "action": "removeMember",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeMember: владелец → сам",
+      "action": "removeMember",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": false,
+      "target": "self"
+    },
+    {
+      "name": "ban: подписчик → подписчика",
+      "action": "ban",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: подписчик → админа с changeInfo",
+      "action": "ban",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "ban: подписчик → владельца",
+      "action": "ban",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: владелец → подписчика",
+      "action": "ban",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": true,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: владелец → админа с changeInfo",
+      "action": "ban",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "ban: владелец → владельца",
+      "action": "ban",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: админ с changeInfo → подписчика",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: админ с changeInfo → админа с changeInfo",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "ban: админ с changeInfo → владельца",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: админ с postMessages → подписчика",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: админ с postMessages → админа с changeInfo",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "ban: админ с postMessages → владельца",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: админ с editMessages → подписчика",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: админ с editMessages → админа с changeInfo",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "ban: админ с editMessages → владельца",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: админ с deleteMessages → подписчика",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: админ с deleteMessages → админа с changeInfo",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "ban: админ с deleteMessages → владельца",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: админ с banUsers → подписчика",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": true,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: админ с banUsers → админа с changeInfo",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "ban: админ с banUsers → владельца",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: админ с inviteUsers → подписчика",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: админ с inviteUsers → админа с changeInfo",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "ban: админ с inviteUsers → владельца",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: админ с manageCalls → подписчика",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: админ с manageCalls → админа с changeInfo",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "ban: админ с manageCalls → владельца",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: админ с addAdmins → подписчика",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: админ с addAdmins → админа с changeInfo",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "ban: админ с addAdmins → владельца",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: админ без прав → подписчика",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: админ без прав → админа с changeInfo",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "ban: админ без прав → владельца",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: админ с changeInfo+addAdmins → подписчика",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: админ с changeInfo+addAdmins → админа с changeInfo",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "ban: админ с changeInfo+addAdmins → владельца",
+      "action": "ban",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "ban: владелец → сам",
+      "action": "ban",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": false,
+      "target": "self"
+    },
+    {
+      "name": "setMemberRole: подписчик → подписчика",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: подписчик → админа с changeInfo",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "setMemberRole: подписчик → владельца",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: владелец → подписчика",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: владелец → админа с changeInfo",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "setMemberRole: владелец → владельца",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: админ с changeInfo → подписчика",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: админ с changeInfo → админа с changeInfo",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "setMemberRole: админ с changeInfo → владельца",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: админ с postMessages → подписчика",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: админ с postMessages → админа с changeInfo",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "setMemberRole: админ с postMessages → владельца",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: админ с editMessages → подписчика",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: админ с editMessages → админа с changeInfo",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "setMemberRole: админ с editMessages → владельца",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: админ с deleteMessages → подписчика",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: админ с deleteMessages → админа с changeInfo",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "setMemberRole: админ с deleteMessages → владельца",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: админ с banUsers → подписчика",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: админ с banUsers → админа с changeInfo",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "setMemberRole: админ с banUsers → владельца",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: админ с inviteUsers → подписчика",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: админ с inviteUsers → админа с changeInfo",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "setMemberRole: админ с inviteUsers → владельца",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: админ с manageCalls → подписчика",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: админ с manageCalls → админа с changeInfo",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "setMemberRole: админ с manageCalls → владельца",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: админ с addAdmins → подписчика",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: админ с addAdmins → админа с changeInfo",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "setMemberRole: админ с addAdmins → владельца",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: админ без прав → подписчика",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: админ без прав → админа с changeInfo",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "setMemberRole: админ без прав → владельца",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: админ с changeInfo+addAdmins → подписчика",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: админ с changeInfo+addAdmins → админа с changeInfo",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "setMemberRole: админ с changeInfo+addAdmins → владельца",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "setMemberRole: владелец → сам",
+      "action": "setMemberRole",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": false,
+      "target": "self"
+    },
+    {
+      "name": "removeAdmin: подписчик → подписчика",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: подписчик → админа с changeInfo",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeAdmin: подписчик → владельца",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: владелец → подписчика",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: владелец → админа с changeInfo",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": true,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeAdmin: владелец → владельца",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: админ с changeInfo → подписчика",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: админ с changeInfo → админа с changeInfo",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeAdmin: админ с changeInfo → владельца",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: админ с postMessages → подписчика",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: админ с postMessages → админа с changeInfo",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeAdmin: админ с postMessages → владельца",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: админ с editMessages → подписчика",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: админ с editMessages → админа с changeInfo",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeAdmin: админ с editMessages → владельца",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: админ с deleteMessages → подписчика",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: админ с deleteMessages → админа с changeInfo",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeAdmin: админ с deleteMessages → владельца",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: админ с banUsers → подписчика",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: админ с banUsers → админа с changeInfo",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeAdmin: админ с banUsers → владельца",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: админ с inviteUsers → подписчика",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: админ с inviteUsers → админа с changeInfo",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeAdmin: админ с inviteUsers → владельца",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: админ с manageCalls → подписчика",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: админ с manageCalls → админа с changeInfo",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeAdmin: админ с manageCalls → владельца",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: админ с addAdmins → подписчика",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: админ с addAdmins → админа с changeInfo",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeAdmin: админ с addAdmins → владельца",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: админ без прав → подписчика",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: админ без прав → админа с changeInfo",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeAdmin: админ без прав → владельца",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: админ с changeInfo+addAdmins → подписчика",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: админ с changeInfo+addAdmins → админа с changeInfo",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": true,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "removeAdmin: админ с changeInfo+addAdmins → владельца",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "removeAdmin: владелец → сам",
+      "action": "removeAdmin",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": false,
+      "target": "self"
+    },
+    {
+      "name": "transferOwnership: подписчик → подписчика",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: подписчик → админа с changeInfo",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "transferOwnership: подписчик → владельца",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: владелец → подписчика",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": true,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: владелец → админа с changeInfo",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": true,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "transferOwnership: владелец → владельца",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: админ с changeInfo → подписчика",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: админ с changeInfo → админа с changeInfo",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "transferOwnership: админ с changeInfo → владельца",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: админ с postMessages → подписчика",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: админ с postMessages → админа с changeInfo",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "transferOwnership: админ с postMessages → владельца",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: админ с editMessages → подписчика",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: админ с editMessages → админа с changeInfo",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "transferOwnership: админ с editMessages → владельца",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: админ с deleteMessages → подписчика",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: админ с deleteMessages → админа с changeInfo",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "transferOwnership: админ с deleteMessages → владельца",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: админ с banUsers → подписчика",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: админ с banUsers → админа с changeInfo",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "transferOwnership: админ с banUsers → владельца",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: админ с inviteUsers → подписчика",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: админ с inviteUsers → админа с changeInfo",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "transferOwnership: админ с inviteUsers → владельца",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: админ с manageCalls → подписчика",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: админ с manageCalls → админа с changeInfo",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "transferOwnership: админ с manageCalls → владельца",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: админ с addAdmins → подписчика",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: админ с addAdmins → админа с changeInfo",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "transferOwnership: админ с addAdmins → владельца",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: админ без прав → подписчика",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: админ без прав → админа с changeInfo",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "transferOwnership: админ без прав → владельца",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: админ с changeInfo+addAdmins → подписчика",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: админ с changeInfo+addAdmins → админа с changeInfo",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      }
+    },
+    {
+      "name": "transferOwnership: админ с changeInfo+addAdmins → владельца",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      }
+    },
+    {
+      "name": "transferOwnership: владелец → сам",
+      "action": "transferOwnership",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": false,
+      "target": "self"
+    },
+    {
+      "name": "setAdmin: подписчик → подписчика с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: подписчик → админа с changeInfo с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: подписчик → владельца с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: подписчик → подписчика со всеми правами",
+      "action": "setAdmin",
+      "actor": {
+        "role": "reader",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo",
+        "postMessages",
+        "editMessages",
+        "deleteMessages",
+        "banUsers",
+        "inviteUsers",
+        "manageCalls",
+        "addAdmins"
+      ]
+    },
+    {
+      "name": "setAdmin: владелец → подписчика с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": true,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: владелец → админа с changeInfo с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": true,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: владелец → владельца с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: владелец → подписчика со всеми правами",
+      "action": "setAdmin",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": true,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo",
+        "postMessages",
+        "editMessages",
+        "deleteMessages",
+        "banUsers",
+        "inviteUsers",
+        "manageCalls",
+        "addAdmins"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с changeInfo → подписчика с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с changeInfo → админа с changeInfo с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с changeInfo → владельца с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с changeInfo → подписчика со всеми правами",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo",
+        "postMessages",
+        "editMessages",
+        "deleteMessages",
+        "banUsers",
+        "inviteUsers",
+        "manageCalls",
+        "addAdmins"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с postMessages → подписчика с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с postMessages → админа с changeInfo с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с postMessages → владельца с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с postMessages → подписчика со всеми правами",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "postMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo",
+        "postMessages",
+        "editMessages",
+        "deleteMessages",
+        "banUsers",
+        "inviteUsers",
+        "manageCalls",
+        "addAdmins"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с editMessages → подписчика с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с editMessages → админа с changeInfo с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с editMessages → владельца с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с editMessages → подписчика со всеми правами",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "editMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo",
+        "postMessages",
+        "editMessages",
+        "deleteMessages",
+        "banUsers",
+        "inviteUsers",
+        "manageCalls",
+        "addAdmins"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с deleteMessages → подписчика с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с deleteMessages → админа с changeInfo с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с deleteMessages → владельца с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с deleteMessages → подписчика со всеми правами",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "deleteMessages"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo",
+        "postMessages",
+        "editMessages",
+        "deleteMessages",
+        "banUsers",
+        "inviteUsers",
+        "manageCalls",
+        "addAdmins"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с banUsers → подписчика с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с banUsers → админа с changeInfo с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с banUsers → владельца с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с banUsers → подписчика со всеми правами",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "banUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo",
+        "postMessages",
+        "editMessages",
+        "deleteMessages",
+        "banUsers",
+        "inviteUsers",
+        "manageCalls",
+        "addAdmins"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с inviteUsers → подписчика с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с inviteUsers → админа с changeInfo с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с inviteUsers → владельца с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с inviteUsers → подписчика со всеми правами",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "inviteUsers"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo",
+        "postMessages",
+        "editMessages",
+        "deleteMessages",
+        "banUsers",
+        "inviteUsers",
+        "manageCalls",
+        "addAdmins"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с manageCalls → подписчика с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с manageCalls → админа с changeInfo с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с manageCalls → владельца с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с manageCalls → подписчика со всеми правами",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "manageCalls"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo",
+        "postMessages",
+        "editMessages",
+        "deleteMessages",
+        "banUsers",
+        "inviteUsers",
+        "manageCalls",
+        "addAdmins"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с addAdmins → подписчика с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с addAdmins → админа с changeInfo с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с addAdmins → владельца с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с addAdmins → подписчика со всеми правами",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo",
+        "postMessages",
+        "editMessages",
+        "deleteMessages",
+        "banUsers",
+        "inviteUsers",
+        "manageCalls",
+        "addAdmins"
+      ]
+    },
+    {
+      "name": "setAdmin: админ без прав → подписчика с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ без прав → админа с changeInfo с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ без прав → владельца с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ без прав → подписчика со всеми правами",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": []
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo",
+        "postMessages",
+        "editMessages",
+        "deleteMessages",
+        "banUsers",
+        "inviteUsers",
+        "manageCalls",
+        "addAdmins"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с changeInfo+addAdmins → подписчика с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": true,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с changeInfo+addAdmins → админа с changeInfo с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": true,
+      "target": {
+        "role": "admin",
+        "rights": [
+          "changeInfo"
+        ]
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с changeInfo+addAdmins → владельца с changeInfo",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "owner",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo"
+      ]
+    },
+    {
+      "name": "setAdmin: админ с changeInfo+addAdmins → подписчика со всеми правами",
+      "action": "setAdmin",
+      "actor": {
+        "role": "admin",
+        "rights": [
+          "changeInfo",
+          "addAdmins"
+        ]
+      },
+      "expect": false,
+      "target": {
+        "role": "reader",
+        "rights": []
+      },
+      "requested": [
+        "changeInfo",
+        "postMessages",
+        "editMessages",
+        "deleteMessages",
+        "banUsers",
+        "inviteUsers",
+        "manageCalls",
+        "addAdmins"
+      ]
+    },
+    {
+      "name": "setAdmin: владелец → сам",
+      "action": "setAdmin",
+      "actor": {
+        "role": "owner",
+        "rights": []
+      },
+      "expect": false,
+      "target": "self",
+      "requested": [
+        "changeInfo"
+      ]
+    }
+  ]
+}

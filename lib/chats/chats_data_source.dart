@@ -83,10 +83,19 @@ class ChatsFeatures {
   /// по умолчанию — с [groupRoles], вступление — с [groupJoining]).
   final bool groupExtras;
 
-  /// Каналы и сообщества (только демо): их правила в профиле чата — ссылки и
-  /// заявки любому админу, участников добавляют админы. Без них (сервер) —
-  /// правила групп: по правам приглашать (см. `chatInfoShowsInvites`).
+  /// Правила демо (каналы и сообщества): в профиле чата ссылки и заявки —
+  /// любому админу, участников добавляют админы. Без них (сервер) — по правам
+  /// приглашать (см. `chatInfoShowsInvites`).
+  final bool demoRules;
+
+  /// Каналы: «Новое» → «Канал», каналы в списке (сервер — флаг «Каналы»,
+  /// срез 4).
   final bool channels;
+
+  /// Расширенное в каналах (на сервере — подэтапы 4.2–4.3): комментарии,
+  /// просмотры, реакции и «Максимум реакций под постом», опросы. `false` — в
+  /// канале это скрыто, «Изменить» — без блока комментариев.
+  final bool channelExtras;
 
   /// Опрос можно переслать (демо — куда угодно, сервер — см. [pollsGroupsOnly]).
   final bool forwardPolls;
@@ -105,7 +114,9 @@ class ChatsFeatures {
     this.groupRoles = false,
     this.groupJoining = false,
     this.groupExtras = false,
+    this.demoRules = false,
     this.channels = false,
+    this.channelExtras = false,
     this.forwardPolls = false,
     this.pollsGroupsOnly = false,
   });
@@ -119,7 +130,9 @@ class ChatsFeatures {
       groupRoles = true,
       groupJoining = true,
       groupExtras = true,
+      demoRules = true,
       channels = true,
+      channelExtras = true,
       forwardPolls = true,
       pollsGroupsOnly = false;
 
@@ -132,14 +145,19 @@ class ChatsFeatures {
       groupRoles = false,
       groupJoining = false,
       groupExtras = false,
+      demoRules = false,
       channels = false,
+      channelExtras = false,
       forwardPolls = false,
       pollsGroupsOnly = false;
 
   /// Доступное в чате [chat]: в группе без [groupExtras] — без реакций, а
-  /// закреп — только с [groupRoles] (у всех — по праву pinMessages).
+  /// закреп — только с [groupRoles] (у всех — по праву pinMessages); в канале
+  /// без [channelExtras] — без реакций и опросов (как без [groupExtras]).
   ChatsFeatures forChat(models.Chat? chat) {
-    if (groupExtras || chat == null || chat.type == models.ChatType.private) return this;
+    if (chat == null || chat.type == models.ChatType.private) return this;
+    final channel = chat.type == models.ChatType.channel || chat.isThread;
+    if (channel ? channelExtras : groupExtras) return this;
     return ChatsFeatures(
       reactions: false,
       pinnedMessages: pinnedMessages && groupRoles,
@@ -148,8 +166,10 @@ class ChatsFeatures {
       groups: groups,
       groupRoles: groupRoles,
       groupJoining: groupJoining,
-      groupExtras: groupExtras,
+      groupExtras: false,
+      demoRules: demoRules,
       channels: channels,
+      channelExtras: channelExtras,
       forwardPolls: forwardPolls,
       pollsGroupsOnly: pollsGroupsOnly,
     );

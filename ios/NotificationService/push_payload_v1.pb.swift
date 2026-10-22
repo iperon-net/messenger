@@ -97,6 +97,10 @@ nonisolated struct Iperon_V1_PushPayload: Sendable {
   /// скрытый профиль: без названия и текста.
   var chatTitle: String = String()
 
+  /// Пост канала (срез 4): chatTitle — название канала, отправителя нет —
+  /// текст без «Имя:».
+  var isChannel: Bool = false
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   nonisolated enum Kind: SwiftProtobuf.Enum, Swift.CaseIterable {
@@ -200,7 +204,7 @@ fileprivate nonisolated let _protobuf_package = "iperon.v1"
 
 nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".PushPayload"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}kind\0\u{1}id\0\u{1}fromUserID\0\u{1}chatID\0\u{1}messageID\0\u{1}title\0\u{1}body\0\u{1}args\0\u{1}badge\0\u{1}date\0\u{1}messageIDs\0\u{1}senderPhone\0\u{1}titleFromContact\0\u{1}chatTitle\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}kind\0\u{1}id\0\u{1}fromUserID\0\u{1}chatID\0\u{1}messageID\0\u{1}title\0\u{1}body\0\u{1}args\0\u{1}badge\0\u{1}date\0\u{1}messageIDs\0\u{1}senderPhone\0\u{1}titleFromContact\0\u{1}chatTitle\0\u{1}isChannel\0")
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -222,6 +226,7 @@ nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobu
       case 12: try { try decoder.decodeSingularStringField(value: &self.senderPhone) }()
       case 13: try { try decoder.decodeSingularBoolField(value: &self.titleFromContact) }()
       case 14: try { try decoder.decodeSingularStringField(value: &self.chatTitle) }()
+      case 15: try { try decoder.decodeSingularBoolField(value: &self.isChannel) }()
       default: break
       }
     }
@@ -274,6 +279,9 @@ nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobu
     if !self.chatTitle.isEmpty {
       try visitor.visitSingularStringField(value: self.chatTitle, fieldNumber: 14)
     }
+    if self.isChannel != false {
+      try visitor.visitSingularBoolField(value: self.isChannel, fieldNumber: 15)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -292,6 +300,7 @@ nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobu
     if lhs.senderPhone != rhs.senderPhone {return false}
     if lhs.titleFromContact != rhs.titleFromContact {return false}
     if lhs.chatTitle != rhs.chatTitle {return false}
+    if lhs.isChannel != rhs.isChannel {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

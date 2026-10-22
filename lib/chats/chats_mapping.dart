@@ -126,16 +126,31 @@ bool skipsUnread(pb.MessageContent content) => _isService(content) || (content.h
 
 /// Текст служебного группы ([pb.MessageChatAction]) — плашка в ленте и превью
 /// в списке. [outgoing] — сделал я («Вы …»), [actor] — имя сделавшего,
-/// [names] — имена тех, кого добавили / исключили (меня — «вас»).
+/// [names] — имена тех, кого добавили / исключили (меня — «вас»). [channel]
+/// — служебное канала: от имени канала, без автора («Канал создан»).
 String chatActionText(
   Translations t,
   pb.MessageChatAction action, {
   required bool outgoing,
   required String actor,
   List<String> names = const [],
+  bool channel = false,
 }) {
   final a = t.chatAction;
   final who = names.join(', ');
+  if (channel) {
+    switch (action.kind) {
+      case pb.MessageChatAction_Kind.CREATED:
+        return a.channelCreated(title: action.title);
+      case pb.MessageChatAction_Kind.TITLE_CHANGED:
+        return a.channelTitle(title: action.title);
+      case pb.MessageChatAction_Kind.PHOTO_CHANGED:
+        return a.channelPhoto;
+      case pb.MessageChatAction_Kind.PHOTO_REMOVED:
+        return a.channelPhotoRemoved;
+      default:
+    }
+  }
   return switch (action.kind) {
     pb.MessageChatAction_Kind.CREATED => outgoing ? a.createdYou(title: action.title) : a.created(name: actor, title: action.title),
     pb.MessageChatAction_Kind.ADDED => outgoing ? a.addedYou(names: who) : a.added(name: actor, names: who),
@@ -402,7 +417,9 @@ models.MessageStatus outgoingStatus({required int messageID, required int readOu
 /// Сообщение сервера → `Message`. [replied] — сообщение, на которое ответили
 /// (если есть в локальном кэше), [peerName] — имя собеседника (автор входящих в
 /// личном чате). Группа — [nameOf]: имя участника по userID (автор и ответ),
-/// [serviceText] — текст служебного группы (см. [chatActionText]).
+/// [serviceText] — текст служебного группы (см. [chatActionText]). [channel]
+/// — пост канала (срез 4): автора нет (fromUserID пуст), мой — по `postOut`,
+/// подпись — `authorSignature`, галочек «прочитано» нет.
 models.Message messageFromPb(
   pb.ChatMessage m, {
   required String chatID,
@@ -415,9 +432,10 @@ models.Message messageFromPb(
   String serviceText = '',
   bool pinned = false,
   bool pinnedOnlyMe = false,
+  bool channel = false,
 }) {
-  final outgoing = sameID(m.fromUserID, myUserID);
-  final group = nameOf != null;
+  final outgoing = channel ? m.postOut : sameID(m.fromUserID, myUserID);
+  final group = nameOf != null && !channel;
   final content = m.content;
   final kind = contentKind(content);
   final first = content.media.isEmpty ? null : content.media.first;
@@ -437,7 +455,7 @@ models.Message messageFromPb(
     noForwardsPrev: content.noForwards.prevValue,
     noForwardsRequestID: content.noForwards.requestID > 0 ? content.noForwards.requestID.toString() : '',
     noForwardsRequest: content.hasNoForwardsRequest(),
-    senderName: outgoing ? '' : (group ? nameOf(m.fromUserID) : (_isService(content) ? peerName : '')),
+    senderName: outgoing || channel ? '' : (group ? nameOf(m.fromUserID) : (_isService(content) ? peerName : '')),
     senderUserID: group && !outgoing ? idHex(m.fromUserID) : '',
     pinned: pinned,
     pinnedOnlyMe: pinned && pinnedOnlyMe,
@@ -450,8 +468,11 @@ models.Message messageFromPb(
     systemNotice: systemNoticeFromPb(content),
     outgoing: outgoing,
     status: outgoing
-        ? outgoingStatus(messageID: m.messageID.toInt(), readOutboxMaxID: readOutboxMaxID, isSelf: isSelf)
+        ? (channel
+              ? models.MessageStatus.sent
+              : outgoingStatus(messageID: m.messageID.toInt(), readOutboxMaxID: readOutboxMaxID, isSelf: isSelf))
         : models.MessageStatus.read,
+    authorSignature: channel ? m.authorSignature : '',
     date: DateTime.fromMillisecondsSinceEpoch(m.date.toInt()),
     edited: m.editDate > 0,
     reply: content.hasReplyTo()
@@ -460,6 +481,7 @@ models.Message messageFromPb(
             replied: replied,
             myUserID: myUserID,
             peerName: group && replied != null ? nameOf(replied.fromUserID) : peerName,
+            channel: channel,
           )
         : null,
     fileName: first?.fileName ?? '',
@@ -492,8 +514,14 @@ models.Message messageFromPb(
 }
 
 /// Ответ: текст исходного — из кэша (нет в кэше — без текста, только цитата).
-models.MessageReply replyFromPb(pb.MessageReplyTo r, {pb.ChatMessage? replied, required List<int> myUserID, String peerName = ''}) {
-  final outgoing = replied != null && sameID(replied.fromUserID, myUserID);
+models.MessageReply replyFromPb(
+  pb.MessageReplyTo r, {
+  pb.ChatMessage? replied,
+  required List<int> myUserID,
+  String peerName = '',
+  bool channel = false,
+}) {
+  final outgoing = replied != null && (channel ? replied.postOut : sameID(replied.fromUserID, myUserID));
   final repliedContent = replied?.content;
   final kind = repliedContent == null ? models.MessageKind.text : contentKind(repliedContent);
   final fileName = repliedContent != null && repliedContent.media.isNotEmpty ? repliedContent.media.first.fileName : '';
@@ -555,8 +583,9 @@ models.ChatLastMessage lastMessageFromPb(
   required int readOutboxMaxID,
   required bool isSelf,
   pb.ChatMessage? pinned,
+  bool channel = false,
 }) {
-  final outgoing = sameID(m.fromUserID, myUserID);
+  final outgoing = channel ? m.postOut : sameID(m.fromUserID, myUserID);
   return models.ChatLastMessage(
     kind: contentKind(m.content),
     text: m.content.hasPoll()
@@ -564,7 +593,9 @@ models.ChatLastMessage lastMessageFromPb(
         : (m.content.hasSystemNotice() ? systemNoticeTitle(t, m.content.systemNotice) : m.content.text),
     outgoing: outgoing,
     status: outgoing
-        ? outgoingStatus(messageID: m.messageID.toInt(), readOutboxMaxID: readOutboxMaxID, isSelf: isSelf)
+        ? (channel
+              ? models.MessageStatus.sent
+              : outgoingStatus(messageID: m.messageID.toInt(), readOutboxMaxID: readOutboxMaxID, isSelf: isSelf))
         : models.MessageStatus.read,
     date: DateTime.fromMillisecondsSinceEpoch(m.date.toInt()),
     phoneCall: callFromPb(m.content),

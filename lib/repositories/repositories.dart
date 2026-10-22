@@ -896,6 +896,20 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(43, (tx) async {
+        // Каналы (срез 4.1, docs/plans/chats-channels.md): флаг «Каналы» на
+        // экране «Разработчик». Сведения о канале — в той же chatGroups (тип —
+        // в ChatInfo), диалог — в chatDialogs (type = 2).
+        await tx.execute('ALTER TABLE settingsDevice ADD COLUMN chatsChannels INTEGER NOT NULL DEFAULT 0;');
+        // Пост канала: подпись автора и «мой пост» (ChatMessage.postOut —
+        // глазами запросившего; общее обновление журнала его не несёт, поэтому
+        // однажды узнанное не сбрасывается).
+        await tx.execute("ALTER TABLE chatMessages ADD COLUMN authorSignature TEXT NOT NULL DEFAULT '';");
+        await tx.execute('ALTER TABLE chatMessages ADD COLUMN postOut INTEGER NOT NULL DEFAULT 0;');
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

@@ -127,6 +127,21 @@ class SettingsDeveloperMaterial extends StatelessWidget {
                       onTab: () => context.read<CommonCubit>().setChatsGroups(value: !chatsGroups),
                     ),
                   ),
+                  // Каналы на сервере (срез 4, docs/plans/chats-channels.md): capability
+                  // `channels`.
+                  BlocSelector<CommonCubit, CommonState, bool>(
+                    selector: (state) => state.settingsDevice.chatsChannels,
+                    builder: (context, chatsChannels) => MaterialListTileIcon(
+                      title: Text(context.t.screenDeveloper.chatsChannels),
+                      color: const Color(0xFF5856D6),
+                      icon: FontAwesomeIcons.bullhorn,
+                      trailing: Switch(
+                        value: chatsChannels,
+                        onChanged: (value) => context.read<CommonCubit>().setChatsChannels(value: value),
+                      ),
+                      onTab: () => context.read<CommonCubit>().setChatsChannels(value: !chatsChannels),
+                    ),
+                  ),
                   if (kDebugMode)
                     MaterialListTileIcon(
                       title: Text(context.t.screenDeveloper.callPreview),

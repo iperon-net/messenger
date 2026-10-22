@@ -384,7 +384,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
         // сообществами — по своим правилам).
         final features = context.read<ChatCubit>().features;
         final extras = features.groupExtras;
-        final demoRules = features.channels;
+        final demoRules = features.demoRules;
         final invites = chat != null && (demoRules ? !chat.inCommunity : chatInfoShowsInvites(chat, features, state.members));
         final requests =
             chat != null &&

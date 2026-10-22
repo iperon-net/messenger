@@ -132,18 +132,22 @@ object MessagePushHandler {
                 .setContentText(context.getString(R.string.push_fallback_body))
 
             isChat -> {
-                val senderName = payload.title.ifEmpty { appName }
-                val senderAvatar = PushAvatars.user(context, payload.fromUserID)
+                // Пост канала: автора нет — «отправитель» сам канал (его
+                // название и аватар по chatID).
+                val channel = payload.isChannel
+                val senderID = if (channel) payload.chatID else payload.fromUserID
+                val senderName = (if (channel) payload.chatTitle else payload.title).ifEmpty { appName }
+                val senderAvatar = if (channel) PushAvatars.chat(context, payload.chatID) else PushAvatars.user(context, payload.fromUserID)
                 val sender = Person.Builder()
                     .setName(senderName)
-                    .setKey(hex(payload.fromUserID).ifEmpty { null })
-                    .setIcon(IconCompat.createWithBitmap(senderAvatar ?: PushAvatars.placeholder(senderName, payload.fromUserID)))
+                    .setKey(hex(senderID).ifEmpty { null })
+                    .setIcon(IconCompat.createWithBitmap(senderAvatar ?: PushAvatars.placeholder(senderName, senderID)))
                     .build()
                 if (isMessage) {
                     messageStyle(context, builder, payload, tag, sender, appName)
                     // Секретный — без кнопок: текста в пуше нет, а ответ в
-                    // него — отдельный E2EE-путь.
-                    if (!secret) addActions(context, builder, payload, tag)
+                    // него — отдельный E2EE-путь. В канал подписчик не пишет.
+                    if (!secret && !channel) addActions(context, builder, payload, tag)
                 } else {
                     // Реакция: отдельное уведомление (свой тег), но в той же беседе.
                     val text = reactionText(context, payload)
@@ -204,11 +208,11 @@ object MessagePushHandler {
             ids.removeAt(0)
         }
         // Группа: название — заголовком беседы, отправитель — у каждого
-        // сообщения («Имя: текст»).
-        val group = payload.chatTitle.isNotEmpty()
+        // сообщения («Имя: текст»). Канал — как личная беседа с каналом.
+        val group = payload.chatTitle.isNotEmpty() && !payload.isChannel
         if (group) style.setConversationTitle(payload.chatTitle).setGroupConversation(true)
         builder.setStyle(style)
-            .setContentTitle(if (group) payload.chatTitle else payload.title.ifEmpty { appName })
+            .setContentTitle(if (group || payload.isChannel) payload.chatTitle.ifEmpty { appName } else payload.title.ifEmpty { appName })
             .setContentText(if (group && payload.title.isNotEmpty()) "${payload.title}: $text" else text)
             .addExtras(android.os.Bundle().apply { putLongArray(EXTRA_MESSAGE_IDS, ids.toLongArray()) })
     }

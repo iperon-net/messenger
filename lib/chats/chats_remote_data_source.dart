@@ -97,7 +97,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
 
   /// Закреплённые, реакции, пересылка и отложенные — есть; группы — по флагу
   /// «Группы», с ролями и правами (3.2), вступлением (3.3) и сообщениями в
-  /// группе (3.4: реакции, опросы, упоминания …). Каналов и сообществ нет;
+  /// группе (3.4: реакции, опросы, упоминания …); каналы — по флагу «Каналы»
+  /// (4.1: посты, подписи, подписчики, админы). Сообществ нет;
   /// опрос пересылается только в группу — тем же опросом (голоса общие).
   @override
   ChatsFeatures get features => ChatsFeatures(
@@ -109,6 +110,10 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     groupRoles: true,
     groupJoining: true,
     groupExtras: true,
+    // Каналы (срез 4.1) — по флагу «Каналы»; комментарии, просмотры, реакции
+    // и опросы в канале — подэтапы 4.2–4.3.
+    channels: _sync.channels,
+    channelExtras: false,
     forwardPolls: true,
     pollsGroupsOnly: true,
   );
@@ -258,10 +263,16 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   Future<List<models.Chat>> _loadChats() async {
     if (!_auth.isAuthorized) return const [];
     final me = _sync.me;
-    final groupsShown = _sync.groups;
+    final groupsShown = _sync.groups || _sync.channels;
     final rows = await _store.dialogs(userID: me);
     final outbox = await _store.outbox(userID: me);
-    final groups = groupsShown ? {for (final g in await _store.groups(userID: me)) idHex(g.chatID): g} : const <String, ChatGroupRow>{};
+    // Группы и каналы — каждые по своему флагу (кэш выключенных остаётся).
+    final groups = groupsShown
+        ? {
+            for (final g in await _store.groups(userID: me))
+              if (_sync.showsChatType(g.info.type.value)) idHex(g.chatID): g,
+          }
+        : const <String, ChatGroupRow>{};
     // Люди списка: собеседники личных, авторы последних сообщений групп и те,
     // кого касается служебное (добавил / исключил), печатающие в группах.
     final people = <String, Uint8List>{};
@@ -298,8 +309,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     for (final row in rows) {
       final id = idHex(row.chatID);
       final group = groups[id];
-      // Личные и (с флагом «Группы») группы; остальное — следующие срезы.
+      // Личные и (по флагам) группы и каналы; сообщества — следующий срез.
       if (row.type != pb.ChatType.CHAT_TYPE_PRIVATE.value && group == null) continue;
+      final channel = group != null && group.info.type == pb.ChatType.CHAT_TYPE_CHANNEL;
       final peer = group == null ? row.peerUserID : null;
       final isSelf = peer != null && sameID(peer, me);
       final info = peer == null || isSelf ? null : peers.of(peer);
@@ -313,12 +325,14 @@ class ChatsRemoteDataSource implements ChatsDataSource {
               readOutboxMaxID: row.readOutboxMaxID,
               isSelf: isSelf,
               pinned: top.content.hasPin() ? await _pinnedMessage(row.chatID, top.content.pin.messageID.toInt()) : null,
+              channel: channel,
             );
       if (group != null && top != null && lastMessage != null) {
         lastMessage = top.content.hasChatAction()
             // Служебное группы — текстом, без автора и галочек.
-            ? lastMessage.copyWith(text: _chatActionText(top, me, peers), outgoing: false)
-            : lastMessage.copyWith(senderName: lastMessage.outgoing ? '' : peers.of(top.fromUserID).title);
+            ? lastMessage.copyWith(text: _chatActionText(top, me, peers, channel: channel), outgoing: false)
+            // Пост канала — без автора (от имени канала).
+            : lastMessage.copyWith(senderName: lastMessage.outgoing || channel ? '' : peers.of(top.fromUserID).title);
       }
       final queued = pending[id];
       if (queued != null) {
@@ -339,7 +353,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         chats.add(
           models.Chat(
             id: id,
-            type: models.ChatType.group,
+            type: channel ? models.ChatType.channel : models.ChatType.group,
             title: group.info.title,
             about: group.info.about,
             avatarPath: await _groupAvatar(group.info),
@@ -366,6 +380,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
             membersHidden: group.info.membersHidden,
             // «Запретить копирование» — настройка группы (EditChat), всем.
             noForwards: group.info.noForwards,
+            // Канал: «Подписывать сообщения» (4.1).
+            signMessages: group.info.signMessages,
             unreadMentions: row.unreadMentions,
             lastMessage: lastMessage,
             unreadCount: row.unreadCount,
@@ -443,12 +459,14 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     return chats;
   }
 
-  /// Текст служебного группы ([chatActionText]) с именами по общему правилу.
-  String _chatActionText(pb.ChatMessage message, List<int> me, _Peers peers) {
+  /// Текст служебного группы ([chatActionText]) с именами по общему правилу;
+  /// [channel] — служебное канала (от имени канала, без автора).
+  String _chatActionText(pb.ChatMessage message, List<int> me, _Peers peers, {bool channel = false}) {
     final action = message.content.chatAction;
     return chatActionText(
       t,
       action,
+      channel: channel,
       outgoing: sameID(message.fromUserID, me),
       actor: peers.of(message.fromUserID).title,
       names: [for (final userID in action.userIDs) sameID(userID, me) ? t.chatAction.youObject : peers.of(userID).title],
@@ -806,11 +824,15 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   /// параллельно) — выдача живёт только в памяти экрана поиска.
   @override
   Future<List<models.Chat>> searchChats(String query) async {
-    if (!_sync.groups) return const [];
+    if (!_sync.groups && !_sync.channels) return const [];
     await _requireNetwork();
     final response = await _sync.chats(pb.Chats_Request(searchChats: pb.Chats_SearchChats(query: query)));
     if (!response.hasSearchChats()) return const [];
-    final found = await Future.wait([for (final item in response.searchChats.chats) _foundChat(item)]);
+    final found = await Future.wait([
+      for (final item in response.searchChats.chats)
+        // Группы и каналы — по своим флагам: открыть найденное было бы некуда.
+        if (_sync.showsChatType(item.chat.type.value)) _foundChat(item),
+    ]);
     return [for (final chat in found) ?chat];
   }
 
@@ -876,6 +898,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   /// Группа: способ вступления [joinMode] и публичное имя [username] (только
   /// у [models.ChatJoinMode.open]); код ссылки-приглашения частной выдаёт
   /// сервер (`Dialog.inviteCode`), [inviteLink] формы не отправляется.
+  /// Канал (срез 4.1, флаг «Каналы») — тот же `CreateGroup` с `channel`:
+  /// [memberIDs] — подписчики («Добавить подписчиков»), вступление — только
+  /// публичный (OPEN) или по ссылке (LINK), «Скрыть историю» у канала нет.
   @override
   Future<String> createChat({
     required models.ChatType type,
@@ -889,10 +914,14 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     models.ChatJoinMode joinMode = models.ChatJoinMode.open,
     bool historyHidden = false,
   }) async {
-    if (type != models.ChatType.group || communityID.isNotEmpty || !_sync.groups) _unsupported('Каналы и сообщества');
-    // Публичная — только с именем; без имени — частная по ссылке.
+    final channel = type == models.ChatType.channel;
+    if (communityID.isNotEmpty || !(channel ? _sync.channels : type == models.ChatType.group && _sync.groups)) {
+      _unsupported('Сообщества');
+    }
+    // Публичная — только с именем; без имени — частная по ссылке (канал —
+    // других способов нет).
     final open = joinMode == models.ChatJoinMode.open && username.isNotEmpty;
-    final mode = open ? models.ChatJoinMode.open : (joinMode == models.ChatJoinMode.open ? models.ChatJoinMode.link : joinMode);
+    final mode = open ? models.ChatJoinMode.open : (joinMode == models.ChatJoinMode.open || channel ? models.ChatJoinMode.link : joinMode);
     await _requireNetwork();
     final avatar = avatarPath.isEmpty ? null : await _uploadChatAvatar(avatarPath);
     final response = await _sync.chats(
@@ -908,8 +937,10 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           randomID: Int64(_randomID()),
           username: open ? username : null,
           joinMode: joinModeToPb(mode),
-          // У публичной истории не скрыть (сервер — INVALID_ARGUMENT).
-          historyHidden: historyHidden && !open,
+          // У публичной истории не скрыть (сервер — INVALID_ARGUMENT); у
+          // канала «Скрыть историю» нет.
+          historyHidden: historyHidden && !open && !channel,
+          channel: channel ? true : null,
         ),
       ),
     );
@@ -972,12 +1003,18 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final titleChanged = title != info.title;
     final aboutChanged = about != info.about;
     final roleChanged =
-        (defaultRole == models.ChatRole.reader || defaultRole == models.ChatRole.writer) && defaultRole != roleFromPb(info.defaultRole);
-    final join = editJoinChanges(info, joinMode: joinMode, username: username, historyHidden: historyHidden);
-    final newcomerChanged = newcomerMediaDelay != info.newcomerMediaDelay;
+        info.type != pb.ChatType.CHAT_TYPE_CHANNEL &&
+        (defaultRole == models.ChatRole.reader || defaultRole == models.ChatRole.writer) &&
+        defaultRole != roleFromPb(info.defaultRole);
+    final channel = info.type == pb.ChatType.CHAT_TYPE_CHANNEL;
+    final join = editJoinChanges(info, joinMode: joinMode, username: username, historyHidden: channel ? false : historyHidden);
+    // У канала нет «новичков» (только в комментариях — 4.3) и роли вступающих
+    // (подписчик только читает).
+    final newcomerChanged = !channel && newcomerMediaDelay != info.newcomerMediaDelay;
     final membersHiddenChanged = membersHidden != info.membersHidden;
     final noForwardsChanged = noForwards != info.noForwards;
-    final extrasChanged = newcomerChanged || membersHiddenChanged || noForwardsChanged;
+    final signChanged = channel && signMessages != info.signMessages;
+    final extrasChanged = newcomerChanged || membersHiddenChanged || noForwardsChanged || signChanged;
     if (!titleChanged && !aboutChanged && !avatarChanged && !roleChanged && join.isEmpty && !extrasChanged) return;
     await _requireNetwork();
     final avatar = !avatarChanged ? null : (avatarPath.isEmpty ? Uint8List(0) : await _uploadChatAvatar(avatarPath));
@@ -995,6 +1032,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           newcomerMediaDelay: newcomerChanged ? newcomerMediaDelay : null,
           membersHidden: membersHiddenChanged ? membersHidden : null,
           noForwards: noForwardsChanged ? noForwards : null,
+          signMessages: signChanged ? signMessages : null,
         ),
       ),
     );
@@ -1046,9 +1084,12 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         return idHex(result.dialog.chatID);
       }
       if (!result.hasPreview() || result.preview.chat.chatID.isEmpty) return '';
-      // Группы выключены (флаг) — в списке их не показываем, и предпросмотр
-      // открыть некуда.
-      if (!_sync.groups) throw const ChatsRequestException('groupsDisabled', StatusCode.failedPrecondition);
+      // Группы / каналы выключены (флаг) — в списке их не показываем, и
+      // предпросмотр открыть некуда.
+      if (!_sync.showsChatType(result.preview.chat.type.value)) {
+        final channel = result.preview.chat.type == pb.ChatType.CHAT_TYPE_CHANNEL;
+        throw ChatsRequestException(channel ? 'channelsDisabled' : 'groupsDisabled', StatusCode.failedPrecondition);
+      }
       final preview = result.preview;
       final api = getIt.get<API>();
       for (final profile in preview.members) {
@@ -1060,7 +1101,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       return id;
     } on ChatsRequestException catch (error) {
       if (!error.isNotFound) {
-        if (error.isGroupsDisabled) rethrow;
+        if (error.isGroupsDisabled || error.isChannelsDisabled) rethrow;
         _logger.warning('chats: resolve link failed: $error');
       }
       return '';
@@ -1084,8 +1125,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       final local = await _store.dialogByPeer(userID: me, peerUserID: peer);
       if (local != null) return idHex(local.chatID);
     }
-    if (_sync.groups) {
+    if (_sync.groups || _sync.channels) {
       for (final g in await _store.groups(userID: me)) {
+        if (!_sync.showsChatType(g.info.type.value)) continue;
         if (g.info.username.isNotEmpty && g.info.username.toLowerCase() == username) return idHex(g.chatID);
       }
     }
@@ -1098,7 +1140,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final info = preview.preview.chat;
     return models.Chat(
       id: id,
-      type: models.ChatType.group,
+      type: info.type == pb.ChatType.CHAT_TYPE_CHANNEL ? models.ChatType.channel : models.ChatType.group,
       title: info.title,
       about: info.about,
       avatarPath: await _groupAvatar(info),
@@ -1114,6 +1156,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       newcomerMediaDelay: info.newcomerMediaDelay,
       membersHidden: info.membersHidden,
       noForwards: info.noForwards,
+      signMessages: info.signMessages,
       isMember: false,
       joinRequested: preview.requested,
       createdAt: info.createdAt > 0 ? DateTime.fromMillisecondsSinceEpoch(info.createdAt.toInt()) : null,
@@ -1992,7 +2035,13 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final pendingReactions = {for (final r in await _store.pendingReactions(userID: me, chatID: chat)) r.messageID: r.emojis};
     // Непрочитанные упоминания меня — отдельно от сообщений (см. chatMentions).
     final mentions = row == null ? const <int>{} : (await _store.unreadMentionIDs(userID: me, chatID: chat)).toSet();
-    final group = preview != null || (row != null && row.type == pb.ChatType.CHAT_TYPE_GROUP.value) ? await _groupPeople(history) : null;
+    // Канал (срез 4): постов без автора — людей ленты нет.
+    final channel =
+        (row != null && row.type == pb.ChatType.CHAT_TYPE_CHANNEL.value) ||
+        (preview != null && preview.preview.chat.type == pb.ChatType.CHAT_TYPE_CHANNEL);
+    final group = !channel && (preview != null || (row != null && row.type == pb.ChatType.CHAT_TYPE_GROUP.value))
+        ? await _groupPeople(history)
+        : null;
 
     models.Message map(pb.ChatMessage m) {
       final message = messageFromPb(
@@ -2004,7 +2053,12 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         replied: m.content.hasReplyTo() ? byID[m.content.replyTo.messageID.toInt()] : null,
         peerName: peerName,
         nameOf: group == null ? null : (userID) => group.of(userID).title,
-        serviceText: group != null && m.content.hasChatAction() ? _chatActionText(m, me, group) : '',
+        serviceText: !m.content.hasChatAction()
+            ? ''
+            : (channel
+                  ? chatActionText(t, m.content.chatAction, outgoing: false, actor: '', channel: true)
+                  : (group != null ? _chatActionText(m, me, group) : '')),
+        channel: channel,
         pinned: pinnedIDs.contains(m.messageID.toInt()),
         pinnedOnlyMe: !sharedPinnedIDs.contains(m.messageID.toInt()),
       );
@@ -2021,7 +2075,14 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     Future<models.Message> queuedMessage(ChatOutboxRow queued) async {
       final content = pb.MessageContent.fromBuffer(queued.content);
       final message = map(
-        pb.ChatMessage(chatID: chat, fromUserID: me, date: Int64(queued.createdAt), content: content, silent: queued.silent),
+        pb.ChatMessage(
+          chatID: chat,
+          fromUserID: channel ? null : me,
+          postOut: channel ? true : null,
+          date: Int64(queued.createdAt),
+          content: content,
+          silent: queued.silent,
+        ),
       ).copyWith(id: localMessageID(queued.randomID), status: queued.failed ? models.MessageStatus.failed : models.MessageStatus.pending);
       // Пересылаемое — вложения уже на CDN (описания — из кэша исходного).
       return queued.isForward ? _withServerMedia(message, content, chatID) : _withOutboxMedia(message, queued, outboxDir);
@@ -2694,6 +2755,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final sharedIDs = await _store.sharedPinnedIDs(userID: me, chatID: chat);
     final pinned = await _store.pinned(userID: me, chatID: chat);
     final group = row != null && row.type == pb.ChatType.CHAT_TYPE_GROUP.value ? await _groupPeople(pinned) : null;
+    final channel = row != null && row.type == pb.ChatType.CHAT_TYPE_CHANNEL.value;
     return [
       for (final m in pinned)
         await _withServerMedia(
@@ -2705,6 +2767,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
             isSelf: isSelf,
             peerName: peerName,
             nameOf: group == null ? null : (userID) => group.of(userID).title,
+            channel: channel,
             pinned: true,
             pinnedOnlyMe: !sharedIDs.contains(m.messageID.toInt()),
           ),

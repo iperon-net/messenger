@@ -14,8 +14,8 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-/// Тип чата. Личные и группы (срез 3, docs/plans/chats-groups.md); каналы /
-/// сообщества — следующие срезы.
+/// Тип чата. Личные, группы (срез 3, docs/plans/chats-groups.md) и каналы
+/// (срез 4, docs/plans/chats-channels.md); сообщества — следующий срез.
 class ChatType extends $pb.ProtobufEnum {
   static const ChatType CHAT_TYPE_PRIVATE = ChatType._(0, _omitEnumNames ? '' : 'CHAT_TYPE_PRIVATE');
   static const ChatType CHAT_TYPE_GROUP = ChatType._(1, _omitEnumNames ? '' : 'CHAT_TYPE_GROUP');

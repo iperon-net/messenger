@@ -89,16 +89,17 @@ class _ChatsNewCupertino extends State<ChatsNewCupertino> {
                           onChanged: (value) => context.read<ChatCreateCubit>().search(value),
                         ),
                       ),
-                      // Группы, каналы и сообщества — в демо; на сервере — группы с
-                      // флагом «Группы» (каналы и сообщества — срезы 4–5).
-                      if (state.query.trim().isEmpty && (settings.chatsDemo || settings.chatsGroups))
+                      // Группы, каналы и сообщества — в демо; на сервере — группы и
+                      // каналы по своим флагам (сообщества — срез 5).
+                      if (state.query.trim().isEmpty && (settings.chatsDemo || settings.chatsGroups || settings.chatsChannels))
                         section(
                           children: [
-                            action(HugeIcons.strokeRoundedUserGroup, t.screenNewChat.newGroup, '/chats/new/group'),
-                            if (settings.chatsDemo) ...[
+                            if (settings.chatsDemo || settings.chatsGroups)
+                              action(HugeIcons.strokeRoundedUserGroup, t.screenNewChat.newGroup, '/chats/new/group'),
+                            if (settings.chatsDemo || settings.chatsChannels)
                               action(HugeIcons.strokeRoundedMegaphone01, t.screenNewChat.newChannel, '/chats/new/channel'),
+                            if (settings.chatsDemo)
                               action(HugeIcons.strokeRoundedBuilding03, t.screenNewChat.newCommunity, '/chats/new/community'),
-                            ],
                           ],
                         ),
                       // С глобальным поиском «Контакты не найдены» не показываем —

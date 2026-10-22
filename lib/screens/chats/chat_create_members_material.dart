@@ -39,6 +39,8 @@ class _ChatCreateMembersMaterial extends State<ChatCreateMembersMaterial> {
     return BlocBuilder<ChatCreateCubit, ChatCreateState>(
       builder: (context, state) {
         final contacts = state.filtered;
+        // Канал (срез 4.1): «Добавить подписчиков», дальше — форма канала.
+        final channel = state.type == models.ChatType.channel;
         return Scaffold(
           backgroundColor: scheme.surfaceContainerLow,
           appBar: AppBar(
@@ -46,7 +48,7 @@ class _ChatCreateMembersMaterial extends State<ChatCreateMembersMaterial> {
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(t.screenNewChat.addMembers),
+                Text(channel ? t.screenNewChat.addSubscribers : t.screenNewChat.addMembers),
                 if (state.selected.isNotEmpty)
                   Text(
                     t.screenNewChat.selected(n: state.selected.length),
@@ -65,7 +67,7 @@ class _ChatCreateMembersMaterial extends State<ChatCreateMembersMaterial> {
                       ))
               : FloatingActionButton(
                   tooltip: t.screenNewChat.next,
-                  onPressed: () => context.push('/chats/new/group/info', extra: state.selected),
+                  onPressed: () => context.push(channel ? '/chats/new/channel/info' : '/chats/new/group/info', extra: state.selected),
                   child: const Icon(Icons.arrow_forward),
                 ),
           body: SafeArea(
@@ -122,7 +124,8 @@ class _ChatCreateMembersMaterial extends State<ChatCreateMembersMaterial> {
                       ],
                     ),
                   ),
-                  if (state.selected.isEmpty && widget.onDone == null) createNoteMaterial(context, t.screenNewChat.noMembersHint),
+                  if (state.selected.isEmpty && widget.onDone == null)
+                    createNoteMaterial(context, channel ? t.screenNewChat.noSubscribersHint : t.screenNewChat.noMembersHint),
                 ],
               ],
             ),

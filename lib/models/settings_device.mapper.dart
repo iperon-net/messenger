@@ -108,6 +108,13 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     opt: true,
     def: false,
   );
+  static bool _$chatsChannels(SettingsDeviceModel v) => v.chatsChannels;
+  static const Field<SettingsDeviceModel, bool> _f$chatsChannels = Field(
+    'chatsChannels',
+    _$chatsChannels,
+    opt: true,
+    def: false,
+  );
   static String _$chatWallpaper(SettingsDeviceModel v) => v.chatWallpaper;
   static const Field<SettingsDeviceModel, String> _f$chatWallpaper = Field(
     'chatWallpaper',
@@ -161,6 +168,7 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     #passcodeNotificationContent: _f$passcodeNotificationContent,
     #chatsDemo: _f$chatsDemo,
     #chatsGroups: _f$chatsGroups,
+    #chatsChannels: _f$chatsChannels,
     #chatWallpaper: _f$chatWallpaper,
     #chatWallpaperColor: _f$chatWallpaperColor,
     #chatWallpaperIntensity: _f$chatWallpaperIntensity,
@@ -182,6 +190,7 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
       passcodeNotificationContent: data.dec(_f$passcodeNotificationContent),
       chatsDemo: data.dec(_f$chatsDemo),
       chatsGroups: data.dec(_f$chatsGroups),
+      chatsChannels: data.dec(_f$chatsChannels),
       chatWallpaper: data.dec(_f$chatWallpaper),
       chatWallpaperColor: data.dec(_f$chatWallpaperColor),
       chatWallpaperIntensity: data.dec(_f$chatWallpaperIntensity),
@@ -274,6 +283,7 @@ abstract class SettingsDeviceModelCopyWith<
     bool? passcodeNotificationContent,
     bool? chatsDemo,
     bool? chatsGroups,
+    bool? chatsChannels,
     String? chatWallpaper,
     int? chatWallpaperColor,
     int? chatWallpaperIntensity,
@@ -314,6 +324,7 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     bool? passcodeNotificationContent,
     bool? chatsDemo,
     bool? chatsGroups,
+    bool? chatsChannels,
     String? chatWallpaper,
     int? chatWallpaperColor,
     int? chatWallpaperIntensity,
@@ -336,6 +347,7 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
         #passcodeNotificationContent: passcodeNotificationContent,
       if (chatsDemo != null) #chatsDemo: chatsDemo,
       if (chatsGroups != null) #chatsGroups: chatsGroups,
+      if (chatsChannels != null) #chatsChannels: chatsChannels,
       if (chatWallpaper != null) #chatWallpaper: chatWallpaper,
       if (chatWallpaperColor != null) #chatWallpaperColor: chatWallpaperColor,
       if (chatWallpaperIntensity != null)
@@ -370,6 +382,7 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     ),
     chatsDemo: data.get(#chatsDemo, or: $value.chatsDemo),
     chatsGroups: data.get(#chatsGroups, or: $value.chatsGroups),
+    chatsChannels: data.get(#chatsChannels, or: $value.chatsChannels),
     chatWallpaper: data.get(#chatWallpaper, or: $value.chatWallpaper),
     chatWallpaperColor: data.get(
       #chatWallpaperColor,

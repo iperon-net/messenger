@@ -617,7 +617,11 @@ class Chat with ChatMappable {
   /// админ.
   bool get slowModeApplies => slowMode > 0 && (type == ChatType.group || type == ChatType.community) && !canManage;
 
-  /// Можно писать: не канал, либо админ/владелец канала (публикует посты). В
-  /// чат «Iperon» пишет только сервер — внизу «Звук», как у подписчика канала.
-  bool get canPost => isMember && !isSystem && (type != ChatType.channel || canManage);
+  /// Можно писать: не канал, либо админ/владелец канала (публикует посты; с
+  /// известными правами — админ с правом публиковать). В чат «Iperon» пишет
+  /// только сервер — внизу «Звук», как у подписчика канала.
+  bool get canPost =>
+      isMember &&
+      !isSystem &&
+      (type != ChatType.channel || myRole == ChatRole.owner || (myRole == ChatRole.admin && (myRights == null || myRights!.postMessages)));
 }

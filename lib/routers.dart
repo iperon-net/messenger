@@ -223,24 +223,60 @@ class Routers {
                         ),
                       ],
                     ),
-                    for (final type in [models.ChatType.channel, models.ChatType.community])
-                      GoRoute(
-                        path: type.name,
-                        parentNavigatorKey: rootNavigatorKey,
-                        pageBuilder: (context, state) => _page(
+                    // Канал (срез 4.1): «Добавить подписчиков» → форма
+                    // (`info`); канал внутри сообщества — сразу форма.
+                    GoRoute(
+                      path: "channel",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) {
+                        final communityID = state.uri.queryParameters['community'] ?? '';
+                        return _page(
                           state,
                           BlocProvider<ChatCreateCubit>(
                             create: (context) => ChatCreateCubit()
                               ..initialization(
                                 demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
-                                type: type,
-                                // Канал внутри сообщества.
-                                communityID: state.uri.queryParameters['community'] ?? '',
+                                type: models.ChatType.channel,
+                                communityID: communityID,
                               ),
-                            child: const ChatCreateFormCupertino(),
+                            child: communityID.isEmpty ? const ChatCreateMembersCupertino() : const ChatCreateFormCupertino(),
+                          ),
+                        );
+                      },
+                      routes: [
+                        GoRoute(
+                          path: "info",
+                          parentNavigatorKey: rootNavigatorKey,
+                          pageBuilder: (context, state) => _page(
+                            state,
+                            BlocProvider<ChatCreateCubit>(
+                              create: (context) => ChatCreateCubit()
+                                ..initialization(
+                                  demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                                  type: models.ChatType.channel,
+                                  selected: state.extra is List<models.ChatMember> ? state.extra! as List<models.ChatMember> : const [],
+                                ),
+                              child: const ChatCreateFormCupertino(),
+                            ),
                           ),
                         ),
+                      ],
+                    ),
+                    GoRoute(
+                      path: "community",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _page(
+                        state,
+                        BlocProvider<ChatCreateCubit>(
+                          create: (context) => ChatCreateCubit()
+                            ..initialization(
+                              demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                              type: models.ChatType.community,
+                            ),
+                          child: const ChatCreateFormCupertino(),
+                        ),
                       ),
+                    ),
                   ],
                 ),
               ],
@@ -1085,24 +1121,60 @@ class Routers {
                         ),
                       ],
                     ),
-                    for (final type in [models.ChatType.channel, models.ChatType.community])
-                      GoRoute(
-                        path: type.name,
-                        parentNavigatorKey: rootNavigatorKey,
-                        pageBuilder: (context, state) => _pageMaterial(
+                    // Канал (срез 4.1): «Добавить подписчиков» → форма
+                    // (`info`); канал внутри сообщества — сразу форма.
+                    GoRoute(
+                      path: "channel",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) {
+                        final communityID = state.uri.queryParameters['community'] ?? '';
+                        return _pageMaterial(
                           state,
                           BlocProvider<ChatCreateCubit>(
                             create: (context) => ChatCreateCubit()
                               ..initialization(
                                 demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
-                                type: type,
-                                // Канал внутри сообщества.
-                                communityID: state.uri.queryParameters['community'] ?? '',
+                                type: models.ChatType.channel,
+                                communityID: communityID,
                               ),
-                            child: const ChatCreateFormMaterial(),
+                            child: communityID.isEmpty ? const ChatCreateMembersMaterial() : const ChatCreateFormMaterial(),
+                          ),
+                        );
+                      },
+                      routes: [
+                        GoRoute(
+                          path: "info",
+                          parentNavigatorKey: rootNavigatorKey,
+                          pageBuilder: (context, state) => _pageMaterial(
+                            state,
+                            BlocProvider<ChatCreateCubit>(
+                              create: (context) => ChatCreateCubit()
+                                ..initialization(
+                                  demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                                  type: models.ChatType.channel,
+                                  selected: state.extra is List<models.ChatMember> ? state.extra! as List<models.ChatMember> : const [],
+                                ),
+                              child: const ChatCreateFormMaterial(),
+                            ),
                           ),
                         ),
+                      ],
+                    ),
+                    GoRoute(
+                      path: "community",
+                      parentNavigatorKey: rootNavigatorKey,
+                      pageBuilder: (context, state) => _pageMaterial(
+                        state,
+                        BlocProvider<ChatCreateCubit>(
+                          create: (context) => ChatCreateCubit()
+                            ..initialization(
+                              demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                              type: models.ChatType.community,
+                            ),
+                          child: const ChatCreateFormMaterial(),
+                        ),
                       ),
+                    ),
                   ],
                 ),
               ],

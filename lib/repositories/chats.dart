@@ -77,7 +77,8 @@ class ChatDialogRow {
   );
 }
 
-/// Строка `chatGroups` — группа, в которой я состою (миграция 35): общие
+/// Строка `chatGroups` — группа или канал (срез 4, тип — `info.type`), где я
+/// участник / подписчик (миграция 35): общие
 /// сведения ([info] — `ChatInfo` с сервера), моя роль и pts журнала ЧАТА; с
 /// миграции 36 — мои права админа и звание (`Dialog.rights / rank`).
 class ChatGroupRow {
@@ -524,20 +525,21 @@ class ChatsRepository {
   /// [staleHistory] — журнал слишком отстал (`tooLong`): кэш истории мог
   /// разойтись с сервером — не стираем, а помечаем несверенным
   /// ([markHistoryStale]), сверится страницами ([applyHistoryPage]).
-  /// [keepGroups] — флаг «Группы» выключен: сервер групп не отдаёт, но их кэш
-  /// не стираем (включат снова — всё на месте).
+  /// [keepTypes] — типы чатов (`pb.ChatType`), чей флаг («Группы» /
+  /// «Каналы») выключен: сервер их не отдаёт, но их кэш не стираем (включат
+  /// снова — всё на месте).
   Future<void> replaceDialogs({
     required List<int> userID,
     required List<pb.Dialog> dialogs,
     bool staleHistory = false,
-    bool keepGroups = false,
+    Set<int> keepTypes = const {},
   }) async {
     // До записи диалогов: их последние сообщения (новее кэша) — уже сверены.
     if (staleHistory) await markHistoryStale(userID: userID);
     final keep = {for (final d in dialogs) _hex(d.chatID)};
     for (final row in await this.dialogs(userID: userID)) {
       if (keep.contains(_hex(row.chatID)) || (row.topMessageID == 0 && row.type == 0)) continue;
-      if (keepGroups && row.type != pb.ChatType.CHAT_TYPE_PRIVATE.value) continue;
+      if (keepTypes.contains(row.type)) continue;
       // Есть неотправленное — не теряем его вместе с диалогом.
       if ((await outbox(userID: userID, chatID: row.chatID)).any((r) => !r.failed)) {
         logger.warning('chats: dialog ${_hex(row.chatID)} missing on server, kept (outbox not empty)');
@@ -590,8 +592,8 @@ class ChatsRepository {
     await ctx.execute(
       '''
       INSERT INTO chatMessages (userID, chatID, messageID, fromUserID, date, editDate, randomID, mediaUnread, silent, content, searchText, reactions,
-        reactionsUnread, expireAt, poll, searchHit)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        reactionsUnread, expireAt, poll, searchHit, authorSignature, postOut)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(userID, chatID, messageID) DO UPDATE SET
         fromUserID = excluded.fromUserID,
         date = excluded.date,
@@ -605,7 +607,11 @@ class ChatsRepository {
         reactionsUnread = excluded.reactionsUnread,
         expireAt = excluded.expireAt,
         poll = COALESCE(excluded.poll, chatMessages.poll),
-        searchHit = MIN(chatMessages.searchHit, excluded.searchHit);
+        searchHit = MIN(chatMessages.searchHit, excluded.searchHit),
+        authorSignature = excluded.authorSignature,
+        -- «Мой пост» канала приходит только в ответах мне (Send, история);
+        -- общее обновление журнала его не несёт — не сбрасываем.
+        postOut = MAX(chatMessages.postOut, excluded.postOut);
       ''',
       [
         userID,
@@ -624,6 +630,8 @@ class ChatsRepository {
         messageExpireAt(message),
         poll?.writeToBuffer(),
         searchHit ? 1 : 0,
+        message.authorSignature,
+        message.postOut ? 1 : 0,
       ],
     );
     if (message.mentionUnread) await addMentions(userID: userID, chatID: message.chatID, messageIDs: [message.messageID.toInt()]);
@@ -1348,6 +1356,8 @@ class ChatsRepository {
     reactionsUnread: (row['reactionsUnread'] as int? ?? 0) != 0,
     ttlPeriod: _ttlFromRow(row),
     poll: row['poll'] == null ? null : pb.PollResults.fromBuffer(row['poll'] as List<int>),
+    authorSignature: row['authorSignature'] as String? ?? '',
+    postOut: (row['postOut'] as int? ?? 0) != 0,
   );
 
   static int _ttlFromRow(Map<String, dynamic> row) {

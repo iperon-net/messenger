@@ -59,12 +59,17 @@ Future<void> chatInfoCall(models.Chat chat, {required bool video}) async {
 bool chatInfoDeletes(models.Chat chat) =>
     chat.type == models.ChatType.private ||
     chat.myRole == models.ChatRole.owner &&
-        (chat.type == models.ChatType.community || chat.type == models.ChatType.group || chat.inCommunity);
+        (chat.type == models.ChatType.community ||
+            chat.type == models.ChatType.group ||
+            chat.type == models.ChatType.channel ||
+            chat.inCommunity);
 
 /// «Добавить участников»: админ; в группе на сервере — любой участник, а в
 /// режиме «Только админы» — с правом приглашать ([canAddGroupMembers]).
 bool canAddMembers(models.Chat chat, ChatsFeatures features, List<models.ChatMember> members) {
-  if (features.channels || chat.type != models.ChatType.group) return chat.canManage;
+  // Канал на сервере — право приглашать (в демо прав нет — любой админ).
+  if (chat.type == models.ChatType.channel && !features.demoRules) return canInviteUsers(chat, members);
+  if (features.demoRules || chat.type != models.ChatType.group) return chat.canManage;
   return canAddGroupMembers(chat, members);
 }
 
@@ -81,12 +86,14 @@ bool chatInfoCanEdit(models.Chat chat, List<models.ChatMember> members) =>
 
 /// Роли участников, админы и блокировки доступны в этом чате (демо — всё; в
 /// группе на сервере — подэтап 3.2).
-bool chatRolesEnabled(ChatsFeatures features) => features.channels || features.groupRoles;
+bool chatRolesEnabled(ChatsFeatures features) => features.demoRules || features.groupRoles;
 
-/// «Заблокированные» в профиле: у групп и сообществ (не их чатов) — с правом
-/// блокировать.
+/// «Заблокированные» в профиле: у групп, каналов и сообществ (не их чатов) —
+/// с правом блокировать.
 bool chatInfoShowsBanned(models.Chat chat, List<models.ChatMember> members) =>
-    (chat.type == models.ChatType.group || chat.type == models.ChatType.community) && !chat.inCommunity && canUnbanMembers(chat, members);
+    (chat.type == models.ChatType.group || chat.type == models.ChatType.channel || chat.type == models.ChatType.community) &&
+    !chat.inCommunity &&
+    canUnbanMembers(chat, members);
 
 /// «Удалить чат» / «Покинуть группу / канал / сообщество» / «Удалить группу…».
 String chatLeaveLabel(Translations t, models.Chat chat) => switch (chat.type) {
@@ -110,6 +117,7 @@ String chatLeaveLabel(Translations t, models.Chat chat) => switch (chat.type) {
       models.ChatType.community => i.deleteCommunityMessage,
       // Своя группа (не в сообществе) — удаляется у всех участников.
       models.ChatType.group when !chat.inCommunity => t.chatAction.deleteGroupMessage,
+      models.ChatType.channel when !chat.inCommunity => t.chatAction.deleteChannelMessage,
       _ => i.deleteInCommunityMessage,
     },
   );
@@ -259,6 +267,7 @@ List<ChatAdminRight> _adminRightsOf(models.ChatType type) => type == models.Chat
         ChatAdminRight.postMessages,
         ChatAdminRight.editMessages,
         ChatAdminRight.deleteMessages,
+        ChatAdminRight.banUsers,
         ChatAdminRight.inviteUsers,
         ChatAdminRight.manageCalls,
         ChatAdminRight.addAdmins,

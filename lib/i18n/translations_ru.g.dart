@@ -314,6 +314,8 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get next => 'Далее';
 	@override String selected({required Object n}) => 'Выбрано: ${n}';
 	@override String get noMembersHint => 'Группу можно создать без участников и пригласить их позже.';
+	@override String get addSubscribers => 'Добавить подписчиков';
+	@override String get noSubscribersHint => 'Канал можно создать без подписчиков и пригласить их позже по ссылке.';
 	@override String get groupTitle => 'Новая группа';
 	@override String get channelTitle => 'Новый канал';
 	@override String get communityTitle => 'Новое сообщество';
@@ -899,6 +901,7 @@ class _Translations$screenDeveloper$ru extends Translations$screenDeveloper$en {
 	@override String get callPreview => 'Превью экрана звонка';
 	@override String get chatsDemo => 'Демо чатов';
 	@override String get chatsGroups => 'Группы';
+	@override String get chatsChannels => 'Каналы';
 	@override String get testPush => 'Тестовое уведомление';
 	@override String testPushSent({required Object apns, required Object fcm, required Object failed}) => 'Отправлено: APNs — ${apns}, FCM — ${fcm}, ошибок — ${failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне.';
 	@override String get testPushNoTokens => 'Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение.';
@@ -1695,9 +1698,15 @@ class _Translations$chatAction$ru extends Translations$chatAction$en {
 		other: '${count} человека не добавлены: их настройки приватности не разрешают добавлять в группы.',
 	);
 	@override String get deleteGroupMessage => 'Группа удалится у всех участников.';
+	@override String get deleteChannelMessage => 'Канал удалится у всех подписчиков.';
 	@override String get failed => 'Не удалось выполнить действие. Попробуйте ещё раз.';
 	@override String get titleInvalid => 'Название группы — от 1 до 128 символов.';
 	@override String get groupsDisabled => 'Группы сейчас недоступны.';
+	@override String get channelsDisabled => 'Каналы сейчас недоступны.';
+	@override String channelCreated({required Object title}) => 'Канал «${title}» создан';
+	@override String channelTitle({required Object title}) => 'Название канала изменено на «${title}»';
+	@override String get channelPhoto => 'Фото канала изменено';
+	@override String get channelPhotoRemoved => 'Фото канала удалено';
 	@override String ownerYou({required Object names}) => 'Вы передали владение группой: ${names}';
 	@override String owner({required Object name, required Object names}) => '${name} передал(а) владение группой: ${names}';
 	@override String get rightsTooWide => 'Нельзя выдать права, которых нет у вас.';
@@ -2082,6 +2091,8 @@ extension on TranslationsRu {
 			'screenNewChat.next' => 'Далее',
 			'screenNewChat.selected' => ({required Object n}) => 'Выбрано: ${n}',
 			'screenNewChat.noMembersHint' => 'Группу можно создать без участников и пригласить их позже.',
+			'screenNewChat.addSubscribers' => 'Добавить подписчиков',
+			'screenNewChat.noSubscribersHint' => 'Канал можно создать без подписчиков и пригласить их позже по ссылке.',
 			'screenNewChat.groupTitle' => 'Новая группа',
 			'screenNewChat.channelTitle' => 'Новый канал',
 			'screenNewChat.communityTitle' => 'Новое сообщество',
@@ -2436,10 +2447,10 @@ extension on TranslationsRu {
 			'screenChat.unpinAllTitle' => 'Открепить все сообщения?',
 			'screenChat.goToMessage' => 'Перейти к сообщению',
 			'screenChat.sendSilent' => 'Отправить без звука',
-			'screenChat.sendLater' => 'Отправить позже',
-			'screenChat.slowMode' => 'Медленный режим',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.sendLater' => 'Отправить позже',
+			'screenChat.slowMode' => 'Медленный режим',
 			'screenChat.slowModeWait' => ({required Object time}) => 'В этом чате включён медленный режим. Следующее сообщение можно отправить через ${time}.',
 			'screenChat.floodTitle' => 'Слишком часто',
 			'screenChat.floodWait' => ({required Object time}) => 'Вы отправляете сообщения слишком часто. Следующее можно отправить через ${time}.',
@@ -2556,6 +2567,7 @@ extension on TranslationsRu {
 			'screenDeveloper.callPreview' => 'Превью экрана звонка',
 			'screenDeveloper.chatsDemo' => 'Демо чатов',
 			'screenDeveloper.chatsGroups' => 'Группы',
+			'screenDeveloper.chatsChannels' => 'Каналы',
 			'screenDeveloper.testPush' => 'Тестовое уведомление',
 			'screenDeveloper.testPushSent' => ({required Object apns, required Object fcm, required Object failed}) => 'Отправлено: APNs — ${apns}, FCM — ${fcm}, ошибок — ${failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне.',
 			'screenDeveloper.testPushNoTokens' => 'Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение.',
@@ -2949,11 +2961,11 @@ extension on TranslationsRu {
 			'screenContacts.remove' => 'Удалить',
 			'screenContacts.removeTitle' => 'Удалить контакт?',
 			'screenContacts.removeMessage' => 'Он больше не сможет вам звонить, если в настройках приватности не разрешены звонки от всех.',
+			_ => null,
+		} ?? switch (path) {
 			'screenContacts.editContact' => 'Изменить контакт',
 			'screenContacts.addToContacts' => 'Добавить в контакты',
 			'screenContacts.removeContact' => 'Удалить контакт',
-			_ => null,
-		} ?? switch (path) {
 			'screenContacts.removeFailed' => 'Не удалось удалить контакт',
 			'screenCalls.title' => 'Звонки',
 			'screenCalls.empty' => 'Здесь появятся ваши звонки',
@@ -3109,9 +3121,15 @@ extension on TranslationsRu {
 			'chatAction.restrictedTitle' => 'Не все добавлены',
 			'chatAction.restricted' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} человек не добавлен: его настройки приватности не разрешают добавлять в группы.', few: '${count} человека не добавлены: их настройки приватности не разрешают добавлять в группы.', many: '${count} человек не добавлены: их настройки приватности не разрешают добавлять в группы.', other: '${count} человека не добавлены: их настройки приватности не разрешают добавлять в группы.', ), 
 			'chatAction.deleteGroupMessage' => 'Группа удалится у всех участников.',
+			'chatAction.deleteChannelMessage' => 'Канал удалится у всех подписчиков.',
 			'chatAction.failed' => 'Не удалось выполнить действие. Попробуйте ещё раз.',
 			'chatAction.titleInvalid' => 'Название группы — от 1 до 128 символов.',
 			'chatAction.groupsDisabled' => 'Группы сейчас недоступны.',
+			'chatAction.channelsDisabled' => 'Каналы сейчас недоступны.',
+			'chatAction.channelCreated' => ({required Object title}) => 'Канал «${title}» создан',
+			'chatAction.channelTitle' => ({required Object title}) => 'Название канала изменено на «${title}»',
+			'chatAction.channelPhoto' => 'Фото канала изменено',
+			'chatAction.channelPhotoRemoved' => 'Фото канала удалено',
 			'chatAction.ownerYou' => ({required Object names}) => 'Вы передали владение группой: ${names}',
 			'chatAction.owner' => ({required Object name, required Object names}) => '${name} передал(а) владение группой: ${names}',
 			'chatAction.rightsTooWide' => 'Нельзя выдать права, которых нет у вас.',

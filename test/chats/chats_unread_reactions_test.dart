@@ -47,6 +47,7 @@ void main() {
           reactions BLOB NULL,
           reactionsUnread INTEGER NOT NULL DEFAULT 0,
           expireAt INTEGER NOT NULL DEFAULT 0, poll BLOB NULL, searchHit INTEGER NOT NULL DEFAULT 0,
+          authorSignature TEXT NOT NULL DEFAULT '', postOut INTEGER NOT NULL DEFAULT 0,
           PRIMARY KEY (userID, chatID, messageID)
         );
       ''');

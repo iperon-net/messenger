@@ -22,6 +22,7 @@ import '../../chats/chats_presence.dart';
 import '../../chats/chats_sync.dart';
 import '../../chats/chats_typing.dart';
 import '../../chats/message_search.dart';
+import '../../chats/channel_rights.dart';
 import '../../chats/group_rights.dart';
 import '../../models.dart' as models;
 import '../../privacy_blocks.dart';
@@ -939,9 +940,13 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
       emit(state.copyWith(messages: messages, vanishingIDs: vanishingIDs));
 
   /// Удалить можно свои, в личном чате — любые, в группе чужие — с правом
-  /// удалять сообщения (у всех).
+  /// удалять сообщения (у всех). Канал на сервере — по правам канала: свой
+  /// пост — публиковать, чужой — удалять чужие ([canDeleteChannelPost]).
   bool canDelete(models.Message message) {
     final chat = state.chat;
+    if (chat != null && chat.type == models.ChatType.channel && chat.myRights != null) {
+      return canDeleteChannelPost(chat, state.members, message);
+    }
     if (message.outgoing || chat?.type == models.ChatType.private) return true;
     return chat != null && chat.type == models.ChatType.group && !message.service && canDeleteOthers(chat, state.members);
   }
@@ -950,7 +955,21 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   /// себя); в остальных чатах выбор — как раньше (см. `askPinScope*`).
   bool get canPinForEveryone {
     final chat = state.chat;
+    if (chat != null && chat.type == models.ChatType.channel && chat.myRights != null) {
+      return channelCan(chat, state.members, ChannelAction.pinForAll);
+    }
     return chat == null || chat.type != models.ChatType.group || canPinForAll(chat, state.members);
+  }
+
+  /// «Изменить» у [message]: своё; в канале на сервере — по правам канала
+  /// (свой пост — публиковать, чужой — править чужие).
+  bool canEdit(models.Message message) {
+    final chat = state.chat;
+    if (message.service) return false;
+    if (chat != null && chat.type == models.ChatType.channel && chat.myRights != null) {
+      return canEditChannelPost(chat, state.members, message);
+    }
+    return message.outgoing;
   }
 
   /// Пункт «Закрепить» / «Открепить» у [message]: в группе общий закреп
@@ -1430,8 +1449,9 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
 
   // --- «печатает…» собеседнику (см. ChatsTyping) ---
 
-  /// Только в настоящих чатах (в демо сигналы слать некуда).
-  bool get _sendsTyping => _source is ChatsRemoteDataSource;
+  /// Только в настоящих чатах (в демо сигналы слать некуда) и не в канале:
+  /// там пишут посты от имени канала — «печатает…» у канала нет.
+  bool get _sendsTyping => _source is ChatsRemoteDataSource && state.chat?.type != models.ChatType.channel;
 
   ChatTypingHandle? _recording;
 

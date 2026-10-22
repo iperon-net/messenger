@@ -113,7 +113,11 @@ class NotificationService: UNNotificationServiceExtension {
       return Self.intent(payload, sender: title, body: content.body)
     case .message:
       let body = payload.body.isEmpty ? Self.text("PUSH_MESSAGE_NO_PREVIEW") : payload.body
-      if payload.chatTitle.isEmpty {
+      if payload.isChannel {
+        // Пост канала: от имени канала — заголовок его название, без «Имя:».
+        content.title = payload.chatTitle.isEmpty ? appName : payload.chatTitle
+        content.body = body
+      } else if payload.chatTitle.isEmpty {
         content.title = title
         content.body = body
       } else {
@@ -156,6 +160,7 @@ class NotificationService: UNNotificationServiceExtension {
   /// (chatTitle) — беседа с её названием и аватаром по chatID; получателей
   /// двое (я и отправитель) — иначе iOS покажет её как личную.
   private static func intent(_ payload: Iperon_V1_PushPayload, sender name: String, body: String) -> INSendMessageIntent? {
+    if payload.isChannel { return channelIntent(payload, body: body) }
     let senderID = PushKeychain.hex(payload.fromUserID)
     guard !senderID.isEmpty, !name.isEmpty else { return nil }
     var components = PersonNameComponents()
@@ -198,6 +203,33 @@ class NotificationService: UNNotificationServiceExtension {
       intent.setImage(INImage(imageData: image), forParameterNamed: \.speakableGroupName)
     }
     return intent
+  }
+
+  /// Пост канала: «отправитель» — сам канал (автора нет), аватар — копия по
+  /// chatID (c<chatID>), как личная беседа с каналом.
+  private static func channelIntent(_ payload: Iperon_V1_PushPayload, body: String) -> INSendMessageIntent? {
+    let chatID = PushKeychain.hex(payload.chatID)
+    guard !chatID.isEmpty, !payload.chatTitle.isEmpty else { return nil }
+    var components = PersonNameComponents()
+    components.nickname = payload.chatTitle
+    let channel = INPerson(
+      personHandle: INPersonHandle(value: chatID, type: .unknown),
+      nameComponents: components,
+      displayName: payload.chatTitle,
+      image: PushAvatars.chat(payload.chatID).map { INImage(imageData: $0) },
+      contactIdentifier: nil,
+      customIdentifier: chatID
+    )
+    return INSendMessageIntent(
+      recipients: nil,
+      outgoingMessageType: .outgoingMessageText,
+      content: body,
+      speakableGroupName: nil,
+      conversationIdentifier: chatID,
+      serviceName: nil,
+      sender: channel,
+      attachments: nil
+    )
   }
 
   /// Уведомление в виде Communication Notification. Нет entitlement'а

@@ -17,8 +17,8 @@ import "protos/profile_v1.proto";
 // Идентификаторы: chatID — ObjectID (12 байт), userID — ObjectID (12 байт),
 // messageID — монотонный int64 внутри чата (1, 2, 3 …).
 
-// Тип чата. Личные и группы (срез 3, docs/plans/chats-groups.md); каналы /
-// сообщества — следующие срезы.
+// Тип чата. Личные, группы (срез 3, docs/plans/chats-groups.md) и каналы
+// (срез 4, docs/plans/chats-channels.md); сообщества — следующий срез.
 enum ChatType {
   CHAT_TYPE_PRIVATE = 0;
   CHAT_TYPE_GROUP = 1;
@@ -108,6 +108,9 @@ message ChatInfo {
   // участникам, включая админов и владельца, на всю историю; пуши — без
   // текста. Служебного в ленту нет — только Update.chatInfo.
   bool noForwards = 20;
+  // Канал (срез 4): «Подписывать сообщения» — у постов authorSignature (имя
+  // опубликовавшего админа на момент публикации).
+  bool signMessages = 21;
 }
 
 // Ссылка-приглашение (как chatInviteExported в Telegram). Путь ссылки —
@@ -566,6 +569,15 @@ message ChatMessage {
   // Опрос: итоги глазами запросившего (в общем обновлении журнала чата —
   // без chosen и без верного ответа).
   PollResults poll = 14;
+  // Пост канала (срез 4): автор скрыт — fromUserID пуст, отправитель —
+  // канал. authorSignature — имя опубликовавшего при ChatInfo.signMessages
+  // на момент публикации (иначе пусто). Служебные в канале — тоже без
+  // fromUserID.
+  string authorSignature = 15;
+  // Пост канала опубликовал я — глазами запросившего (History / Get / ответ
+  // Send); в общем обновлении журнала чата — false. Нужен для «править /
+  // удалять свои посты» без права editMessages / deleteMessages.
+  bool postOut = 16;
 }
 
 // Диалог пользователя: общий чат + моё состояние в нём.
@@ -1146,6 +1158,11 @@ message Chats {
     // «Скрыть историю» (как EditChat.historyHidden: при OPEN —
     // INVALID_ARGUMENT).
     bool historyHidden = 8;
+    // Создать канал (срез 4, нужна capability «channels»): memberUserIDs —
+    // подписчики (READER, «Добавить подписчиков», ≤ 200, приватность та же,
+    // что у групп); joinMode — только OPEN или LINK; historyHidden —
+    // INVALID_ARGUMENT. В ленте — только CREATED (без ADDED).
+    bool channel = 9;
   }
 
   message CreateGroupResult {
@@ -1188,6 +1205,9 @@ message Chats {
     optional ChatReactionsSettings reactions = 12;
     // «Запретить копирование» (право changeInfo, ChatInfo.noForwards).
     optional bool noForwards = 13;
+    // Канал: «Подписывать сообщения» (право changeInfo, ChatInfo.signMessages);
+    // у группы — INVALID_ARGUMENT.
+    optional bool signMessages = 14;
   }
 
   message ChatReactionsSettings {

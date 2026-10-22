@@ -571,7 +571,11 @@ class API {
           session: auth.session,
           message: Subscribe_Request(
             background: background,
-            capabilities: [secretChatsCapability, if (ChatsSync.instance.groups) groupsCapability],
+            capabilities: [
+              secretChatsCapability,
+              if (ChatsSync.instance.groups) groupsCapability,
+              if (ChatsSync.instance.channels) channelsCapability,
+            ],
           ).writeToBuffer(),
         );
 

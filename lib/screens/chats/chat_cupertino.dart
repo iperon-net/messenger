@@ -906,7 +906,7 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
           _forward(context, single: true);
         }),
       // Пересланное не правится (как в Telegram).
-      if (message.outgoing && message.kind == models.MessageKind.text && message.forward == null)
+      if (_cubit.canEdit(message) && message.kind == models.MessageKind.text && message.forward == null)
         action(t.edit, CupertinoIcons.pencil, () => _cubit.startEdit(message)),
       // В группе чужие — с правом удалять сообщения (у всех).
       if (_cubit.canDelete(message)) ...[
