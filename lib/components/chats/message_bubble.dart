@@ -313,7 +313,7 @@ class ChatMessagesView extends StatelessWidget {
             m.id,
             Padding(
               key: keyFor?.call(m.id),
-              padding: EdgeInsets.only(top: groupedWithOlder ? 2 : 8),
+              padding: EdgeInsets.only(top: groupedWithOlder ? 5 : 8),
               // Режим выделения: тап по строке отмечает, слева — кружок, жесты
               // пузыря (меню, медиа, реакции) выключены. Дерево одно и то же в
               // обоих режимах — пузыри не пересоздаются.
