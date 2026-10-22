@@ -83,8 +83,8 @@ class _HomeMaterialState extends State<HomeMaterial> {
   }
 }
 
-/// Иконка вкладки «Чаты» со счётчиком непрочитанных (без заглушённых) — как в
-/// Telegram.
+/// Иконка вкладки «Чаты» со счётчиком непрочитанных чатов (без заглушённых) —
+/// как в Telegram.
 class _ChatsIcon extends StatelessWidget {
   const _ChatsIcon();
 

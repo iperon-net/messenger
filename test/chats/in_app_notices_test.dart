@@ -8,11 +8,11 @@ void main() {
   late Translations t;
   setUpAll(() async => t = await AppLocale.ru.build());
 
-  test('счётчик непрочитанных: всего и без открытого чата', () {
+  test('счётчик непрочитанных чатов: всего и без открытого чата', () {
     final unread = ChatsUnread(const {'a': 3, 'secret:b': 2});
-    expect(unread.total, 5);
-    expect(unread.except('a'), 2);
-    expect(unread.except('c'), 5);
+    expect(unread.total, 2);
+    expect(unread.except('a'), 1);
+    expect(unread.except('c'), 2);
     expect(unread, ChatsUnread(const {'secret:b': 2, 'a': 3}));
     expect(ChatsUnread.empty.total, 0);
   });

@@ -376,9 +376,9 @@ class ChatsSync {
 
   StreamSubscription<ChatsUnread>? _unreadSub;
 
-  /// Непрочитанные для счётчиков на вкладке «Чаты» и у «назад» в окне чата
-  /// (как в Telegram) — из локального списка диалогов, при каждом его
-  /// изменении.
+  /// Непрочитанные чаты для счётчиков на вкладке «Чаты», у «назад» в окне
+  /// чата и на иконке (iOS) — одно число [ChatsUnread.total], как в Telegram
+  /// (режим «чаты»); из локального списка диалогов, при каждом его изменении.
   final unread = ValueNotifier<ChatsUnread>(ChatsUnread.empty);
 
   /// Последнее выставленное число на иконке (iOS) — не дёргаем натив зря.
@@ -436,8 +436,10 @@ class ChatsSync {
     );
   }
 
-  /// Непрочитанные во всех незаглушённых диалогах; ручная пометка без
-  /// непрочитанных — 1 (как на сервере). Личные чаты с локально скрытыми
+  /// Непрочитанные чаты: видимые незаглушённые диалоги с непрочитанными
+  /// входящими или ручной пометкой (как на сервере, `badge:<user>`); в
+  /// [ChatsUnread.byChat] — сколько сообщений, в [ChatsUnread.total] — сколько
+  /// чатов. Ветки комментариев и каналы без подписки не считаем. Личные чаты с локально скрытыми
   /// профилями (HiddenProfiles) не считаем — сервер о них не знает, поэтому
   /// бейдж из пуша в фоне их ещё включает. Секретные чаты этого устройства
   /// считаем тоже (заглушить их нельзя) — сервер их не видит.
@@ -456,7 +458,7 @@ class ChatsSync {
       if (mutedFromPb(row.mutedUntil, now).muted) continue;
       if (browsed.contains(idHex(row.chatID))) continue;
       // Группы и каналы без своего флага не видны — и в счётчик не идут (как
-      // на сервере).
+      // на сервере); ветки комментариев (THREAD) — не диалоги списка.
       if (!showsChatType(row.type)) continue;
       if (row.peerUserID case final peer? when hidden.containsKey(idHex(peer))) continue;
       final count = row.unreadCount > 0 ? row.unreadCount : (row.markedUnread ? 1 : 0);
@@ -2211,19 +2213,23 @@ class _FollowUps {
 typedef ChatsIncoming = ({String chatID, int messageID, String fromUserID, bool mentioned});
 
 /// Непрочитанные по чатам ([ChatsSync.unread]): id строки списка чатов (hex
-/// chatID / `secret:<hex>`) → сколько он добавляет в общий счётчик; заглушённых
-/// и скрытых здесь нет.
+/// chatID / `secret:<hex>`) → сколько в нём непрочитанных сообщений (ручная
+/// пометка без непрочитанных — 1); заглушённых и скрытых здесь нет.
+///
+/// Общая цифра [total] (иконка iOS, вкладка «Чаты», «‹ N» у «назад») — число
+/// **чатов**, а не сообщений (4.5, как режим «чаты» в Telegram и как `badge:`
+/// на сервере): каждый непрочитанный чат даёт 1.
 @immutable
 class ChatsUnread {
   final Map<String, int> byChat;
   final int total;
 
-  ChatsUnread(this.byChat) : total = byChat.values.fold(0, (sum, count) => sum + count);
+  ChatsUnread(this.byChat) : total = byChat.values.where((count) => count > 0).length;
 
   static final empty = ChatsUnread(const {});
 
-  /// Без чата [chatID] — счётчик у «назад» в его окне.
-  int except(String chatID) => total - (byChat[chatID] ?? 0);
+  /// Без чата [chatID] — счётчик у «назад» в его окне (тоже в чатах).
+  int except(String chatID) => total - ((byChat[chatID] ?? 0) > 0 ? 1 : 0);
 
   @override
   bool operator ==(Object other) => other is ChatsUnread && mapEquals(other.byChat, byChat);

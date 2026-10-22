@@ -193,7 +193,8 @@ void main() {
       expect(await store.browsed(userID: me), isEmpty);
       // Теперь — в счётчике, как любой канал.
       await store.updateDialog(userID: me, chatID: channelChat, fields: {'unreadCount': 2});
-      expect((await ChatsSync.instance.countUnread()).total, 2);
+      final unread = await ChatsSync.instance.countUnread();
+      expect((unread.total, unread.byChat[idHex(channelChat)]), (1, 2));
       // Чистка его больше не трогает.
       await ChatsSync.instance.pruneBrowsed(now: DateTime.now().add(const Duration(days: 365)));
       expect(await store.dialog(userID: me, chatID: channelChat), isNotNull);

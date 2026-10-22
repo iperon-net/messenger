@@ -2,8 +2,8 @@ import 'package:flutter/widgets.dart';
 
 import '../../chats/chats_sync.dart';
 
-/// Непрочитанные в остальных чатах — у «назад» в окне чата (как в Telegram):
-/// видно, что пишут ещё, не выходя из переписки. [unreadChatID] — id окна в
+/// Сколько остальных чатов не прочитано — у «назад» в окне чата (как в
+/// Telegram): видно, что пишут ещё, не выходя из переписки. [unreadChatID] — id окна в
 /// списке чатов (hex / `secret:<hex>`): его собственные не считаем. Читается
 /// уже в `initState` — через `context.read`, не через поля экрана.
 mixin UnreadBackCount<T extends StatefulWidget> on State<T> {
@@ -32,7 +32,7 @@ mixin UnreadBackCount<T extends StatefulWidget> on State<T> {
   }
 }
 
-/// Перестраивает [builder] по общему числу непрочитанных (вкладка «Чаты»).
+/// Перестраивает [builder] по общему числу непрочитанных чатов (вкладка «Чаты»).
 class UnreadTotalBuilder extends StatelessWidget {
   final Widget Function(BuildContext context, int total) builder;
 

@@ -3,7 +3,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'chat_tile.dart';
 import 'unread_counters.dart';
 
-/// Красный счётчик непрочитанных на иконке вкладки «Чаты» (iOS, как в Telegram).
+/// Красный счётчик непрочитанных чатов на иконке вкладки «Чаты» (iOS, как в Telegram).
 class UnreadTabIconCupertino extends StatelessWidget {
   final Widget icon;
 
