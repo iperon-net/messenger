@@ -2272,6 +2272,13 @@ class MessageMapper extends ClassMapperBase<Message> {
     opt: true,
     def: '',
   );
+  static String _$senderAvatarPath(Message v) => v.senderAvatarPath;
+  static const Field<Message, String> _f$senderAvatarPath = Field(
+    'senderAvatarPath',
+    _$senderAvatarPath,
+    opt: true,
+    def: '',
+  );
   static MessageStatus _$status(Message v) => v.status;
   static const Field<Message, MessageStatus> _f$status = Field(
     'status',
@@ -2554,6 +2561,7 @@ class MessageMapper extends ClassMapperBase<Message> {
     #outgoing: _f$outgoing,
     #senderName: _f$senderName,
     #senderUserID: _f$senderUserID,
+    #senderAvatarPath: _f$senderAvatarPath,
     #status: _f$status,
     #date: _f$date,
     #edited: _f$edited,
@@ -2607,6 +2615,7 @@ class MessageMapper extends ClassMapperBase<Message> {
       outgoing: data.dec(_f$outgoing),
       senderName: data.dec(_f$senderName),
       senderUserID: data.dec(_f$senderUserID),
+      senderAvatarPath: data.dec(_f$senderAvatarPath),
       status: data.dec(_f$status),
       date: data.dec(_f$date),
       edited: data.dec(_f$edited),
@@ -2744,6 +2753,7 @@ abstract class MessageCopyWith<$R, $In extends Message, $Out>
     bool? outgoing,
     String? senderName,
     String? senderUserID,
+    String? senderAvatarPath,
     MessageStatus? status,
     DateTime? date,
     bool? edited,
@@ -2873,6 +2883,7 @@ class _MessageCopyWithImpl<$R, $Out>
     bool? outgoing,
     String? senderName,
     String? senderUserID,
+    String? senderAvatarPath,
     MessageStatus? status,
     DateTime? date,
     bool? edited,
@@ -2924,6 +2935,7 @@ class _MessageCopyWithImpl<$R, $Out>
       if (outgoing != null) #outgoing: outgoing,
       if (senderName != null) #senderName: senderName,
       if (senderUserID != null) #senderUserID: senderUserID,
+      if (senderAvatarPath != null) #senderAvatarPath: senderAvatarPath,
       if (status != null) #status: status,
       if (date != null) #date: date,
       if (edited != null) #edited: edited,
@@ -2978,6 +2990,7 @@ class _MessageCopyWithImpl<$R, $Out>
     outgoing: data.get(#outgoing, or: $value.outgoing),
     senderName: data.get(#senderName, or: $value.senderName),
     senderUserID: data.get(#senderUserID, or: $value.senderUserID),
+    senderAvatarPath: data.get(#senderAvatarPath, or: $value.senderAvatarPath),
     status: data.get(#status, or: $value.status),
     date: data.get(#date, or: $value.date),
     edited: data.get(#edited, or: $value.edited),

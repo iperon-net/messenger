@@ -23,7 +23,9 @@ class MessageContextMenuCupertino extends StatefulWidget {
 }
 
 class MessageContextMenuCupertinoCupertinoState extends State<MessageContextMenuCupertino> {
-  double? _width;
+  /// Размер пузыря в ленте (в покое): по нему — раскладка «приподнятого»
+  /// пузыря и превью меню.
+  Size? _size;
 
   /// Анимация «нажатия» меню (до открытия — его `AnimationController`).
   AnimationController? _press;
@@ -52,22 +54,44 @@ class MessageContextMenuCupertinoCupertinoState extends State<MessageContextMenu
         if (animation is AnimationController && !identical(animation, _press)) {
           _press = animation..addStatusListener(_onPressStatus);
         }
-        final width = _width;
-        if (animation.value < CupertinoContextMenu.animationOpensAt || width == null) {
+        final size = _size;
+        if (animation.value < CupertinoContextMenu.animationOpensAt || size == null) {
           // Пока меню закрывается, пузырь зажат в свой прежний размер; если за
           // это время он вырос (поставили реакцию из меню — добавилась строка
           // реакций), без OverflowBox — «RenderFlex overflowed». В ленте
           // (высота не ограничена) размер — по пузырю.
+          // «Нажатие»: меню растягивает прямоугольник пузыря (×1,02–1,15) и
+          // раскладывает его заново — длинный текст переносился бы по-другому
+          // и «ездил». Поэтому раскладка — по прежней ширине, а растягивается
+          // картинка (Transform). Дерево одно и то же в покое и при нажатии —
+          // состояние пузыря (двойной тап) не пересоздаётся. Размер — только в
+          // покое: растянутый исказил бы и ширину превью меню.
+          final pressed = animation.value > 0;
           return _SizeReporter(
-            onSize: (size) => _width = size.width,
-            child: ClipRect(
-              child: OverflowBox(
-                minHeight: 0,
-                maxHeight: double.infinity,
-                alignment: Alignment.topCenter,
-                fit: OverflowBoxFit.deferToChild,
-                child: MessageMenuPress(cancel: _cancelPress, child: widget.bubble),
-              ),
+            onSize: (value) {
+              if (!pressed) _size = value;
+            },
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // Копия в оверлее — в точном прямоугольнике меню; в ленте ширина
+                // свободная — там как в покое.
+                final lifted = pressed && size != null && constraints.hasTightWidth && size.width > 0;
+                return ClipRect(
+                  child: Transform.scale(
+                    scale: lifted ? constraints.maxWidth / size.width : 1,
+                    alignment: Alignment.topCenter,
+                    child: OverflowBox(
+                      minWidth: lifted ? size.width : null,
+                      maxWidth: lifted ? size.width : null,
+                      minHeight: 0,
+                      maxHeight: double.infinity,
+                      alignment: Alignment.topCenter,
+                      fit: OverflowBoxFit.deferToChild,
+                      child: MessageMenuPress(cancel: _cancelPress, child: widget.bubble),
+                    ),
+                  ),
+                );
+              },
             ),
           );
         }
@@ -81,7 +105,7 @@ class MessageContextMenuCupertinoCupertinoState extends State<MessageContextMenu
                 maxHeight: double.infinity,
                 alignment: Alignment.topCenter,
                 fit: OverflowBoxFit.deferToChild,
-                child: widget.preview(width),
+                child: widget.preview(size.width),
               ),
             ),
           ),

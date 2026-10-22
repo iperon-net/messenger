@@ -332,6 +332,10 @@ class Message with MessageMappable {
   /// пусто — демо / личный чат (плейсхолдер по имени).
   final String senderUserID;
 
+  /// Аватар автора файлом (пост канала шапкой ветки комментариев — аватар
+  /// канала); пусто — по [senderUserID] / плейсхолдер.
+  final String senderAvatarPath;
+
   final MessageStatus status;
   final DateTime date;
   final bool edited;
@@ -478,6 +482,7 @@ class Message with MessageMappable {
     this.outgoing = false,
     this.senderName = '',
     this.senderUserID = '',
+    this.senderAvatarPath = '',
     this.status = MessageStatus.sent,
     required this.date,
     this.edited = false,

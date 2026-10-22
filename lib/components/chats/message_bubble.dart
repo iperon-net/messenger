@@ -17,6 +17,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../dust_effect.dart';
 import '../user_avatar.dart';
+import 'chat_avatar.dart' show chatImage;
 import 'media_viewer.dart';
 import 'message_double_tap.dart';
 import 'message_text.dart';
@@ -352,7 +353,12 @@ class ChatMessagesView extends StatelessWidget {
                                   avatar: group && !m.outgoing
                                       ? (groupedWithNewer
                                             ? const SizedBox(width: 34)
-                                            : _SenderAvatar(name: m.senderName, userID: m.senderUserID))
+                                            : _SenderAvatar(
+                                                // Без автора (шапка ветки — пост канала) — плейсхолдер по источнику.
+                                                name: m.senderName.isNotEmpty ? m.senderName : (m.forward?.name ?? ''),
+                                                userID: m.senderUserID,
+                                                path: m.senderAvatarPath,
+                                              ))
                                       : null,
                                   onLongPress: () => onLongPress(m),
                                   onMediaTap: onMediaTap == null ? null : (index) => onMediaTap!(m, index),
@@ -430,7 +436,10 @@ class _SenderAvatar extends StatelessWidget {
   /// по имени (демо).
   final String userID;
 
-  const _SenderAvatar({required this.name, this.userID = ''});
+  /// Аватар файлом (канал у поста в шапке ветки).
+  final String path;
+
+  const _SenderAvatar({required this.name, this.userID = '', this.path = ''});
 
   @override
   Widget build(BuildContext context) {
@@ -440,7 +449,9 @@ class _SenderAvatar extends StatelessWidget {
       child: SizedBox(
         width: 30,
         height: 30,
-        child: id != null && id.isNotEmpty
+        child: path.isNotEmpty
+            ? ClipOval(child: chatImage(path, width: 30, height: 30, fit: BoxFit.cover, cacheWidth: 90))
+            : id != null && id.isNotEmpty
             ? UserAvatar(userID: id, placeholderName: userID, size: 30)
             : BoringAvatar(name: name, type: BoringAvatarType.beam, shape: const CircleBorder()),
       ),

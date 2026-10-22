@@ -1425,6 +1425,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final message = header.copyWith(
       id: threadPostMessageID(thread.postID),
       outgoing: false,
+      // Аватар шапки — канала (название — в «Переслано из»).
+      senderAvatarPath: channel == null ? '' : await _groupAvatar(channel.info),
       status: models.MessageStatus.read,
       forward: models.MessageForward(
         name: channel?.info.title ?? '',
