@@ -371,6 +371,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       }
       final muted = mutedFromPb(row.mutedUntil, now);
       if (group != null) {
+        // Публичный канал без подписки (4.4): в списке и счётчиках его нет
+        // (`isMember == false`), окно чата читает его кэш, внизу «Подписаться».
+        final browsing = group.browsing;
         chats.add(
           models.Chat(
             id: id,
@@ -379,7 +382,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
             about: group.info.about,
             avatarPath: await _groupAvatar(group.info),
             membersCount: group.info.membersCount,
-            myRole: roleFromPb(group.role),
+            myRole: browsing ? models.ChatRole.reader : roleFromPb(group.role),
             // Права — у админа (владельцу — все, см. myChatRights).
             myRights: rightsFromPb(group.rights),
             myRank: group.rank,
@@ -410,11 +413,13 @@ class ChatsRemoteDataSource implements ChatsDataSource {
             commentsTimeLimit: group.info.commentsTimeLimit,
             commentsWho: commentsWhoFromPb(group.info.commentsWho),
             commentsMinSubscription: group.info.commentsMinSubscription,
-            unreadMentions: row.unreadMentions,
+            isMember: !browsing,
+            browsing: browsing,
+            unreadMentions: browsing ? 0 : row.unreadMentions,
             lastMessage: lastMessage,
-            unreadCount: row.unreadCount,
-            unreadReactions: row.unreadReactions,
-            markedUnread: row.markedUnread,
+            unreadCount: browsing ? 0 : row.unreadCount,
+            unreadReactions: browsing ? 0 : row.unreadReactions,
+            markedUnread: !browsing && row.markedUnread,
             muted: muted.muted,
             mutedUntil: muted.until,
             pinned: row.pinned,
@@ -1124,9 +1129,12 @@ class ChatsRemoteDataSource implements ChatsDataSource {
 
   /// `iperon.net/<username>` или `iperon.net/+код` (`Chats.ResolveLink`).
   /// Знакомое — без сети: своё имя («Избранное»), собеседник с чатом в кэше,
-  /// своя группа (по имени или основной ссылке). Иначе сервер: диалог (личный
-  /// чат, группа, где я участник) — в кэш; чужая группа — предпросмотр
-  /// (`Chat.isMember == false`). Нет такого / ссылка недействительна — пусто.
+  /// своя группа (по имени или основной ссылке), публичный канал, уже
+  /// открытый без подписки. Иначе сервер: диалог (личный чат, группа, где я
+  /// участник) — в кэш; публичный канал (`canViewHistory`, 4.4) — в кэш как
+  /// канал без подписки (лента, Watch, просмотры; в списке его нет); чужая
+  /// группа — предпросмотр (`Chat.isMember == false`). Нет такого / ссылка
+  /// недействительна — пусто.
   @override
   Future<String> resolveLink(String path) async {
     final name = path.trim().replaceFirst(RegExp(r'^/+'), '').split('/').first.replaceFirst('@', '');
@@ -1159,6 +1167,13 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         await api.cacheProfile(profile, waitAvatar: false);
       }
       final id = idHex(preview.chat.chatID);
+      // Публичный канал (4.4) читается без подписки: кэш как у канала
+      // (Watch, история, просмотры), в списке его нет.
+      if (preview.canViewHistory && preview.chat.type == pb.ChatType.CHAT_TYPE_CHANNEL) {
+        await _sync.saveBrowsedChannel(preview.chat);
+        if (_previews.remove(id) != null) _previewsChanged.add(null);
+        return id;
+      }
       _previews[id] = _Preview(owner: idHex(me), path: invite ? name : name.toLowerCase(), preview: preview);
       _previewsChanged.add(null);
       return id;
@@ -1234,18 +1249,28 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   /// «Вступить» / «Подать заявку» в группу из предпросмотра (`Chats.JoinChat`
   /// по той же ссылке): вступили — диалог в кэш, история — с сервера; нужна
   /// заявка — «Заявка отправлена» (вступим, когда одобрят: придёт dialogNew).
+  ///
+  /// Публичный канал без подписки (4.4) — «Подписаться» по его имени: кэш
+  /// становится обычным каналом (роль с сервера), окно не перезагружается.
   @override
   Future<void> joinChat(String chatID) async {
     final preview = _previews[chatID];
-    if (preview == null || preview.requested) return;
+    final String path;
+    if (preview == null) {
+      final group = await _store.group(userID: _sync.me, chatID: idBytes(chatID));
+      if (group == null || !group.browsing || group.info.username.isEmpty) return;
+      path = group.info.username.toLowerCase();
+    } else {
+      if (preview.requested) return;
+      path = preview.path;
+    }
     await _requireNetwork();
-    final response = await _sync.chats(pb.Chats_Request(joinChat: pb.Chats_JoinChat(path: preview.path)));
+    final response = await _sync.chats(pb.Chats_Request(joinChat: pb.Chats_JoinChat(path: path)));
     final result = response.joinChat;
     await _sync.applyUpdates(result.updates);
     if (result.hasDialog() && result.dialog.chatID.isNotEmpty) {
       await _sync.saveDialog(result.dialog);
-      _previews.remove(chatID);
-      _previewsChanged.add(null);
+      if (_previews.remove(chatID) != null) _previewsChanged.add(null);
       final chat = idBytes(chatID);
       unawaited(
         _sync.loadHistory(chat).catchError((Object error, StackTrace stackTrace) {
@@ -1254,7 +1279,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       );
       return;
     }
-    if (result.requested) {
+    if (result.requested && preview != null) {
       preview.requested = true;
       _previewsChanged.add(null);
     }
@@ -1956,8 +1981,13 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         }),
       );
       // Открытый чат — докачиваем всю его историю в фоне: локальный поиск
-      // (по началу слова, гибче серверного) и лента — по скачанному.
-      _sync.backfill(chat);
+      // (по началу слова, гибче серверного) и лента — по скачанному. Канал
+      // без подписки (4.4) — нет: его кэш временный ([ChatsSync.pruneBrowsed]).
+      unawaited(
+        _sync.isBrowsing(chat).then((browsing) {
+          if (!browsing) _sync.backfill(chat);
+        }, onError: (Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace)),
+      );
     }
     // Перечитываем при изменении таблиц и при расширении окна истории
     // ([loadOlderMessages] из кэша — без записи в БД). Загрузки — по очереди,
@@ -1966,16 +1996,41 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     StreamSubscription<void>? changes;
     StreamSubscription<String>? refresh;
     StreamSubscription<void>? uploads;
-    // Ветка комментариев (4.3): пока окно открыто — временная подписка на её
-    // журнал (`Chats.Watch`).
+    // Ветка комментариев (4.3) и публичный канал без подписки (4.4): пока
+    // окно открыто — временная подписка на журнал чата (`Chats.Watch`).
     var watching = false;
+    var browsing = false;
     var cancelled = false;
     Future<void> watchThread() async {
       if (chat.isEmpty || !_auth.isAuthorized) return;
       final row = await _store.dialog(userID: _sync.me, chatID: chat);
-      if (cancelled || row?.type != pb.ChatType.CHAT_TYPE_THREAD.value) return;
+      if (cancelled || row == null) return;
+      if (row.type == pb.ChatType.CHAT_TYPE_CHANNEL.value) {
+        browsing = await _sync.isBrowsing(chat);
+        if (cancelled || !browsing) return;
+        await _sync.touchBrowsed(chat);
+      } else if (row.type != pb.ChatType.CHAT_TYPE_THREAD.value) {
+        return;
+      }
+      if (cancelled) return;
       watching = true;
       _sync.watch(chat);
+    }
+
+    /// Окно закрыто: снять подписку (подписались, пока смотрели, — журнал
+    /// канала и так идёт стриму, снимать на сервере нечего), канал без
+    /// подписки — «свежий», и чистка кэша таких каналов.
+    Future<void> unwatchThread() async {
+      if (!watching) return;
+      if (!browsing) {
+        _sync.unwatch(chat);
+        return;
+      }
+      final still = _auth.isAuthorized && await _sync.isBrowsing(chat);
+      _sync.unwatch(chat, send: still);
+      if (!still) return;
+      await _sync.touchBrowsed(chat);
+      await _sync.pruneBrowsed();
     }
 
     var pending = Future<void>.value();
@@ -1997,7 +2052,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       },
       onCancel: () async {
         cancelled = true;
-        if (watching) _sync.unwatch(chat);
+        unawaited(unwatchThread().catchError((Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace)));
         await changes?.cancel();
         await refresh?.cancel();
         await uploads?.cancel();
@@ -2776,8 +2831,15 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   Stream<List<models.Message>> watchScheduled(String chatID) {
     final chat = idBytes(chatID);
     if (chat.isEmpty || !_auth.isAuthorized) return Stream.value(const []);
-    // Чужая группа по ссылке — отложенных у нас там нет.
-    if (!_previews.containsKey(chatID)) unawaited(_sync.loadScheduled(chat));
+    // Чужая группа по ссылке и канал без подписки (4.4) — отложенных у нас
+    // там нет.
+    if (!_previews.containsKey(chatID)) {
+      unawaited(
+        _sync.isBrowsing(chat).then((browsing) async {
+          if (!browsing) await _sync.loadScheduled(chat);
+        }, onError: (Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace)),
+      );
+    }
     return _repositories.db
         .onChange(const [ChatsRepository.scheduledTable, ChatsRepository.outboxTable])
         .asyncMap((_) => _loadScheduled(chatID, chat))
@@ -2969,12 +3031,18 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   @override
   Stream<List<models.Message>> watchPinnedMessages(String chatID) {
     final chat = idBytes(chatID);
-    // Чужая группа по ссылке — закреплённых не спрашиваем (не участник).
+    // Чужая группа по ссылке и канал без подписки (4.4) — закреплённых не
+    // спрашиваем (не участник).
     if (chat.isNotEmpty && !_previews.containsKey(chatID)) {
       unawaited(
-        _sync.loadPinned(chat).catchError((Object error, StackTrace stackTrace) {
-          if (error is! ChatsOfflineException) _logger.handle(error, stackTrace);
-        }),
+        _sync
+            .isBrowsing(chat)
+            .then((browsing) async {
+              if (!browsing) await _sync.loadPinned(chat);
+            })
+            .catchError((Object error, StackTrace stackTrace) {
+              if (error is! ChatsOfflineException) _logger.handle(error, stackTrace);
+            }),
       );
     }
     late final StreamController<List<models.Message>> out;
@@ -3092,6 +3160,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
                 fromMessageID: Int64(id),
                 fromSignature: source.authorSignature,
                 fromName: m.forward?.name ?? '',
+                // Публичное имя (4.4): не подписанный откроет канал по нему
+                // (сервер всё равно ставит своё — на момент пересылки).
+                fromUsername: (await _store.group(userID: me, chatID: from))?.info.username ?? '',
                 date: source.date,
               )
             : pb.MessageForward(fromUserID: source.fromUserID, fromName: m.forward?.name ?? '', date: source.date);

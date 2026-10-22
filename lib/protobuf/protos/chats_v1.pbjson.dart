@@ -511,6 +511,7 @@ const MessageForward$json = {
     {'1': 'fromChatID', '3': 4, '4': 1, '5': 12, '10': 'fromChatID'},
     {'1': 'fromMessageID', '3': 5, '4': 1, '5': 3, '10': 'fromMessageID'},
     {'1': 'fromSignature', '3': 6, '4': 1, '5': 9, '10': 'fromSignature'},
+    {'1': 'fromUsername', '3': 7, '4': 1, '5': 9, '10': 'fromUsername'},
   ],
 };
 
@@ -519,7 +520,8 @@ final $typed_data.Uint8List messageForwardDescriptor =
     $convert.base64Decode('Cg5NZXNzYWdlRm9yd2FyZBIeCgpmcm9tVXNlcklEGAEgASgMUgpmcm9tVXNlcklEEhoKCGZyb2'
         '1OYW1lGAIgASgJUghmcm9tTmFtZRISCgRkYXRlGAMgASgDUgRkYXRlEh4KCmZyb21DaGF0SUQY'
         'BCABKAxSCmZyb21DaGF0SUQSJAoNZnJvbU1lc3NhZ2VJRBgFIAEoA1INZnJvbU1lc3NhZ2VJRB'
-        'IkCg1mcm9tU2lnbmF0dXJlGAYgASgJUg1mcm9tU2lnbmF0dXJl');
+        'IkCg1mcm9tU2lnbmF0dXJlGAYgASgJUg1mcm9tU2lnbmF0dXJlEiIKDGZyb21Vc2VybmFtZRgH'
+        'IAEoCVIMZnJvbVVzZXJuYW1l');
 
 @$core.Deprecated('Use messageCallDescriptor instead')
 const MessageCall$json = {

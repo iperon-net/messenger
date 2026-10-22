@@ -473,42 +473,38 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                               ),
                             ],
                           ),
-                        if (state.isEdit && type == models.ChatType.channel && !state.basic)
+                        // Комментарии на сервере — подэтап 4.3.
+                        if (state.isEdit && type == models.ChatType.channel && !state.basic && state.channelComments)
                           section(
                             footer: createNoteCupertino(
                               [
-                                if (state.channelComments) ...[
-                                  t.screenNewChat.commentsFooter,
-                                  if (state.commentsEnabled) t.screenNewChat.commentsLimitFooter,
-                                  if (state.commentsEnabled && state.commentsWho == models.ChatCommentsWho.subscribers)
-                                    t.screenNewChat.commentsWhoFooter,
-                                  if (state.commentsEnabled) t.screenNewChat.newcomerMediaFooterChannel,
-                                ],
-                                t.screenNewChat.signFooter,
+                                t.screenNewChat.commentsFooter,
+                                if (state.commentsEnabled) t.screenNewChat.commentsLimitFooter,
+                                if (state.commentsEnabled && state.commentsWho == models.ChatCommentsWho.subscribers)
+                                  t.screenNewChat.commentsWhoFooter,
+                                if (state.commentsEnabled) t.screenNewChat.newcomerMediaFooterChannel,
                               ].join(' '),
                             ),
                             children: [
-                              // Комментарии на сервере — подэтап 4.3.
-                              if (state.channelComments)
-                                CupertinoListTile(
-                                  title: Text(t.screenNewChat.commentsSwitch, style: const TextStyle(fontSize: AppFontSizes.body)),
-                                  trailing: CupertinoSwitch(
-                                    value: state.commentsEnabled,
-                                    onChanged: context.read<ChatCreateCubit>().setCommentsEnabled,
-                                  ),
+                              CupertinoListTile(
+                                title: Text(t.screenNewChat.commentsSwitch, style: const TextStyle(fontSize: AppFontSizes.body)),
+                                trailing: CupertinoSwitch(
+                                  value: state.commentsEnabled,
+                                  onChanged: context.read<ChatCreateCubit>().setCommentsEnabled,
                                 ),
+                              ),
                               // Выбор вариантов — выпадающее меню у строки (как в настройках iOS).
-                              if (state.channelComments && state.commentsEnabled) ...[
+                              if (state.commentsEnabled) ...[
                                 menuRow<int>(
                                   title: t.screenNewChat.commentsLimit,
                                   values: commentsLimitOptions,
                                   current: state.commentsTimeLimit,
-                                  label: (value) => commentsLimitLabel(t, value),
+                                  label: (value) => commentsLimitShortLabel(t, value),
                                   onSelected: context.read<ChatCreateCubit>().setCommentsTimeLimit,
                                 ),
                                 menuRow<models.ChatCommentsWho>(
                                   title: t.screenNewChat.commentsWho,
-                                  values: models.ChatCommentsWho.values,
+                                  values: commentsWhoOptions,
                                   current: state.commentsWho,
                                   label: (value) => commentsWhoLabel(t, value),
                                   onSelected: context.read<ChatCreateCubit>().setCommentsWho,
@@ -518,7 +514,7 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                                     title: t.screenNewChat.commentsMinSubscription,
                                     values: commentsLimitOptions,
                                     current: state.commentsMinSubscription,
-                                    label: (value) => commentsLimitLabel(t, value),
+                                    label: (value) => commentsLimitShortLabel(t, value),
                                     onSelected: context.read<ChatCreateCubit>().setCommentsMinSubscription,
                                   ),
                                 menuRow<int>(
@@ -529,6 +525,12 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                                   onSelected: context.read<ChatCreateCubit>().setNewcomerMediaDelay,
                                 ),
                               ],
+                            ],
+                          ),
+                        if (state.isEdit && type == models.ChatType.channel && !state.basic)
+                          section(
+                            footer: createNoteCupertino(t.screenNewChat.signFooter),
+                            children: [
                               CupertinoListTile(
                                 title: Text(t.screenNewChat.signSwitch, style: const TextStyle(fontSize: AppFontSizes.body)),
                                 trailing: CupertinoSwitch(

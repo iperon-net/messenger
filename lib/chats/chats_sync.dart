@@ -88,6 +88,10 @@ class ChatsSlowModeException implements Exception {
 /// «commentsTooNew:N» ([commentsTooNewPrefix]).
 const commentsErrors = {'commentsDisabled', 'commentsClosed', 'commentsSubscribersOnly'};
 
+/// Публичный канал без подписки (подэтап 4.4): реакции и голосование — только
+/// подписчикам (`FailedPrecondition`).
+const subscribeRequiredError = 'subscribeRequired';
+
 /// «commentsTooNew:N» — подписан недавно, комментировать через N секунд.
 const commentsTooNewPrefix = 'commentsTooNew:';
 
@@ -134,6 +138,10 @@ class ChatsRequestException implements Exception {
   /// (не стоящую там) реакцию не поставить (`InvalidArgument`
   /// «reactionsLimit», подэтап 4.2).
   bool get isReactionsLimit => statusCode == StatusCode.invalidArgument && error == 'reactionsLimit';
+
+  /// Публичный канал без подписки (подэтап 4.4): реакции и голосование —
+  /// только подписчикам (`FailedPrecondition` «subscribeRequired»).
+  bool get isSubscribeRequired => error == subscribeRequiredError;
 
   /// Не найдено (`NotFound`): например, пользователя с таким именем нет.
   bool get isNotFound => statusCode == StatusCode.notFound;
@@ -433,14 +441,20 @@ class ChatsSync {
   /// профилями (HiddenProfiles) не считаем — сервер о них не знает, поэтому
   /// бейдж из пуша в фоне их ещё включает. Секретные чаты этого устройства
   /// считаем тоже (заглушить их нельзя) — сервер их не видит.
+  @visibleForTesting
+  Future<ChatsUnread> countUnread() => _countUnread();
+
   Future<ChatsUnread> _countUnread() async {
     if (!_auth.isAuthorized) return ChatsUnread.empty;
     final now = DateTime.now();
     final repositories = getIt.get<Repositories>();
     final hidden = await repositories.hiddenProfiles.hashByHex();
     final byChat = <String, int>{};
+    // Публичные каналы без подписки (4.4) — не диалоги списка.
+    final browsed = {for (final b in await _store.browsed(userID: me)) idHex(b.chatID)};
     for (final row in await _store.dialogs(userID: me)) {
       if (mutedFromPb(row.mutedUntil, now).muted) continue;
+      if (browsed.contains(idHex(row.chatID))) continue;
       // Группы и каналы без своего флага не видны — и в счётчик не идут (как
       // на сервере).
       if (!showsChatType(row.type)) continue;
@@ -486,6 +500,10 @@ class ChatsSync {
     await flushReactions();
     await flushDrafts();
     await flushContents();
+    if (!_browsedPruned) {
+      _browsedPruned = true;
+      unawaited(pruneBrowsed().catchError((Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace)));
+    }
     // Временные подписки (открытые ветки комментариев) живут до конца стрима —
     // после переподключения подписываемся заново и догоняем пропущенное.
     for (final watched in _watched.values.toList()) {
@@ -516,8 +534,10 @@ class ChatsSync {
   }
 
   /// Окно ветки закрыто — снять подписку (последнее из открытых окон). Ушли в
-  /// фон — стрим закрывается, а с ним и подписки на сервере.
-  void unwatch(Uint8List chatID) {
+  /// фон — стрим закрывается, а с ним и подписки на сервере. [send] = false —
+  /// только забыть локально: пока окно было открыто, на канал подписались
+  /// (4.4), и его журнал теперь идёт стриму и без Watch — снимать нечего.
+  void unwatch(Uint8List chatID, {bool send = true}) {
     final key = idHex(chatID);
     final current = _watched[key];
     if (current == null) return;
@@ -526,7 +546,7 @@ class ChatsSync {
       return;
     }
     _watched.remove(key);
-    unawaited(_sendWatch(chatID, false));
+    if (send) unawaited(_sendWatch(chatID, false));
   }
 
   Future<void> _sendWatch(Uint8List chatID, bool on) async {
@@ -542,12 +562,23 @@ class ChatsSync {
       if (!on || !_watched.containsKey(idHex(chatID))) return;
       final user = me;
       final info = response.watch.hasChat() ? response.watch.chat : null;
+      var fresh = false;
       await _locked(() async {
-        if (info != null && await _store.group(userID: user, chatID: chatID) != null) {
+        final group = await _store.group(userID: user, chatID: chatID);
+        if (info != null && group != null) {
           await _store.setGroupInfo(userID: user, info: info);
+          // Публичный канал открыт без подписки впервые (4.4): pts ещё нет —
+          // журнал с текущего, а пропущенное до него — свежей страницей
+          // истории (не с начала журнала канала).
+          if (group.pts == 0 && info.pts > 0) {
+            await _store.setGroupPts(userID: user, chatID: chatID, pts: info.pts.toInt());
+            fresh = true;
+            return;
+          }
         }
         await _catchUpChats([chatID]);
       });
+      if (fresh) await loadHistory(chatID);
     } on ChatsOfflineException {
       // Подпишемся при следующем подключении.
     } on ChatsRequestException catch (error) {
@@ -556,6 +587,52 @@ class ChatsSync {
       _logger.handle(error, stackTrace);
     }
   }
+
+  // --- публичный канал без подписки (подэтап 4.4) ---
+
+  /// Сколько каналов без подписки держим в кэше (последние открытые).
+  static const browsedKeep = 10;
+
+  /// Сколько держим кэш канала без подписки после последнего открытия.
+  static const browsedMaxAge = Duration(days: 7);
+
+  /// Предпросмотр публичного канала (`canViewHistory`) — в кэш как канал без
+  /// подписки ([ChatsRepository.saveBrowsedChannel]). `false` — уже подписаны.
+  Future<bool> saveBrowsedChannel(pb.ChatInfo info) {
+    final user = me;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    return _locked(() => _store.transaction((tx) => tx.saveBrowsedChannel(userID: user, info: info, at: now)));
+  }
+
+  /// Канал без подписки — да / нет (окно чата: Watch, отложенные, докачка).
+  Future<bool> isBrowsing(Uint8List chatID) async => (await _store.group(userID: me, chatID: chatID))?.browsing ?? false;
+
+  /// Окно канала без подписки открыли / закрыли — он «свежий» для чистки.
+  Future<void> touchBrowsed(Uint8List chatID) {
+    final user = me;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    return _locked(() => _store.touchBrowsed(userID: user, chatID: chatID, at: now));
+  }
+
+  /// Чистка кэша каналов без подписки (при закрытии окна и при первом
+  /// подключении за запуск): остаются [browsedKeep] последних открытых, не
+  /// старше [browsedMaxAge]; открытые сейчас ([watched]) — всегда.
+  Future<void> pruneBrowsed({DateTime? now}) async {
+    if (!_auth.isAuthorized) return;
+    final user = me;
+    final at = (now ?? DateTime.now()).millisecondsSinceEpoch;
+    final keep = watched;
+    final deleted = await _locked(
+      () => _store.transaction((tx) => tx.pruneBrowsed(userID: user, now: at, maxAge: browsedMaxAge, maxCount: browsedKeep, keep: keep)),
+    );
+    for (final chatID in deleted) {
+      _noOlder.remove(idHex(chatID));
+      _logger.info('chats: browsed channel ${idHex(chatID)} pruned');
+    }
+  }
+
+  /// Чистка при старте — раз за запуск.
+  bool _browsedPruned = false;
 
   // --- ветки комментариев (подэтап 4.3) ---
 
@@ -729,9 +806,11 @@ class ChatsSync {
     final user = me;
     // Только те, что сервер этой сессии отдаёт (флаги): остальные он счёл бы
     // «ушедшими», а их кэш должен пережить выключение флага.
+    // Каналы без подписки (4.4) сервер тоже счёл бы «ушедшими» — их догоняет
+    // `Chats.Watch` при открытии окна.
     final groups = [
       for (final g in await _store.groups(userID: user))
-        if (showsChatType(g.info.type.value)) g,
+        if (showsChatType(g.info.type.value) && !g.browsing) g,
     ];
     for (var from = 0; from < groups.length; from += _chatsStateLimit) {
       final chunk = groups.sublist(from, math.min(groups.length, from + _chatsStateLimit));
@@ -946,10 +1025,13 @@ class ChatsSync {
         final id = message.messageID.toInt();
         final top = dialog?.topMessageID ?? 0;
         if (id >= top) await tx.setTopMessage(userID: user, chatID: chatID, message: message);
+        // Канал без подписки (4.4) — не диалог списка: ни счётчиков, ни баннера.
+        final browsing =
+            dialog?.type == pb.ChatType.CHAT_TYPE_CHANNEL.value && ((await tx.group(userID: user, chatID: chatID))?.browsing ?? false);
         if (outgoing) {
           // Наше (с этого или другого устройства) — из outbox, если оно оттуда.
           if (message.randomID != 0) await tx.deleteOutbox(userID: user, randomID: message.randomID.toInt());
-        } else if (!fresh && dialog != null && id > top && id > dialog.readInboxMaxID && !skipsUnread(message.content)) {
+        } else if (!browsing && !fresh && dialog != null && id > top && id > dialog.readInboxMaxID && !skipsUnread(message.content)) {
           // Новое входящее: счётчик локально, точное значение — с ReadInbox/Dialog.
           await tx.updateDialog(userID: user, chatID: chatID, fields: {'unreadCount': dialog.unreadCount + 1});
         }
@@ -957,7 +1039,12 @@ class ChatsSync {
         // о пропущенном есть свои уведомления).
         // Ветка комментариев — не диалог списка: ни баннера, ни счётчиков.
         final thread = dialog?.type == pb.ChatType.CHAT_TYPE_THREAD.value;
-        if (!outgoing && !thread && !skipsUnread(message.content) && !message.content.hasCall() && id > (dialog?.readInboxMaxID ?? 0)) {
+        if (!outgoing &&
+            !thread &&
+            !browsing &&
+            !skipsUnread(message.content) &&
+            !message.content.hasCall() &&
+            id > (dialog?.readInboxMaxID ?? 0)) {
           followUps.incoming.add((chatID: idHex(chatID), messageID: id, fromUserID: idHex(message.fromUserID)));
         }
 
@@ -1325,7 +1412,25 @@ class ChatsSync {
   /// Диалог из ответа (OpenPrivate) — в кэш, в общей очереди с обновлениями.
   Future<void> saveDialog(pb.Dialog dialog) {
     final user = me;
-    return _locked(() => _store.upsertDialog(userID: user, dialog: dialog));
+    return _locked(
+      () => _store.transaction((tx) async {
+        await tx.upsertDialog(userID: user, dialog: dialog);
+        // Подписались на канал, который читали без подписки (4.4), а сведений
+        // в ответе нет: роль — из диалога, иначе он так и остался бы вне списка.
+        if (dialog.hasChat() || dialog.role == pb.ChatRole.CHAT_ROLE_NONE) return;
+        if ((await tx.group(userID: user, chatID: dialog.chatID))?.browsing ?? false) {
+          await tx.setGroupRole(
+            userID: user,
+            chatID: dialog.chatID,
+            role: dialog.role,
+            rights: dialog.rights,
+            rank: dialog.rank,
+            inviteCode: dialog.inviteCode,
+            pendingRequests: dialog.pendingRequests,
+          );
+        }
+      }),
+    );
   }
 
   // --- история ---
@@ -1815,6 +1920,8 @@ class ChatsSync {
         if (error.isPrivacyRestricted) _writeRestricted.add((chatID: row.chatID, peerUserID: null, restricted: true));
         // Канал: под постом уже набран «Максимум реакций» — окно объяснит.
         if (error.isReactionsLimit) _sendRejected.add((chatID: row.chatID, error: error.error));
+        // Канал без подписки (4.4): реакции — только подписчикам.
+        if (error.isSubscribeRequired) _sendRejected.add((chatID: row.chatID, error: error.error));
         await _store.deletePendingReactions(userID: user, chatID: row.chatID, messageID: row.messageID, createdAt: row.createdAt);
         continue;
       }

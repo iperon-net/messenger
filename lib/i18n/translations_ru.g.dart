@@ -390,7 +390,7 @@ class _Translations$screenNewChat$ru extends Translations$screenNewChat$en {
 	@override String get commentsLimitYear => '1 год';
 	@override String get commentsWho => 'Кто может комментировать';
 	@override String get commentsWhoAll => 'Все';
-	@override String get commentsWhoSubscribers => 'Только подписчики';
+	@override String get commentsWhoSubscribers => 'Подписчики';
 	@override String get commentsMinSubscription => 'Подписка не менее';
 	@override String get commentsWhoFooter => 'Не подписанные читают комментарии, но не пишут. Срок подписки защищает от спама: только что подписавшийся сможет комментировать, когда пройдёт выбранное время.';
 	@override String get newcomerMedia => 'Новичкам — без ссылок и медиа';
@@ -1732,6 +1732,7 @@ class _Translations$chatAction$ru extends Translations$chatAction$en {
 	@override String get pollClosed => 'Опрос уже завершён.';
 	@override String get pollForward => 'Опрос нельзя переслать.';
 	@override String get reactionsLimit => 'Под этим постом уже набран максимум разных реакций. Можно поставить только ту, что уже есть.';
+	@override String get subscribeRequired => 'Подпишитесь на канал, чтобы ставить реакции и голосовать в опросах.';
 	@override String get commentsDisabled => 'Комментарии к этому посту выключены.';
 	@override String get commentsClosed => 'Комментарии к этому посту закрыты — их можно только читать.';
 	@override String get commentsSubscribersOnly => 'Комментировать могут только подписчики канала.';
@@ -2168,7 +2169,7 @@ extension on TranslationsRu {
 			'screenNewChat.commentsLimitYear' => '1 год',
 			'screenNewChat.commentsWho' => 'Кто может комментировать',
 			'screenNewChat.commentsWhoAll' => 'Все',
-			'screenNewChat.commentsWhoSubscribers' => 'Только подписчики',
+			'screenNewChat.commentsWhoSubscribers' => 'Подписчики',
 			'screenNewChat.commentsMinSubscription' => 'Подписка не менее',
 			'screenNewChat.commentsWhoFooter' => 'Не подписанные читают комментарии, но не пишут. Срок подписки защищает от спама: только что подписавшийся сможет комментировать, когда пройдёт выбранное время.',
 			'screenNewChat.newcomerMedia' => 'Новичкам — без ссылок и медиа',
@@ -3166,6 +3167,7 @@ extension on TranslationsRu {
 			'chatAction.pollClosed' => 'Опрос уже завершён.',
 			'chatAction.pollForward' => 'Опрос нельзя переслать.',
 			'chatAction.reactionsLimit' => 'Под этим постом уже набран максимум разных реакций. Можно поставить только ту, что уже есть.',
+			'chatAction.subscribeRequired' => 'Подпишитесь на канал, чтобы ставить реакции и голосовать в опросах.',
 			'chatAction.commentsDisabled' => 'Комментарии к этому посту выключены.',
 			'chatAction.commentsClosed' => 'Комментарии к этому посту закрыты — их можно только читать.',
 			'chatAction.commentsSubscribersOnly' => 'Комментировать могут только подписчики канала.',

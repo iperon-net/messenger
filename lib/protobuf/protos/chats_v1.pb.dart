@@ -788,6 +788,13 @@ class ChatPreview extends $pb.GeneratedMessage {
 
   /// Можно читать историю без вступления (публичная, OPEN) — Messages.History /
   /// Get по chatID без журнала и без отметок о прочтении.
+  ///
+  /// Публичный канал (подэтап 4.4) без подписки: ещё Chats.Watch (живые
+  /// обновления и pts — догон GetChatDifference), Messages.Search, GetViews
+  /// (increment засчитывается), OpenComments и комментарии при commentsWho =
+  /// ALL. Реакции и голосование — только подписчикам (FAILED_PRECONDITION
+  /// «subscribeRequired»). ReadHistory не нужен: непрочитанного у не
+  /// подписанного нет.
   @$pb.TagNumber(4)
   $core.bool get canViewHistory => $_getBF(3);
   @$pb.TagNumber(4)
@@ -1855,6 +1862,7 @@ class MessageForward extends $pb.GeneratedMessage {
     $core.List<$core.int>? fromChatID,
     $fixnum.Int64? fromMessageID,
     $core.String? fromSignature,
+    $core.String? fromUsername,
   }) {
     final result = create();
     if (fromUserID != null) result.fromUserID = fromUserID;
@@ -1863,6 +1871,7 @@ class MessageForward extends $pb.GeneratedMessage {
     if (fromChatID != null) result.fromChatID = fromChatID;
     if (fromMessageID != null) result.fromMessageID = fromMessageID;
     if (fromSignature != null) result.fromSignature = fromSignature;
+    if (fromUsername != null) result.fromUsername = fromUsername;
     return result;
   }
 
@@ -1881,6 +1890,7 @@ class MessageForward extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(4, _omitFieldNames ? '' : 'fromChatID', $pb.PbFieldType.OY, protoName: 'fromChatID')
     ..aInt64(5, _omitFieldNames ? '' : 'fromMessageID', protoName: 'fromMessageID')
     ..aOS(6, _omitFieldNames ? '' : 'fromSignature', protoName: 'fromSignature')
+    ..aOS(7, _omitFieldNames ? '' : 'fromUsername', protoName: 'fromUsername')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1956,6 +1966,17 @@ class MessageForward extends $pb.GeneratedMessage {
   $core.bool hasFromSignature() => $_has(5);
   @$pb.TagNumber(6)
   void clearFromSignature() => $_clearField(6);
+
+  /// Публичное имя канала на момент пересылки (подэтап 4.4): не подписанный
+  /// открывает канал через ResolveLink(fromUsername). Пусто — частный канал.
+  @$pb.TagNumber(7)
+  $core.String get fromUsername => $_getSZ(6);
+  @$pb.TagNumber(7)
+  set fromUsername($core.String value) => $_setString(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasFromUsername() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearFromUsername() => $_clearField(7);
 }
 
 /// Звонок — служебное сообщение в личном чате (как messageActionPhoneCall в
@@ -16876,7 +16897,8 @@ class Messages_Search extends $pb.GeneratedMessage {
 /// поста — уникальные зрители, дальше — простое приращение: повторы не шлёт
 /// клиент) и вернуть числа; false — только вернуть свежие числа. Не больше
 /// 100 id. Не
-/// участник — PERMISSION_DENIED (публичный без подписки — подэтап 4.4);
+/// участник частного канала — PERMISSION_DENIED (публичный читается без
+/// подписки — подэтап 4.4);
 /// лимит частоты — RESOURCE_EXHAUSTED «floodWait:N». Не канал или > 100 id —
 /// INVALID_ARGUMENT «viewsInvalid». Удалённых и служебных нет в ответе.
 class Messages_GetViews extends $pb.GeneratedMessage {

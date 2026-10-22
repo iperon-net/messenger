@@ -87,6 +87,15 @@ void main() {
         PRIMARY KEY (userID, chatID, messageID)
       );
     ''');
+    // Полный список диалогов не стирает каналы без подписки (4.4) — их ищет здесь.
+    await db.execute('''
+      CREATE TABLE chatGroups (
+        userID BLOB NOT NULL, chatID BLOB NOT NULL, info BLOB NOT NULL, role INTEGER NOT NULL DEFAULT 0, pts INTEGER NOT NULL DEFAULT 0,
+        rights BLOB, rank TEXT NOT NULL DEFAULT '', inviteCode TEXT NOT NULL DEFAULT '', pendingRequests INTEGER NOT NULL DEFAULT 0,
+        slowModeUntil INTEGER NOT NULL DEFAULT 0, joinedAt INTEGER NOT NULL DEFAULT 0, browsedAt INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (userID, chatID)
+      );
+    ''');
     store = ChatsRepository(logger: Logger(), db: db);
     await store.upsertDialog(
       userID: me,

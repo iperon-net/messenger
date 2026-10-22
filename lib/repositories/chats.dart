@@ -99,6 +99,11 @@ class ChatGroupRow {
   final int slowModeUntil;
   final int joinedAt;
 
+  /// Публичный канал, открытый без подписки (подэтап 4.4, миграция 46): когда
+  /// его окно открывали последний раз (unix millis; 0 — не открывали так).
+  /// Кэш такого канала — с ролью [pb.ChatRole.CHAT_ROLE_NONE] ([browsing]).
+  final int browsedAt;
+
   ChatGroupRow({
     required this.chatID,
     required this.info,
@@ -110,7 +115,13 @@ class ChatGroupRow {
     this.pendingRequests = 0,
     this.slowModeUntil = 0,
     this.joinedAt = 0,
+    this.browsedAt = 0,
   }) : rights = rights ?? pb.ChatAdminRights();
+
+  /// Публичный канал читаем без подписки (4.4): кэш есть, но это не диалог
+  /// списка — ни в списке, ни в счётчиках, ни в журнале групп. Подписались
+  /// (роль с сервера) — обычный канал.
+  bool get browsing => browsedAt > 0 && role == pb.ChatRole.CHAT_ROLE_NONE;
 
   factory ChatGroupRow._fromRow(Map<String, dynamic> row) => ChatGroupRow(
     chatID: Uint8List.fromList(row['chatID'] as List<int>),
@@ -123,6 +134,7 @@ class ChatGroupRow {
     pendingRequests: row['pendingRequests'] as int? ?? 0,
     slowModeUntil: row['slowModeUntil'] as int? ?? 0,
     joinedAt: row['joinedAt'] as int? ?? 0,
+    browsedAt: row['browsedAt'] as int? ?? 0,
   );
 }
 
@@ -556,6 +568,9 @@ class ChatsRepository {
     // До записи диалогов: их последние сообщения (новее кэша) — уже сверены.
     if (staleHistory) await markHistoryStale(userID: userID);
     final keep = {for (final d in dialogs) _hex(d.chatID)};
+    // Публичные каналы без подписки (4.4) сервер в списке не отдаёт — их кэш
+    // чистит своя политика ([pruneBrowsed]).
+    keep.addAll([for (final b in await browsed(userID: userID)) _hex(b.chatID)]);
     for (final row in await this.dialogs(userID: userID)) {
       if (keep.contains(_hex(row.chatID)) || (row.topMessageID == 0 && row.type == 0)) continue;
       if (keepTypes.contains(row.type)) continue;
@@ -1586,7 +1601,7 @@ class ChatsRepository {
 
   // --- группы ---
 
-  static const _groupColumns = 'chatID, info, role, pts, rights, rank, inviteCode, pendingRequests, slowModeUntil, joinedAt';
+  static const _groupColumns = 'chatID, info, role, pts, rights, rank, inviteCode, pendingRequests, slowModeUntil, joinedAt, browsedAt';
 
   Future<List<ChatGroupRow>> groups({required List<int> userID}) async {
     final rows = await ctx.getAll('SELECT $_groupColumns FROM chatGroups WHERE userID = ?;', [userID]);
@@ -1717,6 +1732,82 @@ class ChatsRepository {
 
   Future<void> setGroupPts({required List<int> userID, required List<int> chatID, required int pts}) async {
     await ctx.execute('UPDATE chatGroups SET pts = ? WHERE userID = ? AND chatID = ?;', [pts, userID, chatID]);
+  }
+
+  // --- публичные каналы без подписки (подэтап 4.4) ---
+
+  /// Публичные каналы, открытые без подписки ([ChatGroupRow.browsing]), — от
+  /// недавно открытых к давним.
+  Future<List<({Uint8List chatID, int browsedAt})>> browsed({required List<int> userID}) async {
+    final rows = await ctx.getAll(
+      'SELECT chatID, browsedAt FROM chatGroups WHERE userID = ? AND role = 0 AND browsedAt > 0 ORDER BY browsedAt DESC;',
+      [userID],
+    );
+    return [for (final row in rows) (chatID: Uint8List.fromList(row['chatID'] as List<int>), browsedAt: row['browsedAt'] as int)];
+  }
+
+  /// Окно канала без подписки открыли / закрыли — он «свежий» для [pruneBrowsed].
+  Future<void> touchBrowsed({required List<int> userID, required List<int> chatID, required int at}) async {
+    await ctx.execute('UPDATE chatGroups SET browsedAt = ? WHERE userID = ? AND chatID = ? AND role = 0 AND browsedAt > 0;', [
+      at,
+      userID,
+      chatID,
+    ]);
+  }
+
+  /// Публичный канал открыли без подписки (предпросмотр с `canViewHistory`):
+  /// кэш как у канала — диалог (type = CHANNEL) и сведения в chatGroups с
+  /// ролью NONE и [at] в `browsedAt`; pts — 0, пока `Chats.Watch` не скажет
+  /// текущий. Уже открывали — только сведения (pts, история и последнее —
+  /// свои). Уже подписаны — ничего. `false` — подписаны (это обычный канал).
+  Future<bool> saveBrowsedChannel({required List<int> userID, required pb.ChatInfo info, required int at}) async {
+    final existing = await dialog(userID: userID, chatID: info.chatID);
+    final group = existing == null ? null : await this.group(userID: userID, chatID: info.chatID);
+    if (existing != null && group != null && !group.browsing) return false;
+    if (existing != null && group != null) {
+      await setGroupInfo(userID: userID, info: info.deepCopy()..pts = Int64(group.pts));
+    } else {
+      await upsertDialog(
+        userID: userID,
+        dialog: pb.Dialog(
+          chatID: info.chatID,
+          type: pb.ChatType.CHAT_TYPE_CHANNEL,
+          role: pb.ChatRole.CHAT_ROLE_NONE,
+          createdAt: info.createdAt,
+          chat: info.deepCopy()..pts = Int64.ZERO,
+        ),
+      );
+    }
+    await ctx.execute('UPDATE chatGroups SET browsedAt = ? WHERE userID = ? AND chatID = ?;', [at, userID, info.chatID]);
+    return true;
+  }
+
+  /// Чистка кэша каналов без подписки: остаются [maxCount] недавно открытых и
+  /// только открытые не раньше [now] − [maxAge]; открытые сейчас ([keep], hex)
+  /// не трогаем. Удаляются целиком — диалог, история, ветки, файлы. Возвращает
+  /// удалённые.
+  Future<List<Uint8List>> pruneBrowsed({
+    required List<int> userID,
+    required int now,
+    required Duration maxAge,
+    required int maxCount,
+    Set<String> keep = const {},
+  }) async {
+    final deleted = <Uint8List>[];
+    var kept = 0;
+    for (final b in await browsed(userID: userID)) {
+      if (keep.contains(_hex(b.chatID))) {
+        kept++;
+        continue;
+      }
+      if (kept < maxCount && now - b.browsedAt <= maxAge.inMilliseconds) {
+        kept++;
+        continue;
+      }
+      await deleteDialog(userID: userID, chatID: b.chatID);
+      deleted.add(b.chatID);
+    }
+    return deleted;
   }
 
   /// Известные участники группы — по дате вступления.

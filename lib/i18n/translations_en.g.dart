@@ -829,8 +829,8 @@ class Translations$screenNewChat$en {
 	/// en: 'Everyone'
 	String get commentsWhoAll => 'Everyone';
 
-	/// en: 'Subscribers Only'
-	String get commentsWhoSubscribers => 'Subscribers Only';
+	/// en: 'Subscribers'
+	String get commentsWhoSubscribers => 'Subscribers';
 
 	/// en: 'Subscribed For At Least'
 	String get commentsMinSubscription => 'Subscribed For At Least';
@@ -4138,6 +4138,9 @@ class Translations$chatAction$en {
 	/// en: 'This post already has the maximum number of different reactions. You can only add one that's already there.'
 	String get reactionsLimit => 'This post already has the maximum number of different reactions. You can only add one that\'s already there.';
 
+	/// en: 'Subscribe to the channel to react and vote in polls.'
+	String get subscribeRequired => 'Subscribe to the channel to react and vote in polls.';
+
 	/// en: 'Comments are turned off for this post.'
 	String get commentsDisabled => 'Comments are turned off for this post.';
 
@@ -4801,7 +4804,7 @@ extension on Translations {
 			'screenNewChat.commentsLimitYear' => '1 year',
 			'screenNewChat.commentsWho' => 'Who Can Comment',
 			'screenNewChat.commentsWhoAll' => 'Everyone',
-			'screenNewChat.commentsWhoSubscribers' => 'Subscribers Only',
+			'screenNewChat.commentsWhoSubscribers' => 'Subscribers',
 			'screenNewChat.commentsMinSubscription' => 'Subscribed For At Least',
 			'screenNewChat.commentsWhoFooter' => 'Non-subscribers can read comments but not write them. The subscription period protects against spam: a new subscriber can comment once the chosen time has passed.',
 			'screenNewChat.newcomerMedia' => 'No Links or Media from Newcomers',
@@ -5799,6 +5802,7 @@ extension on Translations {
 			'chatAction.pollClosed' => 'This poll has already ended.',
 			'chatAction.pollForward' => 'Polls can\'t be forwarded.',
 			'chatAction.reactionsLimit' => 'This post already has the maximum number of different reactions. You can only add one that\'s already there.',
+			'chatAction.subscribeRequired' => 'Subscribe to the channel to react and vote in polls.',
 			'chatAction.commentsDisabled' => 'Comments are turned off for this post.',
 			'chatAction.commentsClosed' => 'Comments on this post are closed — you can only read them.',
 			'chatAction.commentsSubscribersOnly' => 'Only channel subscribers can comment.',

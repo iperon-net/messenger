@@ -166,6 +166,10 @@ class MessageForward with MessageForwardMappable {
   final String messageID;
   final String signature;
 
+  /// Публичное имя канала (подэтап 4.4): не подписанный открывает канал по
+  /// нему. Пусто — частный канал (или не пост канала).
+  final String username;
+
   const MessageForward({
     this.name = '',
     this.self = false,
@@ -174,6 +178,7 @@ class MessageForward with MessageForwardMappable {
     this.chatID = '',
     this.messageID = '',
     this.signature = '',
+    this.username = '',
   });
 
   /// Пересланный пост канала.

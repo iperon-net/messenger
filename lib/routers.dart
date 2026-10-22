@@ -144,6 +144,8 @@ class Routers {
                         ..initialization(
                           chatID: state.pathParameters['id']!,
                           demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                          // ?message=<id> — прокрутить к сообщению (пост из «Переслано из»).
+                          focusMessageID: state.uri.queryParameters['message'] ?? '',
                         ),
                       child: const ChatScreenCupertino(),
                     ),
@@ -1052,6 +1054,8 @@ class Routers {
                         ..initialization(
                           chatID: state.pathParameters['id']!,
                           demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                          // ?message=<id> — прокрутить к сообщению (пост из «Переслано из»).
+                          focusMessageID: state.uri.queryParameters['message'] ?? '',
                         ),
                       child: const ChatScreenMaterial(),
                     ),

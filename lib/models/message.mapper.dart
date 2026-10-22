@@ -1173,6 +1173,13 @@ class MessageForwardMapper extends ClassMapperBase<MessageForward> {
     opt: true,
     def: '',
   );
+  static String _$username(MessageForward v) => v.username;
+  static const Field<MessageForward, String> _f$username = Field(
+    'username',
+    _$username,
+    opt: true,
+    def: '',
+  );
 
   @override
   final MappableFields<MessageForward> fields = const {
@@ -1183,6 +1190,7 @@ class MessageForwardMapper extends ClassMapperBase<MessageForward> {
     #chatID: _f$chatID,
     #messageID: _f$messageID,
     #signature: _f$signature,
+    #username: _f$username,
   };
 
   static MessageForward _instantiate(DecodingData data) {
@@ -1194,6 +1202,7 @@ class MessageForwardMapper extends ClassMapperBase<MessageForward> {
       chatID: data.dec(_f$chatID),
       messageID: data.dec(_f$messageID),
       signature: data.dec(_f$signature),
+      username: data.dec(_f$username),
     );
   }
 
@@ -1267,6 +1276,7 @@ abstract class MessageForwardCopyWith<$R, $In extends MessageForward, $Out>
     String? chatID,
     String? messageID,
     String? signature,
+    String? username,
   });
   MessageForwardCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -1290,6 +1300,7 @@ class _MessageForwardCopyWithImpl<$R, $Out>
     String? chatID,
     String? messageID,
     String? signature,
+    String? username,
   }) => $apply(
     FieldCopyWithData({
       if (name != null) #name: name,
@@ -1299,6 +1310,7 @@ class _MessageForwardCopyWithImpl<$R, $Out>
       if (chatID != null) #chatID: chatID,
       if (messageID != null) #messageID: messageID,
       if (signature != null) #signature: signature,
+      if (username != null) #username: username,
     }),
   );
   @override
@@ -1310,6 +1322,7 @@ class _MessageForwardCopyWithImpl<$R, $Out>
     chatID: data.get(#chatID, or: $value.chatID),
     messageID: data.get(#messageID, or: $value.messageID),
     signature: data.get(#signature, or: $value.signature),
+    username: data.get(#username, or: $value.username),
   );
 
   @override

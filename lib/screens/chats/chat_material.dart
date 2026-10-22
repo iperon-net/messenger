@@ -154,6 +154,25 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
       keyFor: _keyFor,
       active: () => mounted && (ModalRoute.of(context)?.isCurrent ?? true),
     );
+    // Открыли «к сообщению» (пост из «Переслано из канала»).
+    unawaited(_focusOnOpen());
+  }
+
+  /// Прокрутка к сообщению, с которым открыли окно, — когда придёт лента.
+  Future<void> _focusOnOpen() async {
+    final id = _cubit.takeFocusMessageID();
+    if (id.isEmpty) return;
+    if (_cubit.state.messages.isEmpty) {
+      try {
+        await _cubit.stream.firstWhere((s) => s.messages.isNotEmpty).timeout(const Duration(seconds: 10));
+      } on TimeoutException {
+        return;
+      } on StateError {
+        return;
+      }
+    }
+    await WidgetsBinding.instance.endOfFrame;
+    if (mounted) await _jumpTo(id);
   }
 
   /// Последний текст поля — отличить ввод от смены выделения.

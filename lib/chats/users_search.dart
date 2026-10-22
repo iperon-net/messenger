@@ -142,7 +142,8 @@ class UsersSearch {
 }
 
 /// Тап по найденной группе: я участник — её чат (id), иначе — предпросмотр
-/// по публичному имени (`resolveLink` → экран чата с «Вступить»). Ошибки
+/// по публичному имени (`resolveLink` → экран чата с «Вступить»); публичный
+/// канал — сразу лента без подписки (4.4) с «Подписаться» внизу. Ошибки
 /// (`ChatsOfflineException` и т. п.) — вызывающему.
 Future<String> resolveFoundChat(ChatsDataSource source, models.Chat chat) async {
   if (chat.isMember) return chat.id;

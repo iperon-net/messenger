@@ -2032,6 +2032,13 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: false,
   );
+  static bool _$browsing(Chat v) => v.browsing;
+  static const Field<Chat, bool> _f$browsing = Field(
+    'browsing',
+    _$browsing,
+    opt: true,
+    def: false,
+  );
   static String _$threadOf(Chat v) => v.threadOf;
   static const Field<Chat, String> _f$threadOf = Field(
     'threadOf',
@@ -2171,6 +2178,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #historyHidden: _f$historyHidden,
     #isMember: _f$isMember,
     #joinRequested: _f$joinRequested,
+    #browsing: _f$browsing,
     #threadOf: _f$threadOf,
     #threadPostID: _f$threadPostID,
     #communityID: _f$communityID,
@@ -2237,6 +2245,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       historyHidden: data.dec(_f$historyHidden),
       isMember: data.dec(_f$isMember),
       joinRequested: data.dec(_f$joinRequested),
+      browsing: data.dec(_f$browsing),
       threadOf: data.dec(_f$threadOf),
       threadPostID: data.dec(_f$threadPostID),
       communityID: data.dec(_f$communityID),
@@ -2361,6 +2370,7 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     bool? historyHidden,
     bool? isMember,
     bool? joinRequested,
+    bool? browsing,
     String? threadOf,
     String? threadPostID,
     String? communityID,
@@ -2467,6 +2477,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     bool? historyHidden,
     bool? isMember,
     bool? joinRequested,
+    bool? browsing,
     String? threadOf,
     String? threadPostID,
     String? communityID,
@@ -2532,6 +2543,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (historyHidden != null) #historyHidden: historyHidden,
       if (isMember != null) #isMember: isMember,
       if (joinRequested != null) #joinRequested: joinRequested,
+      if (browsing != null) #browsing: browsing,
       if (threadOf != null) #threadOf: threadOf,
       if (threadPostID != null) #threadPostID: threadPostID,
       if (communityID != null) #communityID: communityID,
@@ -2610,6 +2622,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     historyHidden: data.get(#historyHidden, or: $value.historyHidden),
     isMember: data.get(#isMember, or: $value.isMember),
     joinRequested: data.get(#joinRequested, or: $value.joinRequested),
+    browsing: data.get(#browsing, or: $value.browsing),
     threadOf: data.get(#threadOf, or: $value.threadOf),
     threadPostID: data.get(#threadPostID, or: $value.threadPostID),
     communityID: data.get(#communityID, or: $value.communityID),

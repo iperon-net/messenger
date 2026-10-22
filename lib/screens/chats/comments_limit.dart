@@ -30,6 +30,12 @@ String commentsLimitLabel(Translations t, int seconds) {
   };
 }
 
+/// iOS: подпись срока в выпадающем меню — «без ограничения» символом «∞».
+String commentsLimitShortLabel(Translations t, int seconds) => seconds <= 0 ? '∞' : commentsLimitLabel(t, seconds);
+
+/// «Кто может комментировать»: сначала «Подписчики», потом «Все».
+const commentsWhoOptions = [models.ChatCommentsWho.subscribers, models.ChatCommentsWho.all];
+
 String commentsWhoLabel(Translations t, models.ChatCommentsWho who) => switch (who) {
   models.ChatCommentsWho.all => t.screenNewChat.commentsWhoAll,
   models.ChatCommentsWho.subscribers => t.screenNewChat.commentsWhoSubscribers,
@@ -77,7 +83,7 @@ Future<models.ChatCommentsWho?> pickCommentsWho(BuildContext context, models.Cha
   return _pick(
     context,
     title: t.screenNewChat.commentsWho,
-    values: models.ChatCommentsWho.values,
+    values: commentsWhoOptions,
     current: current,
     label: (value) => commentsWhoLabel(t, value),
     icon: (value) => value == models.ChatCommentsWho.all ? m.Icons.public : m.Icons.how_to_reg_outlined,

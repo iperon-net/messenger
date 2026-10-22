@@ -370,20 +370,46 @@ Future<void> openForwardAuthor(BuildContext context, models.Message message) asy
   }
 }
 
-/// «Переслано из <канал>» (подэтап 4.2): подписан — окно канала; нет —
-/// пояснение (предпросмотра по одному id канала у сервера нет — только по
-/// ссылке / имени, а их в пересылке нет).
+/// «Переслано из <канал>»: подписан (или уже читаем его без подписки) — окно
+/// канала на исходном посте; нет — по публичному имени канала
+/// (`fromUsername`, 4.4) — открыть его без подписки (`resolveLink`), тоже на
+/// посте; частный — пояснение (предпросмотра по одному id у сервера нет).
+/// Без сети и без кэша — «Нет соединения».
 Future<void> _openForwardChannel(BuildContext context, models.MessageForward forward) async {
   final source = chatsDataSource(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo);
   if (source == null) return;
   final chats = await source.watchChats().first;
   if (!context.mounted) return;
+  final at = forward.messageID.isEmpty ? '' : '?message=${forward.messageID}';
   final chat = chats.where((c) => c.id == forward.chatID).firstOrNull;
-  if (chat != null && chat.isMember) {
-    await context.push('/chats/chat/${forward.chatID}');
-  } else {
-    showChatToast(context, context.t.screenChat.forwardChannelUnavailable);
+  if (chat != null && (chat.isMember || chat.browsing)) {
+    await context.push('/chats/chat/${forward.chatID}$at');
+    return;
   }
+  if (forward.username.isEmpty) {
+    showChatToast(context, context.t.screenChat.forwardChannelUnavailable);
+    return;
+  }
+  final String chatID;
+  try {
+    chatID = await source.resolveLink(forward.username);
+  } on ChatsOfflineException {
+    if (context.mounted) showChatsNoConnection(context);
+    return;
+  } on ChatsFloodException catch (error) {
+    if (context.mounted) showChatsFlood(context, error.seconds);
+    return;
+  } on ChatsRequestException catch (error) {
+    if (context.mounted) showChatsFailed(context, error.error);
+    return;
+  }
+  if (!context.mounted) return;
+  if (chatID.isEmpty) {
+    showChatToast(context, context.t.screenChat.forwardChannelUnavailable);
+    return;
+  }
+  // Имя могло перейти к другому каналу — тогда без прокрутки к посту.
+  await context.push('/chats/chat/$chatID${chatID == forward.chatID ? at : ''}');
 }
 
 /// Показывает [showChatsNoConnection], когда cubit сообщает о действии без
@@ -483,6 +509,8 @@ String chatsFailedText(Translations translations, String error) {
     'pollClosed' => t.pollClosed,
     'pollForward' => t.pollForward,
     'reactionsLimit' => t.reactionsLimit,
+    // Канал без подписки (4.4): реакции и голосование — подписчикам.
+    'subscribeRequired' => t.subscribeRequired,
     // Комментарии к постам канала (4.3).
     'commentsDisabled' => t.commentsDisabled,
     'commentsClosed' => t.commentsClosed,

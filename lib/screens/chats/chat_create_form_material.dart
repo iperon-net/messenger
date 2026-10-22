@@ -488,17 +488,16 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                             state.historyHidden ? t.screenNewChat.historyHiddenFooter : t.screenNewChat.historyShownFooter,
                           ),
                         ],
-                        if (state.isEdit && type == models.ChatType.channel && !state.basic) ...[
+                        // Комментарии на сервере — подэтап 4.3.
+                        if (state.isEdit && type == models.ChatType.channel && !state.basic && state.channelComments) ...[
                           const SizedBox(height: 8),
                           card([
-                            // Комментарии на сервере — подэтап 4.3.
-                            if (state.channelComments)
-                              SwitchListTile(
-                                title: Text(t.screenNewChat.commentsSwitch),
-                                value: state.commentsEnabled,
-                                onChanged: context.read<ChatCreateCubit>().setCommentsEnabled,
-                              ),
-                            if (state.channelComments && state.commentsEnabled) ...[
+                            SwitchListTile(
+                              title: Text(t.screenNewChat.commentsSwitch),
+                              value: state.commentsEnabled,
+                              onChanged: context.read<ChatCreateCubit>().setCommentsEnabled,
+                            ),
+                            if (state.commentsEnabled) ...[
                               ListTile(
                                 title: Text(t.screenNewChat.commentsLimit),
                                 subtitle: Text(commentsLimitLabel(t, state.commentsTimeLimit)),
@@ -540,25 +539,28 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
                                 ),
                               newcomerTile(),
                             ],
+                          ]),
+                          createNoteMaterial(
+                            context,
+                            [
+                              t.screenNewChat.commentsFooter,
+                              if (state.commentsEnabled) t.screenNewChat.commentsLimitFooter,
+                              if (state.commentsEnabled && state.commentsWho == models.ChatCommentsWho.subscribers)
+                                t.screenNewChat.commentsWhoFooter,
+                              if (state.commentsEnabled) t.screenNewChat.newcomerMediaFooterChannel,
+                            ].join(' '),
+                          ),
+                        ],
+                        if (state.isEdit && type == models.ChatType.channel && !state.basic) ...[
+                          const SizedBox(height: 8),
+                          card([
                             SwitchListTile(
                               title: Text(t.screenNewChat.signSwitch),
                               value: state.signMessages,
                               onChanged: context.read<ChatCreateCubit>().setSignMessages,
                             ),
                           ]),
-                          createNoteMaterial(
-                            context,
-                            [
-                              if (state.channelComments) ...[
-                                t.screenNewChat.commentsFooter,
-                                if (state.commentsEnabled) t.screenNewChat.commentsLimitFooter,
-                                if (state.commentsEnabled && state.commentsWho == models.ChatCommentsWho.subscribers)
-                                  t.screenNewChat.commentsWhoFooter,
-                                if (state.commentsEnabled) t.screenNewChat.newcomerMediaFooterChannel,
-                              ],
-                              t.screenNewChat.signFooter,
-                            ].join(' '),
-                          ),
+                          createNoteMaterial(context, t.screenNewChat.signFooter),
                         ],
                         if (state.isEdit && type != models.ChatType.channel && (!state.basic || state.basicDefaultRole)) ...[
                           createHeaderMaterial(context, t.screenNewChat.defaultRoleHeader),

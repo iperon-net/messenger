@@ -626,8 +626,8 @@ models.MessageReply replyFromPb(
 }
 
 /// Без fromUserID — автор запретил ссылку на аккаунт при пересылке. Пост
-/// канала (4.2) — fromChatID / fromMessageID / fromSignature, автора нет
-/// (это не «скрыт»).
+/// канала (4.2) — fromChatID / fromMessageID / fromSignature (и публичное имя
+/// канала fromUsername — 4.4), автора нет (это не «скрыт»).
 models.MessageForward forwardFromPb(pb.MessageForward f, {required List<int> myUserID}) {
   if (f.fromChatID.isNotEmpty) {
     return models.MessageForward(
@@ -635,6 +635,7 @@ models.MessageForward forwardFromPb(pb.MessageForward f, {required List<int> myU
       chatID: idHex(f.fromChatID),
       messageID: f.fromMessageID > 0 ? f.fromMessageID.toString() : '',
       signature: f.fromSignature,
+      username: f.fromUsername,
     );
   }
   final self = f.fromUserID.isNotEmpty && sameID(f.fromUserID, myUserID);

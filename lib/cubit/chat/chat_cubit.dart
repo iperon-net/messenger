@@ -121,9 +121,10 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   bool _markRead = true;
 
   /// [demo] — флаг «Демо чатов» из `settingsDevice`.
-  void initialization({required String chatID, required bool demo, bool markRead = true}) {
+  void initialization({required String chatID, required bool demo, bool markRead = true, String focusMessageID = ''}) {
     _chatID = chatID;
     _markRead = markRead;
+    _focusMessageID = focusMessageID;
     _source = chatsDataSource(demo: demo);
     final source = _source;
     if (source == null) {
@@ -625,6 +626,11 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   Future<void> toggleReaction(models.Message message, String emoji) async {
     final chat = state.chat;
     if (chat == null || message.service || message.phoneCall != null) return;
+    // Канал без подписки (4.4): реакции — только подписчикам.
+    if (chat.type == models.ChatType.channel && !chat.isMember) {
+      _failed(const ChatsRequestException(subscribeRequiredError, StatusCode.failedPrecondition));
+      return;
+    }
     final mine = message.myReactions;
     final adds = !mine.contains(emoji);
     if (adds && (_writeRestricted || _peerBlocked || !availableReactions(chat, message: message).contains(emoji))) return;
@@ -638,14 +644,15 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   ChannelViews? _views;
 
   /// Лента канала на сервере с просмотрами ([ChatsFeatures.channelExtras]),
-  /// где я подписчик (без подписки — подэтап 4.4): экран сообщает, какие
-  /// посты на экране ([postsVisible]).
+  /// где я подписчик или читаю публичный канал без подписки (4.4 — просмотр
+  /// засчитывается и так): экран сообщает, какие посты на экране
+  /// ([postsVisible]).
   bool get tracksViews {
     final chat = state.chat;
     return _source is ChatsRemoteDataSource &&
         chat != null &&
         chat.type == models.ChatType.channel &&
-        chat.isMember &&
+        (chat.isMember || chat.browsing) &&
         features.channelExtras &&
         !isClosed;
   }
@@ -890,6 +897,16 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   /// за окном истории, — сначала расширить ленту до него. false — без сети
   /// не дотянуться (уже показано «Нет соединения»), переходить некуда.
   Future<bool> reveal(String id) => _reveal(id);
+
+  String _focusMessageID = '';
+
+  /// К какому сообщению прокрутить при открытии (переход «Переслано из
+  /// канала» — к исходному посту); отдаётся один раз.
+  String takeFocusMessageID() {
+    final id = _focusMessageID;
+    _focusMessageID = '';
+    return id;
+  }
 
   /// Сообщения [id] ещё нет в ленте (старое, за окном истории) — расширить
   /// ленту до него и дождаться, пока оно придёт. Его нужно взять с сервера, а
@@ -1299,6 +1316,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     'pollClosed',
     'pollForward',
     'reactionsLimit',
+    subscribeRequiredError,
     ...commentsErrors,
   };
 
@@ -1309,6 +1327,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     'chatWriteForbidden',
     'slowModeWait',
     'reactionsLimit',
+    subscribeRequiredError,
     ...commentsErrors,
   };
 
@@ -1481,7 +1500,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   /// Ветка «только для подписчиков»: подписаться на канал поста.
   Future<void> subscribeToChannel() async {
     final channelID = state.chat?.threadOf ?? '';
-    if (channelID.isNotEmpty) await _source?.joinChat(channelID);
+    if (channelID.isNotEmpty) await _serverAction(() => _source?.joinChat(channelID));
   }
 
   /// Админ канала: закрыть комментарии к посту досрочно / снова открыть.

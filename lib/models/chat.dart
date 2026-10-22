@@ -465,6 +465,11 @@ class Chat with ChatMappable {
   /// Подали заявку на вступление (чат «По заявке»), ждём одобрения.
   final bool joinRequested;
 
+  /// Публичный канал читаем без подписки (подэтап 4.4, [isMember] — false):
+  /// лента из кэша, живые обновления (`Chats.Watch`), просмотры и
+  /// комментарии работают; реакции и голосование — после «Подписаться».
+  final bool browsing;
+
   /// Обсуждение поста канала — скрытый чат-ветка (в списке не виден): id
   /// канала и поста. Пусто — обычный чат.
   final String threadOf;
@@ -561,6 +566,7 @@ class Chat with ChatMappable {
     this.historyHidden = false,
     this.isMember = true,
     this.joinRequested = false,
+    this.browsing = false,
     this.threadOf = '',
     this.threadPostID = '',
     this.communityID = '',

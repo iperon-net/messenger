@@ -935,6 +935,15 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(46, (tx) async {
+        // Публичный канал без подписки (подэтап 4.4, docs/plans/chats-channels.md):
+        // его кэш — как у канала (диалог + chatGroups) с ролью NONE; browsedAt —
+        // когда окно открывали последний раз (чистка кэша — `pruneBrowsed`).
+        await tx.execute('ALTER TABLE chatGroups ADD COLUMN browsedAt INTEGER NOT NULL DEFAULT 0;');
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

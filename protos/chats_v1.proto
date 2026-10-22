@@ -185,6 +185,13 @@ message ChatPreview {
   bool requested = 3;
   // Можно читать историю без вступления (публичная, OPEN) — Messages.History /
   // Get по chatID без журнала и без отметок о прочтении.
+  //
+  // Публичный канал (подэтап 4.4) без подписки: ещё Chats.Watch (живые
+  // обновления и pts — догон GetChatDifference), Messages.Search, GetViews
+  // (increment засчитывается), OpenComments и комментарии при commentsWho =
+  // ALL. Реакции и голосование — только подписчикам (FAILED_PRECONDITION
+  // «subscribeRequired»). ReadHistory не нужен: непрочитанного у не
+  // подписанного нет.
   bool canViewHistory = 4;
   // Несколько участников для «Анна, Олег и ещё 12» (профили — глазами
   // смотрящего).
@@ -398,6 +405,9 @@ message MessageForward {
   bytes fromChatID = 4;
   int64 fromMessageID = 5;
   string fromSignature = 6;
+  // Публичное имя канала на момент пересылки (подэтап 4.4): не подписанный
+  // открывает канал через ResolveLink(fromUsername). Пусто — частный канал.
+  string fromUsername = 7;
 }
 
 // Звонок — служебное сообщение в личном чате (как messageActionPhoneCall в
@@ -2125,7 +2135,8 @@ message Messages {
   // поста — уникальные зрители, дальше — простое приращение: повторы не шлёт
   // клиент) и вернуть числа; false — только вернуть свежие числа. Не больше
   // 100 id. Не
-  // участник — PERMISSION_DENIED (публичный без подписки — подэтап 4.4);
+  // участник частного канала — PERMISSION_DENIED (публичный читается без
+  // подписки — подэтап 4.4);
   // лимит частоты — RESOURCE_EXHAUSTED «floodWait:N». Не канал или > 100 id —
   // INVALID_ARGUMENT «viewsInvalid». Удалённых и служебных нет в ответе.
   message GetViews {
