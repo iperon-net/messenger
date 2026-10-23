@@ -170,6 +170,8 @@ class MainActivity : FlutterFragmentActivity() {
         // старый освобождаем, чтобы не текли AudioDeviceCallback/каналы.
         audioDevicesHandler?.dispose()
         audioDevicesHandler = AudioDevicesHandler(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
+        // Датчик приближения на аудиозвонке (экран гаснет у уха), см. CallProximity.
+        CallProximity.attach(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
         videoCompressor?.dispose()
         videoCompressor = VideoCompressor(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
         // Класс производительности (память, ядра, частота, экономия батареи).

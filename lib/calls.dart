@@ -22,6 +22,7 @@ import 'package:livekit_client/livekit_client.dart';
 
 import 'api.dart';
 import 'call_pip_ios.dart';
+import 'call_proximity.dart';
 import 'auth.dart';
 import 'components/call_permissions.dart';
 import 'crypto.dart';
@@ -589,6 +590,7 @@ class Calls {
   void _emit(CallSnapshot snapshot) {
     _snapshot = snapshot;
     _syncIosPip();
+    _syncProximity();
     if (!_snapshotController.isClosed) _snapshotController.add(snapshot);
   }
 
@@ -602,6 +604,16 @@ class Calls {
     final status = _snapshot.status;
     final enabled = !_tearingDown && _snapshot.video && (status == CallStatus.active || status == CallStatus.connecting);
     CallPipIos.sync(enabled: enabled, track: enabled ? _remoteVideoTrack : null, videoOff: _snapshot.remoteVideoOff);
+  }
+
+  /// Датчик приближения (экран гаснет у уха) — пока идёт звонок без
+  /// картинки: дозвон, соединение, разговор; видео с выключенной камерой тоже.
+  /// Входящий ещё звонит — экран нужен. На громкой связи / в гарнитуре натив
+  /// датчик не включит сам (см. [CallProximity]).
+  void _syncProximity() {
+    final status = _snapshot.status;
+    final talking = status == CallStatus.outgoing || status == CallStatus.connecting || status == CallStatus.active;
+    CallProximity.sync(enabled: !_tearingDown && talking && (!_snapshot.video || _snapshot.cameraOff));
   }
 
   /// Добавляет этап в диагностику и тут же переиздаёт снимок, чтобы строка

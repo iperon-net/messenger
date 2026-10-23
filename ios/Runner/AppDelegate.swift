@@ -162,6 +162,23 @@ import flutter_callkit_incoming
       events.setStreamHandler(AudioRouteMonitor.shared)
     }
 
+    // Датчик приближения на аудиозвонке: у уха экран гаснет. Dart говорит,
+    // что такой звонок идёт; включаем, только пока звук в разговорном динамике.
+    // См. CallProximity ниже и lib/call_proximity.dart.
+    if let messenger = engineBridge.pluginRegistry.registrar(forPlugin: "IperonCallProximity")?.messenger() {
+      let channel = FlutterMethodChannel(name: "net.iperon.messenger/call_proximity", binaryMessenger: messenger)
+      channel.setMethodCallHandler { call, result in
+        switch call.method {
+        case "set":
+          let enabled = ((call.arguments as? [String: Any])?["enabled"] as? Bool) ?? false
+          CallProximity.shared.setWanted(enabled)
+          result(nil)
+        default:
+          result(FlutterMethodNotImplemented)
+        }
+      }
+    }
+
     // iOS: детект «телефон занят ДРУГИМ звонком» — сотовым (GSM/VoLTE) или чужим
     // VoIP-приложением через CallKit. Занятость СВОИМ in-app-звонком Dart знает и
     // без этого (Calls._hasActiveCall). Читаем CXCallObserver.calls по запросу;
@@ -427,6 +444,41 @@ import flutter_callkit_incoming
 /// он уже в target Runner — новый .swift пришлось бы вручную прописывать в
 /// project.pbxproj. Цвета иконки приходят из Flutter через creationParams
 /// (`tint`/`activeTint` — ARGB int), см. route_picker_button.dart.
+/// Датчик приближения на аудиозвонке: поднёс к уху — экран гаснет и не
+/// нажимается щекой. Включён, только пока звонок идёт ([setWanted] из Dart) и
+/// звук в разговорном динамике (`builtInReceiver`): на громкой связи и в
+/// гарнитуре телефон у уха не держат. Выход перепроверяется по
+/// `routeChangeNotification`.
+final class CallProximity: NSObject {
+  static let shared = CallProximity()
+  private var wanted = false
+
+  func setWanted(_ enabled: Bool) {
+    guard wanted != enabled else { return }
+    wanted = enabled
+    if enabled {
+      NotificationCenter.default.addObserver(
+        self,
+        selector: #selector(routeChanged),
+        name: AVAudioSession.routeChangeNotification,
+        object: nil
+      )
+    } else {
+      NotificationCenter.default.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
+    }
+    update()
+  }
+
+  @objc private func routeChanged(_ notification: Notification) {
+    DispatchQueue.main.async { [weak self] in self?.update() }
+  }
+
+  private func update() {
+    let onReceiver = AVAudioSession.sharedInstance().currentRoute.outputs.contains { $0.portType == .builtInReceiver }
+    UIDevice.current.isProximityMonitoringEnabled = wanted && onReceiver
+  }
+}
+
 /// Отдаёт Flutter активный аудио-выход звонка (тип) и его смену. На iOS маршрут
 /// выбирает системный `AVRoutePickerView`; мы лишь ЧИТАЕМ текущий выход из
 /// `AVAudioSession.currentRoute` (метод `current`) и шлём обновления по

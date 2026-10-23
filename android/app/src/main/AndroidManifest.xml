@@ -20,6 +20,8 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- Датчик приближения на звонке (PROXIMITY_SCREEN_OFF_WAKE_LOCK), CallProximity.kt. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- flutter_contacts: приватный поиск контактов (чтение телефонной книги;
          номера не покидают устройство в открытом виде — сверка через OPRF). -->
