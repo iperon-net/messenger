@@ -1250,9 +1250,9 @@ class _Translations$sessionsPrivacyAndSecurity$ru extends Translations$sessionsP
 	@override String get whoCanLinkForwards => 'Кто может добавлять ссылку на мой аккаунт при пересылке моих сообщений';
 	@override String get forwardsNote => 'Остальные увидят в «Переслано от …» только ваше имя — без перехода в ваш профиль.';
 	@override String get forwardsPreviewText => 'Напомни, во сколько завтра встречаемся?';
-	@override String get groupInvites => 'Группы';
-	@override String get whoCanAddToGroups => 'Кто может добавлять меня в группы';
-	@override String get groupInvitesNote => 'Остальные не смогут добавить вас в группу — при создании группы вы просто не попадёте в число участников.';
+	@override String get groupInvites => 'Группы и каналы';
+	@override String get whoCanAddToGroups => 'Кто может добавлять меня в группы и каналы';
+	@override String get groupInvitesNote => 'Остальные не смогут добавить вас в группу или канал — вы просто не попадёте в число участников или подписчиков.';
 	@override String get phoneNumber => 'Номер телефона';
 	@override String get whoCanSeePhoneNumber => 'Кто видит мой номер телефона';
 	@override String get phoneNumberNote => 'Тот, у кого ваш номер уже записан в контактах, видит его всегда.';
@@ -1715,10 +1715,10 @@ class _Translations$chatAction$ru extends Translations$chatAction$en {
 	@override String get youObject => 'вас';
 	@override String get restrictedTitle => 'Не все добавлены';
 	@override String restricted({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
-		one: '${count} человек не добавлен: его настройки приватности не разрешают добавлять в группы.',
-		few: '${count} человека не добавлены: их настройки приватности не разрешают добавлять в группы.',
-		many: '${count} человек не добавлены: их настройки приватности не разрешают добавлять в группы.',
-		other: '${count} человека не добавлены: их настройки приватности не разрешают добавлять в группы.',
+		one: '${count} человек не добавлен: его настройки приватности не разрешают добавлять в группы и каналы.',
+		few: '${count} человека не добавлены: их настройки приватности не разрешают добавлять в группы и каналы.',
+		many: '${count} человек не добавлены: их настройки приватности не разрешают добавлять в группы и каналы.',
+		other: '${count} человека не добавлены: их настройки приватности не разрешают добавлять в группы и каналы.',
 	);
 	@override String get deleteGroupMessage => 'Группа удалится у всех участников.';
 	@override String get deleteChannelMessage => 'Канал удалится у всех подписчиков.';
@@ -2854,9 +2854,9 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.whoCanLinkForwards' => 'Кто может добавлять ссылку на мой аккаунт при пересылке моих сообщений',
 			'sessionsPrivacyAndSecurity.forwardsNote' => 'Остальные увидят в «Переслано от …» только ваше имя — без перехода в ваш профиль.',
 			'sessionsPrivacyAndSecurity.forwardsPreviewText' => 'Напомни, во сколько завтра встречаемся?',
-			'sessionsPrivacyAndSecurity.groupInvites' => 'Группы',
-			'sessionsPrivacyAndSecurity.whoCanAddToGroups' => 'Кто может добавлять меня в группы',
-			'sessionsPrivacyAndSecurity.groupInvitesNote' => 'Остальные не смогут добавить вас в группу — при создании группы вы просто не попадёте в число участников.',
+			'sessionsPrivacyAndSecurity.groupInvites' => 'Группы и каналы',
+			'sessionsPrivacyAndSecurity.whoCanAddToGroups' => 'Кто может добавлять меня в группы и каналы',
+			'sessionsPrivacyAndSecurity.groupInvitesNote' => 'Остальные не смогут добавить вас в группу или канал — вы просто не попадёте в число участников или подписчиков.',
 			'sessionsPrivacyAndSecurity.phoneNumber' => 'Номер телефона',
 			'sessionsPrivacyAndSecurity.whoCanSeePhoneNumber' => 'Кто видит мой номер телефона',
 			'sessionsPrivacyAndSecurity.phoneNumberNote' => 'Тот, у кого ваш номер уже записан в контактах, видит его всегда.',
@@ -3167,7 +3167,7 @@ extension on TranslationsRu {
 			'chatAction.photoRemoved' => ({required Object name}) => '${name} удалил(а) фото группы',
 			'chatAction.youObject' => 'вас',
 			'chatAction.restrictedTitle' => 'Не все добавлены',
-			'chatAction.restricted' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} человек не добавлен: его настройки приватности не разрешают добавлять в группы.', few: '${count} человека не добавлены: их настройки приватности не разрешают добавлять в группы.', many: '${count} человек не добавлены: их настройки приватности не разрешают добавлять в группы.', other: '${count} человека не добавлены: их настройки приватности не разрешают добавлять в группы.', ), 
+			'chatAction.restricted' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} человек не добавлен: его настройки приватности не разрешают добавлять в группы и каналы.', few: '${count} человека не добавлены: их настройки приватности не разрешают добавлять в группы и каналы.', many: '${count} человек не добавлены: их настройки приватности не разрешают добавлять в группы и каналы.', other: '${count} человека не добавлены: их настройки приватности не разрешают добавлять в группы и каналы.', ), 
 			'chatAction.deleteGroupMessage' => 'Группа удалится у всех участников.',
 			'chatAction.deleteChannelMessage' => 'Канал удалится у всех подписчиков.',
 			'chatAction.failed' => 'Не удалось выполнить действие. Попробуйте ещё раз.',

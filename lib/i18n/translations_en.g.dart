@@ -3001,14 +3001,14 @@ class Translations$sessionsPrivacyAndSecurity$en {
 	/// en: 'Remind me, what time are we meeting tomorrow?'
 	String get forwardsPreviewText => 'Remind me, what time are we meeting tomorrow?';
 
-	/// en: 'Groups'
-	String get groupInvites => 'Groups';
+	/// en: 'Groups & Channels'
+	String get groupInvites => 'Groups & Channels';
 
-	/// en: 'Who can add me to groups'
-	String get whoCanAddToGroups => 'Who can add me to groups';
+	/// en: 'Who can add me to groups and channels'
+	String get whoCanAddToGroups => 'Who can add me to groups and channels';
 
-	/// en: 'Everyone else won't be able to add you to a group — you just won't be among its members.'
-	String get groupInvitesNote => 'Everyone else won\'t be able to add you to a group — you just won\'t be among its members.';
+	/// en: 'Everyone else won't be able to add you to a group or channel — you just won't be among its members or subscribers.'
+	String get groupInvitesNote => 'Everyone else won\'t be able to add you to a group or channel — you just won\'t be among its members or subscribers.';
 
 	/// en: 'Phone number'
 	String get phoneNumber => 'Phone number';
@@ -4084,10 +4084,10 @@ class Translations$chatAction$en {
 	/// en: 'Not everyone was added'
 	String get restrictedTitle => 'Not everyone was added';
 
-	/// en: '(one) {{count} person wasn't added: their privacy settings don't allow adding them to groups.} (other) {{count} people weren't added: their privacy settings don't allow adding them to groups.}'
+	/// en: '(one) {{count} person wasn't added: their privacy settings don't allow adding them to groups and channels.} (other) {{count} people weren't added: their privacy settings don't allow adding them to groups and channels.}'
 	String restricted({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
-		one: '${count} person wasn\'t added: their privacy settings don\'t allow adding them to groups.',
-		other: '${count} people weren\'t added: their privacy settings don\'t allow adding them to groups.',
+		one: '${count} person wasn\'t added: their privacy settings don\'t allow adding them to groups and channels.',
+		other: '${count} people weren\'t added: their privacy settings don\'t allow adding them to groups and channels.',
 	);
 
 	/// en: 'The group will be deleted for all members.'
@@ -5513,9 +5513,9 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.whoCanLinkForwards' => 'Who can add a link to my account when forwarding my messages',
 			'sessionsPrivacyAndSecurity.forwardsNote' => 'Everyone else will see only your name in "Forwarded from…", without a link to your profile.',
 			'sessionsPrivacyAndSecurity.forwardsPreviewText' => 'Remind me, what time are we meeting tomorrow?',
-			'sessionsPrivacyAndSecurity.groupInvites' => 'Groups',
-			'sessionsPrivacyAndSecurity.whoCanAddToGroups' => 'Who can add me to groups',
-			'sessionsPrivacyAndSecurity.groupInvitesNote' => 'Everyone else won\'t be able to add you to a group — you just won\'t be among its members.',
+			'sessionsPrivacyAndSecurity.groupInvites' => 'Groups & Channels',
+			'sessionsPrivacyAndSecurity.whoCanAddToGroups' => 'Who can add me to groups and channels',
+			'sessionsPrivacyAndSecurity.groupInvitesNote' => 'Everyone else won\'t be able to add you to a group or channel — you just won\'t be among its members or subscribers.',
 			'sessionsPrivacyAndSecurity.phoneNumber' => 'Phone number',
 			'sessionsPrivacyAndSecurity.whoCanSeePhoneNumber' => 'Who can see my phone number',
 			'sessionsPrivacyAndSecurity.phoneNumberNote' => 'People who already have your number saved in their contacts will always see it.',
@@ -5826,7 +5826,7 @@ extension on Translations {
 			'chatAction.photoRemoved' => ({required Object name}) => '${name} removed the group photo',
 			'chatAction.youObject' => 'you',
 			'chatAction.restrictedTitle' => 'Not everyone was added',
-			'chatAction.restricted' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} person wasn\'t added: their privacy settings don\'t allow adding them to groups.', other: '${count} people weren\'t added: their privacy settings don\'t allow adding them to groups.', ), 
+			'chatAction.restricted' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} person wasn\'t added: their privacy settings don\'t allow adding them to groups and channels.', other: '${count} people weren\'t added: their privacy settings don\'t allow adding them to groups and channels.', ), 
 			'chatAction.deleteGroupMessage' => 'The group will be deleted for all members.',
 			'chatAction.deleteChannelMessage' => 'The channel will be deleted for all subscribers.',
 			'chatAction.failed' => 'Couldn\'t complete the action. Please try again.',
