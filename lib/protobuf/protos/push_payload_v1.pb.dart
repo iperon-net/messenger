@@ -52,6 +52,8 @@ class PushPayload extends $pb.GeneratedMessage {
     $core.bool? isChannel,
     $core.List<$core.int>? parentChatID,
     $fixnum.Int64? postID,
+    $core.String? callID,
+    $core.bool? video,
   }) {
     final result = create();
     if (kind != null) result.kind = kind;
@@ -71,6 +73,8 @@ class PushPayload extends $pb.GeneratedMessage {
     if (isChannel != null) result.isChannel = isChannel;
     if (parentChatID != null) result.parentChatID = parentChatID;
     if (postID != null) result.postID = postID;
+    if (callID != null) result.callID = callID;
+    if (video != null) result.video = video;
     return result;
   }
 
@@ -100,6 +104,8 @@ class PushPayload extends $pb.GeneratedMessage {
     ..aOB(15, _omitFieldNames ? '' : 'isChannel', protoName: 'isChannel')
     ..a<$core.List<$core.int>>(16, _omitFieldNames ? '' : 'parentChatID', $pb.PbFieldType.OY, protoName: 'parentChatID')
     ..aInt64(17, _omitFieldNames ? '' : 'postID', protoName: 'postID')
+    ..aOS(18, _omitFieldNames ? '' : 'callID', protoName: 'callID')
+    ..aOB(19, _omitFieldNames ? '' : 'video')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -284,6 +290,25 @@ class PushPayload extends $pb.GeneratedMessage {
   $core.bool hasPostID() => $_has(16);
   @$pb.TagNumber(17)
   void clearPostID() => $_clearField(17);
+
+  /// CALL_INCOMING / CALL_CANCEL: идентификатор звонка и вид (видео / аудио).
+  @$pb.TagNumber(18)
+  $core.String get callID => $_getSZ(17);
+  @$pb.TagNumber(18)
+  set callID($core.String value) => $_setString(17, value);
+  @$pb.TagNumber(18)
+  $core.bool hasCallID() => $_has(17);
+  @$pb.TagNumber(18)
+  void clearCallID() => $_clearField(18);
+
+  @$pb.TagNumber(19)
+  $core.bool get video => $_getBF(18);
+  @$pb.TagNumber(19)
+  set video($core.bool value) => $_setBool(18, value);
+  @$pb.TagNumber(19)
+  $core.bool hasVideo() => $_has(18);
+  @$pb.TagNumber(19)
+  void clearVideo() => $_clearField(19);
 }
 
 const $core.bool _omitFieldNames = $core.bool.fromEnvironment('protobuf.omit_field_names');

@@ -101,14 +101,12 @@ void main() {
       getIt.registerSingleton<Repositories>(_FakeRepositories(store));
       getIt.registerSingleton<Auth>(_FakeAuth(models.Session(userID: me)));
       getIt.registerSingleton<API>(_FakeApi());
-      ChatsSync.instance.setChannels(true, initial: true);
     });
 
     tearDown(() async {
       for (final id in ChatsSync.instance.watched) {
         ChatsSync.instance.unwatch(idBytes(id), send: false);
       }
-      ChatsSync.instance.setChannels(false, initial: true);
       await getIt.reset();
       await db.close();
       await dir.delete(recursive: true);
@@ -318,9 +316,6 @@ class _FakeApi implements API {
 
   @override
   ApiConnectionStatus get connectionStatus => ApiConnectionStatus.connecting;
-
-  @override
-  Future<void> resubscribe() async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

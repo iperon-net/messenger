@@ -2194,12 +2194,6 @@ class Translations$screenDeveloper$en {
 	/// en: 'Chats demo'
 	String get chatsDemo => 'Chats demo';
 
-	/// en: 'Groups'
-	String get chatsGroups => 'Groups';
-
-	/// en: 'Channels'
-	String get chatsChannels => 'Channels';
-
 	/// en: 'Test notification'
 	String get testPush => 'Test notification';
 
@@ -5273,8 +5267,6 @@ extension on Translations {
 			'screenDeveloper.exportLogs' => 'Export logs',
 			'screenDeveloper.callPreview' => 'Call screen preview',
 			'screenDeveloper.chatsDemo' => 'Chats demo',
-			'screenDeveloper.chatsGroups' => 'Groups',
-			'screenDeveloper.chatsChannels' => 'Channels',
 			'screenDeveloper.testPush' => 'Test notification',
 			'screenDeveloper.testPushSent' => ({required Object apns, required Object fcm, required Object failed}) => 'Sent: APNs — ${apns}, FCM — ${fcm}, failed — ${failed}. Minimize the app or lock the screen to check background delivery.',
 			'screenDeveloper.testPushNoTokens' => 'None of your devices has a push token. Make sure notifications are allowed and restart the app.',
@@ -5650,10 +5642,10 @@ extension on Translations {
 			'screenContacts.permissionMessage' => 'Allow access to your contacts to find friends already on Iperon. Your phone numbers are matched privately and never revealed to the server.',
 			'screenContacts.allowAccess' => 'Allow access',
 			'screenContacts.openSettings' => 'Open settings',
-			_ => null,
-		} ?? switch (path) {
 			'screenContacts.empty' => 'No contacts found',
 			'screenContacts.inviteMessage' => 'Let\'s chat on Iperon',
+			_ => null,
+		} ?? switch (path) {
 			'screenContacts.statusOnline' => 'online',
 			'screenContacts.statusLastSeenRecently' => 'last seen recently',
 			'screenContacts.statusLastSeen' => ({required Object date}) => 'last seen ${date}',

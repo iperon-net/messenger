@@ -48,7 +48,7 @@ import 'read_receipts.dart';
 /// отправка сообщений (честно ждут в outbox (⏱) и уходят при подключении) и
 /// реакции (ждут в `chatPendingReactions` так же).
 ///
-/// Группы — срез 3.1 (флаг «Группы», docs/plans/chats-groups.md): создать,
+/// Группы — срез 3.1 (docs/plans/chats-groups.md): создать,
 /// переписка, служебные, «Изменить» (название, описание, фото), участники,
 /// выйти / удалить; 3.2 — роли и права админа, исключение и блокировка,
 /// передача владения, роль по умолчанию, закреп у всех; 3.3 — способы
@@ -98,10 +98,10 @@ class ChatsRemoteDataSource implements ChatsDataSource {
 
   static Never _unsupported(String what) => throw UnsupportedError('$what — пока только в демо (личные чаты — первый срез)');
 
-  /// Закреплённые, реакции, пересылка и отложенные — есть; группы — по флагу
-  /// «Группы», с ролями и правами (3.2), вступлением (3.3) и сообщениями в
-  /// группе (3.4: реакции, опросы, упоминания …); каналы — по флагу «Каналы»
-  /// (4.1: посты, подписи, подписчики, админы). Сообществ нет;
+  /// Закреплённые, реакции, пересылка и отложенные — есть; группы — с ролями
+  /// и правами (3.2), вступлением (3.3) и сообщениями в группе (3.4: реакции,
+  /// опросы, упоминания …); каналы (4.1: посты, подписи, подписчики, админы).
+  /// Сообществ нет;
   /// опрос пересылается только в группу или канал — тем же опросом (голоса
   /// общие).
   @override
@@ -110,13 +110,13 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     pinnedMessages: true,
     forward: true,
     scheduled: true,
-    groups: _sync.groups,
+    groups: true,
     groupRoles: true,
     groupJoining: true,
     groupExtras: true,
-    // Каналы (срез 4.1) — по флагу «Каналы»; просмотры, реакции и опросы в
-    // канале — подэтап 4.2, комментарии (ветки) — 4.3.
-    channels: _sync.channels,
+    // Каналы (срез 4.1); просмотры, реакции и опросы в канале — подэтап 4.2,
+    // комментарии (ветки) — 4.3.
+    channels: true,
     channelExtras: true,
     channelComments: true,
     forwardPolls: true,
@@ -144,7 +144,6 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     StreamSubscription<void>? presence;
     StreamSubscription<void>? typing;
     StreamSubscription<void>? connection;
-    StreamSubscription<void>? groups;
     StreamSubscription<void>? avatars;
     StreamSubscription<void>? previews;
     List<models.Chat>? loaded;
@@ -177,8 +176,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           if (_typingNamesMissing(chats)) return reload();
           out.add(_withTyping(chats));
         });
-        // Флаг «Группы», скачанные аватары групп и предпросмотры по ссылкам.
-        groups = _sync.groupsChanged.listen((_) => reload());
+        // Скачанные аватары групп и предпросмотры по ссылкам.
         previews = _previewsChanged.stream.listen((_) => reload());
         avatars = _avatarsChanged.stream.listen((_) => reload());
       },
@@ -189,7 +187,6 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         await presence?.cancel();
         await typing?.cancel();
         await connection?.cancel();
-        await groups?.cancel();
         await avatars?.cancel();
         await previews?.cancel();
       },
@@ -268,11 +265,10 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   Future<List<models.Chat>> _loadChats() async {
     if (!_auth.isAuthorized) return const [];
     final me = _sync.me;
-    final groupsShown = _sync.groups || _sync.channels;
     final rows = await _store.dialogs(userID: me);
     final outbox = await _store.outbox(userID: me);
-    final allGroups = groupsShown ? {for (final g in await _store.groups(userID: me)) idHex(g.chatID): g} : const <String, ChatGroupRow>{};
-    // Группы и каналы — каждые по своему флагу (кэш выключенных остаётся).
+    final allGroups = {for (final g in await _store.groups(userID: me)) idHex(g.chatID): g};
+    // Группы и каналы списка (ветки комментариев — отдельно, ниже).
     final groups = {
       for (final MapEntry(:key, :value) in allGroups.entries)
         if (_sync.showsChatType(value.info.type.value)) key: value,
@@ -316,7 +312,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         // Ветка комментариев (4.3): в списке не видна (`Chat.isThread`), но
         // окно чата берёт её отсюда — как и канал, от которого её настройки.
         final thread = allGroups[id];
-        if (!_sync.channels || thread == null) continue;
+        if (thread == null) continue;
         final channel = allGroups[idHex(thread.info.parentChatID)];
         chats.add(
           threadChatFromPb(
@@ -471,18 +467,16 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     // Чужие группы, открытые по ссылке (предпросмотр): в списке не видны
     // (`isMember == false`), но окно чата берёт их отсюда. Вступили —
     // диалог уже в списке, предпросмотр больше не нужен.
-    if (groupsShown) {
-      final ids = {for (final c in chats) c.id};
-      final owner = idHex(me);
-      for (final MapEntry(key: id, value: preview) in _previews.entries.toList()) {
-        if (preview.owner != owner) continue;
-        // Вступили (в т.ч. одобрили заявку — пришёл dialogNew).
-        if (ids.contains(id)) {
-          _previews.remove(id);
-          continue;
-        }
-        chats.add(await _previewChat(id, preview));
+    final ids = {for (final c in chats) c.id};
+    final owner = idHex(me);
+    for (final MapEntry(key: id, value: preview) in _previews.entries.toList()) {
+      if (preview.owner != owner) continue;
+      // Вступили (в т.ч. одобрили заявку — пришёл dialogNew).
+      if (ids.contains(id)) {
+        _previews.remove(id);
+        continue;
       }
+      chats.add(await _previewChat(id, preview));
     }
     // «В сети» у аватаров списка — собеседники личных чатов.
     if (_listShown) {
@@ -915,13 +909,12 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   /// параллельно) — выдача живёт только в памяти экрана поиска.
   @override
   Future<List<models.Chat>> searchChats(String query) async {
-    if (!_sync.groups && !_sync.channels) return const [];
     await _requireNetwork();
     final response = await _sync.chats(pb.Chats_Request(searchChats: pb.Chats_SearchChats(query: query)));
     if (!response.hasSearchChats()) return const [];
     final found = await Future.wait([
       for (final item in response.searchChats.chats)
-        // Группы и каналы — по своим флагам: открыть найденное было бы некуда.
+        // Только диалоги списка: открыть другое было бы некуда.
         if (_sync.showsChatType(item.chat.type.value)) _foundChat(item),
     ]);
     return [for (final chat in found) ?chat];
@@ -989,7 +982,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   /// Группа: способ вступления [joinMode] и публичное имя [username] (только
   /// у [models.ChatJoinMode.open]); код ссылки-приглашения частной выдаёт
   /// сервер (`Dialog.inviteCode`), [inviteLink] формы не отправляется.
-  /// Канал (срез 4.1, флаг «Каналы») — тот же `CreateGroup` с `channel`:
+  /// Канал (срез 4.1) — тот же `CreateGroup` с `channel`:
   /// [memberIDs] — подписчики («Добавить подписчиков»), вступление — только
   /// публичный (OPEN) или по ссылке (LINK), «Скрыть историю» у канала нет.
   @override
@@ -1011,7 +1004,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     int newcomerMediaDelay = 0,
   }) async {
     final channel = type == models.ChatType.channel;
-    if (communityID.isNotEmpty || !(channel ? _sync.channels : type == models.ChatType.group && _sync.groups)) {
+    if (communityID.isNotEmpty || !(channel || type == models.ChatType.group)) {
       _unsupported('Сообщества');
     }
     // Публичная — только с именем; без имени — частная по ссылке (канал —
@@ -1217,8 +1210,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         return idHex(result.dialog.chatID);
       }
       if (!result.hasPreview() || result.preview.chat.chatID.isEmpty) return '';
-      // Группы / каналы выключены (флаг) — в списке их не показываем, и
-      // предпросмотр открыть некуда.
+      // Не группа и не канал (сообщества — пока только в демо) — в списке
+      // такого нет, и предпросмотр открыть некуда.
       if (!_sync.showsChatType(result.preview.chat.type.value)) {
         final channel = result.preview.chat.type == pb.ChatType.CHAT_TYPE_CHANNEL;
         throw ChatsRequestException(channel ? 'channelsDisabled' : 'groupsDisabled', StatusCode.failedPrecondition);
@@ -1265,11 +1258,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       final local = await _store.dialogByPeer(userID: me, peerUserID: peer);
       if (local != null) return idHex(local.chatID);
     }
-    if (_sync.groups || _sync.channels) {
-      for (final g in await _store.groups(userID: me)) {
-        if (!_sync.showsChatType(g.info.type.value)) continue;
-        if (g.info.username.isNotEmpty && g.info.username.toLowerCase() == username) return idHex(g.chatID);
-      }
+    for (final g in await _store.groups(userID: me)) {
+      if (!_sync.showsChatType(g.info.type.value)) continue;
+      if (g.info.username.isNotEmpty && g.info.username.toLowerCase() == username) return idHex(g.chatID);
     }
     return '';
   }

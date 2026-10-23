@@ -22,6 +22,12 @@ import 'protobuf/protos/chats_v1.pb.dart' as pb;
 import 'repositories.dart';
 import 'utils.dart';
 
+/// Сборка расшифровывает call-пуши — уходит в `Subscribe.Request.capabilities`:
+/// сервер шлёт таким сессиям входящий/отмену звонка зашифрованным `PushPayload`
+/// (`CALL_INCOMING` / `CALL_CANCEL` в поле `p`), остальным — открытой data-map.
+/// Расшифровывает натив: iOS `AppDelegate` (PushKit), Android `CallFcmService`.
+const callPushEncryptedCapability = 'callPushEncrypted';
+
 /// Регистрирует push-токены устройства на сервере: побудка входящих звонков и
 /// уведомления, когда персистентный gRPC-стрим закрыт (приложение в фоне/
 /// выгружено). См. `docs/plans/push-notifications.md` (этап 1) и фазу 4 в

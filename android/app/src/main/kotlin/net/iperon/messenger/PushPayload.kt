@@ -29,6 +29,9 @@ data class PushPayload(
     // название канала, текст — «Имя: текст», как в группе.
     val parentChatID: ByteArray = ByteArray(0),
     val postID: Long = 0,
+    // CALL_INCOMING / CALL_CANCEL: идентификатор звонка и вид.
+    val callID: String = "",
+    val video: Boolean = false,
 ) {
     /// Комментарий к посту канала (есть канал ветки).
     val isComment: Boolean get() = parentChatID.isNotEmpty()
@@ -46,6 +49,9 @@ data class PushPayload(
         const val KIND_SECRET_MESSAGE = 14
         // Уведомление «Iperon» (новый вход, облачный пароль…): args[0] — вид.
         const val KIND_SYSTEM_NOTICE = 15
+        // Входящий звонок / снять его (бывший открытый call-пуш, см. CallFcmService).
+        const val KIND_CALL_INCOMING = 20
+        const val KIND_CALL_CANCEL = 21
 
         private const val WIRE_VARINT = 0
         private const val WIRE_FIXED64 = 1
@@ -93,6 +99,8 @@ data class PushPayload(
                     15 -> payload.copy(isChannel = reader.expectVarint(wire) != 0L)
                     16 -> payload.copy(parentChatID = reader.expectBytes(wire))
                     17 -> payload.copy(postID = reader.expectVarint(wire))
+                    18 -> payload.copy(callID = reader.expectString(wire))
+                    19 -> payload.copy(video = reader.expectVarint(wire) != 0L)
                     else -> { reader.skip(wire); payload }
                 }
             }
@@ -160,7 +168,8 @@ data class PushPayload(
             fromUserID.contentEquals(other.fromUserID) && chatID.contentEquals(other.chatID) &&
             messageID == other.messageID && title == other.title && body == other.body &&
             args == other.args && badge == other.badge && date == other.date && messageIDs == other.messageIDs &&
-            parentChatID.contentEquals(other.parentChatID) && postID == other.postID
+            parentChatID.contentEquals(other.parentChatID) && postID == other.postID &&
+            callID == other.callID && video == other.video
 
     override fun hashCode(): Int = id.hashCode() * 31 + kind
 }

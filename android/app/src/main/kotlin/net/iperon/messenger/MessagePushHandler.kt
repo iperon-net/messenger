@@ -58,20 +58,22 @@ object MessagePushHandler {
     // шорткаты скрытых профилей ([removeShortcuts]).
     private const val SHORTCUT_USER = "user"
 
-    fun handle(context: Context, encrypted: String) {
-        val payload = try {
-            val plaintext = PushCrypto.open(encrypted) { keyId -> PushKeyStore.get(context, keyId) }
-            if (plaintext == null) {
-                // Ключа нет: разлогинены или пуш для старой сессии — молча.
-                Log.i(LOG_TAG, "push: no key for payload, dropped")
-                return
-            }
+    /// Расшифровывает и разбирает `p`. null — ключа нет (разлогинены или пуш
+    /// для старой сессии) или формат битый: такой пуш молча отбрасываем.
+    fun decrypt(context: Context, encrypted: String): PushPayload? = try {
+        val plaintext = PushCrypto.open(encrypted) { keyId -> PushKeyStore.get(context, keyId) }
+        if (plaintext == null) {
+            Log.i(LOG_TAG, "push: no key for payload, dropped")
+            null
+        } else {
             PushPayload.parse(plaintext)
-        } catch (error: Exception) {
-            Log.w(LOG_TAG, "push: decrypt/parse failed", error)
-            return
         }
+    } catch (error: Exception) {
+        Log.w(LOG_TAG, "push: decrypt/parse failed", error)
+        null
+    }
 
+    fun handle(context: Context, payload: PushPayload) {
         when (payload.kind) {
             // Прочитано / удалено на другом устройстве — снимаем показанное.
             PushPayload.KIND_READ_HISTORY -> {

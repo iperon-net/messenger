@@ -36,6 +36,15 @@ message PushPayload {
     // устройство: args[0] — имя MessageSystemNotice.Kind («NEW_LOGIN», …),
     // args[1] — устройство, args[2] / args[3] — место (en / ru).
     SYSTEM_NOTICE = 15;
+    // Входящий звонок (бывший открытый call-пуш, см. ServicePush.SendCallPush):
+    // callID / video / fromUserID; title — имя звонящего (titleFromContact,
+    // senderPhone — как у сообщений). iOS — VoIP-пуш (PushKit → CallKit),
+    // Android — FCM data; оба вида — `{p}`. По keyId устройство понимает,
+    // какому аккаунту звонят (задел под мультиаккаунт и push-relay).
+    CALL_INCOMING = 20;
+    // Снять входящий callID: звонящий отменил, отклонили или приняли на
+    // другом устройстве.
+    CALL_CANCEL = 21;
   }
 
   Kind kind = 1;
@@ -81,4 +90,7 @@ message PushPayload {
   // «Имя: текст», как в группе.
   bytes parentChatID = 16;
   int64 postID = 17;
+  // CALL_INCOMING / CALL_CANCEL: идентификатор звонка и вид (видео / аудио).
+  string callID = 18;
+  bool video = 19;
 }

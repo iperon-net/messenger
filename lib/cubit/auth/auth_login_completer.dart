@@ -54,6 +54,9 @@ class AuthLoginCompleter {
 
     final packageInfo = await utils.packageInfo();
     final deviceInfo = await utils.deviceInfo();
+    // Стабильный id установки: по (userID, deviceId) сервер заменяет прежнюю
+    // сессию этого устройства, а не копит дубли (лишние call-пуши на один токен).
+    final deviceID = await utils.deviceID();
 
     final messageAuthConfirmationRequest = Message(
       messageType: MessageType.AUTH_CONFIRMATION,
@@ -66,6 +69,7 @@ class AuthLoginCompleter {
         osVersion: deviceInfo.osVersion,
         appVersion: packageInfo.appVersion,
         appBuildNumber: packageInfo.appBuildNumber,
+        deviceId: deviceID,
       ).writeToBuffer(),
     );
 

@@ -923,8 +923,6 @@ class _Translations$screenDeveloper$ru extends Translations$screenDeveloper$en {
 	@override String get exportLogs => 'Экспорт логов';
 	@override String get callPreview => 'Превью экрана звонка';
 	@override String get chatsDemo => 'Демо чатов';
-	@override String get chatsGroups => 'Группы';
-	@override String get chatsChannels => 'Каналы';
 	@override String get testPush => 'Тестовое уведомление';
 	@override String testPushSent({required Object apns, required Object fcm, required Object failed}) => 'Отправлено: APNs — ${apns}, FCM — ${fcm}, ошибок — ${failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне.';
 	@override String get testPushNoTokens => 'Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение.';
@@ -2614,8 +2612,6 @@ extension on TranslationsRu {
 			'screenDeveloper.exportLogs' => 'Экспорт логов',
 			'screenDeveloper.callPreview' => 'Превью экрана звонка',
 			'screenDeveloper.chatsDemo' => 'Демо чатов',
-			'screenDeveloper.chatsGroups' => 'Группы',
-			'screenDeveloper.chatsChannels' => 'Каналы',
 			'screenDeveloper.testPush' => 'Тестовое уведомление',
 			'screenDeveloper.testPushSent' => ({required Object apns, required Object fcm, required Object failed}) => 'Отправлено: APNs — ${apns}, FCM — ${fcm}, ошибок — ${failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне.',
 			'screenDeveloper.testPushNoTokens' => 'Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение.',
@@ -2991,10 +2987,10 @@ extension on TranslationsRu {
 			'screenContacts.permissionMessage' => 'Разрешите доступ к контактам, чтобы найти друзей, которые уже в Iperon. Ваши номера сверяются приватно и не раскрываются серверу.',
 			'screenContacts.allowAccess' => 'Разрешить доступ',
 			'screenContacts.openSettings' => 'Открыть настройки',
-			_ => null,
-		} ?? switch (path) {
 			'screenContacts.empty' => 'Контакты не найдены',
 			'screenContacts.inviteMessage' => 'Давай общаться в Iperon',
+			_ => null,
+		} ?? switch (path) {
 			'screenContacts.statusOnline' => 'в сети',
 			'screenContacts.statusLastSeenRecently' => 'был(а) недавно',
 			'screenContacts.statusLastSeen' => ({required Object date}) => 'был(а) ${date}',

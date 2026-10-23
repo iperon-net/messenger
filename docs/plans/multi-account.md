@@ -195,10 +195,18 @@ per account  <appSupport>/accounts/<accountId>/:
 
 ## 6. Этапы
 
-1. **Сервер и протокол** (нужно и для relay):
-   - call-пуши в `p`;
-   - `deviceId` во всех `AUTH_CONFIRMATION`;
-   - проверка `isSameDevice`.
+1. **Сервер и протокол** (нужно и для relay) — написано 2026-10-24, на
+   устройствах не проверено:
+   - call-пуши в `p`: `PushPayload` `CALL_INCOMING` / `CALL_CANCEL` (поля
+     `callID`, `video`; имя — `title` / `senderPhone` / `titleFromContact`).
+     Сервер шифрует только сессиям с capability `callPushEncrypted`
+     (`Subscribe.capabilities`), остальным — прежняя открытая map. Натив
+     разворачивает `p` обратно в прежнюю map: iOS — `CallSignal.legacyData`
+     (`PushBridge.swift`) в `AppDelegate.pushRegistry`, Android —
+     `CallFcmService` (отдаёт её в Dart сам, как ресивер firebase_messaging);
+   - `deviceId` во всех `AUTH_CONFIRMATION` (`AuthLoginCompleter`);
+   - `isSameDevice` проверен: сравниваются только сессии одного пользователя,
+     мультиаккаунт его не задевает — менять не нужно.
 2. **Клиент, рефакторинг без изменения поведения:**
    - `accounts` вместо `sessions` и `users`;
    - миграция `iperon.db` в `accounts/<id>/`;

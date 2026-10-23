@@ -159,6 +159,17 @@ nonisolated struct Iperon_V1_PushPayload: @unchecked Sendable {
     set {_uniqueStorage()._postID = newValue}
   }
 
+  /// CALL_INCOMING / CALL_CANCEL: идентификатор звонка и вид (видео / аудио).
+  var callID: String {
+    get {_storage._callID}
+    set {_uniqueStorage()._callID = newValue}
+  }
+
+  var video: Bool {
+    get {_storage._video}
+    set {_uniqueStorage()._video = newValue}
+  }
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   nonisolated enum Kind: SwiftProtobuf.Enum, Swift.CaseIterable {
@@ -197,6 +208,17 @@ nonisolated struct Iperon_V1_PushPayload: @unchecked Sendable {
     /// устройство: args[0] — имя MessageSystemNotice.Kind («NEW_LOGIN», …),
     /// args[1] — устройство, args[2] / args[3] — место (en / ru).
     case systemNotice // = 15
+
+    /// Входящий звонок (бывший открытый call-пуш, см. ServicePush.SendCallPush):
+    /// callID / video / fromUserID; title — имя звонящего (titleFromContact,
+    /// senderPhone — как у сообщений). iOS — VoIP-пуш (PushKit → CallKit),
+    /// Android — FCM data; оба вида — `{p}`. По keyId устройство понимает,
+    /// какому аккаунту звонят (задел под мультиаккаунт и push-relay).
+    case callIncoming // = 20
+
+    /// Снять входящий callID: звонящий отменил, отклонили или приняли на
+    /// другом устройстве.
+    case callCancel // = 21
     case UNRECOGNIZED(Int)
 
     init() {
@@ -215,6 +237,8 @@ nonisolated struct Iperon_V1_PushPayload: @unchecked Sendable {
       case 13: self = .messageReaction
       case 14: self = .secretMessage
       case 15: self = .systemNotice
+      case 20: self = .callIncoming
+      case 21: self = .callCancel
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -231,6 +255,8 @@ nonisolated struct Iperon_V1_PushPayload: @unchecked Sendable {
       case .messageReaction: return 13
       case .secretMessage: return 14
       case .systemNotice: return 15
+      case .callIncoming: return 20
+      case .callCancel: return 21
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -247,6 +273,8 @@ nonisolated struct Iperon_V1_PushPayload: @unchecked Sendable {
       .messageReaction,
       .secretMessage,
       .systemNotice,
+      .callIncoming,
+      .callCancel,
     ]
 
   }
@@ -262,7 +290,7 @@ fileprivate nonisolated let _protobuf_package = "iperon.v1"
 
 nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".PushPayload"
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}kind\0\u{1}id\0\u{1}fromUserID\0\u{1}chatID\0\u{1}messageID\0\u{1}title\0\u{1}body\0\u{1}args\0\u{1}badge\0\u{1}date\0\u{1}messageIDs\0\u{1}senderPhone\0\u{1}titleFromContact\0\u{1}chatTitle\0\u{1}isChannel\0\u{1}parentChatID\0\u{1}postID\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}kind\0\u{1}id\0\u{1}fromUserID\0\u{1}chatID\0\u{1}messageID\0\u{1}title\0\u{1}body\0\u{1}args\0\u{1}badge\0\u{1}date\0\u{1}messageIDs\0\u{1}senderPhone\0\u{1}titleFromContact\0\u{1}chatTitle\0\u{1}isChannel\0\u{1}parentChatID\0\u{1}postID\0\u{1}callID\0\u{1}video\0")
 
   fileprivate class _StorageClass {
     var _kind: Iperon_V1_PushPayload.Kind = .unknown
@@ -282,6 +310,8 @@ nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobu
     var _isChannel: Bool = false
     var _parentChatID: Data = Data()
     var _postID: Int64 = 0
+    var _callID: String = String()
+    var _video: Bool = false
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -309,6 +339,8 @@ nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobu
       _isChannel = source._isChannel
       _parentChatID = source._parentChatID
       _postID = source._postID
+      _callID = source._callID
+      _video = source._video
     }
   }
 
@@ -344,6 +376,8 @@ nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobu
         case 15: try { try decoder.decodeSingularBoolField(value: &_storage._isChannel) }()
         case 16: try { try decoder.decodeSingularBytesField(value: &_storage._parentChatID) }()
         case 17: try { try decoder.decodeSingularInt64Field(value: &_storage._postID) }()
+        case 18: try { try decoder.decodeSingularStringField(value: &_storage._callID) }()
+        case 19: try { try decoder.decodeSingularBoolField(value: &_storage._video) }()
         default: break
         }
       }
@@ -407,6 +441,12 @@ nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobu
       if _storage._postID != 0 {
         try visitor.visitSingularInt64Field(value: _storage._postID, fieldNumber: 17)
       }
+      if !_storage._callID.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._callID, fieldNumber: 18)
+      }
+      if _storage._video != false {
+        try visitor.visitSingularBoolField(value: _storage._video, fieldNumber: 19)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -433,6 +473,8 @@ nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobu
         if _storage._isChannel != rhs_storage._isChannel {return false}
         if _storage._parentChatID != rhs_storage._parentChatID {return false}
         if _storage._postID != rhs_storage._postID {return false}
+        if _storage._callID != rhs_storage._callID {return false}
+        if _storage._video != rhs_storage._video {return false}
         return true
       }
       if !storagesAreEqual {return false}
@@ -443,5 +485,5 @@ nonisolated extension Iperon_V1_PushPayload: SwiftProtobuf.Message, SwiftProtobu
 }
 
 nonisolated extension Iperon_V1_PushPayload.Kind: SwiftProtobuf._ProtoNameProviding {
-  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0UNKNOWN\0\u{1}TEST\0\u{1}CONTACT_JOINED\0\u{1}CALL_MISSED\0\u{2}\u{7}MESSAGE\0\u{1}READ_HISTORY\0\u{1}MESSAGE_DELETED\0\u{1}MESSAGE_REACTION\0\u{1}SECRET_MESSAGE\0\u{1}SYSTEM_NOTICE\0")
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0UNKNOWN\0\u{1}TEST\0\u{1}CONTACT_JOINED\0\u{1}CALL_MISSED\0\u{2}\u{7}MESSAGE\0\u{1}READ_HISTORY\0\u{1}MESSAGE_DELETED\0\u{1}MESSAGE_REACTION\0\u{1}SECRET_MESSAGE\0\u{1}SYSTEM_NOTICE\0\u{2}\u{5}CALL_INCOMING\0\u{1}CALL_CANCEL\0")
 }

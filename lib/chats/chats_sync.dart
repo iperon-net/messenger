@@ -25,12 +25,12 @@ import 'chats_media_cleanup.dart';
 import 'chats_typing.dart';
 import 'secret/secret_chats_list.dart' show secretChatListID;
 
-/// Capability сессии «умеет группы» (`Subscribe.capabilities`, флаг «Группы»
-/// на экране «Разработчик»): групповое сервер отдаёт только таким сессиям.
+/// Capability сессии «умеет группы» (`Subscribe.capabilities`): групповое
+/// сервер отдаёт только таким сессиям (старые сборки групп не знают).
 const groupsCapability = 'groups';
 
-/// Capability сессии «умеет каналы» (флаг «Каналы» на экране «Разработчик»,
-/// срез 4): каналы сервер отдаёт только таким сессиям.
+/// Capability сессии «умеет каналы» (срез 4): каналы сервер отдаёт только
+/// таким сессиям.
 const channelsCapability = 'channels';
 
 /// Действие требует сети, а её нет (или сервер недоступен): ничего не
@@ -302,34 +302,27 @@ class ChatsSync {
     }
   }
 
-  bool _groups = false;
-
-  /// Флаг «Группы» (экран «Разработчик»): capability `groups` в Subscribe,
-  /// журналы групп и группы в списке. Выключен — кэш групп не стирается.
-  bool get groups => _groups;
-
-  bool _channels = false;
-
-  /// Флаг «Каналы» (срез 4): capability `channels`, журналы каналов и каналы
-  /// в списке. Выключен — кэш каналов не стирается. Независим от [groups].
-  bool get channels => _channels;
-
-  /// Чат типа [type] (`pb.ChatType`) сейчас показывается: личные — всегда,
-  /// группы и каналы — по своим флагам (как и отдаёт их сервер).
+  /// Чат типа [type] (`pb.ChatType`) — диалог списка: личные, группы и
+  /// каналы (ветки комментариев и прочее — нет).
   bool showsChatType(int type) =>
       type == pb.ChatType.CHAT_TYPE_PRIVATE.value ||
-      (type == pb.ChatType.CHAT_TYPE_GROUP.value && _groups) ||
-      (type == pb.ChatType.CHAT_TYPE_CHANNEL.value && _channels);
+      type == pb.ChatType.CHAT_TYPE_GROUP.value ||
+      type == pb.ChatType.CHAT_TYPE_CHANNEL.value;
 
-  /// Типы чатов, которые сервер этой сессии не отдаёт (флаг выключен): их
-  /// кэш не стирается полным списком диалогов.
-  Set<int> get _hiddenChatTypes => {if (!_groups) pb.ChatType.CHAT_TYPE_GROUP.value, if (!_channels) pb.ChatType.CHAT_TYPE_CHANNEL.value};
-
-  /// Включили — после переподключения перечитать список диалогов целиком:
-  /// группы, созданные без флага, в журнал этой сессии не попадали.
+  /// После переподключения перечитать список диалогов целиком
+  /// ([reloadDialogsOnConnect]).
   bool _reloadOnConnect = false;
 
-  final _groupsChanged = StreamController<void>.broadcast();
+  /// Группы и каналы раньше были за флагами «Группы» / «Каналы» (экран
+  /// «Разработчик»): пока флаг был выключен, они не попадали в журнал этой
+  /// сессии. Ставит [CommonCubit] один раз, когда флаги сняты, — список
+  /// диалогов перечитается на следующем подключении.
+  void reloadDialogsOnConnect() {
+    _reloadOnConnect = true;
+    if (getIt.isRegistered<API>() && getIt.get<API>().connectionStatus == ApiConnectionStatus.connected) {
+      unawaited(onConnected());
+    }
+  }
 
   final _membersChanged = StreamController<String>.broadcast();
 
@@ -348,32 +341,6 @@ class ChatsSync {
 
   /// Ответили на заявку ([ChatsRemoteDataSource]) — перечитать список.
   void notifyJoinRequestsChanged(String chatID) => _joinRequestsChanged.add(chatID);
-
-  /// Переключили «Группы» или «Каналы» — список чатов перечитывается (группы
-  /// и каналы появляются / скрываются).
-  Stream<void> get groupsChanged => _groupsChanged.stream;
-
-  /// То же, что [groupsChanged] (общий поток для обоих флагов).
-  Stream<void> get channelsChanged => _groupsChanged.stream;
-
-  /// Ставит [CommonCubit]: при старте ([initial] — без перезагрузки списка) и
-  /// при переключении. Набор capability поменялся — стрим переподписывается.
-  void setGroups(bool value, {bool initial = false}) {
-    if (_groups == value) return;
-    _groups = value;
-    if (value && !initial) _reloadOnConnect = true;
-    _groupsChanged.add(null);
-    if (getIt.isRegistered<API>()) unawaited(getIt.get<API>().resubscribe());
-  }
-
-  /// Как [setGroups], для флага «Каналы».
-  void setChannels(bool value, {bool initial = false}) {
-    if (_channels == value) return;
-    _channels = value;
-    if (value && !initial) _reloadOnConnect = true;
-    _groupsChanged.add(null);
-    if (getIt.isRegistered<API>()) unawaited(getIt.get<API>().resubscribe());
-  }
 
   StreamSubscription<ChatsUnread>? _unreadSub;
 
@@ -405,11 +372,9 @@ class ChatsSync {
         .onChange([ChatsRepository.dialogsTable, ChatsRepository.repliesStateTable, ...SecretChatsRepository.tables])
         .listen(changes.add, onError: changes.addError);
     final hiddenSub = repositories.hiddenProfiles.changes.listen(changes.add);
-    final groupsSub = _groupsChanged.stream.listen(changes.add);
     changes.onCancel = () async {
       await dialogsSub.cancel();
       await hiddenSub.cancel();
-      await groupsSub.cancel();
     };
     _unreadSub = changes.stream.asyncMap((_) => _countUnread()).listen((counts) {
       unread.value = counts;
@@ -444,7 +409,7 @@ class ChatsSync {
   /// профилями (HiddenProfiles) не считаем — сервер о них не знает, поэтому
   /// бейдж из пуша в фоне их ещё включает. Секретные чаты этого устройства
   /// считаем тоже (заглушить их нельзя) — сервер их не видит. «Ответы» (4.6)
-  /// с непрочитанными — тоже 1 чат (с флагом «Каналы»; заглушения нет), как
+  /// с непрочитанными — тоже 1 чат (заглушения нет), как
   /// элемент `replies` в `badge:<user>` на сервере.
   @visibleForTesting
   Future<ChatsUnread> countUnread() => _countUnread();
@@ -460,8 +425,7 @@ class ChatsSync {
     for (final row in await _store.dialogs(userID: me)) {
       if (mutedFromPb(row.mutedUntil, now).muted) continue;
       if (browsed.contains(idHex(row.chatID))) continue;
-      // Группы и каналы без своего флага не видны — и в счётчик не идут (как
-      // на сервере); ветки комментариев (THREAD) — не диалоги списка.
+      // Ветки комментариев (THREAD) — не диалоги списка.
       if (!showsChatType(row.type)) continue;
       if (row.peerUserID case final peer? when hidden.containsKey(idHex(peer))) continue;
       final count = row.unreadCount > 0 ? row.unreadCount : (row.markedUnread ? 1 : 0);
@@ -471,10 +435,8 @@ class ChatsSync {
       if (record.unreadCount <= 0 || hidden.containsKey(idHex(record.peerUserID))) continue;
       byChat[secretChatListID(record.secretChatID)] = record.unreadCount;
     }
-    if (_channels) {
-      final replies = await _store.repliesState(userID: me);
-      if (replies != null && replies.unreadCount > 0) byChat[models.repliesChatID] = replies.unreadCount;
-    }
+    final replies = await _store.repliesState(userID: me);
+    if (replies != null && replies.unreadCount > 0) byChat[models.repliesChatID] = replies.unreadCount;
     return ChatsUnread(byChat);
   }
 
@@ -690,9 +652,9 @@ class ChatsSync {
     // первой страницы (повторное применение идемпотентно).
     await _getDifference();
     // Журналы групп и каналов — каждый свой: что изменилось, пока нас не было.
-    if (_groups || _channels) await _syncGroups();
+    await _syncGroups();
     // «Ответы» (4.6) — первая страница, если её ещё нет или журнал отстал.
-    if (_channels) await _syncReplies();
+    await _syncReplies();
     await _ensureSelfChat(user);
   }
 
@@ -743,7 +705,7 @@ class ChatsSync {
     final pts = state.pts.toInt();
     final date = state.date.toInt();
     await _store.transaction((tx) async {
-      await tx.replaceDialogs(userID: user, dialogs: dialogs, staleHistory: staleHistory, keepTypes: _hiddenChatTypes);
+      await tx.replaceDialogs(userID: user, dialogs: dialogs, staleHistory: staleHistory);
       await tx.setPts(userID: user, pts: pts, date: date);
     });
     // Изменения папок после этого pts придут обновлениями folders.
@@ -824,9 +786,7 @@ class ChatsSync {
   /// [_getChatDifference]) и из каких меня уже нет (удаляем локально).
   Future<void> _syncGroups() async {
     final user = me;
-    // Только те, что сервер этой сессии отдаёт (флаги): остальные он счёл бы
-    // «ушедшими», а их кэш должен пережить выключение флага.
-    // Каналы без подписки (4.4) сервер тоже счёл бы «ушедшими» — их догоняет
+    // Каналы без подписки (4.4) сервер счёл бы «ушедшими» — их догоняет
     // `Chats.Watch` при открытии окна.
     final groups = [
       for (final g in await _store.groups(userID: user))
@@ -1787,7 +1747,7 @@ class ChatsSync {
   /// Экран «Ответы» открыт: свежая первая страница поверх кэша (без сети —
   /// молча, показываем кэш).
   Future<void> refreshReplies() async {
-    if (!_channels || !_auth.isAuthorized || !await hasNetwork()) return;
+    if (!_auth.isAuthorized || !await hasNetwork()) return;
     final page = await _requestReplies(0);
     final user = me;
     await _locked(
@@ -1801,7 +1761,7 @@ class ChatsSync {
   /// Следующая (более старая) страница «Ответов»; `false` — дальше нет. Нет
   /// сети — [ChatsOfflineException] (попробуем при следующей прокрутке).
   Future<bool> loadOlderReplies() async {
-    if (!_channels || !_auth.isAuthorized) return false;
+    if (!_auth.isAuthorized) return false;
     final user = me;
     final state = await _store.repliesState(userID: user);
     if (state != null && state.loaded && state.nextOffsetID == 0) return false;

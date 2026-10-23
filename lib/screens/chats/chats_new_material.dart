@@ -78,18 +78,15 @@ class _ChatsNewMaterial extends State<ChatsNewMaterial> {
                           onChanged: (value) => context.read<ChatCreateCubit>().search(value),
                         ),
                       ),
-                      // Группы, каналы и сообщества — в демо; на сервере — группы и
-                      // каналы по своим флагам (сообщества — срез 5).
-                      if (state.query.trim().isEmpty && (settings.chatsDemo || settings.chatsGroups || settings.chatsChannels))
+                      // Группы и каналы; сообщества — пока только в демо (срез 5).
+                      if (state.query.trim().isEmpty)
                         Card(
                           margin: const EdgeInsets.symmetric(horizontal: 12),
                           clipBehavior: Clip.antiAlias,
                           child: Column(
                             children: [
-                              if (settings.chatsDemo || settings.chatsGroups)
-                                action(HugeIcons.strokeRoundedUserGroup, t.screenNewChat.newGroup, '/chats/new/group'),
-                              if (settings.chatsDemo || settings.chatsChannels)
-                                action(HugeIcons.strokeRoundedMegaphone01, t.screenNewChat.newChannel, '/chats/new/channel'),
+                              action(HugeIcons.strokeRoundedUserGroup, t.screenNewChat.newGroup, '/chats/new/group'),
+                              action(HugeIcons.strokeRoundedMegaphone01, t.screenNewChat.newChannel, '/chats/new/channel'),
                               if (settings.chatsDemo)
                                 action(HugeIcons.strokeRoundedBuilding03, t.screenNewChat.newCommunity, '/chats/new/community'),
                             ],

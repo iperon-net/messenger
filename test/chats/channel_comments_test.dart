@@ -212,11 +212,9 @@ void main() {
       getIt.registerSingleton<Logger>(Logger());
       getIt.registerSingleton<Repositories>(_FakeRepositories(store));
       getIt.registerSingleton<Auth>(_FakeAuth(models.Session(userID: me)));
-      ChatsSync.instance.setChannels(true, initial: true);
     });
 
     tearDown(() async {
-      ChatsSync.instance.setChannels(false, initial: true);
       await getIt.reset();
       await db.close();
       await dir.delete(recursive: true);
@@ -415,9 +413,6 @@ class _FakeRepositories implements Repositories {
 class _FakeApi implements API {
   @override
   Stream<Uint8List> on(MessageType type) => const Stream.empty();
-
-  @override
-  Future<void> resubscribe() async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

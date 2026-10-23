@@ -320,7 +320,9 @@ import flutter_callkit_incoming
       return
     }
 
-    let dict = payload.dictionaryPayload
+    // Новый сервер шлёт звонок зашифрованным в `p` (keyId — какому аккаунту
+    // звонят); разворачиваем в прежнюю открытую map.
+    let dict = CallSignal.legacyData(payload.dictionaryPayload)
     let callId = (dict["callId"] as? String) ?? ""
     let action = (dict["action"] as? String) ?? "incoming"
     let fromUserID = (dict["fromUserID"] as? String) ?? ""

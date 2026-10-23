@@ -38,6 +38,17 @@ class PushPayload_Kind extends $pb.ProtobufEnum {
   /// args[1] — устройство, args[2] / args[3] — место (en / ru).
   static const PushPayload_Kind SYSTEM_NOTICE = PushPayload_Kind._(15, _omitEnumNames ? '' : 'SYSTEM_NOTICE');
 
+  /// Входящий звонок (бывший открытый call-пуш, см. ServicePush.SendCallPush):
+  /// callID / video / fromUserID; title — имя звонящего (titleFromContact,
+  /// senderPhone — как у сообщений). iOS — VoIP-пуш (PushKit → CallKit),
+  /// Android — FCM data; оба вида — `{p}`. По keyId устройство понимает,
+  /// какому аккаунту звонят (задел под мультиаккаунт и push-relay).
+  static const PushPayload_Kind CALL_INCOMING = PushPayload_Kind._(20, _omitEnumNames ? '' : 'CALL_INCOMING');
+
+  /// Снять входящий callID: звонящий отменил, отклонили или приняли на
+  /// другом устройстве.
+  static const PushPayload_Kind CALL_CANCEL = PushPayload_Kind._(21, _omitEnumNames ? '' : 'CALL_CANCEL');
+
   static const $core.List<PushPayload_Kind> values = <PushPayload_Kind>[
     UNKNOWN,
     TEST,
@@ -49,6 +60,8 @@ class PushPayload_Kind extends $pb.ProtobufEnum {
     MESSAGE_REACTION,
     SECRET_MESSAGE,
     SYSTEM_NOTICE,
+    CALL_INCOMING,
+    CALL_CANCEL,
   ];
 
   static final $core.Map<$core.int, PushPayload_Kind> _byValue = $pb.ProtobufEnum.initByValue(values);

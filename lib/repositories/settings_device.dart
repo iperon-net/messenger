@@ -61,12 +61,10 @@ class SettingsDevice {
     await db.execute("UPDATE settingsDevice SET chatsDemo = ?", [value ? 1 : 0]);
   }
 
-  Future<void> setChatsGroups(bool value) async {
-    await db.execute("UPDATE settingsDevice SET chatsGroups = ?", [value ? 1 : 0]);
-  }
-
-  Future<void> setChatsChannels(bool value) async {
-    await db.execute("UPDATE settingsDevice SET chatsChannels = ?", [value ? 1 : 0]);
+  /// Флаги «Группы» / «Каналы» сняты (группы и каналы всегда включены):
+  /// колонки остались отметкой «список диалогов после этого перечитан».
+  Future<void> setChatsGroupsChannelsMigrated() async {
+    await db.execute("UPDATE settingsDevice SET chatsGroups = 1, chatsChannels = 1");
   }
 
   Future<void> setChatWallpaper({required String pattern, required int color}) async {

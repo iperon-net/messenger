@@ -36,6 +36,8 @@ const PushPayload$json = {
     {'1': 'isChannel', '3': 15, '4': 1, '5': 8, '10': 'isChannel'},
     {'1': 'parentChatID', '3': 16, '4': 1, '5': 12, '10': 'parentChatID'},
     {'1': 'postID', '3': 17, '4': 1, '5': 3, '10': 'postID'},
+    {'1': 'callID', '3': 18, '4': 1, '5': 9, '10': 'callID'},
+    {'1': 'video', '3': 19, '4': 1, '5': 8, '10': 'video'},
   ],
   '4': [PushPayload_Kind$json],
   '8': [
@@ -57,6 +59,8 @@ const PushPayload_Kind$json = {
     {'1': 'MESSAGE_REACTION', '2': 13},
     {'1': 'SECRET_MESSAGE', '2': 14},
     {'1': 'SYSTEM_NOTICE', '2': 15},
+    {'1': 'CALL_INCOMING', '2': 20},
+    {'1': 'CALL_CANCEL', '2': 21},
   ],
 };
 
@@ -71,7 +75,8 @@ final $typed_data.Uint8List pushPayloadDescriptor =
         'clBob25lEioKEHRpdGxlRnJvbUNvbnRhY3QYDSABKAhSEHRpdGxlRnJvbUNvbnRhY3QSHAoJY2'
         'hhdFRpdGxlGA4gASgJUgljaGF0VGl0bGUSHAoJaXNDaGFubmVsGA8gASgIUglpc0NoYW5uZWwS'
         'IgoMcGFyZW50Q2hhdElEGBAgASgMUgxwYXJlbnRDaGF0SUQSFgoGcG9zdElEGBEgASgDUgZwb3'
-        'N0SUQiswEKBEtpbmQSCwoHVU5LTk9XThAAEggKBFRFU1QQARISCg5DT05UQUNUX0pPSU5FRBAC'
-        'Eg8KC0NBTExfTUlTU0VEEAMSCwoHTUVTU0FHRRAKEhAKDFJFQURfSElTVE9SWRALEhMKD01FU1'
-        'NBR0VfREVMRVRFRBAMEhQKEE1FU1NBR0VfUkVBQ1RJT04QDRISCg5TRUNSRVRfTUVTU0FHRRAO'
-        'EhEKDVNZU1RFTV9OT1RJQ0UQD0IICgZfYmFkZ2U=');
+        'N0SUQSFgoGY2FsbElEGBIgASgJUgZjYWxsSUQSFAoFdmlkZW8YEyABKAhSBXZpZGVvItcBCgRL'
+        'aW5kEgsKB1VOS05PV04QABIICgRURVNUEAESEgoOQ09OVEFDVF9KT0lORUQQAhIPCgtDQUxMX0'
+        '1JU1NFRBADEgsKB01FU1NBR0UQChIQCgxSRUFEX0hJU1RPUlkQCxITCg9NRVNTQUdFX0RFTEVU'
+        'RUQQDBIUChBNRVNTQUdFX1JFQUNUSU9OEA0SEgoOU0VDUkVUX01FU1NBR0UQDhIRCg1TWVNURU'
+        '1fTk9USUNFEA8SEQoNQ0FMTF9JTkNPTUlORxAUEg8KC0NBTExfQ0FOQ0VMEBVCCAoGX2JhZGdl');

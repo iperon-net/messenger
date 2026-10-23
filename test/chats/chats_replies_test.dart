@@ -146,12 +146,10 @@ void main() {
       getIt.registerSingleton<Utils>(utils = _FakeUtils());
       ChatsReplies.names = (ids) async => {for (final id in ids) idHex(id): 'Анна'};
       ChatsReplies.cachedFile = (_) async => '';
-      ChatsSync.instance.setChannels(true, initial: true);
       await store.setPts(userID: me, pts: 10);
     });
 
     tearDown(() async {
-      ChatsSync.instance.setChannels(false, initial: true);
       await getIt.reset();
       await db.close();
       await dir.delete(recursive: true);
@@ -270,11 +268,6 @@ void main() {
       expect((chat.lastMessage?.text, chat.lastMessage?.senderName), ('второй', 'Анна'));
       expect(chat.sortDate, DateTime.fromMillisecondsSinceEpoch(100004));
       expect(chat.hiddenInList, isFalse);
-
-      // Без флага «Каналы» — нет.
-      ChatsSync.instance.setChannels(false, initial: true);
-      expect(await replies.loadChat(), isNull);
-      ChatsSync.instance.setChannels(true, initial: true);
 
       // Прочитали — строка остаётся, без цифры.
       await apply([update(13, pb.Update_RepliesChanged(readMaxID: Int64(2), unreadCount: 0))]);
@@ -470,9 +463,6 @@ class _FakeApi implements API {
 
   @override
   ApiConnectionStatus get connectionStatus => ApiConnectionStatus.connecting;
-
-  @override
-  Future<void> resubscribe() async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

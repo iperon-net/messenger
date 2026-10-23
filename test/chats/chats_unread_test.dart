@@ -69,13 +69,9 @@ void main() {
       getIt.registerSingleton<Repositories>(repositories);
       getIt.registerSingleton<Auth>(_FakeAuth(models.Session(userID: me, sessionID: session)));
       getIt.registerSingleton<API>(_FakeApi());
-      ChatsSync.instance.setGroups(true, initial: true);
-      ChatsSync.instance.setChannels(true, initial: true);
     });
 
     tearDown(() async {
-      ChatsSync.instance.setGroups(false, initial: true);
-      ChatsSync.instance.setChannels(false, initial: true);
       await getIt.reset();
       await db.close();
       await dir.delete(recursive: true);
@@ -144,19 +140,6 @@ void main() {
       unread = await ChatsSync.instance.countUnread();
       expect(unread.total, 1);
       expect(unread.byChat.containsKey(models.repliesChatID), isFalse);
-      // Без флага «Каналы» «Ответов» нет и в счётчике.
-      await store.setRepliesState(userID: me, unreadCount: 3);
-      ChatsSync.instance.setChannels(false, initial: true);
-      expect((await ChatsSync.instance.countUnread()).byChat.containsKey(models.repliesChatID), isFalse);
-    });
-
-    test('группы и каналы без своего флага не считаются', () async {
-      await dialog(10, peer: 20, unread: 1);
-      await dialog(11, type: pb.ChatType.CHAT_TYPE_GROUP, unread: 2);
-      await dialog(12, type: pb.ChatType.CHAT_TYPE_CHANNEL, unread: 3);
-      ChatsSync.instance.setGroups(false, initial: true);
-      ChatsSync.instance.setChannels(false, initial: true);
-      expect((await ChatsSync.instance.countUnread()).total, 1);
     });
   });
 }
@@ -227,9 +210,6 @@ class _FakeApi implements API {
 
   @override
   ApiConnectionStatus get connectionStatus => ApiConnectionStatus.connecting;
-
-  @override
-  Future<void> resubscribe() async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

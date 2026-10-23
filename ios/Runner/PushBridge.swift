@@ -223,7 +223,7 @@ struct SilentSignal {
   var badge: Int?
 
   static func parse(_ data: Data) -> SilentSignal? {
-    var reader = Reader(data: [UInt8](data))
+    var reader = PushProtoReader(data: [UInt8](data))
     var signal = SilentSignal()
     while !reader.atEnd {
       guard let tag = reader.varint() else { return nil }
@@ -245,7 +245,7 @@ struct SilentSignal {
       case (11, 2):
         // repeated int64: proto3 пишет packed, но принимаем и unpacked.
         guard let value = reader.bytes() else { return nil }
-        var packed = Reader(data: value)
+        var packed = PushProtoReader(data: value)
         while !packed.atEnd {
           guard let id = packed.varint() else { return nil }
           signal.messageIDs.append(Int64(bitPattern: id))
@@ -259,47 +259,128 @@ struct SilentSignal {
     }
     return signal
   }
+}
 
-  private struct Reader {
-    let data: [UInt8]
-    var position = 0
+/// Зашифрованный call-пуш (`PushPayload` CALL_INCOMING / CALL_CANCEL в `p`,
+/// VoIP-пуш PushKit): kind (1), fromUserID (3), title (6), senderPhone (12),
+/// titleFromContact (13), callID (18), video (19).
+struct CallSignal {
+  static let kindIncoming: UInt64 = 20
+  static let kindCancel: UInt64 = 21
 
-    var atEnd: Bool { position >= data.count }
+  var kind: UInt64 = 0
+  var fromUserID = Data()
+  var title = ""
+  var senderPhone = ""
+  var titleFromContact = false
+  var callID = ""
+  var video = false
 
-    mutating func varint() -> UInt64? {
-      var result: UInt64 = 0
-      var shift: UInt64 = 0
-      while shift < 64, position < data.count {
-        let byte = data[position]
-        position += 1
-        result |= UInt64(byte & 0x7F) << shift
-        if byte & 0x80 == 0 { return result }
-        shift += 7
+  static func parse(_ data: Data) -> CallSignal? {
+    var reader = PushProtoReader(data: [UInt8](data))
+    var signal = CallSignal()
+    while !reader.atEnd {
+      guard let tag = reader.varint() else { return nil }
+      let field = tag >> 3
+      let wire = tag & 7
+      switch (field, wire) {
+      case (1, 0):
+        guard let value = reader.varint() else { return nil }
+        signal.kind = value
+      case (3, 2):
+        guard let value = reader.bytes() else { return nil }
+        signal.fromUserID = Data(value)
+      case (6, 2), (12, 2), (18, 2):
+        guard let value = reader.bytes() else { return nil }
+        let text = String(decoding: value, as: UTF8.self)
+        switch field {
+        case 6: signal.title = text
+        case 12: signal.senderPhone = text
+        default: signal.callID = text
+        }
+      case (13, 0), (19, 0):
+        guard let value = reader.varint() else { return nil }
+        if field == 13 { signal.titleFromContact = value != 0 } else { signal.video = value != 0 }
+      default:
+        guard reader.skip(wire: wire) else { return nil }
       }
-      return nil
+    }
+    return signal
+  }
+
+  /// Расшифровывает VoIP-пуш с `p` в прежнюю открытую data-map (ключи —
+  /// internal/services/push.go SendCallPush), с которой работает AppDelegate.
+  /// Пуш без `p` (старый сервер) — как есть. Не расшифровался (нет ключа:
+  /// разлогинены, другая сессия) — пустая map: звонок всё равно надо
+  /// отрепортить в CallKit и сразу снять.
+  static func legacyData(_ payload: [AnyHashable: Any]) -> [AnyHashable: Any] {
+    guard let encrypted = payload["p"] as? String else { return payload }
+    let signal: CallSignal?
+    do {
+      signal = try PushCrypto.open(encrypted, keyLookup: PushKeychain.key(forId:)).flatMap(parse)
+    } catch {
+      NSLog("IPERON_CALL voip push decrypt failed: \(error)")
+      signal = nil
+    }
+    guard let signal, signal.kind == kindIncoming || signal.kind == kindCancel else {
+      NSLog("IPERON_CALL voip push: no key or not a call")
+      return [:]
     }
 
-    mutating func bytes() -> [UInt8]? {
-      guard let length = varint(), length <= UInt64(data.count - position) else { return nil }
-      let end = position + Int(length)
-      defer { position = end }
-      return Array(data[position ..< end])
-    }
+    var data: [AnyHashable: Any] = [
+      "callId": signal.callID,
+      "action": signal.kind == kindIncoming ? "incoming" : "cancel",
+      "fromUserID": PushKeychain.hex(signal.fromUserID),
+      "video": signal.video ? "true" : "false",
+    ]
+    if !signal.title.isEmpty { data["nameCaller"] = signal.title }
+    if !signal.senderPhone.isEmpty { data["callerPhone"] = signal.senderPhone }
+    if signal.titleFromContact { data["nameFromContact"] = "true" }
+    return data
+  }
+}
 
-    mutating func skip(wire: UInt64) -> Bool {
-      switch wire {
-      case 0: return varint() != nil
-      case 2: return bytes() != nil
-      case 1: return advance(8)
-      case 5: return advance(4)
-      default: return false
-      }
-    }
+/// Минимальный читатель protobuf для `PushPayload` (SwiftProtobuf линкуется
+/// только в NSE). Неизвестные поля пропускаются.
+struct PushProtoReader {
+  let data: [UInt8]
+  var position = 0
 
-    private mutating func advance(_ count: Int) -> Bool {
-      guard count <= data.count - position else { return false }
-      position += count
-      return true
+  var atEnd: Bool { position >= data.count }
+
+  mutating func varint() -> UInt64? {
+    var result: UInt64 = 0
+    var shift: UInt64 = 0
+    while shift < 64, position < data.count {
+      let byte = data[position]
+      position += 1
+      result |= UInt64(byte & 0x7F) << shift
+      if byte & 0x80 == 0 { return result }
+      shift += 7
     }
+    return nil
+  }
+
+  mutating func bytes() -> [UInt8]? {
+    guard let length = varint(), length <= UInt64(data.count - position) else { return nil }
+    let end = position + Int(length)
+    defer { position = end }
+    return Array(data[position ..< end])
+  }
+
+  mutating func skip(wire: UInt64) -> Bool {
+    switch wire {
+    case 0: return varint() != nil
+    case 2: return bytes() != nil
+    case 1: return advance(8)
+    case 5: return advance(4)
+    default: return false
+    }
+  }
+
+  private mutating func advance(_ count: Int) -> Bool {
+    guard count <= data.count - position else { return false }
+    position += count
+    return true
   }
 }

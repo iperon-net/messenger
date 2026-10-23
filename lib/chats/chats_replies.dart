@@ -18,7 +18,7 @@ import 'chats_sync.dart';
 /// комментариев каналов. Кэш ведёт [ChatsSync] (журнал пользователя
 /// `Update.replies`, страницы `Messages.Replies`), здесь — чтение для экранов:
 /// виртуальная строка списка чатов ([watchChat]) и лента ([watchReplies]).
-/// Только с флагом «Каналы»; в демо «Ответов» нет.
+/// В демо «Ответов» нет.
 class ChatsReplies {
   ChatsReplies._();
 
@@ -44,19 +44,17 @@ class ChatsReplies {
   /// Сколько ответов ленты читаем из кэша за раз.
   static const feedLimit = 1000;
 
-  /// Строка «Ответы» списка чатов; `null` — не показывается (флаг «Каналы»
-  /// выключен или ответов нет).
+  /// Строка «Ответы» списка чатов; `null` — не показывается (ответов нет).
   Stream<models.Chat?> watchChat() => _watch(_rowTables, loadChat);
 
   /// Лента «Ответов» от старых к новым (внизу — самый новый, как в чате).
   Stream<List<models.ChatReply>> watchReplies() => _watch(_feedTables, loadReplies);
 
-  /// Перечитывать [load] при изменении [tables] и переключении флагов; по
-  /// очереди, чтобы старый результат не пришёл после нового.
+  /// Перечитывать [load] при изменении [tables]; по очереди, чтобы старый
+  /// результат не пришёл после нового.
   Stream<T> _watch<T>(List<String> tables, Future<T> Function() load) {
     late final StreamController<T> out;
     StreamSubscription<void>? changes;
-    StreamSubscription<void>? flags;
     var pending = Future<void>.value();
     void reload() {
       pending = pending
@@ -70,11 +68,9 @@ class ChatsReplies {
     out = StreamController<T>(
       onListen: () {
         changes = _repositories.db.onChange(tables).listen((_) => reload());
-        flags = _sync.channelsChanged.listen((_) => reload());
       },
       onCancel: () async {
         await changes?.cancel();
-        await flags?.cancel();
       },
     );
     return out.stream;
@@ -83,7 +79,7 @@ class ChatsReplies {
   /// Строка «Ответы»: последний ответ «Имя: текст», дата — его, цифра —
   /// непрочитанные с сервера.
   Future<models.Chat?> loadChat() async {
-    if (!_sync.channels || !_auth.isAuthorized) return null;
+    if (!_auth.isAuthorized) return null;
     final me = _sync.me;
     final newest = await _store.replies(userID: me, limit: 1);
     if (newest.isEmpty) return null;
@@ -113,7 +109,7 @@ class ChatsReplies {
   /// Ответы из кэша — от старых к новым, с именами, подписью канала и началом
   /// поста.
   Future<List<models.ChatReply>> loadReplies() async {
-    if (!_sync.channels || !_auth.isAuthorized) return const [];
+    if (!_auth.isAuthorized) return const [];
     final me = _sync.me;
     final rows = await _store.replies(userID: me, limit: feedLimit);
     if (rows.isEmpty) return const [];

@@ -425,7 +425,7 @@ void main() {
       expect((results?.closed, results?.totalVoters), (true, 8));
     });
 
-    test('без флага «Каналы» полный список не стирает кэш каналов; флаги — по типам', () async {
+    test('keepTypes: полный список не стирает кэш чатов этих типов; диалоги списка — по типам', () async {
       await store.upsertDialog(userID: me, dialog: channelDialog());
       await store.replaceDialogs(userID: me, dialogs: const [], keepTypes: {pb.ChatType.CHAT_TYPE_CHANNEL.value});
       expect(await store.group(userID: me, chatID: channelChat), isNotNull);
@@ -433,16 +433,10 @@ void main() {
       expect(await store.dialog(userID: me, chatID: channelChat), isNull);
 
       final sync = ChatsSync.instance;
-      sync.setGroups(true, initial: true);
-      sync.setChannels(false, initial: true);
       expect(sync.showsChatType(pb.ChatType.CHAT_TYPE_PRIVATE.value), isTrue);
       expect(sync.showsChatType(pb.ChatType.CHAT_TYPE_GROUP.value), isTrue);
-      expect(sync.showsChatType(pb.ChatType.CHAT_TYPE_CHANNEL.value), isFalse);
-      sync.setGroups(false, initial: true);
-      sync.setChannels(true, initial: true);
-      expect(sync.showsChatType(pb.ChatType.CHAT_TYPE_GROUP.value), isFalse);
       expect(sync.showsChatType(pb.ChatType.CHAT_TYPE_CHANNEL.value), isTrue);
-      sync.setChannels(false, initial: true);
+      expect(sync.showsChatType(pb.ChatType.CHAT_TYPE_THREAD.value), isFalse);
     });
   });
 }
