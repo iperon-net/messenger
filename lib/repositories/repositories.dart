@@ -35,6 +35,7 @@ part "privacy_settings.dart";
 part "notify_settings.dart";
 part "chats.dart";
 part "secret_chats.dart";
+part "spoiler_reveals.dart";
 
 base class _AppSqliteOpenFactory extends NativeSqliteOpenFactory {
   final String? password;
@@ -77,6 +78,7 @@ class Repositories {
   late NotifySettings notifySettings;
   late ChatsRepository chats;
   late SecretChatsRepository secretChats;
+  late SpoilerRevealsRepository spoilerReveals;
 
   static Future<Repositories> initialization() async {
     final repositories = Repositories._();
@@ -966,6 +968,22 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(49, (tx) async {
+        // Раскрытые спойлеры (фото, видео, текст) — по аккаунту: раскрытое
+        // остаётся раскрытым после выхода из чата и перезапуска.
+        await tx.execute("""
+          CREATE TABLE spoilerReveals (
+            ownerID BLOB NOT NULL,
+            key TEXT NOT NULL,
+            createdAt INTEGER NOT NULL,
+            PRIMARY KEY (ownerID, key)
+          );
+        """);
+        await tx.execute('CREATE INDEX idx_spoilerReveals_createdAt ON spoilerReveals(ownerID, createdAt);');
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 
@@ -1029,6 +1047,7 @@ class Repositories {
     notifySettings = NotifySettings(logger: logger, db: db);
     chats = ChatsRepository(logger: logger, db: db);
     secretChats = SecretChatsRepository(logger: logger, db: db);
+    spoilerReveals = SpoilerRevealsRepository(logger: logger, db: db);
   }
 
   // Generate password

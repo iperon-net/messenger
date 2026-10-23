@@ -15,6 +15,7 @@ import 'di.dart';
 import 'logger_livekit.dart';
 import 'push.dart';
 import 'call_push.dart';
+import 'chats/spoiler_reveals.dart';
 import 'firebase_options.dart';
 import 'i18n/translations.g.dart';
 import 'models.dart';
@@ -130,6 +131,9 @@ Future<void> main() async {
   unawaited(
     getIt.get<PushManager>().start(passcodeEnabled: settingsDevice.passcode.isNotEmpty && !settingsDevice.passcodeNotificationContent),
   );
+
+  // Раскрытые спойлеры — в память до первого открытого чата.
+  unawaited(SpoilerReveals.preload());
 
   // Мост call-пуш → нативный входящий (CallKit/ConnectionService) → Calls.
   getIt.get<CallPush>().start();

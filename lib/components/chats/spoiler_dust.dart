@@ -5,26 +5,9 @@ import 'dart:ui' as ui;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
-/// Раскрытые спойлеры (фото, видео, текст) за запуск приложения: вышли из
-/// чата и вернулись или пузырь пересоздан прокруткой — раскрытое остаётся
-/// раскрытым, а не прячется под пыль снова. Ключ — [key]; пустой — не
-/// запоминать (превью, цитаты).
-abstract final class SpoilerReveals {
-  static final _revealed = <String>{};
-  static const _limit = 5000;
+import '../../chats/spoiler_reveals.dart';
 
-  /// Ключ спойлера сообщения [chatID]/[messageID]; [part] — элемент альбома
-  /// или участок текста.
-  static String key(String chatID, String messageID, Object part) => '$chatID/$messageID/$part';
-
-  static bool isRevealed(String key) => key.isNotEmpty && _revealed.contains(key);
-
-  static void reveal(String key) {
-    if (key.isEmpty) return;
-    if (_revealed.length >= _limit) _revealed.remove(_revealed.first);
-    _revealed.add(key);
-  }
-}
+export '../../chats/spoiler_reveals.dart' show SpoilerReveals;
 
 /// Частица пыли: место в прямоугольнике строки (доли 0..1), направление и
 /// скорость дрейфа, фаза мерцания.
