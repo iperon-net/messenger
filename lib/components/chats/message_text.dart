@@ -77,6 +77,10 @@ class MessageText extends StatefulWidget {
   /// `null` — без предела.
   final int? maxLines;
 
+  /// Запомнить раскрытие спойлеров ([SpoilerReveals]); пусто — не запоминать
+  /// (цитаты, плашки).
+  final String spoilerKey;
+
   const MessageText({
     super.key,
     required this.text,
@@ -90,6 +94,7 @@ class MessageText extends StatefulWidget {
     this.mark,
     this.markColor = const Color(0x66FFCC00),
     this.maxLines,
+    this.spoilerKey = '',
   });
 
   @override
@@ -97,7 +102,7 @@ class MessageText extends StatefulWidget {
 }
 
 class _MessageTextState extends State<MessageText> with TickerProviderStateMixin {
-  bool _spoilerRevealed = false;
+  late bool _spoilerRevealed = SpoilerReveals.isRevealed(widget.spoilerKey);
   final _recognizers = <GestureRecognizer>[];
 
   /// Пыль спойлера: время (секунды) двигает частицы, [_reveal] — волна
@@ -105,7 +110,7 @@ class _MessageTextState extends State<MessageText> with TickerProviderStateMixin
   final _paragraph = GlobalKey();
   final _time = ValueNotifier<double>(0);
   late final Ticker _ticker = createTicker((elapsed) => _time.value = elapsed.inMicroseconds / 1e6);
-  late final _reveal = AnimationController(vsync: this, duration: const Duration(milliseconds: 500))
+  late final _reveal = AnimationController(vsync: this, duration: const Duration(milliseconds: 500), value: _spoilerRevealed ? 1 : 0)
     ..addListener(() => setState(() {}))
     ..addStatusListener((status) {
       if (status == AnimationStatus.completed) _ticker.stop();
@@ -129,7 +134,17 @@ class _MessageTextState extends State<MessageText> with TickerProviderStateMixin
     final paragraph = _paragraph.currentContext?.findRenderObject();
     _revealOrigin = paragraph is RenderBox ? paragraph.globalToLocal(details.globalPosition) : null;
     setState(() => _spoilerRevealed = true);
+    SpoilerReveals.reveal(widget.spoilerKey);
     _reveal.forward();
+  }
+
+  @override
+  void didUpdateWidget(MessageText oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.spoilerKey != widget.spoilerKey) {
+      _spoilerRevealed = SpoilerReveals.isRevealed(widget.spoilerKey);
+      _reveal.value = _spoilerRevealed ? 1 : 0;
+    }
   }
 
   void _disposeRecognizers() {
@@ -379,6 +394,8 @@ class _MessageBlocks extends StatelessWidget {
           ? null
           : ((mark.$1 < start ? start : mark.$1) - start, (mark.$2 > end ? end : mark.$2) - start),
       markColor: source.markColor,
+      // Участок — свой ключ: раскрывается отдельно, как и раньше.
+      spoilerKey: source.spoilerKey.isEmpty ? '' : '${source.spoilerKey}@$start',
     );
   }
 
@@ -423,6 +440,7 @@ class _MessageBlocks extends StatelessWidget {
                       highlight: part.highlight,
                       highlightColor: part.highlightColor,
                       maxLines: maxLines,
+                      spoilerKey: part.spoilerKey,
                     );
             },
           ),

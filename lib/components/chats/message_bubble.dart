@@ -992,6 +992,7 @@ class MessageBubble extends StatelessWidget {
           highlightColor: focused ? const Color(0xCCFF9500) : const Color(0x66FFCC00),
           mark: mark,
           markColor: colors.link.withValues(alpha: 0.3),
+          spoilerKey: SpoilerReveals.key(m.chatID, m.id, 'text'),
         );
         content.add(
           textBlock = Padding(
@@ -1358,7 +1359,12 @@ class _MediaPreview extends StatelessWidget {
     }
     return ClipRRect(
       borderRadius: BorderRadius.circular(14),
-      child: _tappableMedia(message, 0, onTap, MediaSpoiler(enabled: meta?.spoiler ?? false, child: image)),
+      child: _tappableMedia(
+        message,
+        0,
+        onTap,
+        MediaSpoiler(enabled: meta?.spoiler ?? false, revealKey: SpoilerReveals.key(message.chatID, message.id, 0), child: image),
+      ),
     );
   }
 }
@@ -1435,7 +1441,12 @@ class _AlbumGrid extends StatelessWidget {
         : item.localPath.isEmpty || video
         ? chatMediaPlaceholder('${message.id}-$index', video: video, iconSize: 26, thumbhash: item.thumbhash)
         : ChatMediaImage(path: item.localPath, thumbhash: item.thumbhash, cacheWidth: 520);
-    return _tappableMedia(message, index, onTap, MediaSpoiler(enabled: item.spoiler, child: child));
+    return _tappableMedia(
+      message,
+      index,
+      onTap,
+      MediaSpoiler(enabled: item.spoiler, revealKey: SpoilerReveals.key(message.chatID, message.id, index), child: child),
+    );
   }
 }
 
@@ -2008,13 +2019,13 @@ class _CommentsBar extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(inset, 6, inset, 0),
+        padding: EdgeInsets.fromLTRB(inset, 8, inset, 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(height: 0.5, color: metaColor.withValues(alpha: 0.4)),
             Padding(
-              padding: const EdgeInsets.only(top: 7),
+              padding: const EdgeInsets.only(top: 10, bottom: 4),
               child: Row(
                 children: [
                   leading,

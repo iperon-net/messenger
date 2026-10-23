@@ -5,6 +5,27 @@ import 'dart:ui' as ui;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
+/// Раскрытые спойлеры (фото, видео, текст) за запуск приложения: вышли из
+/// чата и вернулись или пузырь пересоздан прокруткой — раскрытое остаётся
+/// раскрытым, а не прячется под пыль снова. Ключ — [key]; пустой — не
+/// запоминать (превью, цитаты).
+abstract final class SpoilerReveals {
+  static final _revealed = <String>{};
+  static const _limit = 5000;
+
+  /// Ключ спойлера сообщения [chatID]/[messageID]; [part] — элемент альбома
+  /// или участок текста.
+  static String key(String chatID, String messageID, Object part) => '$chatID/$messageID/$part';
+
+  static bool isRevealed(String key) => key.isNotEmpty && _revealed.contains(key);
+
+  static void reveal(String key) {
+    if (key.isEmpty) return;
+    if (_revealed.length >= _limit) _revealed.remove(_revealed.first);
+    _revealed.add(key);
+  }
+}
+
 /// Частица пыли: место в прямоугольнике строки (доли 0..1), направление и
 /// скорость дрейфа, фаза мерцания.
 typedef SpoilerParticle = ({double x, double y, double dx, double dy, double phase, double rate});
@@ -134,11 +155,13 @@ class SpoilerDustPainter extends CustomPainter {
 /// Фото/видео под спойлером: кадр размыт, сверху мерцает пыль; тап —
 /// раскрыть (размытие уходит, пыль расходится кругом от пальца), следующие
 /// тапы уже открывают просмотр. [enabled] `false` — обычный кадр.
+/// [revealKey] — запомнить раскрытие ([SpoilerReveals]).
 class MediaSpoiler extends StatefulWidget {
   final bool enabled;
   final Widget child;
+  final String revealKey;
 
-  const MediaSpoiler({super.key, required this.enabled, required this.child});
+  const MediaSpoiler({super.key, required this.enabled, required this.child, this.revealKey = ''});
 
   @override
   State<MediaSpoiler> createState() => _MediaSpoilerState();
@@ -150,13 +173,29 @@ class _MediaSpoilerState extends State<MediaSpoiler> with TickerProviderStateMix
   final _dust = SpoilerDust();
   final _time = ValueNotifier<double>(0);
   late final Ticker _ticker = createTicker((elapsed) => _time.value = elapsed.inMicroseconds / 1e6);
-  late final _reveal = AnimationController(vsync: this, duration: const Duration(milliseconds: 550))
-    ..addListener(() => setState(() {}))
-    ..addStatusListener((status) {
-      if (status == AnimationStatus.completed) _ticker.stop();
-    });
-  bool _revealed = false;
+  // Уже раскрывали — сразу открытым, без пыли и анимации.
+  late final _reveal =
+      AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 550),
+          value: SpoilerReveals.isRevealed(widget.revealKey) ? 1 : 0,
+        )
+        ..addListener(() => setState(() {}))
+        ..addStatusListener((status) {
+          if (status == AnimationStatus.completed) _ticker.stop();
+        });
+  late bool _revealed = _reveal.isCompleted;
   Offset? _origin;
+
+  @override
+  void didUpdateWidget(MediaSpoiler oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Элемент переиспользован под другое медиа — его собственное состояние.
+    if (oldWidget.revealKey != widget.revealKey) {
+      _revealed = SpoilerReveals.isRevealed(widget.revealKey);
+      _reveal.value = _revealed ? 1 : 0;
+    }
+  }
 
   @override
   void dispose() {
@@ -195,6 +234,7 @@ class _MediaSpoilerState extends State<MediaSpoiler> with TickerProviderStateMix
                           _revealed = true;
                           _origin = details.localPosition;
                         });
+                        SpoilerReveals.reveal(widget.revealKey);
                         _reveal.forward();
                       },
                 child: ColoredBox(

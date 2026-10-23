@@ -1099,6 +1099,7 @@ class _QuotePreview extends StatelessWidget {
                   entities: message.entities,
                   style: style.textStyle,
                   colors: out ? style.outgoingText : style.incomingText,
+                  spoilerKey: SpoilerReveals.key(message.chatID, message.id, 'text'),
                 ),
               ),
             ),
