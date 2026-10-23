@@ -42,6 +42,10 @@ class ProfileState with ProfileStateMappable {
   /// Расшифрованный аватар для показа. `null`, пока не скачан/не задан.
   final Uint8List? avatarBytes;
 
+  /// ThumbHash аватара — размытое превью, пока [avatarBytes] нет (картинка
+  /// качается). Пусто — заглушка.
+  final String avatarThumbhash;
+
   /// «В сети» и время захода — из [ChatsPresence] и кэша профилей
   /// (`lastSeen == null` — скрыто или неизвестно: «был(а) недавно»).
   final bool online;
@@ -83,6 +87,7 @@ class ProfileState with ProfileStateMappable {
     this.boringAvatarHash = "",
     this.boringAvatarType = BoringAvatarType.ring,
     this.avatarBytes,
+    this.avatarThumbhash = "",
     this.online = false,
     this.lastSeen,
     this.chatID = "",

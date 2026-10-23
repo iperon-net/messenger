@@ -6,7 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:path/path.dart' as p;
 
 import '../../chats/edit_media.dart';
-import '../../chats/media_prepare.dart' show thumbhashToBmp;
+import '../../chats/media_prepare.dart' show thumbhashImage;
 import '../../chats/video_prepare.dart' show ChatVideoCancelled;
 import '../../components.dart';
 import '../../cubit.dart';
@@ -208,8 +208,12 @@ class EditMediaStrip extends StatelessWidget {
     models.MessageKind.video when media.thumbPath.isNotEmpty => _video(
       Image.file(File(media.thumbPath), fit: BoxFit.cover, cacheWidth: 160),
     ),
-    models.MessageKind.photo ||
-    models.MessageKind.video => chatMediaPlaceholder(media.localPath, video: media.kind == models.MessageKind.video, iconSize: 18),
+    models.MessageKind.photo || models.MessageKind.video => chatMediaPlaceholder(
+      media.localPath,
+      video: media.kind == models.MessageKind.video,
+      iconSize: 18,
+      thumbhash: media.thumbhash,
+    ),
     _ => _file(p.basename(media.localPath)),
   };
 
@@ -226,9 +230,9 @@ class EditMediaStrip extends StatelessWidget {
     if (path.isNotEmpty) {
       image = ChatMediaImage(path: path, thumbhash: media.thumbhash, cacheWidth: 160);
     } else {
-      final preview = thumbhashToBmp(media.thumbhash);
+      final preview = thumbhashImage(media.thumbhash);
       image = preview != null
-          ? Image.memory(preview, fit: BoxFit.cover, gaplessPlayback: true)
+          ? Image(image: preview, fit: BoxFit.cover, gaplessPlayback: true)
           : chatMediaPlaceholder('${message.id}-$index', video: video, iconSize: 18);
     }
     return video ? _video(image) : image;

@@ -60,6 +60,7 @@ class MyProfile_Response extends $pb.GeneratedMessage {
     $1.CDN? avatar,
     $core.String? username,
     $core.bool? isPremium,
+    $core.String? avatarThumbhash,
   }) {
     final result = create();
     if (firstName != null) result.firstName = firstName;
@@ -69,6 +70,7 @@ class MyProfile_Response extends $pb.GeneratedMessage {
     if (avatar != null) result.avatar = avatar;
     if (username != null) result.username = username;
     if (isPremium != null) result.isPremium = isPremium;
+    if (avatarThumbhash != null) result.avatarThumbhash = avatarThumbhash;
     return result;
   }
 
@@ -88,6 +90,7 @@ class MyProfile_Response extends $pb.GeneratedMessage {
     ..aOM<$1.CDN>(5, _omitFieldNames ? '' : 'avatar', subBuilder: $1.CDN.create)
     ..aOS(6, _omitFieldNames ? '' : 'username')
     ..aOB(7, _omitFieldNames ? '' : 'isPremium', protoName: 'isPremium')
+    ..aOS(8, _omitFieldNames ? '' : 'avatarThumbhash', protoName: 'avatarThumbhash')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -174,6 +177,16 @@ class MyProfile_Response extends $pb.GeneratedMessage {
   $core.bool hasIsPremium() => $_has(6);
   @$pb.TagNumber(7)
   void clearIsPremium() => $_clearField(7);
+
+  /// ThumbHash аватара (как Profile.Response.avatarThumbhash).
+  @$pb.TagNumber(8)
+  $core.String get avatarThumbhash => $_getSZ(7);
+  @$pb.TagNumber(8)
+  set avatarThumbhash($core.String value) => $_setString(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasAvatarThumbhash() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearAvatarThumbhash() => $_clearField(8);
 }
 
 class MyProfile extends $pb.GeneratedMessage {
@@ -360,9 +373,11 @@ class MyProfileUpdate extends $pb.GeneratedMessage {
 class MyProfileAvatarUpdate_Request extends $pb.GeneratedMessage {
   factory MyProfileAvatarUpdate_Request({
     $core.List<$core.int>? cdnID,
+    $core.String? thumbhash,
   }) {
     final result = create();
     if (cdnID != null) result.cdnID = cdnID;
+    if (thumbhash != null) result.thumbhash = thumbhash;
     return result;
   }
 
@@ -377,6 +392,7 @@ class MyProfileAvatarUpdate_Request extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MyProfileAvatarUpdate.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'cdnID', $pb.PbFieldType.OY, protoName: 'cdnID')
+    ..aOS(2, _omitFieldNames ? '' : 'thumbhash')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -405,6 +421,19 @@ class MyProfileAvatarUpdate_Request extends $pb.GeneratedMessage {
   $core.bool hasCdnID() => $_has(0);
   @$pb.TagNumber(1)
   void clearCdnID() => $_clearField(1);
+
+  /// ThumbHash картинки (base64, считает клиент — сервер картинку не
+  /// декодирует). Тот же cdnID с thumbhash — дописать превью к уже
+  /// установленному аватару (загруженному до появления поля), файл не
+  /// меняется. Невалидный (не base64 или длиннее 64 байт) — отбрасывается.
+  @$pb.TagNumber(2)
+  $core.String get thumbhash => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set thumbhash($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasThumbhash() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearThumbhash() => $_clearField(2);
 }
 
 class MyProfileAvatarUpdate_Response extends $pb.GeneratedMessage {

@@ -450,7 +450,7 @@ class ChatInfoTabContent extends StatelessWidget {
             ? ChatMediaImage(path: item.thumbPath, thumbhash: item.thumbhash, cacheWidth: 360)
             : !item.isVideo && item.localPath.isNotEmpty
             ? ChatMediaImage(path: item.localPath, thumbhash: item.thumbhash, cacheWidth: 360)
-            : chatMediaPlaceholder('${item.message.id}-${item.index}', video: item.isVideo, iconSize: 26);
+            : chatMediaPlaceholder('${item.message.id}-${item.index}', video: item.isVideo, iconSize: 26, thumbhash: item.thumbhash);
         return GestureDetector(
           // Защита содержимого — в просмотре без сохранения / пересылки.
           onTap: () => showChatMediaViewer(

@@ -58,6 +58,7 @@ class ChatInfo extends $pb.GeneratedMessage {
     $core.List<$core.int>? parentChatID,
     $fixnum.Int64? postID,
     $fixnum.Int64? commentsCloseDate,
+    $core.String? avatarThumbhash,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -89,6 +90,7 @@ class ChatInfo extends $pb.GeneratedMessage {
     if (parentChatID != null) result.parentChatID = parentChatID;
     if (postID != null) result.postID = postID;
     if (commentsCloseDate != null) result.commentsCloseDate = commentsCloseDate;
+    if (avatarThumbhash != null) result.avatarThumbhash = avatarThumbhash;
     return result;
   }
 
@@ -130,6 +132,7 @@ class ChatInfo extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(27, _omitFieldNames ? '' : 'parentChatID', $pb.PbFieldType.OY, protoName: 'parentChatID')
     ..aInt64(28, _omitFieldNames ? '' : 'postID', protoName: 'postID')
     ..aInt64(29, _omitFieldNames ? '' : 'commentsCloseDate', protoName: 'commentsCloseDate')
+    ..aOS(30, _omitFieldNames ? '' : 'avatarThumbhash', protoName: 'avatarThumbhash')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -440,6 +443,17 @@ class ChatInfo extends $pb.GeneratedMessage {
   $core.bool hasCommentsCloseDate() => $_has(28);
   @$pb.TagNumber(29)
   void clearCommentsCloseDate() => $_clearField(29);
+
+  /// ThumbHash аватара (base64): размытое превью до скачивания (как
+  /// Profile.Response.avatarThumbhash). Хранится вместе с avatarCdnID.
+  @$pb.TagNumber(30)
+  $core.String get avatarThumbhash => $_getSZ(29);
+  @$pb.TagNumber(30)
+  set avatarThumbhash($core.String value) => $_setString(29, value);
+  @$pb.TagNumber(30)
+  $core.bool hasAvatarThumbhash() => $_has(29);
+  @$pb.TagNumber(30)
+  void clearAvatarThumbhash() => $_clearField(30);
 }
 
 /// Ссылка-приглашение (как chatInviteExported в Telegram). Путь ссылки —
@@ -8532,6 +8546,7 @@ class Chats_CreateGroup extends $pb.GeneratedMessage {
     $core.int? commentsTimeLimit,
     ChatCommentsWho? commentsWho,
     $core.int? commentsMinSubscription,
+    $core.String? avatarThumbhash,
   }) {
     final result = create();
     if (title != null) result.title = title;
@@ -8547,6 +8562,7 @@ class Chats_CreateGroup extends $pb.GeneratedMessage {
     if (commentsTimeLimit != null) result.commentsTimeLimit = commentsTimeLimit;
     if (commentsWho != null) result.commentsWho = commentsWho;
     if (commentsMinSubscription != null) result.commentsMinSubscription = commentsMinSubscription;
+    if (avatarThumbhash != null) result.avatarThumbhash = avatarThumbhash;
     return result;
   }
 
@@ -8572,6 +8588,7 @@ class Chats_CreateGroup extends $pb.GeneratedMessage {
     ..aI(11, _omitFieldNames ? '' : 'commentsTimeLimit', protoName: 'commentsTimeLimit')
     ..aE<ChatCommentsWho>(12, _omitFieldNames ? '' : 'commentsWho', protoName: 'commentsWho', enumValues: ChatCommentsWho.values)
     ..aI(13, _omitFieldNames ? '' : 'commentsMinSubscription', protoName: 'commentsMinSubscription')
+    ..aOS(14, _omitFieldNames ? '' : 'avatarThumbhash', protoName: 'avatarThumbhash')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -8708,6 +8725,16 @@ class Chats_CreateGroup extends $pb.GeneratedMessage {
   $core.bool hasCommentsMinSubscription() => $_has(12);
   @$pb.TagNumber(13)
   void clearCommentsMinSubscription() => $_clearField(13);
+
+  /// ThumbHash аватара (base64, считает клиент; невалидный отбрасывается).
+  @$pb.TagNumber(14)
+  $core.String get avatarThumbhash => $_getSZ(13);
+  @$pb.TagNumber(14)
+  set avatarThumbhash($core.String value) => $_setString(13, value);
+  @$pb.TagNumber(14)
+  $core.bool hasAvatarThumbhash() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearAvatarThumbhash() => $_clearField(14);
 }
 
 class Chats_CreateGroupResult extends $pb.GeneratedMessage {
@@ -8819,6 +8846,7 @@ class Chats_EditChat extends $pb.GeneratedMessage {
     $core.int? commentsTimeLimit,
     ChatCommentsWho? commentsWho,
     $core.int? commentsMinSubscription,
+    $core.String? avatarThumbhash,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -8839,6 +8867,7 @@ class Chats_EditChat extends $pb.GeneratedMessage {
     if (commentsTimeLimit != null) result.commentsTimeLimit = commentsTimeLimit;
     if (commentsWho != null) result.commentsWho = commentsWho;
     if (commentsMinSubscription != null) result.commentsMinSubscription = commentsMinSubscription;
+    if (avatarThumbhash != null) result.avatarThumbhash = avatarThumbhash;
     return result;
   }
 
@@ -8869,6 +8898,7 @@ class Chats_EditChat extends $pb.GeneratedMessage {
     ..aI(16, _omitFieldNames ? '' : 'commentsTimeLimit', protoName: 'commentsTimeLimit')
     ..aE<ChatCommentsWho>(17, _omitFieldNames ? '' : 'commentsWho', protoName: 'commentsWho', enumValues: ChatCommentsWho.values)
     ..aI(18, _omitFieldNames ? '' : 'commentsMinSubscription', protoName: 'commentsMinSubscription')
+    ..aOS(19, _omitFieldNames ? '' : 'avatarThumbhash', protoName: 'avatarThumbhash')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -9058,6 +9088,19 @@ class Chats_EditChat extends $pb.GeneratedMessage {
   $core.bool hasCommentsMinSubscription() => $_has(17);
   @$pb.TagNumber(18)
   void clearCommentsMinSubscription() => $_clearField(18);
+
+  /// ThumbHash аватара (base64): вместе со сменой avatarCdnID — превью новой
+  /// картинки (без него — пусто); при том же avatarCdnID — дописать превью к
+  /// уже стоящему фото (загруженному до появления поля) без служебного в
+  /// ленту, только chatInfo всем. Невалидный отбрасывается.
+  @$pb.TagNumber(19)
+  $core.String get avatarThumbhash => $_getSZ(18);
+  @$pb.TagNumber(19)
+  set avatarThumbhash($core.String value) => $_setString(18, value);
+  @$pb.TagNumber(19)
+  $core.bool hasAvatarThumbhash() => $_has(18);
+  @$pb.TagNumber(19)
+  void clearAvatarThumbhash() => $_clearField(19);
 }
 
 class Chats_ChatReactionsSettings extends $pb.GeneratedMessage {

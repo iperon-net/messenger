@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../chats/chats_mapping.dart' show idBytes;
-import '../../chats/media_prepare.dart' show thumbhashToBmp;
+import '../../chats/media_prepare.dart' show thumbhashImage;
 import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
@@ -216,12 +216,12 @@ class ReplyRow extends StatelessWidget {
   /// Превью фото / видео: скачанный файл, иначе размытое из thumbhash.
   Widget? _media() {
     if (reply.kind != models.MessageKind.photo && reply.kind != models.MessageKind.video) return null;
-    final preview = thumbhashToBmp(reply.thumbhash);
+    final preview = thumbhashImage(reply.thumbhash);
     final Widget image;
     if (reply.mediaPath.isNotEmpty) {
       image = ChatMediaImage(path: reply.mediaPath, thumbhash: reply.thumbhash, cacheWidth: 600);
     } else if (preview != null) {
-      image = Image.memory(preview, fit: BoxFit.cover, gaplessPlayback: true);
+      image = Image(image: preview, fit: BoxFit.cover, gaplessPlayback: true);
     } else {
       return null;
     }

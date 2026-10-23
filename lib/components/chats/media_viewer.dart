@@ -82,7 +82,19 @@ class ChatMediaItem {
 Object chatMediaHeroTag(models.Message message, int index) => 'chat-media-${message.id}-$index';
 
 /// Заглушка медиа без локального файла (демо): градиент по [seed] + значок.
-Widget chatMediaPlaceholder(String seed, {required bool video, double iconSize = 40}) {
+Widget chatMediaPlaceholder(String seed, {required bool video, double iconSize = 40, String thumbhash = ''}) {
+  // Есть ThumbHash — размытое превью самой картинки, пока она качается (у
+  // видео поверх — значок воспроизведения).
+  final preview = thumbhashImage(thumbhash);
+  if (preview != null) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image(image: preview, fit: BoxFit.cover, gaplessPlayback: true),
+        if (video) Center(child: ChatVideoPlayBadge(size: iconSize * 1.2)),
+      ],
+    );
+  }
   final hue = (seed.hashCode.abs() % 360).toDouble();
   return Container(
     decoration: BoxDecoration(
@@ -109,14 +121,14 @@ class ChatMediaImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final preview = thumbhashToBmp(thumbhash);
+    final preview = thumbhashImage(thumbhash);
     return Image.file(
       File(path),
       fit: fit,
       cacheWidth: cacheWidth,
       frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
         if (frame != null || wasSynchronouslyLoaded || preview == null) return child;
-        return Image.memory(preview, fit: fit, gaplessPlayback: true);
+        return Image(image: preview, fit: fit, gaplessPlayback: true);
       },
     );
   }
@@ -503,7 +515,7 @@ class _ZoomablePageState extends State<_ZoomablePage> with SingleTickerProviderS
         ? _VideoView(item: item, video: widget.video, onTogglePlay: widget.onTogglePlay)
         : AspectRatio(
             aspectRatio: 4 / 3,
-            child: chatMediaPlaceholder('${item.message.id}-${item.index}', video: video, iconSize: 64),
+            child: chatMediaPlaceholder('${item.message.id}-${item.index}', video: video, iconSize: 64, thumbhash: item.thumbhash),
           );
     return GestureDetector(
       onDoubleTapDown: (details) => _doubleTapAt = details.localPosition,

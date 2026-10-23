@@ -19,6 +19,8 @@ message MyProfile {
     optional string username = 6;
     // Premium-тариф (создание секретных чатов и т.п.). Пока ставится вручную в БД.
     bool isPremium = 7;
+    // ThumbHash аватара (как Profile.Response.avatarThumbhash).
+    string avatarThumbhash = 8;
   }
 }
 
@@ -37,6 +39,11 @@ message MyProfileUpdate {
 message MyProfileAvatarUpdate {
   message Request {
     bytes cdnID = 1;
+    // ThumbHash картинки (base64, считает клиент — сервер картинку не
+    // декодирует). Тот же cdnID с thumbhash — дописать превью к уже
+    // установленному аватару (загруженному до появления поля), файл не
+    // меняется. Невалидный (не base64 или длиннее 64 байт) — отбрасывается.
+    string thumbhash = 2;
   }
 
   message Response {

@@ -7,6 +7,7 @@ import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 
 import '../api.dart';
 import '../cdn.dart';
+import '../chats/media_prepare.dart' show thumbhashImage;
 import '../di.dart';
 import '../logger.dart';
 import '../models.dart' as models;
@@ -32,6 +33,10 @@ import '../utils.dart';
 /// её сразу, без плейсхолдера и чтения с диска. Смена / снятие аватара
 /// (`Profiles.avatarChanges`, например после открытия профиля) обновляет уже
 /// построенные строки.
+///
+/// Пока картинки нет, но известен её ThumbHash (приходит в PROFILE раньше
+/// файла, `profiles.avatarThumbhash`) — размытое превью вместо заглушки;
+/// известные превью тоже держатся в памяти ([_UserAvatarState._thumbhashes]).
 ///
 /// Незарегистрированные контакты ([userID] == null) показывают только плейсхолдер.
 class UserAvatar extends StatefulWidget {
@@ -66,17 +71,23 @@ class _UserAvatarState extends State<UserAvatar> {
   static final Map<String, ({String cdnID, Uint8List bytes})> _memory = {};
   static const _memoryLimit = 500;
 
+  // ThumbHash аватара по userID (hex) — чтобы строка, построенная позже,
+  // сразу рисовала превью, не дожидаясь чтения профиля из БД.
+  static final Map<String, String> _thumbhashes = {};
+
   final _cdn = getIt.get<CDNManager>();
   final _repositories = getIt.get<Repositories>();
   final _logger = getIt.get<Logger>();
 
   Uint8List? _bytes;
+  String _thumbhash = '';
   StreamSubscription<Uint8List>? _changes;
 
   @override
   void initState() {
     super.initState();
     _bytes = _remembered(widget.userID);
+    _thumbhash = _rememberedThumbhash(widget.userID);
     _changes = _repositories.profiles.avatarChanges.listen((userID) {
       if (_sameUser(widget.userID, userID)) _load();
     });
@@ -88,7 +99,10 @@ class _UserAvatarState extends State<UserAvatar> {
     super.didUpdateWidget(oldWidget);
     // Элемент списка переиспользован под другой userID — перезагружаем.
     if (!_sameUser(oldWidget.userID, widget.userID)) {
-      setState(() => _bytes = _remembered(widget.userID));
+      setState(() {
+        _bytes = _remembered(widget.userID);
+        _thumbhash = _rememberedThumbhash(widget.userID);
+      });
       _load();
     }
   }
@@ -106,6 +120,11 @@ class _UserAvatarState extends State<UserAvatar> {
     return _memory[_hex(userID)]?.bytes;
   }
 
+  static String _rememberedThumbhash(Uint8List? userID) {
+    if (userID == null || userID.isEmpty) return '';
+    return _thumbhashes[_hex(userID)] ?? '';
+  }
+
   bool _sameUser(Uint8List? a, Uint8List? b) {
     if (a == null || b == null) return a == b;
     return listEquals(a, b);
@@ -121,6 +140,7 @@ class _UserAvatarState extends State<UserAvatar> {
     // показанным — файл не перечитываем.
     try {
       final profile = await _repositories.profiles.getByUserID(userID: userID);
+      _setThumbhash(userID, profile.avatarThumbhash);
       final cdnID = profile.avatarCdnID;
       if (cdnID != null && cdnID.isNotEmpty) {
         final cdnHex = _hex(Uint8List.fromList(cdnID));
@@ -161,6 +181,17 @@ class _UserAvatarState extends State<UserAvatar> {
     } catch (error, stackTrace) {
       _logger.handle(error, stackTrace);
     }
+  }
+
+  void _setThumbhash(Uint8List userID, String thumbhash) {
+    final hex = _hex(userID);
+    _thumbhashes.remove(hex);
+    if (thumbhash.isNotEmpty) {
+      if (_thumbhashes.length >= _memoryLimit) _thumbhashes.remove(_thumbhashes.keys.first);
+      _thumbhashes[hex] = thumbhash;
+    }
+    if (!mounted || !_sameUser(widget.userID, userID) || _thumbhash == thumbhash) return;
+    setState(() => _thumbhash = thumbhash);
   }
 
   void _set(Uint8List userID, Uint8List? bytes) {
@@ -206,6 +237,9 @@ class _UserAvatarState extends State<UserAvatar> {
   @override
   Widget build(BuildContext context) {
     final bytes = _bytes;
+    final preview = thumbhashImage(_thumbhash);
+    Widget blurred(ImageProvider image) =>
+        Image(image: image, width: widget.size, height: widget.size, fit: BoxFit.cover, gaplessPlayback: true);
     return SizedBox(
       width: widget.size,
       height: widget.size,
@@ -221,8 +255,12 @@ class _UserAvatarState extends State<UserAvatar> {
                 // аватарки — критично для списка из сотен строк.
                 cacheWidth: (widget.size * MediaQuery.devicePixelRatioOf(context)).round(),
                 cacheHeight: (widget.size * MediaQuery.devicePixelRatioOf(context)).round(),
+                // Первый декод асинхронный — до него превью, а не пустота.
+                frameBuilder: preview == null ? null : (context, child, frame, sync) => frame != null || sync ? child : blurred(preview),
               ),
             )
+          : preview != null
+          ? ClipOval(child: blurred(preview))
           // Прозрачная подложка ловит тапы: hitTest заглушки смотрит на размер с
           // последней отрисовки, и после перестройки без перерисовки (новый
           // painter) тап мимо — аватар «не нажимается».

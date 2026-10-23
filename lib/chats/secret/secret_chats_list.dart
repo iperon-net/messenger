@@ -72,15 +72,19 @@ String secretServiceText(Translations t, SecretMessageRecord message, String nam
 }
 
 /// Фото собеседника из кэша профилей (как в обычных чатах); пусто — нет.
-Future<String> secretPeerAvatar(List<int> peerUserID) async {
+Future<String> secretPeerAvatar(List<int> peerUserID) async => (await _secretPeerAvatar(peerUserID)).path;
+
+/// Фото собеседника и его ThumbHash (превью, пока фото не скачано).
+Future<({String path, String thumbhash})> _secretPeerAvatar(List<int> peerUserID) async {
   try {
     final profile = await getIt.get<Repositories>().profiles.getByUserID(userID: peerUserID);
     final cdnID = profile.avatarCdnID;
-    if (cdnID == null || cdnID.isEmpty) return '';
-    return (await getIt.get<CDNManager>().cachedFile(Uint8List.fromList(cdnID)))?.path ?? '';
+    if (cdnID == null || cdnID.isEmpty) return (path: '', thumbhash: profile.avatarThumbhash);
+    final path = (await getIt.get<CDNManager>().cachedFile(Uint8List.fromList(cdnID)))?.path ?? '';
+    return (path: path, thumbhash: profile.avatarThumbhash);
   } catch (error, stackTrace) {
     getIt.get<Logger>().handle(error, stackTrace);
-    return '';
+    return (path: '', thumbhash: '');
   }
 }
 
@@ -99,13 +103,16 @@ Stream<List<models.Chat>> watchSecretChats() {
     final records = await repositories.secretChats.chats(sessionID: sessionID);
     final names = <String, String>{};
     final t = LocaleSettings.instance.currentTranslations;
-    return [
-      for (final record in records)
+    final chats = <models.Chat>[];
+    for (final record in records) {
+      final avatar = await _secretPeerAvatar(record.peerUserID);
+      chats.add(
         models.Chat(
           id: secretChatListID(record.secretChatID),
           type: models.ChatType.private,
           title: names[utils.bytesToHex(record.peerUserID)] ??= await peerDisplayName(record.peerUserID),
-          avatarPath: await secretPeerAvatar(record.peerUserID),
+          avatarPath: avatar.path,
+          avatarThumbhash: avatar.thumbhash,
           ttlPeriod: record.ttl,
           peerUserID: utils.bytesToHex(record.peerUserID),
           secretStatus: secretChatStatus(record.state),
@@ -123,7 +130,9 @@ Stream<List<models.Chat>> watchSecretChats() {
                   date: record.lastMessage!.date,
                 ),
         ),
-    ];
+      );
+    }
+    return chats;
   }
 
   void reload() {

@@ -106,6 +106,7 @@ class Profile_Response extends $pb.GeneratedMessage {
     $core.List<$core.int>? userID,
     $core.bool? hideBirthYear,
     $core.bool? official,
+    $core.String? avatarThumbhash,
   }) {
     final result = create();
     if (firstName != null) result.firstName = firstName;
@@ -118,6 +119,7 @@ class Profile_Response extends $pb.GeneratedMessage {
     if (userID != null) result.userID = userID;
     if (hideBirthYear != null) result.hideBirthYear = hideBirthYear;
     if (official != null) result.official = official;
+    if (avatarThumbhash != null) result.avatarThumbhash = avatarThumbhash;
     return result;
   }
 
@@ -140,6 +142,7 @@ class Profile_Response extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(8, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY, protoName: 'userID')
     ..aOB(9, _omitFieldNames ? '' : 'hideBirthYear')
     ..aOB(10, _omitFieldNames ? '' : 'official')
+    ..aOS(11, _omitFieldNames ? '' : 'avatarThumbhash', protoName: 'avatarThumbhash')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -260,6 +263,19 @@ class Profile_Response extends $pb.GeneratedMessage {
   $core.bool hasOfficial() => $_has(9);
   @$pb.TagNumber(10)
   void clearOfficial() => $_clearField(10);
+
+  /// ThumbHash аватара (base64, ~30 байт): размытое превью, пока сама
+  /// картинка качается — едет вместе с профилем, без отдельной загрузки.
+  /// Гейты те же, что у avatar (заблокированному не отдаётся). Пусто — нет
+  /// аватара или он загружен до появления поля.
+  @$pb.TagNumber(11)
+  $core.String get avatarThumbhash => $_getSZ(10);
+  @$pb.TagNumber(11)
+  set avatarThumbhash($core.String value) => $_setString(10, value);
+  @$pb.TagNumber(11)
+  $core.bool hasAvatarThumbhash() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearAvatarThumbhash() => $_clearField(11);
 }
 
 class Profile extends $pb.GeneratedMessage {

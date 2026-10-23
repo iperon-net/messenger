@@ -957,6 +957,15 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(48, (tx) async {
+        // ThumbHash аватара (размытое превью из PROFILE): пишется сразу, ещё до
+        // скачивания картинки — в отличие от avatarCdnID, который привязывается
+        // только к скачанному файлу (FK на downloads).
+        await tx.execute("ALTER TABLE profiles ADD COLUMN avatarThumbhash TEXT NOT NULL DEFAULT '';");
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 

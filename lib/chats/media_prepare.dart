@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/painting.dart' show ImageProvider, MemoryImage;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -138,6 +139,18 @@ Future<({int width, int height})?> _dimensions(Uint8List bytes) async {
 /// ThumbHash картинки (base64) — и для кадра-превью видео.
 Future<String> chatThumbhash(Uint8List image) => _thumbhash(image);
 
+/// ThumbHash аватара (своего, группы) — размытое превью у тех, кто ещё не
+/// скачал картинку. Не вышло (не картинка) — пусто: превью необязательно,
+/// аватар ставится и без него.
+Future<String> avatarThumbhash(Uint8List image) async {
+  try {
+    return await _thumbhash(image);
+  } catch (error, stackTrace) {
+    getIt.get<Logger>().handle(error, stackTrace);
+    return '';
+  }
+}
+
 /// Сжатые фото и видео ждут загрузки здесь (см. [_outputDir]).
 Future<Directory> chatMediaOutputDir() => _outputDir();
 
@@ -171,6 +184,24 @@ Uint8List? thumbhashToBmp(String thumbhash) {
   } catch (_) {
     return null;
   }
+}
+
+// Превью по строке ThumbHash (LRU): одна и та же [MemoryImage] на каждый
+// build, иначе новые байты — новая картинка, повторный декод и мигание.
+final _thumbhashImages = <String, MemoryImage?>{};
+const _thumbhashImagesLimit = 500;
+
+/// Размытое превью из ThumbHash для `Image(image: …)` (фото, видео,
+/// аватарки до загрузки); `null` — пусто или не ThumbHash.
+ImageProvider? thumbhashImage(String thumbhash) {
+  if (thumbhash.isEmpty) return null;
+  if (_thumbhashImages.containsKey(thumbhash)) {
+    final cached = _thumbhashImages.remove(thumbhash);
+    return _thumbhashImages[thumbhash] = cached;
+  }
+  if (_thumbhashImages.length >= _thumbhashImagesLimit) _thumbhashImages.remove(_thumbhashImages.keys.first);
+  final bmp = thumbhashToBmp(thumbhash);
+  return _thumbhashImages[thumbhash] = bmp == null ? null : MemoryImage(bmp);
 }
 
 /// Сжатые файлы ждут загрузки здесь (temp: система может почистить, но к

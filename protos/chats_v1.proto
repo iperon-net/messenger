@@ -142,6 +142,9 @@ message ChatInfo {
   bytes parentChatID = 27;
   int64 postID = 28;
   int64 commentsCloseDate = 29;
+  // ThumbHash аватара (base64): размытое превью до скачивания (как
+  // Profile.Response.avatarThumbhash). Хранится вместе с avatarCdnID.
+  string avatarThumbhash = 30;
 }
 
 // Ссылка-приглашение (как chatInviteExported в Telegram). Путь ссылки —
@@ -1302,6 +1305,8 @@ message Chats {
     int32 commentsTimeLimit = 11;
     ChatCommentsWho commentsWho = 12;
     int32 commentsMinSubscription = 13;
+    // ThumbHash аватара (base64, считает клиент; невалидный отбрасывается).
+    string avatarThumbhash = 14;
   }
 
   message CreateGroupResult {
@@ -1355,6 +1360,11 @@ message Chats {
     optional int32 commentsTimeLimit = 16;
     optional ChatCommentsWho commentsWho = 17;
     optional int32 commentsMinSubscription = 18;
+    // ThumbHash аватара (base64): вместе со сменой avatarCdnID — превью новой
+    // картинки (без него — пусто); при том же avatarCdnID — дописать превью к
+    // уже стоящему фото (загруженному до появления поля) без служебного в
+    // ленту, только chatInfo всем. Невалидный отбрасывается.
+    optional string avatarThumbhash = 19;
   }
 
   message ChatReactionsSettings {

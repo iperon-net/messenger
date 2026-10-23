@@ -5,6 +5,7 @@ import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../../chats/media_prepare.dart' show thumbhashImage;
 import '../../models.dart' as models;
 
 /// Аватар строки списка чатов: фото чата ([models.Chat.avatarPath]) или
@@ -128,11 +129,29 @@ class ChatAvatar extends StatelessWidget {
         ? RoundedRectangleBorder(borderRadius: BorderRadius.circular(size * 0.28))
         : const CircleBorder();
 
-    // Своё фото (созданный в демо чат) — в той же форме, что и плейсхолдер.
+    // Размытое превью (ThumbHash) — пока фото качается или декодируется,
+    // вместо заглушки, которая потом «прыгала» в картинку.
+    final preview = thumbhashImage(chat.avatarThumbhash);
+    Widget blurred(ImageProvider image) => Image(image: image, width: size, height: size, fit: BoxFit.cover, gaplessPlayback: true);
+
+    // Фото — в той же форме, что и плейсхолдер.
     if (chat.avatarPath.isNotEmpty) {
       return ClipPath(
         clipper: ShapeBorderClipper(shape: shape),
-        child: chatImage(chat.avatarPath, width: size, height: size, fit: BoxFit.cover, cacheWidth: (size * 3).round()),
+        child: chatImage(
+          chat.avatarPath,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          cacheWidth: (size * 3).round(),
+          frameBuilder: preview == null ? null : (context, child, frame, sync) => frame != null || sync ? child : blurred(preview),
+        ),
+      );
+    }
+    if (preview != null) {
+      return ClipPath(
+        clipper: ShapeBorderClipper(shape: shape),
+        child: blurred(preview),
       );
     }
 
@@ -183,6 +202,7 @@ class SystemAccountAvatar extends StatelessWidget {
 
 /// Картинка чата (аватар, обложка) по пути: файл с устройства или ассет
 /// демо-данных (`assets/…`).
-Image chatImage(String path, {double? width, double? height, BoxFit? fit, int? cacheWidth}) => path.startsWith('assets/')
-    ? Image.asset(path, width: width, height: height, fit: fit, cacheWidth: cacheWidth)
-    : Image.file(File(path), width: width, height: height, fit: fit, cacheWidth: cacheWidth);
+Image chatImage(String path, {double? width, double? height, BoxFit? fit, int? cacheWidth, ImageFrameBuilder? frameBuilder}) =>
+    path.startsWith('assets/')
+    ? Image.asset(path, width: width, height: height, fit: fit, cacheWidth: cacheWidth, frameBuilder: frameBuilder)
+    : Image.file(File(path), width: width, height: height, fit: fit, cacheWidth: cacheWidth, frameBuilder: frameBuilder);

@@ -9,6 +9,7 @@ import 'package:talker_grpc_logger/talker_grpc_logger.dart';
 import 'auth.dart';
 import 'cdn.dart';
 import 'chats/chats_sync.dart';
+import 'chats/media_prepare.dart' show avatarThumbhash;
 import 'chats/secret/secret_chats_sync.dart';
 import 'models.dart' as models;
 import 'utils.dart';
@@ -703,6 +704,9 @@ class API {
       aboutMe: payload.aboutMe,
       phoneNumber: payload.phoneNumber,
     );
+    // Размытое превью — сразу, до скачивания картинки: строки покажут его
+    // вместо заглушки.
+    await repositories.profiles.setAvatarThumbhash(userID: userID, thumbhash: payload.hasAvatar() ? payload.avatarThumbhash : '');
 
     Future<void> avatar() async {
       if (payload.hasAvatar()) {
@@ -723,6 +727,25 @@ class API {
     } else {
       unawaited(avatar());
     }
+  }
+
+  // Аватары (cdnID hex), к которым уже пробовали дописать превью: не
+  // вышло посчитать — сервер снова пришлёт MY_PROFILE без него, без
+  // отметки это был бы цикл.
+  final _thumbhashBackfilled = <String>{};
+
+  /// Мой аватар загружен до появления ThumbHash — досчитываем по скачанному
+  /// файлу и дописываем тем же cdnID (файл не меняется), чтобы у других до
+  /// загрузки было размытое превью, а не заглушка. Раз за запуск.
+  Future<void> _backfillAvatarThumbhash(List<int> cdnID, Uint8List image) async {
+    if (!_thumbhashBackfilled.add(getIt.get<Utils>().bytesToHex(Uint8List.fromList(cdnID)))) return;
+    final thumbhash = await avatarThumbhash(image);
+    if (thumbhash.isEmpty) return;
+    final status = await unaryEncoded(
+      MessageType.MY_PROFILE_AVATAR_UPDATE,
+      MyProfileAvatarUpdate_Request(cdnID: cdnID, thumbhash: thumbhash).writeToBuffer(),
+    );
+    if (status.status == APIStatus.error) logger.warning('avatar thumbhash backfill failed: $status');
   }
 
   Future<void> _handleMessage(IncomingMessage message, models.Session session) async {
@@ -784,8 +807,9 @@ class API {
           unawaited(() async {
             try {
               final cdn = models.CDN.fromProto(payload.avatar);
-              await getIt.get<CDNManager>().download(cdn: cdn);
+              final file = await getIt.get<CDNManager>().download(cdn: cdn);
               await repositories.myProfile.updateAvatarByCdnID(userID: session.userID, cdnID: cdn.cdnID);
+              if (payload.avatarThumbhash.isEmpty) await _backfillAvatarThumbhash(cdn.cdnID, await file.readAsBytes());
             } catch (error, stackTrace) {
               logger.handle(error, stackTrace);
             }

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../chats/media_prepare.dart' show thumbhashImage;
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -294,46 +295,54 @@ class _ProfileViewState extends State<_ProfileView> {
   );
 
   /// Аватар: есть фото — тап открывает его во весь экран.
-  Widget _avatar(BuildContext context, ProfileState profile, String name) => SizedBox(
-    width: 96,
-    height: 96,
-    child: profileIsSystem(profile.userID)
-        ? SystemAccountAvatar(
-            size: 96,
-            background: Theme.of(context).colorScheme.primary,
-            foreground: Theme.of(context).colorScheme.onPrimary,
-          )
-        : profile.avatarBytes != null
-        ? GestureDetector(
-            onTap: () => showAvatarViewer(context, bytes: profile.avatarBytes!, heroTag: _avatarHero, title: name),
-            child: Hero(
-              tag: _avatarHero,
-              child: ClipOval(
-                child: Image.memory(
-                  profile.avatarBytes!,
-                  width: 96,
-                  height: 96,
-                  fit: BoxFit.cover,
-                  gaplessPlayback: true,
-                  // Аватар может прийти в исходном разрешении (2000+ px, ~1 МБ).
-                  // Без cacheWidth/cacheHeight движок декодирует его в полный
-                  // битмап (для 2316² это ~21 МБ) на слот 96×96 — отсюда сотни мс
-                  // декода и дропнутые кадры при открытии. Декодируем сразу под
-                  // размер слота в физических пикселях.
-                  cacheWidth: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
-                  cacheHeight: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
+  Widget _avatar(BuildContext context, ProfileState profile, String name) {
+    final preview = thumbhashImage(profile.avatarThumbhash);
+    return SizedBox(
+      width: 96,
+      height: 96,
+      child: profileIsSystem(profile.userID)
+          ? SystemAccountAvatar(
+              size: 96,
+              background: Theme.of(context).colorScheme.primary,
+              foreground: Theme.of(context).colorScheme.onPrimary,
+            )
+          : profile.avatarBytes != null
+          ? GestureDetector(
+              onTap: () => showAvatarViewer(context, bytes: profile.avatarBytes!, heroTag: _avatarHero, title: name),
+              child: Hero(
+                tag: _avatarHero,
+                child: ClipOval(
+                  child: Image.memory(
+                    profile.avatarBytes!,
+                    width: 96,
+                    height: 96,
+                    fit: BoxFit.cover,
+                    gaplessPlayback: true,
+                    // Аватар может прийти в исходном разрешении (2000+ px, ~1 МБ).
+                    // Без cacheWidth/cacheHeight движок декодирует его в полный
+                    // битмап (для 2316² это ~21 МБ) на слот 96×96 — отсюда сотни мс
+                    // декода и дропнутые кадры при открытии. Декодируем сразу под
+                    // размер слота в физических пикселях.
+                    cacheWidth: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
+                    cacheHeight: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
+                  ),
                 ),
               ),
+            )
+          // Фото ещё качается — размытое превью вместо заглушки.
+          : preview != null
+          ? ClipOval(
+              child: Image(image: preview, width: 96, height: 96, fit: BoxFit.cover, gaplessPlayback: true),
+            )
+          : AnimatedBoringAvatar(
+              name: profile.boringAvatarHash,
+              type: profile.boringAvatarType,
+              shape: const CircleBorder(),
+              curve: Curves.bounceIn,
+              duration: const Duration(seconds: 1),
             ),
-          )
-        : AnimatedBoringAvatar(
-            name: profile.boringAvatarHash,
-            type: profile.boringAvatarType,
-            shape: const CircleBorder(),
-            curve: Curves.bounceIn,
-            duration: const Duration(seconds: 1),
-          ),
-  );
+    );
+  }
 
   Widget _build(BuildContext context, ProfileState profile, ChatState? chatState) {
     final t = context.t;

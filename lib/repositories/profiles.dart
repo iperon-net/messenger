@@ -18,7 +18,7 @@ class Profiles {
 
   Future<models.Profile> getByUserID({required List<int> userID}) async {
     final rows = await db.execute(
-      "SELECT userID, username, fistName, lastName, birthDate, hideBirthYear, aboutMe, phoneNumber, avatarCdnID, lastSeenAt FROM profiles WHERE userID = ?;",
+      "SELECT userID, username, fistName, lastName, birthDate, hideBirthYear, aboutMe, phoneNumber, avatarCdnID, avatarThumbhash, lastSeenAt FROM profiles WHERE userID = ?;",
       [userID],
     );
     if (rows.isEmpty) return models.Profile();
@@ -38,7 +38,7 @@ class Profiles {
     if (userIDs.isEmpty) return {};
     final placeholders = List.filled(userIDs.length, '?').join(',');
     final rows = await db.execute(
-      "SELECT userID, username, fistName, lastName, birthDate, hideBirthYear, aboutMe, phoneNumber, avatarCdnID, lastSeenAt FROM profiles WHERE userID IN ($placeholders);",
+      "SELECT userID, username, fistName, lastName, birthDate, hideBirthYear, aboutMe, phoneNumber, avatarCdnID, avatarThumbhash, lastSeenAt FROM profiles WHERE userID IN ($placeholders);",
       userIDs,
     );
     return {for (final row in rows) toHex(row["userID"] as List<int>): models.ProfileMapper.fromMap(row)};
@@ -123,6 +123,24 @@ class Profiles {
       [userID, cdnID],
     );
     _avatarChanges.add(Uint8List.fromList(userID));
+  }
+
+  /// ThumbHash аватара из PROFILE — пишется сразу, до скачивания картинки
+  /// (пустой — аватара нет). Сменился — событие [avatarChanges]: строки
+  /// [UserAvatar] покажут размытое превью, пока файл качается.
+  Future<void> setAvatarThumbhash({required List<int> userID, required String thumbhash}) async {
+    final rows = await db.execute(
+      """
+      INSERT INTO profiles (userID, avatarThumbhash)
+      VALUES(?, ?)
+      ON CONFLICT(userID) DO UPDATE SET
+        avatarThumbhash = excluded.avatarThumbhash
+      WHERE profiles.avatarThumbhash IS NOT excluded.avatarThumbhash
+      RETURNING userID;
+      """,
+      [userID, thumbhash],
+    );
+    if (rows.isNotEmpty) _avatarChanges.add(Uint8List.fromList(userID));
   }
 
   /// Привязанные аватары, которые уже скачаны (строка `downloads` в статусе

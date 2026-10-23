@@ -128,6 +128,13 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
     _$avatarBytes,
     opt: true,
   );
+  static String _$avatarThumbhash(ProfileState v) => v.avatarThumbhash;
+  static const Field<ProfileState, String> _f$avatarThumbhash = Field(
+    'avatarThumbhash',
+    _$avatarThumbhash,
+    opt: true,
+    def: "",
+  );
   static bool _$online(ProfileState v) => v.online;
   static const Field<ProfileState, bool> _f$online = Field(
     'online',
@@ -201,6 +208,7 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
     #boringAvatarHash: _f$boringAvatarHash,
     #boringAvatarType: _f$boringAvatarType,
     #avatarBytes: _f$avatarBytes,
+    #avatarThumbhash: _f$avatarThumbhash,
     #online: _f$online,
     #lastSeen: _f$lastSeen,
     #chatID: _f$chatID,
@@ -228,6 +236,7 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
       boringAvatarHash: data.dec(_f$boringAvatarHash),
       boringAvatarType: data.dec(_f$boringAvatarType),
       avatarBytes: data.dec(_f$avatarBytes),
+      avatarThumbhash: data.dec(_f$avatarThumbhash),
       online: data.dec(_f$online),
       lastSeen: data.dec(_f$lastSeen),
       chatID: data.dec(_f$chatID),
@@ -318,6 +327,7 @@ abstract class ProfileStateCopyWith<$R, $In extends ProfileState, $Out>
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
     Uint8List? avatarBytes,
+    String? avatarThumbhash,
     bool? online,
     DateTime? lastSeen,
     String? chatID,
@@ -362,6 +372,7 @@ class _ProfileStateCopyWithImpl<$R, $Out>
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
     Object? avatarBytes = $none,
+    String? avatarThumbhash,
     bool? online,
     Object? lastSeen = $none,
     String? chatID,
@@ -387,6 +398,7 @@ class _ProfileStateCopyWithImpl<$R, $Out>
       if (boringAvatarHash != null) #boringAvatarHash: boringAvatarHash,
       if (boringAvatarType != null) #boringAvatarType: boringAvatarType,
       if (avatarBytes != $none) #avatarBytes: avatarBytes,
+      if (avatarThumbhash != null) #avatarThumbhash: avatarThumbhash,
       if (online != null) #online: online,
       if (lastSeen != $none) #lastSeen: lastSeen,
       if (chatID != null) #chatID: chatID,
@@ -414,6 +426,7 @@ class _ProfileStateCopyWithImpl<$R, $Out>
     boringAvatarHash: data.get(#boringAvatarHash, or: $value.boringAvatarHash),
     boringAvatarType: data.get(#boringAvatarType, or: $value.boringAvatarType),
     avatarBytes: data.get(#avatarBytes, or: $value.avatarBytes),
+    avatarThumbhash: data.get(#avatarThumbhash, or: $value.avatarThumbhash),
     online: data.get(#online, or: $value.online),
     lastSeen: data.get(#lastSeen, or: $value.lastSeen),
     chatID: data.get(#chatID, or: $value.chatID),

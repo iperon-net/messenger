@@ -84,6 +84,13 @@ class ProfileMapper extends ClassMapperBase<Profile> {
     _$avatarCdnID,
     opt: true,
   );
+  static String _$avatarThumbhash(Profile v) => v.avatarThumbhash;
+  static const Field<Profile, String> _f$avatarThumbhash = Field(
+    'avatarThumbhash',
+    _$avatarThumbhash,
+    opt: true,
+    def: "",
+  );
   static DateTime? _$lastSeenAt(Profile v) => v.lastSeenAt;
   static const Field<Profile, DateTime> _f$lastSeenAt = Field(
     'lastSeenAt',
@@ -102,6 +109,7 @@ class ProfileMapper extends ClassMapperBase<Profile> {
     #aboutMe: _f$aboutMe,
     #phoneNumber: _f$phoneNumber,
     #avatarCdnID: _f$avatarCdnID,
+    #avatarThumbhash: _f$avatarThumbhash,
     #lastSeenAt: _f$lastSeenAt,
   };
 
@@ -116,6 +124,7 @@ class ProfileMapper extends ClassMapperBase<Profile> {
       aboutMe: data.dec(_f$aboutMe),
       phoneNumber: data.dec(_f$phoneNumber),
       avatarCdnID: data.dec(_f$avatarCdnID),
+      avatarThumbhash: data.dec(_f$avatarThumbhash),
       lastSeenAt: data.dec(_f$lastSeenAt),
     );
   }
@@ -189,6 +198,7 @@ abstract class ProfileCopyWith<$R, $In extends Profile, $Out>
     String? aboutMe,
     String? phoneNumber,
     List<int>? avatarCdnID,
+    String? avatarThumbhash,
     DateTime? lastSeenAt,
   });
   ProfileCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
@@ -229,6 +239,7 @@ class _ProfileCopyWithImpl<$R, $Out>
     String? aboutMe,
     String? phoneNumber,
     Object? avatarCdnID = $none,
+    String? avatarThumbhash,
     Object? lastSeenAt = $none,
   }) => $apply(
     FieldCopyWithData({
@@ -241,6 +252,7 @@ class _ProfileCopyWithImpl<$R, $Out>
       if (aboutMe != null) #aboutMe: aboutMe,
       if (phoneNumber != null) #phoneNumber: phoneNumber,
       if (avatarCdnID != $none) #avatarCdnID: avatarCdnID,
+      if (avatarThumbhash != null) #avatarThumbhash: avatarThumbhash,
       if (lastSeenAt != $none) #lastSeenAt: lastSeenAt,
     }),
   );
@@ -255,6 +267,7 @@ class _ProfileCopyWithImpl<$R, $Out>
     aboutMe: data.get(#aboutMe, or: $value.aboutMe),
     phoneNumber: data.get(#phoneNumber, or: $value.phoneNumber),
     avatarCdnID: data.get(#avatarCdnID, or: $value.avatarCdnID),
+    avatarThumbhash: data.get(#avatarThumbhash, or: $value.avatarThumbhash),
     lastSeenAt: data.get(#lastSeenAt, or: $value.lastSeenAt),
   );
 

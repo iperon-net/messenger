@@ -12,6 +12,7 @@ import '../../logger.dart';
 import '../../protobuf.dart';
 import '../../repositories/repositories.dart';
 import '../../cdn.dart';
+import '../../chats/media_prepare.dart' show avatarThumbhash;
 import '../../utils.dart';
 import '../../models.dart' as models;
 import 'settings_my_profile_state.dart';
@@ -162,9 +163,11 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
       return;
     }
 
+    // Размытое превью для тех, кто ещё не скачал картинку (едет в PROFILE).
+    final thumbhash = await avatarThumbhash(bytes);
     final status = await api.unaryEncoded(
       MessageType.MY_PROFILE_AVATAR_UPDATE,
-      MyProfileAvatarUpdate_Request(cdnID: cdn.cdnID).writeToBuffer(),
+      MyProfileAvatarUpdate_Request(cdnID: cdn.cdnID, thumbhash: thumbhash).writeToBuffer(),
     );
     if (isClosed) return;
 

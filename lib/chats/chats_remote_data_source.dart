@@ -29,6 +29,7 @@ import 'chats_typing.dart';
 import 'chats_media.dart';
 import 'edit_media.dart';
 import 'chats_sync.dart';
+import 'media_prepare.dart' show avatarThumbhash;
 import 'message_search.dart';
 import 'reactions.dart';
 import 'history_window.dart';
@@ -376,6 +377,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         // Публичный канал без подписки (4.4): в списке и счётчиках его нет
         // (`isMember == false`), окно чата читает его кэш, внизу «Подписаться».
         final browsing = group.browsing;
+        _backfillGroupThumbhash(group);
         chats.add(
           models.Chat(
             id: id,
@@ -383,6 +385,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
             title: group.info.title,
             about: group.info.about,
             avatarPath: await _groupAvatar(group.info),
+            avatarThumbhash: group.info.avatarThumbhash,
             membersCount: group.info.membersCount,
             myRole: browsing ? models.ChatRole.reader : roleFromPb(group.role),
             // Права — у админа (владельцу — все, см. myChatRights).
@@ -457,6 +460,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           about: info?.profile?.aboutMe ?? '',
           username: info?.profile?.username ?? '',
           avatarPath: await _avatarPath(info?.profile?.avatarCdnID),
+          avatarThumbhash: info?.profile?.avatarThumbhash ?? '',
           phone: info?.profile?.phoneNumber ?? '',
           online: peer != null && !isSelf && ChatsPresence.instance.isOnline(idHex(peer)),
           lastSeen: info?.profile?.lastSeenAt,
@@ -527,6 +531,41 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       }),
     );
     return '';
+  }
+
+  /// Фото группы (cdnID hex), к которым уже дописывали ThumbHash за запуск.
+  final _thumbhashBackfilled = <String>{};
+
+  /// Фото группы поставлено до появления ThumbHash: тот, у кого есть право
+  /// «Изменить», досчитывает его по скачанному файлу и дописывает (EditChat
+  /// только с avatarThumbhash — без служебного в ленту), чтобы у участников
+  /// до загрузки было размытое превью. Файл ещё не скачан — попробуем при
+  /// следующем перечитывании списка.
+  void _backfillGroupThumbhash(ChatGroupRow group) {
+    final info = group.info;
+    if (info.avatarCdnID.isEmpty || info.avatarThumbhash.isNotEmpty) return;
+    final canEdit = group.role == pb.ChatRole.CHAT_ROLE_OWNER || (group.role == pb.ChatRole.CHAT_ROLE_ADMIN && group.rights.changeInfo);
+    final key = idHex(info.avatarCdnID);
+    if (!canEdit || !_thumbhashBackfilled.add(key)) return;
+    unawaited(() async {
+      try {
+        final path = await _avatarPath(info.avatarCdnID);
+        if (path.isEmpty) {
+          _thumbhashBackfilled.remove(key);
+          return;
+        }
+        final thumbhash = await avatarThumbhash(await File(path).readAsBytes());
+        if (thumbhash.isEmpty) return;
+        final response = await _sync.chats(
+          pb.Chats_Request(
+            editChat: pb.Chats_EditChat(chatID: group.chatID, avatarThumbhash: thumbhash),
+          ),
+        );
+        await _sync.applyUpdates(response.editChat.updates);
+      } catch (error) {
+        _logger.warning('chats: group avatar thumbhash backfill: $error');
+      }
+    }());
   }
 
   /// Закреплённое сообщение — из кэша истории или закреплённых (превью
@@ -990,7 +1029,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
             for (final id in memberIDs)
               if (idBytes(id) case final userID when userID.isNotEmpty) userID,
           ],
-          avatarCdnID: avatar,
+          avatarCdnID: avatar?.cdnID,
+          avatarThumbhash: avatar?.thumbhash,
           randomID: Int64(_randomID()),
           username: open ? username : null,
           joinMode: joinModeToPb(mode),
@@ -1028,10 +1068,12 @@ class ChatsRemoteDataSource implements ChatsDataSource {
 
   /// Фото группы — на CDN (как аватар профиля); сбой сети —
   /// [ChatsOfflineException]: группа не создаётся / не меняется.
-  Future<Uint8List> _uploadChatAvatar(String path) async {
+  /// Загружает фото группы; [thumbhash] — размытое превью для участников, пока
+  /// фото качается (не получилось посчитать — пусто, фото всё равно ставим).
+  Future<({Uint8List cdnID, String thumbhash})> _uploadChatAvatar(String path) async {
     try {
       final file = await getIt.get<CDNManager>().uploadFile(file: File(path), folder: 'avatars', contentType: 'image/jpeg');
-      return Uint8List.fromList(file.cdnID);
+      return (cdnID: Uint8List.fromList(file.cdnID), thumbhash: await avatarThumbhash(await File(path).readAsBytes()));
     } on FileSystemException {
       rethrow;
     } catch (error, stackTrace) {
@@ -1098,14 +1140,17 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final extrasChanged = newcomerChanged || membersHiddenChanged || noForwardsChanged || signChanged || commentsChanged;
     if (!titleChanged && !aboutChanged && !avatarChanged && !roleChanged && join.isEmpty && !extrasChanged) return;
     await _requireNetwork();
-    final avatar = !avatarChanged ? null : (avatarPath.isEmpty ? Uint8List(0) : await _uploadChatAvatar(avatarPath));
+    final avatar = !avatarChanged
+        ? null
+        : (avatarPath.isEmpty ? (cdnID: Uint8List(0), thumbhash: '') : await _uploadChatAvatar(avatarPath));
     final response = await _sync.chats(
       pb.Chats_Request(
         editChat: pb.Chats_EditChat(
           chatID: chat,
           title: titleChanged ? title : null,
           about: aboutChanged ? about : null,
-          avatarCdnID: avatar,
+          avatarCdnID: avatar?.cdnID,
+          avatarThumbhash: avatar == null || avatar.thumbhash.isEmpty ? null : avatar.thumbhash,
           defaultRole: roleChanged ? roleToPb(defaultRole) : null,
           joinMode: join.joinMode,
           username: join.username,
@@ -1239,6 +1284,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       title: info.title,
       about: info.about,
       avatarPath: await _groupAvatar(info),
+      avatarThumbhash: info.avatarThumbhash,
       membersCount: info.membersCount,
       myRole: roleFromPb(info.defaultRole),
       defaultRole: roleFromPb(info.defaultRole),

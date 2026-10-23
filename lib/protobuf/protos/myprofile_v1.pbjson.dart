@@ -37,6 +37,7 @@ const MyProfile_Response$json = {
     {'1': 'avatar', '3': 5, '4': 1, '5': 11, '6': '.iperon.v1.CDN', '9': 4, '10': 'avatar', '17': true},
     {'1': 'username', '3': 6, '4': 1, '5': 9, '9': 5, '10': 'username', '17': true},
     {'1': 'isPremium', '3': 7, '4': 1, '5': 8, '10': 'isPremium'},
+    {'1': 'avatarThumbhash', '3': 8, '4': 1, '5': 9, '10': 'avatarThumbhash'},
   ],
   '8': [
     {'1': '_firstName'},
@@ -50,13 +51,14 @@ const MyProfile_Response$json = {
 
 /// Descriptor for `MyProfile`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List myProfileDescriptor =
-    $convert.base64Decode('CglNeVByb2ZpbGUaCQoHUmVxdWVzdBrlAgoIUmVzcG9uc2USIQoJZmlyc3ROYW1lGAEgASgJSA'
+    $convert.base64Decode('CglNeVByb2ZpbGUaCQoHUmVxdWVzdBqPAwoIUmVzcG9uc2USIQoJZmlyc3ROYW1lGAEgASgJSA'
         'BSCWZpcnN0TmFtZYgBARIfCghsYXN0TmFtZRgCIAEoCUgBUghsYXN0TmFtZYgBARIdCgdhYm91'
         'dE1lGAQgASgJSAJSB2Fib3V0TWWIAQESPQoJYmlydGhEYXRlGAMgASgLMhouZ29vZ2xlLnByb3'
         'RvYnVmLlRpbWVzdGFtcEgDUgliaXJ0aERhdGWIAQESKwoGYXZhdGFyGAUgASgLMg4uaXBlcm9u'
         'LnYxLkNETkgEUgZhdmF0YXKIAQESHwoIdXNlcm5hbWUYBiABKAlIBVIIdXNlcm5hbWWIAQESHA'
-        'oJaXNQcmVtaXVtGAcgASgIUglpc1ByZW1pdW1CDAoKX2ZpcnN0TmFtZUILCglfbGFzdE5hbWVC'
-        'CgoIX2Fib3V0TWVCDAoKX2JpcnRoRGF0ZUIJCgdfYXZhdGFyQgsKCV91c2VybmFtZQ==');
+        'oJaXNQcmVtaXVtGAcgASgIUglpc1ByZW1pdW0SKAoPYXZhdGFyVGh1bWJoYXNoGAggASgJUg9h'
+        'dmF0YXJUaHVtYmhhc2hCDAoKX2ZpcnN0TmFtZUILCglfbGFzdE5hbWVCCgoIX2Fib3V0TWVCDA'
+        'oKX2JpcnRoRGF0ZUIJCgdfYXZhdGFyQgsKCV91c2VybmFtZQ==');
 
 @$core.Deprecated('Use myProfileUpdateDescriptor instead')
 const MyProfileUpdate$json = {
@@ -105,6 +107,7 @@ const MyProfileAvatarUpdate_Request$json = {
   '1': 'Request',
   '2': [
     {'1': 'cdnID', '3': 1, '4': 1, '5': 12, '10': 'cdnID'},
+    {'1': 'thumbhash', '3': 2, '4': 1, '5': 9, '10': 'thumbhash'},
   ],
 };
 
@@ -121,9 +124,9 @@ const MyProfileAvatarUpdate_Response$json = {
 
 /// Descriptor for `MyProfileAvatarUpdate`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List myProfileAvatarUpdateDescriptor =
-    $convert.base64Decode('ChVNeVByb2ZpbGVBdmF0YXJVcGRhdGUaHwoHUmVxdWVzdBIUCgVjZG5JRBgBIAEoDFIFY2RuSU'
-        'QaQgoIUmVzcG9uc2USKwoGYXZhdGFyGAEgASgLMg4uaXBlcm9uLnYxLkNETkgAUgZhdmF0YXKI'
-        'AQFCCQoHX2F2YXRhcg==');
+    $convert.base64Decode('ChVNeVByb2ZpbGVBdmF0YXJVcGRhdGUaPQoHUmVxdWVzdBIUCgVjZG5JRBgBIAEoDFIFY2RuSU'
+        'QSHAoJdGh1bWJoYXNoGAIgASgJUgl0aHVtYmhhc2gaQgoIUmVzcG9uc2USKwoGYXZhdGFyGAEg'
+        'ASgLMg4uaXBlcm9uLnYxLkNETkgAUgZhdmF0YXKIAQFCCQoHX2F2YXRhcg==');
 
 @$core.Deprecated('Use myProfileUserNameUpdateDescriptor instead')
 const MyProfileUserNameUpdate$json = {

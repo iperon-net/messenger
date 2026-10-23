@@ -642,7 +642,7 @@ Widget? messageMediaThumb(models.Message message, {double size = 36}) {
       ? ChatMediaImage(path: item!.thumbPath, thumbhash: item.thumbhash, cacheWidth: cache)
       : !video && photoPath.isNotEmpty
       ? ChatMediaImage(path: photoPath, thumbhash: item?.thumbhash ?? '', cacheWidth: cache)
-      : chatMediaPlaceholder('${message.id}-0', video: video, iconSize: size * 0.4);
+      : chatMediaPlaceholder('${message.id}-0', video: video, iconSize: size * 0.4, thumbhash: item?.thumbhash ?? '');
   if (item?.spoiler ?? false) {
     child = ImageFiltered(imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6), child: child);
   }
@@ -1353,7 +1353,7 @@ class _MediaPreview extends StatelessWidget {
       image = SizedBox(
         width: _width,
         height: height,
-        child: chatMediaPlaceholder('${message.id}-0', video: video),
+        child: chatMediaPlaceholder('${message.id}-0', video: video, thumbhash: meta?.thumbhash ?? ''),
       );
     }
     return ClipRRect(
@@ -1433,7 +1433,7 @@ class _AlbumGrid extends StatelessWidget {
     final Widget child = video && item.thumbPath.isNotEmpty
         ? chatVideoThumb(item, playSize: 34, cacheWidth: 520)
         : item.localPath.isEmpty || video
-        ? chatMediaPlaceholder('${message.id}-$index', video: video, iconSize: 26)
+        ? chatMediaPlaceholder('${message.id}-$index', video: video, iconSize: 26, thumbhash: item.thumbhash)
         : ChatMediaImage(path: item.localPath, thumbhash: item.thumbhash, cacheWidth: 520);
     return _tappableMedia(message, index, onTap, MediaSpoiler(enabled: item.spoiler, child: child));
   }

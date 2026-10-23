@@ -4,6 +4,7 @@ import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../chats/media_prepare.dart' show thumbhashImage;
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -301,39 +302,51 @@ class _ProfileViewState extends State<_ProfileView> {
   );
 
   /// Аватар: есть фото — тап открывает его во весь экран.
-  Widget _avatar(BuildContext context, ProfileState profile, String name) => SizedBox(
-    width: 96,
-    height: 96,
-    child: profileIsSystem(profile.userID)
-        ? SystemAccountAvatar(size: 96, background: CupertinoTheme.of(context).primaryColor, foreground: ThemesCupertino.onAccent(context))
-        : profile.avatarBytes != null
-        ? GestureDetector(
-            onTap: () => showAvatarViewer(context, bytes: profile.avatarBytes!, heroTag: _avatarHero, title: name),
-            child: Hero(
-              tag: _avatarHero,
-              child: ClipOval(
-                child: Image.memory(
-                  profile.avatarBytes!,
-                  width: 96,
-                  height: 96,
-                  fit: BoxFit.cover,
-                  gaplessPlayback: true,
-                  // Декодируем под размер слота, а не в полный битмап исходной
-                  // (крупной) аватарки.
-                  cacheWidth: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
-                  cacheHeight: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
+  Widget _avatar(BuildContext context, ProfileState profile, String name) {
+    final preview = thumbhashImage(profile.avatarThumbhash);
+    return SizedBox(
+      width: 96,
+      height: 96,
+      child: profileIsSystem(profile.userID)
+          ? SystemAccountAvatar(
+              size: 96,
+              background: CupertinoTheme.of(context).primaryColor,
+              foreground: ThemesCupertino.onAccent(context),
+            )
+          : profile.avatarBytes != null
+          ? GestureDetector(
+              onTap: () => showAvatarViewer(context, bytes: profile.avatarBytes!, heroTag: _avatarHero, title: name),
+              child: Hero(
+                tag: _avatarHero,
+                child: ClipOval(
+                  child: Image.memory(
+                    profile.avatarBytes!,
+                    width: 96,
+                    height: 96,
+                    fit: BoxFit.cover,
+                    gaplessPlayback: true,
+                    // Декодируем под размер слота, а не в полный битмап исходной
+                    // (крупной) аватарки.
+                    cacheWidth: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
+                    cacheHeight: (96 * MediaQuery.devicePixelRatioOf(context)).round(),
+                  ),
                 ),
               ),
+            )
+          // Фото ещё качается — размытое превью вместо заглушки.
+          : preview != null
+          ? ClipOval(
+              child: Image(image: preview, width: 96, height: 96, fit: BoxFit.cover, gaplessPlayback: true),
+            )
+          : AnimatedBoringAvatar(
+              name: profile.boringAvatarHash,
+              type: profile.boringAvatarType,
+              shape: const CircleBorder(),
+              curve: Curves.bounceIn,
+              duration: const Duration(seconds: 1),
             ),
-          )
-        : AnimatedBoringAvatar(
-            name: profile.boringAvatarHash,
-            type: profile.boringAvatarType,
-            shape: const CircleBorder(),
-            curve: Curves.bounceIn,
-            duration: const Duration(seconds: 1),
-          ),
-  );
+    );
+  }
 
   Widget _build(BuildContext context, ProfileState profile, ChatState? chatState) {
     final t = context.t;

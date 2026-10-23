@@ -402,6 +402,10 @@ class Chat with ChatMappable {
   /// аватарки придут с сервера по `cdnID`). Пусто — генеративный плейсхолдер.
   final String avatarPath;
 
+  /// ThumbHash аватара (base64): размытое превью, пока [avatarPath] пуст
+  /// (картинка ещё качается) или файл декодируется. Пусто — заглушка.
+  final String avatarThumbhash;
+
   /// Обложка сообщества — фон шапки его страницы (локальный файл, как
   /// [avatarPath]). Пусто — генеративный фон.
   final String coverPath;
@@ -551,6 +555,7 @@ class Chat with ChatMappable {
     this.username = '',
     this.inviteLink = '',
     this.avatarPath = '',
+    this.avatarThumbhash = '',
     this.coverPath = '',
     this.phone = '',
     this.address = '',

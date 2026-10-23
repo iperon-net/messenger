@@ -1896,6 +1896,13 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: '',
   );
+  static String _$avatarThumbhash(Chat v) => v.avatarThumbhash;
+  static const Field<Chat, String> _f$avatarThumbhash = Field(
+    'avatarThumbhash',
+    _$avatarThumbhash,
+    opt: true,
+    def: '',
+  );
   static String _$coverPath(Chat v) => v.coverPath;
   static const Field<Chat, String> _f$coverPath = Field(
     'coverPath',
@@ -2158,6 +2165,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #username: _f$username,
     #inviteLink: _f$inviteLink,
     #avatarPath: _f$avatarPath,
+    #avatarThumbhash: _f$avatarThumbhash,
     #coverPath: _f$coverPath,
     #phone: _f$phone,
     #address: _f$address,
@@ -2225,6 +2233,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       username: data.dec(_f$username),
       inviteLink: data.dec(_f$inviteLink),
       avatarPath: data.dec(_f$avatarPath),
+      avatarThumbhash: data.dec(_f$avatarThumbhash),
       coverPath: data.dec(_f$coverPath),
       phone: data.dec(_f$phone),
       address: data.dec(_f$address),
@@ -2350,6 +2359,7 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     String? username,
     String? inviteLink,
     String? avatarPath,
+    String? avatarThumbhash,
     String? coverPath,
     String? phone,
     String? address,
@@ -2457,6 +2467,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     String? username,
     String? inviteLink,
     String? avatarPath,
+    String? avatarThumbhash,
     String? coverPath,
     String? phone,
     String? address,
@@ -2522,6 +2533,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (username != null) #username: username,
       if (inviteLink != null) #inviteLink: inviteLink,
       if (avatarPath != null) #avatarPath: avatarPath,
+      if (avatarThumbhash != null) #avatarThumbhash: avatarThumbhash,
       if (coverPath != null) #coverPath: coverPath,
       if (phone != null) #phone: phone,
       if (address != null) #address: address,
@@ -2590,6 +2602,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     username: data.get(#username, or: $value.username),
     inviteLink: data.get(#inviteLink, or: $value.inviteLink),
     avatarPath: data.get(#avatarPath, or: $value.avatarPath),
+    avatarThumbhash: data.get(#avatarThumbhash, or: $value.avatarThumbhash),
     coverPath: data.get(#coverPath, or: $value.coverPath),
     phone: data.get(#phone, or: $value.phone),
     address: data.get(#address, or: $value.address),
