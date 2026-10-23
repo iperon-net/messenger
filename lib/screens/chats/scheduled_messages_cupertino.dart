@@ -29,7 +29,7 @@ Future<DateTime?> showScheduleDateCupertino(BuildContext context, {DateTime? ini
           children: [
             Row(
               children: [
-                const SizedBox(width: 8),
+                const SizedBox(width: 16),
                 NavBarButtonCupertino(NavBarAction.cancel, onPressed: () => Navigator.of(popupContext).pop()),
                 const Spacer(),
                 NavBarButtonCupertino(
@@ -37,7 +37,7 @@ Future<DateTime?> showScheduleDateCupertino(BuildContext context, {DateTime? ini
                   label: context.t.screenChat.schedule,
                   onPressed: () => Navigator.of(popupContext).pop(selected),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 16),
               ],
             ),
             Expanded(

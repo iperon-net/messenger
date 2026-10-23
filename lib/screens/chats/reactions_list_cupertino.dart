@@ -56,7 +56,7 @@ class _ReactionsListCupertino extends StatelessWidget {
                       ),
                       Row(
                         children: [
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 16),
                           NavBarButtonCupertino(NavBarAction.close, onPressed: () => Navigator.of(context).pop()),
                         ],
                       ),

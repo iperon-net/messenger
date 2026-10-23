@@ -91,7 +91,7 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
                     ),
                     Row(
                       children: [
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 16),
                         NavBarButtonCupertino(NavBarAction.cancel, onPressed: () => Navigator.of(context).pop()),
                         const Spacer(),
                         if (_hasVideo) _hdButton(context, primary),

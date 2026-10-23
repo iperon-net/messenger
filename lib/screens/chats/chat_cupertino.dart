@@ -557,7 +557,11 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
                             automaticBackgroundVisibility: false,
                             backgroundColor: barColor,
                             middle: Text(t.screenChat.selected(n: state.selectedIDs.length)),
-                            trailing: NavBarButtonCupertino(NavBarAction.cancel, onPressed: _cubit.clearSelection),
+                            trailing: NavBarButtonCupertino(
+                              NavBarAction.cancel,
+                              alignment: AlignmentDirectional.centerEnd,
+                              onPressed: _cubit.clearSelection,
+                            ),
                           ),
                         )
                       : state.searching
@@ -572,7 +576,11 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
                               placeholder: t.screenChat.search,
                               onChanged: _cubit.setSearchQuery,
                             ),
-                            trailing: NavBarButtonCupertino(NavBarAction.cancel, onPressed: _cubit.closeSearch),
+                            trailing: NavBarButtonCupertino(
+                              NavBarAction.cancel,
+                              alignment: AlignmentDirectional.centerEnd,
+                              onPressed: _cubit.closeSearch,
+                            ),
                           ),
                         )
                       : AppCupertinoNavigationBar(

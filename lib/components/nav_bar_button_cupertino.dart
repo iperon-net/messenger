@@ -1,18 +1,15 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../cubit.dart';
 import '../i18n/translations.g.dart';
 import '../themes/cupertino.dart';
 
 /// Что делает кнопка навбара — от этого зависят значок и подпись по умолчанию.
 enum NavBarAction {
-  /// Подтвердить: «Готово», «Сохранить», «Создать», «Добавить» — галочка в
-  /// круге с заливкой акцентом (как в iOS 26).
+  /// Подтвердить: «Готово», «Сохранить», «Создать», «Добавить» — галочка.
   done,
 
-  /// Следующий шаг («Далее») — стрелка в таком же круге.
+  /// Следующий шаг («Далее») — стрелка.
   next,
 
   /// «Отмена» — крестик.
@@ -46,10 +43,13 @@ class NavBarButtonCupertino extends StatelessWidget {
   /// Запрос в процессе — вместо кнопки крутилка (как было у текстовых).
   final bool loading;
 
-  const NavBarButtonCupertino(this.action, {required this.onPressed, this.label, this.loading = false, super.key})
-    : assert(label != null || (action != NavBarAction.clear && action != NavBarAction.more), 'label is required for clear/more');
+  /// Значок прижат к краю навбара, как был прижат текст: «Отмена»/«Закрыть»
+  /// по умолчанию стоят слева (`leading`) — к левому краю, остальные справа.
+  /// Если кнопка стоит не на своей стороне, сторону задают явно.
+  final AlignmentGeometry? alignment;
 
-  bool get _prominent => action == NavBarAction.done || action == NavBarAction.next;
+  const NavBarButtonCupertino(this.action, {required this.onPressed, this.label, this.loading = false, this.alignment, super.key})
+    : assert(label != null || (action != NavBarAction.clear && action != NavBarAction.more), 'label is required for clear/more');
 
   String _defaultLabel(Translations t) => switch (action) {
     NavBarAction.done => t.common.done,
@@ -61,46 +61,25 @@ class NavBarButtonCupertino extends StatelessWidget {
     NavBarAction.clear || NavBarAction.more => '',
   };
 
-  /// Базовый цвет оформления. Внутри [AppCupertinoNavigationBar] `primaryColor`
-  /// в тёмной теме подменён на белый, поэтому заливку строим из настроек, так
-  /// же как тема в `app_cupertino.dart` (на /auth — всегда синий).
-  CupertinoDynamicColor _base(BuildContext context) {
-    final state = context.watch<CommonCubit>().state;
-    return state.isAuthRoute ? ThemesCupertino().blueScheme : ThemesCupertino.base(state.settingsDevice.colorTheme);
-  }
-
   @override
   Widget build(BuildContext context) {
     if (loading) return const CupertinoActivityIndicator();
 
-    final enabled = onPressed != null;
-    final Widget icon;
-    if (_prominent) {
-      final base = _base(context);
-      final fill = enabled ? ThemesCupertino.accent(base).resolveFrom(context) : CupertinoColors.tertiarySystemFill.resolveFrom(context);
-      final foreground = enabled
-          ? ThemesCupertino.accentContrasting(base).resolveFrom(context)
-          : CupertinoColors.tertiaryLabel.resolveFrom(context);
-      icon = Container(
-        width: 30,
-        height: 30,
-        decoration: BoxDecoration(color: fill, shape: BoxShape.circle),
-        alignment: Alignment.center,
-        child: Icon(action == NavBarAction.done ? CupertinoIcons.checkmark_alt : CupertinoIcons.arrow_right, size: 20, color: foreground),
-      );
-    } else {
-      final color = enabled ? ThemesCupertino.navActionColor(context) : CupertinoColors.tertiaryLabel.resolveFrom(context);
-      icon = switch (action) {
-        NavBarAction.edit => HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: color, size: 22),
-        NavBarAction.clear => Icon(CupertinoIcons.trash, size: 22, color: color),
-        NavBarAction.more => Icon(CupertinoIcons.ellipsis_circle, size: 24, color: color),
-        _ => Icon(CupertinoIcons.xmark, size: 20, color: color),
-      };
-    }
+    final color = onPressed != null ? ThemesCupertino.navActionColor(context) : CupertinoColors.tertiaryLabel.resolveFrom(context);
+    final icon = switch (action) {
+      NavBarAction.done => Icon(CupertinoIcons.checkmark_alt, size: 26, color: color),
+      NavBarAction.next => Icon(CupertinoIcons.arrow_right, size: 24, color: color),
+      NavBarAction.edit => HugeIcon(icon: HugeIcons.strokeRoundedPencilEdit02, color: color, size: 22),
+      NavBarAction.clear => Icon(CupertinoIcons.trash, size: 22, color: color),
+      NavBarAction.more => Icon(CupertinoIcons.ellipsis_circle, size: 24, color: color),
+      NavBarAction.cancel || NavBarAction.close => Icon(CupertinoIcons.xmark, size: 20, color: color),
+    };
+    final leading = action == NavBarAction.cancel || action == NavBarAction.close;
 
     return CupertinoButton(
       padding: EdgeInsets.zero,
       minimumSize: const Size(44, 44),
+      alignment: alignment ?? (leading ? AlignmentDirectional.centerStart : AlignmentDirectional.centerEnd),
       onPressed: onPressed,
       child: Semantics(label: label ?? _defaultLabel(context.t), child: icon),
     );
