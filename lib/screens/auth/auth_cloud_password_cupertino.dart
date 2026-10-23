@@ -66,19 +66,24 @@ class _AuthCloudPasswordCupertino extends State<AuthCloudPasswordCupertino> {
   /// пароля / отправка email) или «Сбросить» (подтверждение восстановления).
   Widget _trailing(BuildContext context, AuthCloudPasswordState state, bool loading) {
     final cubit = context.read<AuthCloudPasswordCubit>();
-    final (onPressed, label) = switch (state.phase) {
+    final (onPressed, action, label) = switch (state.phase) {
       AuthCloudPasswordPhase.recovery => (
         () => cubit.recoveryConfirm(code: codeController.text, newPassword: newPasswordController.text),
+        NavBarAction.done,
         context.t.cloudPassword.reset,
       ),
-      AuthCloudPasswordPhase.enterEmail => (() => cubit.submitRecoveryEmail(emailController.text), context.t.cloudPassword.next),
-      AuthCloudPasswordPhase.enterPassword => (() => cubit.submit(passwordController.text), context.t.cloudPassword.next),
+      AuthCloudPasswordPhase.enterEmail => (
+        () => cubit.submitRecoveryEmail(emailController.text),
+        NavBarAction.next,
+        context.t.cloudPassword.next,
+      ),
+      AuthCloudPasswordPhase.enterPassword => (
+        () => cubit.submit(passwordController.text),
+        NavBarAction.next,
+        context.t.cloudPassword.next,
+      ),
     };
-    return CupertinoButton(
-      padding: EdgeInsets.zero,
-      onPressed: loading ? null : onPressed,
-      child: loading ? const CupertinoActivityIndicator() : Text(label, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
-    );
+    return NavBarButtonCupertino(action, label: label, loading: loading, onPressed: onPressed);
   }
 
   /// Ввод email восстановления (код придёт, только если адрес совпадает).

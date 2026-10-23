@@ -104,14 +104,7 @@ class _ChatFolderChatsCupertino extends State<ChatFolderChatsCupertino> {
                 ),
             ],
           ),
-          trailing: CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: _done,
-            child: Text(
-              t.common.done,
-              style: TextStyle(fontWeight: FontWeight.w600, color: ThemesCupertino.navActionColor(context)),
-            ),
-          ),
+          trailing: NavBarButtonCupertino(NavBarAction.done, onPressed: _done),
         ),
       ),
       child: SafeArea(

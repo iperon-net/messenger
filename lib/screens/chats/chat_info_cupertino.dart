@@ -370,23 +370,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
           backgroundColor: community ? background.withValues(alpha: 0.97) : background,
           border: null,
           // «Изменить» — админу группы / канала / сообщества.
-          trailing: canEdit
-              ? CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () => showChatEditCupertino(context, chat),
-                  // У сообщества — карандаш, как на «стекле» поверх обложки.
-                  child: community
-                      ? Semantics(
-                          label: t.common.edit,
-                          child: HugeIcon(
-                            icon: HugeIcons.strokeRoundedPencilEdit02,
-                            color: ThemesCupertino.navActionColor(context),
-                            size: 22,
-                          ),
-                        )
-                      : Text(t.common.edit, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
-                )
-              : null,
+          trailing: canEdit ? NavBarButtonCupertino(NavBarAction.edit, onPressed: () => showChatEditCupertino(context, chat)) : null,
         );
         final header = chat == null
             ? const <Widget>[]

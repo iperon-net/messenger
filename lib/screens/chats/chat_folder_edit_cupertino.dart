@@ -223,14 +223,7 @@ class _ChatFolderEditCupertino extends State<ChatFolderEditCupertino> {
             middle: Text(widget.folder == null ? s.newFolder : s.editFolder),
             // Всегда активна и белая в тёмной теме (как «Готово» в навбарах);
             // без изменений просто закрывает экран.
-            trailing: CupertinoButton(
-              padding: EdgeInsets.zero,
-              onPressed: _save,
-              child: Text(
-                widget.folder == null ? s.create : t.common.save,
-                style: TextStyle(fontWeight: FontWeight.w600, color: ThemesCupertino.navActionColor(context)),
-              ),
-            ),
+            trailing: NavBarButtonCupertino(NavBarAction.done, label: widget.folder == null ? s.create : t.common.save, onPressed: _save),
           ),
         ),
         child: SafeArea(

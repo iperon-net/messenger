@@ -72,26 +72,30 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
           ? () => _cubit.submitSetupPassword(passwordController.text)
           : () => _cubit.submitChangePassword(passwordController.text);
       return [
-        TextButton(
+        IconButton(
+          tooltip: context.t.common.save,
           onPressed: loading ? null : onSave,
-          child: loading
-              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-              : Text(context.t.common.save),
+          icon: loading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.check),
         ),
       ];
     }
     if (state.step == SettingsCloudPasswordStep.recoveryConfirm) {
       return [
-        TextButton(
+        IconButton(
+          tooltip: context.t.cloudPassword.reset,
           onPressed: loading ? null : () => _cubit.submitRecovery(code: codeController.text, newPassword: passwordController.text),
-          child: loading
-              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-              : Text(context.t.cloudPassword.reset),
+          icon: loading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.check),
         ),
       ];
     }
     if (_hasNextAction(state.step)) {
-      return [TextButton(onPressed: loading ? null : () => _submitNext(state.step), child: Text(context.t.cloudPassword.next))];
+      return [
+        IconButton(
+          tooltip: context.t.cloudPassword.next,
+          onPressed: loading ? null : () => _submitNext(state.step),
+          icon: const Icon(Icons.arrow_forward),
+        ),
+      ];
     }
     return const [];
   }

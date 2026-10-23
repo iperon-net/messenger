@@ -52,11 +52,7 @@ class _CallsCupertinoState extends State<CallsCupertino> with SearchHideOnScroll
             selector: (state) => state.calls.isNotEmpty,
             builder: (context, hasCalls) {
               if (!hasCalls) return const SizedBox.shrink();
-              return CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: () => _confirmClear(context),
-                child: Text(context.t.screenCalls.clear),
-              );
+              return NavBarButtonCupertino(NavBarAction.clear, label: context.t.screenCalls.clear, onPressed: () => _confirmClear(context));
             },
           ),
         ),

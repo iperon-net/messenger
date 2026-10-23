@@ -121,16 +121,12 @@ class _ChatInviteLinkEditCupertino extends State<ChatInviteLinkEditCupertino> {
           automaticBackgroundVisibility: false,
           backgroundColor: ThemesCupertino.groupedBackground,
           middle: Text(link == null ? tc.newLink : tc.editLink),
-          trailing: _saving
-              ? const CupertinoActivityIndicator()
-              : CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: _save,
-                  child: Text(
-                    link == null ? tc.create : t.common.save,
-                    style: TextStyle(fontWeight: FontWeight.w600, color: ThemesCupertino.navActionColor(context)),
-                  ),
-                ),
+          trailing: NavBarButtonCupertino(
+            NavBarAction.done,
+            label: link == null ? tc.create : t.common.save,
+            loading: _saving,
+            onPressed: _save,
+          ),
         ),
       ),
       child: SafeArea(

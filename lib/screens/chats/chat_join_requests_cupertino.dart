@@ -68,10 +68,10 @@ class ChatJoinRequestsCupertino extends StatelessWidget {
                             child: Text(tc.declineAll),
                           ),
                         ],
-                        builder: (context, controller, child) => CupertinoButton(
-                          padding: EdgeInsets.zero,
+                        builder: (context, controller, child) => NavBarButtonCupertino(
+                          NavBarAction.more,
+                          label: tc.all,
                           onPressed: () => controller.isOpen ? controller.close() : controller.open(),
-                          child: Text(tc.all),
                         ),
                       )
                     : null,

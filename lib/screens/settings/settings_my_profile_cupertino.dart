@@ -178,8 +178,10 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
               padding: const EdgeInsetsDirectional.only(start: 0, end: 16),
               middle: Text(context.t.screenMyProfile.myprofile),
               leading: CupertinoNavigationBarBackButton(previousPageTitle: '', onPressed: () => context.pop()),
-              trailing: CupertinoButton(
-                padding: EdgeInsets.zero,
+              trailing: NavBarButtonCupertino(
+                NavBarAction.edit,
+                label: context.t.screenMyProfile.edit,
+                loading: state.networkStatus == Status.loading,
                 // push (а не go): дожидаемся закрытия экрана правки и перечитываем
                 // профиль из локальной БД — экран профиля не пересоздаётся при
                 // возврате, поэтому обновляем его вручную.
@@ -188,9 +190,6 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                   await context.push("/settings/profile/edit");
                   await cubit.reload();
                 },
-                child: state.networkStatus == Status.loading
-                    ? CupertinoActivityIndicator()
-                    : Text(context.t.screenMyProfile.edit, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
               ),
             ),
           ),

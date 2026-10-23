@@ -56,18 +56,28 @@ class _AuthCloudPasswordMaterial extends State<AuthCloudPasswordMaterial> {
   /// отправка email) или «Сбросить» (подтверждение восстановления).
   List<Widget> _actions(BuildContext context, AuthCloudPasswordState state, bool loading) {
     final cubit = context.read<AuthCloudPasswordCubit>();
-    final (onPressed, label) = switch (state.phase) {
+    final (onPressed, icon, label) = switch (state.phase) {
       AuthCloudPasswordPhase.recovery => (
         () => cubit.recoveryConfirm(code: codeController.text, newPassword: newPasswordController.text),
+        Icons.check,
         context.t.cloudPassword.reset,
       ),
-      AuthCloudPasswordPhase.enterEmail => (() => cubit.submitRecoveryEmail(emailController.text), context.t.cloudPassword.next),
-      AuthCloudPasswordPhase.enterPassword => (() => cubit.submit(passwordController.text), context.t.cloudPassword.next),
+      AuthCloudPasswordPhase.enterEmail => (
+        () => cubit.submitRecoveryEmail(emailController.text),
+        Icons.arrow_forward,
+        context.t.cloudPassword.next,
+      ),
+      AuthCloudPasswordPhase.enterPassword => (
+        () => cubit.submit(passwordController.text),
+        Icons.arrow_forward,
+        context.t.cloudPassword.next,
+      ),
     };
     return [
-      TextButton(
+      IconButton(
+        tooltip: label,
         onPressed: loading ? null : onPressed,
-        child: loading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Text(label),
+        icon: loading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : Icon(icon),
       ),
     ];
   }

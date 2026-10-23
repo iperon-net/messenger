@@ -1,5 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 
+import '../../components.dart';
 import '../../chats/reactions_list.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
@@ -55,10 +56,8 @@ class _ReactionsListCupertino extends StatelessWidget {
                       ),
                       Row(
                         children: [
-                          CupertinoButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: Text(context.t.common.close, style: TextStyle(color: action)),
-                          ),
+                          const SizedBox(width: 8),
+                          NavBarButtonCupertino(NavBarAction.close, onPressed: () => Navigator.of(context).pop()),
                         ],
                       ),
                     ],

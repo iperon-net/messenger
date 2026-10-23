@@ -72,30 +72,22 @@ class _SettingsCloudPasswordCupertino extends State<SettingsCloudPasswordCuperti
       final onSave = state.step == SettingsCloudPasswordStep.setupPassword
           ? () => _cubit.submitSetupPassword(passwordController.text)
           : () => _cubit.submitChangePassword(passwordController.text);
-      return CupertinoButton(
-        padding: EdgeInsets.zero,
-        onPressed: loading ? null : onSave,
-        child: loading
-            ? const CupertinoActivityIndicator()
-            : Text(context.t.common.save, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
-      );
+      return NavBarButtonCupertino(NavBarAction.done, label: context.t.common.save, loading: loading, onPressed: onSave);
     }
     if (state.step == SettingsCloudPasswordStep.recoveryConfirm) {
-      return CupertinoButton(
-        padding: EdgeInsets.zero,
-        onPressed: loading ? null : () => _cubit.submitRecovery(code: codeController.text, newPassword: passwordController.text),
-        child: loading
-            ? const CupertinoActivityIndicator()
-            : Text(context.t.cloudPassword.reset, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
+      return NavBarButtonCupertino(
+        NavBarAction.done,
+        label: context.t.cloudPassword.reset,
+        loading: loading,
+        onPressed: () => _cubit.submitRecovery(code: codeController.text, newPassword: passwordController.text),
       );
     }
     if (_hasNextAction(state.step)) {
-      return CupertinoButton(
-        padding: EdgeInsets.zero,
-        onPressed: loading ? null : () => _submitNext(state.step),
-        child: loading
-            ? const CupertinoActivityIndicator()
-            : Text(context.t.cloudPassword.next, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
+      return NavBarButtonCupertino(
+        NavBarAction.next,
+        label: context.t.cloudPassword.next,
+        loading: loading,
+        onPressed: () => _submitNext(state.step),
       );
     }
     return null;

@@ -73,16 +73,10 @@ class _PollCreateCupertino extends State<PollCreateCupertino> {
           automaticBackgroundVisibility: false,
           backgroundColor: ThemesCupertino.groupedBackground,
           middle: Text(t.newPoll),
-          trailing: CupertinoButton(
-            padding: EdgeInsets.zero,
+          trailing: NavBarButtonCupertino(
+            NavBarAction.done,
+            label: t.create,
             onPressed: valid ? () => Navigator.of(context).pop(_draft.build()) : null,
-            child: Text(
-              t.create,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: valid ? ThemesCupertino.navActionColor(context) : CupertinoColors.inactiveGray.resolveFrom(context),
-              ),
-            ),
           ),
         ),
       ),

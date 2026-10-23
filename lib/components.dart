@@ -39,3 +39,4 @@ export './components/in_app_notice/in_app_notice_host.dart';
 export './components/in_app_notice/in_app_notice_cupertino.dart';
 export './components/in_app_notice/in_app_notice_material.dart';
 export './components/chats/unread_back_material.dart';
+export './components/nav_bar_button_cupertino.dart';

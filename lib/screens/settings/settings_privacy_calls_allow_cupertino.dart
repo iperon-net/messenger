@@ -142,9 +142,7 @@ class _SettingsPrivacyCallsAllowCupertino extends State<SettingsPrivacyCallsAllo
                 ? context.t.sessionsPrivacyAndSecurity.callsAlwaysAllow
                 : context.t.sessionsPrivacyAndSecurity.callsAlwaysDeny,
           ),
-          trailing: _saving
-              ? const CupertinoActivityIndicator()
-              : CupertinoButton(padding: EdgeInsets.zero, onPressed: _save, child: Text(context.t.common.done)),
+          trailing: NavBarButtonCupertino(NavBarAction.done, loading: _saving, onPressed: _save),
         ),
       ),
       child: SafeArea(

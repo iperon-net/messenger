@@ -75,21 +75,16 @@ class _SettingsMyProfileUsernameCupertino extends State<SettingsMyProfileUsernam
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
               middle: Text(context.t.screenMyProfile.username),
-              leading: CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: () => context.pop(),
-                child: Text(context.t.common.cancel, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
-              ),
-              trailing: CupertinoButton(
-                padding: EdgeInsets.zero,
+              leading: NavBarButtonCupertino(NavBarAction.cancel, onPressed: () => context.pop()),
+              trailing: NavBarButtonCupertino(
+                NavBarAction.done,
+                label: context.t.common.save,
+                loading: state.networkStatus == Status.loading,
                 onPressed: () async {
                   if (formKey.currentState!.validate()) {
                     await context.read<SettingsMyProfileUsernameCubit>().setUsername(username: usernameController.text);
                   }
                 },
-                child: state.networkStatus == Status.loading
-                    ? CupertinoActivityIndicator()
-                    : Text(context.t.common.save, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
               ),
             ),
           ),

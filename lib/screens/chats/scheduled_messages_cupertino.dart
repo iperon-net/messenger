@@ -29,18 +29,15 @@ Future<DateTime?> showScheduleDateCupertino(BuildContext context, {DateTime? ini
           children: [
             Row(
               children: [
-                CupertinoButton(
-                  onPressed: () => Navigator.of(popupContext).pop(),
-                  child: Text(context.t.common.cancel, style: TextStyle(color: ThemesCupertino.actionColor(context))),
-                ),
+                const SizedBox(width: 8),
+                NavBarButtonCupertino(NavBarAction.cancel, onPressed: () => Navigator.of(popupContext).pop()),
                 const Spacer(),
-                CupertinoButton(
+                NavBarButtonCupertino(
+                  NavBarAction.done,
+                  label: context.t.screenChat.schedule,
                   onPressed: () => Navigator.of(popupContext).pop(selected),
-                  child: Text(
-                    context.t.screenChat.schedule,
-                    style: TextStyle(fontWeight: FontWeight.w600, color: ThemesCupertino.actionColor(context)),
-                  ),
                 ),
+                const SizedBox(width: 8),
               ],
             ),
             Expanded(

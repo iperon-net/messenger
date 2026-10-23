@@ -441,16 +441,7 @@ class _ChatAdminRightsCupertino extends State<ChatAdminRightsCupertino> {
               middle: Text(
                 chat.inCommunity ? (_isAdmin ? tc.moderatorRights : tc.newModerator) : (_isAdmin ? tc.adminRights : tc.newAdmin),
               ),
-              trailing: _saving
-                  ? const CupertinoActivityIndicator()
-                  : CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: _save,
-                      child: Text(
-                        t.common.save,
-                        style: TextStyle(fontWeight: FontWeight.w600, color: ThemesCupertino.navActionColor(context)),
-                      ),
-                    ),
+              trailing: NavBarButtonCupertino(NavBarAction.done, label: t.common.save, loading: _saving, onPressed: _save),
             ),
           ),
           child: SafeArea(

@@ -64,23 +64,15 @@ class _ChatCreateMembersCupertino extends State<ChatCreateMembersCupertino> {
                 ],
               ),
               trailing: widget.onDone != null
-                  ? CupertinoButton(
-                      padding: EdgeInsets.zero,
+                  ? NavBarButtonCupertino(
+                      NavBarAction.done,
+                      label: t.screenChatInfo.add,
                       onPressed: state.selected.isEmpty ? null : () => widget.onDone!(state.selected),
-                      child: Text(
-                        t.screenChatInfo.add,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: state.selected.isEmpty
-                              ? CupertinoColors.inactiveGray.resolveFrom(context)
-                              : ThemesCupertino.navActionColor(context),
-                        ),
-                      ),
                     )
-                  : CupertinoButton(
-                      padding: EdgeInsets.zero,
+                  : NavBarButtonCupertino(
+                      NavBarAction.next,
+                      label: t.screenNewChat.next,
                       onPressed: () => context.push(channel ? '/chats/new/channel/info' : '/chats/new/group/info', extra: state.selected),
-                      child: Text(t.screenNewChat.next, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
                     ),
             ),
           ),

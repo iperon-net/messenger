@@ -181,25 +181,16 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                     automaticBackgroundVisibility: false,
                     backgroundColor: ThemesCupertino.groupedBackground,
                     middle: Text(state.isEdit ? t.common.edit : createTitle(t, type)),
-                    trailing: state.creating
-                        ? const CupertinoActivityIndicator()
-                        : CupertinoButton(
-                            padding: EdgeInsets.zero,
-                            onPressed: canCreate
-                                ? () => state.isEdit
-                                      ? context.read<ChatCreateCubit>().save(title: _nameController.text, about: _aboutController.text)
-                                      : context.read<ChatCreateCubit>().create(title: _nameController.text, about: _aboutController.text)
-                                : null,
-                            child: Text(
-                              state.isEdit ? t.common.save : t.screenNewChat.create,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: canCreate
-                                    ? ThemesCupertino.navActionColor(context)
-                                    : CupertinoColors.inactiveGray.resolveFrom(context),
-                              ),
-                            ),
-                          ),
+                    trailing: NavBarButtonCupertino(
+                      NavBarAction.done,
+                      label: state.isEdit ? t.common.save : t.screenNewChat.create,
+                      loading: state.creating,
+                      onPressed: canCreate
+                          ? () => state.isEdit
+                                ? context.read<ChatCreateCubit>().save(title: _nameController.text, about: _aboutController.text)
+                                : context.read<ChatCreateCubit>().create(title: _nameController.text, about: _aboutController.text)
+                          : null,
+                    ),
                   ),
                 ),
                 child: SafeArea(

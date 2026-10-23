@@ -77,7 +77,7 @@ class _ContactsAddCupertinoState extends State<ContactsAddCupertino> {
           automaticBackgroundVisibility: false,
           backgroundColor: ThemesCupertino.groupedBackground,
           middle: Text(widget.edit ? t.editContact : t.addContact),
-          trailing: CupertinoButton(padding: EdgeInsets.zero, onPressed: _submit, child: Text(widget.edit ? context.t.common.done : t.add)),
+          trailing: NavBarButtonCupertino(NavBarAction.done, label: widget.edit ? context.t.common.done : t.add, onPressed: _submit),
         ),
       ),
       child: SafeArea(

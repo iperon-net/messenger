@@ -1,5 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 
+import '../../components.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
@@ -90,10 +91,8 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
                     ),
                     Row(
                       children: [
-                        CupertinoButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text(context.t.common.cancel, style: TextStyle(color: ThemesCupertino.actionColor(context))),
-                        ),
+                        const SizedBox(width: 8),
+                        NavBarButtonCupertino(NavBarAction.cancel, onPressed: () => Navigator.of(context).pop()),
                         const Spacer(),
                         if (_hasVideo) _hdButton(context, primary),
                         if (_hasMedia)

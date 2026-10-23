@@ -377,11 +377,7 @@ class _ProfileViewState extends State<_ProfileView> {
           border: null,
           // Контакт — «Изменить»: имя, как я его записал, или удалить.
           trailing: profile.isContact && !self
-              ? CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () => _editContact(context, profile),
-                  child: Text(t.common.edit, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
-                )
+              ? NavBarButtonCupertino(NavBarAction.edit, onPressed: () => _editContact(context, profile))
               : null,
         ),
       ),

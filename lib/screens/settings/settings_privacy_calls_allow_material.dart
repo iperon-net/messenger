@@ -130,7 +130,7 @@ class _SettingsPrivacyCallsAllowMaterial extends State<SettingsPrivacyCallsAllow
                   padding: EdgeInsets.symmetric(horizontal: 16),
                   child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
                 )
-              : TextButton(onPressed: _save, child: Text(context.t.common.done)),
+              : IconButton(tooltip: context.t.common.done, onPressed: _save, icon: const Icon(Icons.check)),
         ],
       ),
       body: SafeArea(

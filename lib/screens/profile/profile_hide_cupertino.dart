@@ -60,15 +60,11 @@ class _ProfileHideCupertino extends State<ProfileHideCupertino> {
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
               middle: Text(context.t.screenHideProfile.title),
-              leading: CupertinoButton(
-                padding: EdgeInsets.zero,
-                onPressed: () => context.pop(),
-                child: Text(context.t.common.cancel, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
-              ),
-              trailing: CupertinoButton(
-                padding: EdgeInsets.zero,
+              leading: NavBarButtonCupertino(NavBarAction.cancel, onPressed: () => context.pop()),
+              trailing: NavBarButtonCupertino(
+                NavBarAction.done,
+                label: context.t.screenHideProfile.hideAction,
                 onPressed: () => context.read<ProfileHideCubit>().hide(_phraseController.text),
-                child: Text(context.t.screenHideProfile.hideAction, style: TextStyle(color: ThemesCupertino.navActionColor(context))),
               ),
             ),
           ),
