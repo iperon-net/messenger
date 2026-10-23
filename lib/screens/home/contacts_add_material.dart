@@ -99,13 +99,17 @@ class _ContactsAddMaterialState extends State<ContactsAddMaterial> {
       errorStyle: const TextStyle(height: 0.8),
     );
 
+    // autofillHints: null — именно null: по умолчанию у поля пустой список, и
+    // оно всё равно участвует в автозаполнении Android. Система угадывает поле
+    // имени и открывает поверх приложения окно с подсказкой, оно забирает фокус
+    // окна — и клавиатура закрывалась после первой буквы.
     final firstNameField = TextFormField(
       controller: _firstNameController,
       focusNode: _firstNameFocus,
       autofocus: LocaleSettings.currentLocale == AppLocale.en ? true : false,
       textCapitalization: TextCapitalization.words,
       textInputAction: TextInputAction.next,
-      autofillHints: const [AutofillHints.givenName],
+      autofillHints: null,
       decoration: decoration(label: t.addFirstName),
     );
     final lastNameField = TextFormField(
@@ -114,7 +118,7 @@ class _ContactsAddMaterialState extends State<ContactsAddMaterial> {
       autofocus: LocaleSettings.currentLocale == AppLocale.en ? false : true,
       textCapitalization: TextCapitalization.words,
       textInputAction: TextInputAction.next,
-      autofillHints: const [AutofillHints.familyName],
+      autofillHints: null,
       decoration: decoration(label: t.addLastName),
     );
     // Для русской локали фамилия выше имени, в остальных — имя, затем фамилия.

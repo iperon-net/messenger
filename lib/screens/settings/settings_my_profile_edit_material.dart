@@ -130,10 +130,14 @@ class _SettingsMyProfileEditMaterial extends State<SettingsMyProfileEditMaterial
           errorStyle: const TextStyle(height: 0.8),
         );
 
+        // autofillHints: null — именно null: по умолчанию у поля пустой список, и
+        // оно всё равно участвует в автозаполнении Android. Система угадывает поле
+        // имени и открывает поверх приложения окно с подсказкой, оно забирает фокус
+        // окна — и клавиатура закрывалась после первой буквы.
         final firstNameField = TextFormField(
           controller: firstNameController,
           focusNode: firstNameFocus,
-          autofillHints: const [AutofillHints.givenName],
+          autofillHints: null,
           textInputAction: TextInputAction.next,
           decoration: decoration(label: context.t.screenMyProfile.firstName),
           validator: (value) => switch (context.read<SettingsMyProfileEditCubit>().validateFirstName(value)) {
@@ -144,7 +148,7 @@ class _SettingsMyProfileEditMaterial extends State<SettingsMyProfileEditMaterial
         final lastNameField = TextFormField(
           controller: lastNameController,
           focusNode: lastNameFocus,
-          autofillHints: const [AutofillHints.familyName],
+          autofillHints: null,
           textInputAction: TextInputAction.next,
           decoration: decoration(label: context.t.screenMyProfile.lastName),
           validator: (value) => switch (context.read<SettingsMyProfileEditCubit>().validateFirstName(value)) {
