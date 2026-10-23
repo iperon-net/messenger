@@ -127,6 +127,12 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- firebase_messaging 17: register() / FID-адресация (FCM_FID, см.
+             PushManager._syncFcmToken) без этого флага бросает «API disabled»,
+             и FID не регистрируется в FCM — пуши на устройство не доходят. -->
+        <meta-data
+            android:name="firebase_messaging_installation_id_enabled"
+            android:value="true" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
