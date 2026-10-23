@@ -52,6 +52,28 @@ class Blur extends StatelessWidget {
   }
 }
 
+/// Слой поверх уже нарисованного: размывает всё под собой (в [Stack] —
+/// последним). В отличие от [Blur], не оборачивает содержимое — его место в
+/// дереве не меняется, поэтому включение слоя не пересоздаёт виджеты под ним
+/// (поле ввода не теряет фокус и клавиатуру).
+class BlurLayer extends StatelessWidget {
+  const BlurLayer({super.key, this.blur = 5, this.blurColor = Colors.white, this.colorOpacity = 0.5});
+
+  final double blur;
+  final Color blurColor;
+  final double colorOpacity;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+        child: ColoredBox(color: blurColor.withValues(alpha: colorOpacity)),
+      ),
+    );
+  }
+}
+
 ///extension of [Blur] on [Widget] to blur it's child
 ///same as a [Blur] widget but you can use this as an extension on any widget which
 ///you want to have a blur effect

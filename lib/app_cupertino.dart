@@ -286,16 +286,6 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                 );
               }
 
-              if (state.settingsDevice.isBlurOnInactive && isBlur) {
-                return Blur(
-                  blur: 5,
-                  blurColor: CupertinoTheme.brightnessOf(context) == Brightness.dark
-                      ? CupertinoColors.darkBackgroundGray
-                      : CupertinoColors.inactiveGray,
-                  child: child ?? const SizedBox.shrink(),
-                );
-              }
-
               // Баннер о новом сообщении в другом чате (системные уведомления
               // на переднем плане не показываются).
               return Stack(
@@ -306,6 +296,19 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                     router: goRouter,
                     card: (context, notice) => InAppNoticeCupertino(notice: notice),
                   ),
+                  // Размытие при неактивности — слой поверх, а не обёртка над
+                  // child: иначе смена структуры дерева на `inactive` (а его даёт
+                  // и всплывающее окно автозаполнения Android) пересоздаёт экран
+                  // и закрывает клавиатуру в поле ввода.
+                  if (state.settingsDevice.isBlurOnInactive && isBlur)
+                    Positioned.fill(
+                      child: BlurLayer(
+                        blur: 5,
+                        blurColor: CupertinoTheme.brightnessOf(context) == Brightness.dark
+                            ? CupertinoColors.darkBackgroundGray
+                            : CupertinoColors.inactiveGray,
+                      ),
+                    ),
                 ],
               );
             },
