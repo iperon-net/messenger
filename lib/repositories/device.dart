@@ -4,16 +4,17 @@ part of 'repositories.dart';
 /// docs/plans/multi-account.md): то, что не принадлежит аккаунту, —
 /// настройки устройства (`settingsDevice`) и индекс аккаунтов (`accounts`).
 /// Сессия с ключами остаётся в базе аккаунта (`sessions`, на неё ссылаются
-/// внешние ключи и выборки «владельца»); `accounts` — только кто есть и кто
-/// активен.
+/// внешние ключи и выборки «владельца»); `accounts` — слоты аккаунтов: папка
+/// `accounts/<accountID>/` с базой и файлами, кто в нём вошёл и какой активен.
 class DeviceDatabase {
   DeviceDatabase._();
 
   /// Схема и первая строка `settingsDevice` переносятся из базы аккаунта
   /// [account] как есть (тот же `CREATE TABLE`), дальше колонки добавляют
-  /// миграции [migrations]; там же заводится `accounts` с активным аккаунтом
-  /// [account], если в нём есть сессия.
-  static SqliteMigrations migrations({required SqliteDatabase account}) {
+  /// миграции [migrations]; там же заводится `accounts` с активным слотом
+  /// [accountID] (база [account] уже лежит в его папке) и пользователем его
+  /// сессии, если она есть.
+  static SqliteMigrations migrations({required SqliteDatabase account, required String accountID}) {
     return SqliteMigrations()..add(
       SqliteMigration(1, (tx) async {
         final schema = await account.getOptional("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'settingsDevice';");
@@ -34,16 +35,24 @@ class DeviceDatabase {
           FROM sessions s LEFT JOIN users u ON u.userID = s.userID
           WHERE s.isActive = 1 LIMIT 1;
         ''');
-        if (active != null) {
-          await Accounts._insertActive(
-            tx,
-            userID: active['userID'] as List<int>,
-            phoneNumber: active['phoneNumber'] as String? ?? '',
-            createdAt: active['createdAt'] as int,
-          );
-        }
+        await Accounts._insertSlot(
+          tx,
+          accountID: accountID,
+          userID: active?['userID'] as List<int>? ?? const [],
+          phoneNumber: active?['phoneNumber'] as String? ?? '',
+          createdAt: active?['createdAt'] as int? ?? DateTime.now().millisecondsSinceEpoch,
+        );
       }),
     );
+  }
+
+  /// `accountID` активного слота в уже существующей `device.db` [db] (до её
+  /// миграций: таблицы может ещё не быть); null — слота нет.
+  static Future<String?> activeAccountID(SqliteDatabase db) async {
+    final table = await db.getOptional("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'accounts';");
+    if (table == null) return null;
+    final row = await db.getOptional('SELECT accountID FROM accounts WHERE isActive = 1 LIMIT 1;');
+    return row?['accountID'] as String?;
   }
 }
 
@@ -66,7 +75,8 @@ class Accounts {
     );
   ''';
 
-  /// Активный аккаунт: `accountID` и `userID`; null — никто не вошёл.
+  /// Активный слот: `accountID`, `userID` (пусто — никто не вошёл) и номер;
+  /// null — слота нет.
   Future<({String accountID, Uint8List userID, String phoneNumber})?> active() async {
     final row = await db.getOptional('SELECT accountID, userID, phoneNumber FROM accounts WHERE isActive = 1 LIMIT 1;');
     if (row == null) return null;
@@ -77,40 +87,48 @@ class Accounts {
     );
   }
 
-  /// Вход [userID]: он становится единственным активным (аккаунт пока один —
-  /// прежний активный уходит из индекса, как его сессия из `sessions`).
-  Future<void> activate({required List<int> userID, required String phoneNumber}) async {
+  /// Слот [accountID] — активный (заводится, если его нет): на старте, когда
+  /// папка аккаунта уже выбрана.
+  Future<void> ensureActive(String accountID) async {
     await db.writeTransaction((tx) async {
-      await tx.execute('DELETE FROM accounts WHERE isActive = 1 AND userID != ?;', [userID]);
-      final existing = await tx.getOptional('SELECT accountID FROM accounts WHERE userID = ?;', [userID]);
-      if (existing != null) {
-        await tx.execute('UPDATE accounts SET isActive = 1, phoneNumber = ? WHERE accountID = ?;', [phoneNumber, existing['accountID']]);
-        return;
+      final existing = await tx.getOptional('SELECT accountID FROM accounts WHERE accountID = ?;', [accountID]);
+      if (existing == null) {
+        await _insertSlot(tx, accountID: accountID, userID: const [], phoneNumber: '', createdAt: DateTime.now().millisecondsSinceEpoch);
       }
-      await _insertActive(tx, userID: userID, phoneNumber: phoneNumber, createdAt: DateTime.now().millisecondsSinceEpoch);
+      await tx.execute('UPDATE accounts SET isActive = (accountID = ?);', [accountID]);
     });
   }
 
-  /// Выход активного аккаунта.
-  Future<void> removeActive() async {
-    await db.execute('DELETE FROM accounts WHERE isActive = 1;');
+  /// Вход [userID] в активный слот (аккаунт пока один — слот и папка те же,
+  /// что до выхода).
+  Future<void> activate({required List<int> userID, required String phoneNumber}) async {
+    await db.execute('UPDATE accounts SET userID = ?, phoneNumber = ? WHERE isActive = 1;', [userID, phoneNumber]);
   }
 
-  static Future<void> _insertActive(
+  /// Выход из активного слота: пользователь снимается, слот и папка остаются
+  /// (как и данные при выходе сейчас; удаление папки — с переключением
+  /// аккаунтов, этап 3).
+  Future<void> removeActive() async {
+    await db.execute("UPDATE accounts SET userID = X'', phoneNumber = '' WHERE isActive = 1;");
+  }
+
+  static Future<void> _insertSlot(
     SqliteWriteContext tx, {
+    required String accountID,
     required List<int> userID,
     required String phoneNumber,
     required int createdAt,
   }) async {
     await tx.execute('INSERT INTO accounts (accountID, userID, phoneNumber, isActive, sortOrder, createdAt) VALUES (?, ?, ?, 1, 0, ?);', [
-      _newAccountID(),
-      userID,
+      accountID,
+      Uint8List.fromList(userID),
       phoneNumber,
       createdAt,
     ]);
   }
 
-  static String _newAccountID() {
+  /// Новый `accountID`: 16 случайных байт в hex.
+  static String newAccountID() {
     final random = Random.secure();
     return List.generate(16, (_) => random.nextInt(256).toRadixString(16).padLeft(2, '0')).join();
   }

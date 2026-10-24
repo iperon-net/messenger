@@ -7,7 +7,6 @@ import 'package:cryptography/helpers.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:grpc/grpc.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 import 'api.dart';
 import 'auth.dart';
@@ -18,6 +17,7 @@ import 'models.dart' as models;
 import 'protobuf.dart';
 import 'repositories.dart';
 import 'utils.dart';
+import 'account_scope.dart';
 
 /// Ошибка загрузки/подтверждения файла, не сведённая к обычному
 /// [APICallStatus] (например, обрыв сырого стрима `Upload` до `CompleteAck`,
@@ -472,7 +472,7 @@ class CDNManager {
   /// Скачивает ciphertext файла [cdn] с CDN (докачка после обрыва + сетевые
   /// ретраи), проверяет целостность по `hashSumEncrypted`, расшифровывает
   /// локально ([Crypto.fileEncryptor]) и возвращает файл plaintext в кэше
-  /// приложения (`<cache>/media/<cdnID>`). Повторный вызов для уже скачанного
+  /// приложения (`<cache>/accounts/<accountID>/media/<cdnID>`). Повторный вызов для уже скачанного
   /// [cdn] отдаёт файл из кэша без сети.
   ///
   /// Одновременные вызовы для одного [cdn] дедуплицируются ([_inFlightDownloads]):
@@ -775,12 +775,8 @@ class CDNManager {
     return state.withPaths(tmpPath: tmpPath, targetPath: targetPath);
   }
 
-  Future<Directory> _mediaDir() async {
-    final cache = await getApplicationCacheDirectory();
-    final dir = Directory(p.join(cache.path, 'media'));
-    await dir.create(recursive: true);
-    return dir;
-  }
+  /// Кэш скачанного — в кэше аккаунта.
+  Future<Directory> _mediaDir() => AccountScope.current.cacheSubdir('media');
 
   Future<String> _targetPath(models.CDN cdn) async {
     final mediaDir = await _mediaDir();

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'models.dart' as models;
 
 /// Состояние одного аккаунта в памяти: синглтоны чатов (`ChatsSync`,
@@ -27,6 +29,24 @@ class AccountScope {
   /// Пересылка, выбранная в другом чате: окно чата-получателя заберёт её при
   /// открытии (`ChatCubit.forwardTo`).
   final pendingForwards = <String, List<models.Message>>{};
+
+  /// Папки аккаунта: `data` — база и неотправленное (`chat_outbox`,
+  /// `secret_media`), `cache` — кэш скачанного (`media`). Ставит
+  /// `Repositories` при старте.
+  ({Directory data, Directory cache})? files;
+
+  /// Каталог [name] в папке данных аккаунта (создаётся).
+  Future<Directory> dataSubdir(String name) => _subdir(files?.data, name);
+
+  /// Каталог [name] в кэше аккаунта (создаётся).
+  Future<Directory> cacheSubdir(String name) => _subdir(files?.cache, name);
+
+  static Future<Directory> _subdir(Directory? root, String name) async {
+    if (root == null) throw StateError('AccountScope: account files are not set yet (Repositories is not ready)');
+    final dir = Directory('${root.path}${Platform.pathSeparator}$name');
+    await dir.create(recursive: true);
+    return dir;
+  }
 
   /// Список заблокированных уже обновлён с сервера в этом запуске
   /// (`PrivacyBlocks.refresh`).

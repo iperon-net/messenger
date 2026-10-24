@@ -43,7 +43,8 @@ void main() {
     await dir.delete(recursive: true);
   });
 
-  Future<void> migrate() => DeviceDatabase.migrations(account: account).migrate(device);
+  const slot = '00112233445566778899aabbccddeeff';
+  Future<void> migrate() => DeviceDatabase.migrations(account: account, accountID: slot).migrate(device);
 
   test('settingsDevice переносится со схемой и значениями', () async {
     await migrate();
@@ -57,9 +58,11 @@ void main() {
     expect((await device.get("SELECT quickReaction FROM settingsDevice WHERE darkMode = 'light';"))['quickReaction'], '❤️');
   });
 
-  test('без сессии — аккаунтов нет', () async {
+  test('без сессии — слот без пользователя', () async {
     await migrate();
-    expect(await Accounts(logger: Logger(), db: device).active(), isNull);
+    final active = await Accounts(logger: Logger(), db: device).active();
+    expect(active?.accountID, slot);
+    expect(active?.userID, isEmpty);
   });
 
   test('активная сессия становится активным аккаунтом', () async {
@@ -69,7 +72,18 @@ void main() {
     final active = await Accounts(logger: Logger(), db: device).active();
     expect(active?.userID, user);
     expect(active?.phoneNumber, '79990000001');
-    expect(active?.accountID, hasLength(32));
+    expect(active?.accountID, slot);
+    expect(await DeviceDatabase.activeAccountID(device), slot);
+  });
+
+  test('ensureActive заводит слот и делает активным только его', () async {
+    await migrate();
+    final accounts = Accounts(logger: Logger(), db: device);
+    await accounts.ensureActive('ffff');
+    expect((await accounts.active())?.accountID, 'ffff');
+    await accounts.ensureActive(slot);
+    expect((await accounts.active())?.accountID, slot);
+    expect((await device.get('SELECT COUNT(*) AS n FROM accounts WHERE isActive = 1;'))['n'], 1);
   });
 
   test('повторный запуск миграций ничего не дублирует', () async {
@@ -92,7 +106,10 @@ void main() {
     await sessions.deleteAndCreate(userID: user, session: [5], sessionID: [6], sharedKey: [7], sharedSalt: [8], createAt: DateTime(2026));
     expect((await accounts.active())?.accountID, first?.accountID);
 
+    // Выход: пользователь снят, слот (и папка) остаются.
     await sessions.deleteActive();
-    expect(await accounts.active(), isNull);
+    final out = await accounts.active();
+    expect(out?.accountID, first?.accountID);
+    expect(out?.userID, isEmpty);
   });
 }

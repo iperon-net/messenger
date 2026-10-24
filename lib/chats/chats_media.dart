@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
+import '../account_scope.dart';
 
 /// Вложения настоящих чатов (см. docs/plans/chats-groups-channels.md): файлы
 /// неотправленных сообщений и всё, что про них можно посчитать без сети и UI.
@@ -54,11 +54,8 @@ class OutboxMedia {
   }
 }
 
-Future<Directory> outboxMediaDir() async {
-  final dir = Directory(p.join((await getApplicationSupportDirectory()).path, 'chat_outbox'));
-  await dir.create(recursive: true);
-  return dir;
-}
+/// Копии неотправленных вложений — в папке аккаунта.
+Future<Directory> outboxMediaDir() => AccountScope.current.dataSubdir('chat_outbox');
 
 var _stashCounter = 0;
 

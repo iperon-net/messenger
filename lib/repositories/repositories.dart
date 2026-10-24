@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 import 'package:sqlite_async/native.dart';
 
+import '../account_scope.dart';
 import '../di.dart';
 import '../i18n/translations.g.dart';
 import '../logger.dart';
@@ -37,6 +38,7 @@ part "chats.dart";
 part "secret_chats.dart";
 part "spoiler_reveals.dart";
 part "device.dart";
+part "account_files.dart";
 
 base class _AppSqliteOpenFactory extends NativeSqliteOpenFactory {
   final String? password;
@@ -69,6 +71,9 @@ class Repositories {
   late SqliteDatabase deviceDb;
   late SettingsDevice settingsDevice;
   late Accounts accounts;
+
+  /// Папки активного аккаунта (база, неотправленное, кэш скачанного).
+  late AccountFiles accountFiles;
   late Users users;
   late Sessions sessions;
   late DeviceSessions deviceSessions;
@@ -96,7 +101,8 @@ class Repositories {
 
   Future<void> _initialization() async {
     final supportDir = (await getApplicationSupportDirectory()).path;
-    String databasePath = p.join(supportDir, settings.databaseName);
+    final cacheRoot = (await getApplicationCacheDirectory()).path;
+    final legacyDatabasePath = p.join(supportDir, settings.databaseName);
     final deviceDatabasePath = p.join(supportDir, 'device.db');
 
     // Secure storage. iOS: accessibility = afterFirstUnlockThisDeviceOnly (не
@@ -1009,23 +1015,28 @@ class Repositories {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 
       try {
-        for (final path in [databasePath, deviceDatabasePath]) {
+        for (final path in [legacyDatabasePath, deviceDatabasePath]) {
           for (final file in [path, "$path-wal", "$path-shm"]) {
             if (await File(file).exists()) await File(file).delete();
           }
+        }
+        for (final root in [supportDir, cacheRoot]) {
+          final accountsDir = Directory(p.join(root, AccountFiles.accountsDirName));
+          if (await accountsDir.exists()) await accountsDir.delete(recursive: true);
         }
         logger.info("the database has been successfully deleted");
       } catch (e) {
         logger.error("error delete database $e");
       }
 
-      storage.delete(key: "databasePassword");
+      for (final key in (await storage.readAll()).keys) {
+        if (key == "databasePassword" || key.startsWith("databasePassword:")) await storage.delete(key: key);
+      }
     }
 
-    logger.logCustom(RepositoriesLog("databasePath = $databasePath"));
-
+    String? password;
     if (!kDebugMode) {
-      String? password = await storage.read(key: "databasePassword");
+      password = await storage.read(key: "databasePassword");
       if (password == null) {
         password = _generatePassword();
         await storage.write(key: 'databasePassword', value: password);
@@ -1039,20 +1050,51 @@ class Repositories {
         // где read уже успешен.
         await storage.write(key: 'databasePassword', value: password);
       }
-
-      db = SqliteDatabase.withFactory(_AppSqliteOpenFactory(path: databasePath, password: password));
-      deviceDb = SqliteDatabase.withFactory(_AppSqliteOpenFactory(path: deviceDatabasePath, password: password));
-    } else {
-      db = SqliteDatabase.withFactory(_AppSqliteOpenFactory(path: databasePath));
-      deviceDb = SqliteDatabase.withFactory(_AppSqliteOpenFactory(path: deviceDatabasePath));
     }
+    deviceDb = SqliteDatabase.withFactory(_AppSqliteOpenFactory(path: deviceDatabasePath, password: password));
+
+    // Папка активного аккаунта: слот из device.db, иначе новый. Прежние общие
+    // файлы (iperon.db, outbox, кэш) переезжают в неё один раз.
+    final accountID = await DeviceDatabase.activeAccountID(deviceDb) ?? Accounts.newAccountID();
+    accountFiles = AccountFiles(supportDir: supportDir, cacheRoot: cacheRoot, accountID: accountID);
+    final moved = await AccountFilesMigration.run(
+      supportDir: supportDir,
+      cacheRoot: cacheRoot,
+      databaseName: settings.databaseName,
+      files: accountFiles,
+      logger: logger,
+    );
+    await accountFiles.dataDir.create(recursive: true);
+    var databasePath = accountFiles.databasePath(settings.databaseName);
+    // Перенос не удался (или ещё идёт в другом isolate) — работаем со старой
+    // базой, а не с новой пустой: иначе вход пропал бы.
+    if (!await File(databasePath).exists() && await File(legacyDatabasePath).exists()) {
+      logger.warning('account files: database is still at the legacy path');
+      databasePath = legacyDatabasePath;
+    }
+    logger.logCustom(RepositoriesLog("databasePath = $databasePath"));
+
+    String? accountPassword;
+    if (password != null) {
+      // Пароль базы — на аккаунт; для перенесённой базы — прежний общий.
+      final key = 'databasePassword:$accountID';
+      accountPassword = await storage.read(key: key);
+      if (accountPassword == null) {
+        accountPassword = await File(databasePath).exists() ? password : _generatePassword();
+        await storage.write(key: key, value: accountPassword);
+      }
+    }
+    db = SqliteDatabase.withFactory(_AppSqliteOpenFactory(path: databasePath, password: accountPassword));
 
     await migrations.migrate(db);
+    if (moved.isNotEmpty) await AccountFilesMigration.rewritePaths(db, moved);
     // device.db мигрирует после базы аккаунта: первая миграция переносит из
     // неё settingsDevice и активный аккаунт.
-    await DeviceDatabase.migrations(account: db).migrate(deviceDb);
+    await DeviceDatabase.migrations(account: db, accountID: accountID).migrate(deviceDb);
     settingsDevice = SettingsDevice(logger: logger, db: deviceDb);
     accounts = Accounts(logger: logger, db: deviceDb);
+    await accounts.ensureActive(accountID);
+    AccountScope.current.files = (data: accountFiles.dataDir, cache: accountFiles.cacheDir);
     users = Users(logger: logger, db: db);
     sessions = Sessions(logger: logger, db: db, accounts: accounts);
     deviceSessions = DeviceSessions(logger: logger, db: db);

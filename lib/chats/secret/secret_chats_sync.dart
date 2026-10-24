@@ -6,7 +6,6 @@ import 'package:fixnum/fixnum.dart';
 import 'package:flutter/foundation.dart';
 import 'package:grpc/grpc.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 import '../../api.dart';
 import '../../auth.dart';
@@ -38,11 +37,7 @@ const secretTtlOptions = [0, 5, 30, 60, 3600, 86400, 604800];
 /// Каталог файлов вложений секретных чатов на устройстве: копии
 /// неотправленных и кадры-обложки видео из конвертов (отдельно от outbox
 /// обычных чатов — его чистит `ChatsSync`). Удаляются вместе с сообщением.
-Future<Directory> secretOutboxMediaDir() async {
-  final dir = Directory(p.join((await getApplicationSupportDirectory()).path, 'secret_media'));
-  await dir.create(recursive: true);
-  return dir;
-}
+Future<Directory> secretOutboxMediaDir() => AccountScope.current.dataSubdir('secret_media');
 
 /// Загруженный файл вложения: где лежит шифротекст (fileID) и чем открыть.
 class SecretUploadedFile {
