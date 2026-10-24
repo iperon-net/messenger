@@ -56,6 +56,11 @@ class CallkitConnectionService : ConnectionService() {
             return failed("Empty call id")
         }
 
+        if (CallkitConnection.takeEnded(callId)) {
+            Log.d(TAG, "onCreateIncomingConnection id=$callId already ended — failed")
+            return Connection.createFailedConnection(DisconnectCause(DisconnectCause.CANCELED))
+        }
+
         Log.d(TAG, "onCreateIncomingConnection id=$callId caller=${data.nameCaller}")
 
         val connection = CallkitConnection(applicationContext, callId, callBundle).apply {

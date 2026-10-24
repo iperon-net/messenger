@@ -207,7 +207,16 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
         } catch (e: Exception) {
             null
         } ?: return
-        val conn = CallkitConnection.find(parsed.id) ?: return
+        val conn = CallkitConnection.find(parsed.id) ?: run {
+            // Telecom ещё не создал Connection — запомнить, что звонок уже
+            // завершён (см. CallkitConnection.rememberEnded).
+            when (action) {
+                CallkitConstants.ACTION_CALL_DECLINE,
+                CallkitConstants.ACTION_CALL_ENDED,
+                CallkitConstants.ACTION_CALL_TIMEOUT -> CallkitConnection.rememberEnded(parsed.id)
+            }
+            return
+        }
         when (action) {
             CallkitConstants.ACTION_CALL_ACCEPT -> conn.markAccepted()
             // Outgoing call answered by the remote side — drive the dialing

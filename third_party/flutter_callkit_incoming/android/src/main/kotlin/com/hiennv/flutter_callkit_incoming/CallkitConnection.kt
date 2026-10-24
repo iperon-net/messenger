@@ -62,6 +62,31 @@ class CallkitConnection(
             activeConnections.remove(callId)
         }
 
+        /**
+         * Звонки, завершённые (отбой / отклонение / таймаут) раньше, чем Telecom
+         * создал их Connection: addNewIncomingCall асинхронный, и отклонение в
+         * первые секунды приходит, когда [find] ещё пуст. Такой Connection
+         * [CallkitConnectionService] сразу отдаёт failed — иначе он навсегда
+         * остаётся RINGING в Telecom, служба остаётся привязанной системой и
+         * процесс приложения нельзя выгрузить (видно в `dumpsys telecom`).
+         */
+        private val endedBeforeCreate = LinkedHashSet<String>()
+        private const val ENDED_BEFORE_CREATE_LIMIT = 32
+
+        fun rememberEnded(callId: String) {
+            synchronized(endedBeforeCreate) {
+                endedBeforeCreate.add(callId)
+                while (endedBeforeCreate.size > ENDED_BEFORE_CREATE_LIMIT) {
+                    endedBeforeCreate.remove(endedBeforeCreate.first())
+                }
+            }
+        }
+
+        /** true — звонок уже завершён, Connection создавать не надо (отметка снимается). */
+        fun takeEnded(callId: String): Boolean = synchronized(endedBeforeCreate) {
+            endedBeforeCreate.remove(callId)
+        }
+
         /** For testing / cleanup — release all refs (Connection objects already destroyed by OS). */
         fun clearAll() {
             activeConnections.clear()
