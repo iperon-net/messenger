@@ -59,15 +59,19 @@ import '../account_scope.dart';
 /// «кто прочитал», медленный режим, «новички», «скрыть участников». Каналы и
 /// сообщества — следующие срезы: их действия бросают [UnsupportedError].
 class ChatsRemoteDataSource implements ChatsDataSource {
+  /// Аккаунт этого сервиса: зависимости берутся из него, а не из «текущего» —
+  /// после переключения аккаунта незавершённые операции не уйдут в чужой.
+  final AccountScope _scope = AccountScope.current;
+
   ChatsRemoteDataSource._();
 
   static ChatsRemoteDataSource get instance => AccountScope.current.resolve(ChatsRemoteDataSource._);
 
   Logger get _logger => getIt.get<Logger>();
-  Repositories get _repositories => getIt.get<Repositories>();
+  Repositories get _repositories => _scope.repositories;
   ChatsRepository get _store => _repositories.chats;
   ChatsSync get _sync => ChatsSync.instance;
-  Auth get _auth => getIt.get<Auth>();
+  Auth get _auth => _scope.auth;
 
   final _random = Random.secure();
 
@@ -518,7 +522,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     if (path.isNotEmpty || !info.hasAvatar() || _avatarDownloads[key] == info.avatar.url) return path;
     _avatarDownloads[key] = info.avatar.url;
     unawaited(
-      getIt.get<CDNManager>().download(cdn: models.CDN.fromProto(info.avatar)).then((_) => _avatarsChanged.add(null)).catchError((
+      _scope.cdn.download(cdn: models.CDN.fromProto(info.avatar)).then((_) => _avatarsChanged.add(null)).catchError((
         Object error,
         StackTrace stackTrace,
       ) {
@@ -629,7 +633,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   /// [_profileRefreshInterval] для верхних [_profileRefreshLimit] чатов. Пока
   /// стрим не подключён, не помечаем — запросим при следующем чтении.
   void _requestProfiles(List<({Uint8List userID, bool cached})> peers) {
-    final api = getIt.get<API>();
+    final api = _scope.api;
     if (api.connectionStatus != ApiConnectionStatus.connected) return;
     final now = DateTime.now();
     for (final (index, (:userID, :cached)) in peers.indexed) {
@@ -652,7 +656,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     final cached = _avatarPaths[key];
     if (cached != null) return cached;
     try {
-      final file = await getIt.get<CDNManager>().cachedFile(Uint8List.fromList(cdnID));
+      final file = await _scope.cdn.cachedFile(Uint8List.fromList(cdnID));
       if (file == null) return '';
       return _avatarPaths[key] = file.path;
     } catch (error, stackTrace) {
@@ -881,7 +885,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     if (!response.hasSearchUsers()) return const [];
     final me = _sync.me;
     final hidden = {for (final h in await _repositories.hiddenProfiles.getAll()) idHex(h.userID)};
-    final api = getIt.get<API>();
+    final api = _scope.api;
     final userIDs = <Uint8List>[];
     for (final profile in response.searchUsers.profiles) {
       final userID = Uint8List.fromList(profile.userID);
@@ -928,7 +932,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     var path = await _avatarPath(info.avatarCdnID);
     if (path.isEmpty && info.avatarCdnID.isNotEmpty && info.hasAvatar()) {
       try {
-        path = (await getIt.get<CDNManager>().download(cdn: models.CDN.fromProto(info.avatar)).timeout(_searchAvatarWait)).path;
+        path = (await _scope.cdn.download(cdn: models.CDN.fromProto(info.avatar)).timeout(_searchAvatarWait)).path;
       } catch (error) {
         _logger.warning('chats: search avatar: $error');
       }
@@ -1066,7 +1070,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   /// фото качается (не получилось посчитать — пусто, фото всё равно ставим).
   Future<({Uint8List cdnID, String thumbhash})> _uploadChatAvatar(String path) async {
     try {
-      final file = await getIt.get<CDNManager>().uploadFile(file: File(path), folder: 'avatars', contentType: 'image/jpeg');
+      final file = await _scope.cdn.uploadFile(file: File(path), folder: 'avatars', contentType: 'image/jpeg');
       return (cdnID: Uint8List.fromList(file.cdnID), thumbhash: await avatarThumbhash(await File(path).readAsBytes()));
     } on FileSystemException {
       rethrow;
@@ -1218,7 +1222,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         throw ChatsRequestException(channel ? 'channelsDisabled' : 'groupsDisabled', StatusCode.failedPrecondition);
       }
       final preview = result.preview;
-      final api = getIt.get<API>();
+      final api = _scope.api;
       for (final profile in preview.members) {
         await api.cacheProfile(profile, waitAvatar: false);
       }
@@ -1666,7 +1670,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     if (!_auth.isAuthorized) return const [];
     await _requireNetwork();
     final chat = idBytes(chatID);
-    final api = getIt.get<API>();
+    final api = _scope.api;
     final rows = <pb.ChatJoinRequest>[];
     var offset = <int>[];
     var total = 0;
@@ -1736,7 +1740,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       final response = await _sync.chats(pb.Chats_Request(members: pb.Chats_Members(chatID: chat, admins: true)));
       _adminsRefreshed.add(chatID);
       final page = response.members;
-      final api = getIt.get<API>();
+      final api = _scope.api;
       for (final profile in page.profiles) {
         await api.cacheProfile(profile, waitAvatar: false);
       }
@@ -1806,7 +1810,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         ),
       );
       final page = response.members;
-      final api = getIt.get<API>();
+      final api = _scope.api;
       for (final profile in page.profiles) {
         await api.cacheProfile(profile, waitAvatar: false);
       }
@@ -1854,7 +1858,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         ),
       );
       final page = response.members;
-      final api = getIt.get<API>();
+      final api = _scope.api;
       for (final profile in page.profiles) {
         await api.cacheProfile(profile, waitAvatar: false);
       }
@@ -1927,7 +1931,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   Future<List<models.ChatMember>> banned(String chatID) async {
     await _requireNetwork();
     final chat = idBytes(chatID);
-    final api = getIt.get<API>();
+    final api = _scope.api;
     final rows = <pb.ChatBannedMember>[];
     var offset = <int>[];
     for (var page = 0; page < _bannedPages; page++) {
@@ -2494,7 +2498,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
 
   // --- вложения ---
 
-  CDNManager get _cdn => getIt.get<CDNManager>();
+  CDNManager get _cdn => _scope.cdn;
 
   /// Скачанные файлы вложений: cdnID (hex) → путь в кэше.
   final _mediaPaths = <String, String>{};

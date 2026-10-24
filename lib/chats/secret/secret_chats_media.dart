@@ -17,6 +17,10 @@ import '../../account_scope.dart';
 /// только участнику чата), ключ / соль / хеш — из сообщения
 /// ([sp.SecretMedia]), расшифровка и кэш — `CDNManager.download`.
 class SecretChatsMedia {
+  /// Аккаунт этого сервиса: зависимости берутся из него, а не из «текущего» —
+  /// после переключения аккаунта незавершённые операции не уйдут в чужой.
+  final AccountScope _scope = AccountScope.current;
+
   SecretChatsMedia._();
 
   static SecretChatsMedia get instance => AccountScope.current.resolve(SecretChatsMedia._);
@@ -44,7 +48,7 @@ class SecretChatsMedia {
     _changed.add(null);
   });
 
-  CDNManager get _cdn => getIt.get<CDNManager>();
+  CDNManager get _cdn => _scope.cdn;
 
   static String _hex(List<int> bytes) => getIt.get<Utils>().bytesToHex(Uint8List.fromList(bytes));
 

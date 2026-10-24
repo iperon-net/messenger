@@ -53,13 +53,17 @@ class InAppNotice {
 /// текст» — «Новое сообщение». Где показывать (не в открытом чате, не в списке)
 /// решает экранный слой (`InAppNoticeHost`).
 class InAppNotices {
+  /// Аккаунт этого сервиса: зависимости берутся из него, а не из «текущего» —
+  /// после переключения аккаунта незавершённые операции не уйдут в чужой.
+  final AccountScope _scope = AccountScope.current;
+
   InAppNotices._();
 
   static InAppNotices get instance => AccountScope.current.resolve(InAppNotices._);
 
   Logger get _logger => getIt.get<Logger>();
-  Repositories get _repositories => getIt.get<Repositories>();
-  Auth get _auth => getIt.get<Auth>();
+  Repositories get _repositories => _scope.repositories;
+  Auth get _auth => _scope.auth;
 
   late final _out = StreamController<InAppNotice>.broadcast(onListen: _start, onCancel: _stop);
 
@@ -132,7 +136,7 @@ class InAppNotices {
     if (chat.muted && !event.mentioned) return null;
     // Пока собирали, прочитали (открыли чат, прочитали на другом устройстве).
     if (chat.unreadCount == 0 && chat.unreadMentions == 0) return null;
-    final scope = await _scope(chat);
+    final scope = await _scopeSettings(chat);
     if (scope != null && !scope.enabled) return null;
     final hidden = await _repositories.hiddenProfiles.hashByHex();
     _remember(key);
@@ -185,7 +189,7 @@ class InAppNotices {
     final chats = await watchSecretChats().first.timeout(const Duration(seconds: 5));
     final chat = chats.where((c) => c.id == id).firstOrNull;
     if (chat == null || chat.unreadCount == 0) return null;
-    final scope = await _scope(chat);
+    final scope = await _scopeSettings(chat);
     if (scope != null && !scope.enabled) return null;
     final hidden = await _repositories.hiddenProfiles.hashByHex();
     _remember(key);
@@ -206,7 +210,7 @@ class InAppNotices {
 
   /// Настройка уведомлений типа чатов (общая для устройств, кэш в SQLite);
   /// null — ещё не приходила (по умолчанию всё включено, как на сервере).
-  Future<pb.NotifySettings_ScopeSettings?> _scope(models.Chat chat) async {
+  Future<pb.NotifySettings_ScopeSettings?> _scopeSettings(models.Chat chat) async {
     final settings = await _settings();
     if (settings == null) return null;
     return switch (chat.type) {

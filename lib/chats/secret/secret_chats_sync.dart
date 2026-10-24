@@ -8,7 +8,6 @@ import 'package:grpc/grpc.dart';
 import 'package:path/path.dart' as p;
 
 import '../../api.dart';
-import '../../auth.dart';
 import '../../cdn.dart';
 import '../../crypto.dart';
 import '../../di.dart';
@@ -70,7 +69,7 @@ class _CdnSecretMediaUploader implements SecretMediaUploader {
     void Function(int sent, int total)? onProgress,
     bool Function()? isCancelled,
   }) async {
-    final cdn = await getIt.get<CDNManager>().uploadFile(
+    final cdn = await AccountScope.current.cdn.uploadFile(
       file: file,
       folder: secretMediaFolder,
       contentType: contentType,
@@ -164,14 +163,18 @@ abstract class SecretChatsTransport {
 }
 
 class _ApiSecretChatsTransport implements SecretChatsTransport {
+  _ApiSecretChatsTransport(this._scope);
+
+  /// Аккаунт, от имени которого идут запросы.
+  final AccountScope _scope;
+
   /// Предел ожидания ответа: unary без дедлайна на полуоткрытом после сна
   /// соединении висит долго и держит всю очередь секретных чатов.
   static const _timeout = Duration(seconds: 20);
 
   @override
   Future<sc.SecretChats_Response> request(sc.SecretChats_Request request) async {
-    final (status, body) = await getIt
-        .get<API>()
+    final (status, body) = await _scope.api
         .unaryEncodedWithResponse(MessageType.SECRET_CHATS, request.writeToBuffer())
         .timeout(_timeout, onTimeout: () => throw const ChatsOfflineException());
     if (status.status == APIStatus.success && body != null) return sc.SecretChats_Response.fromBuffer(body);
@@ -220,18 +223,20 @@ class SecretChatsSync {
        _clock = clock ?? DateTime.now,
        _clearNotifications = clearNotifications ?? _clearPushes;
 
-  /// Синглтон аккаунта ([AccountScope]; зависимости — из get_it, лениво).
-  static SecretChatsSync get instance => AccountScope.current.resolve(
-    () => SecretChatsSync(
-      store: () => getIt.get<Repositories>().secretChats,
+  /// Синглтон аккаунта ([AccountScope]; зависимости — из его scope, лениво:
+  /// после переключения аккаунта операции этого экземпляра остаются в нём).
+  static SecretChatsSync get instance => AccountScope.current.resolve(() {
+    final scope = AccountScope.current;
+    return SecretChatsSync(
+      store: () => scope.repositories.secretChats,
       crypto: () => getIt.get<Crypto>().secretChat,
-      transport: _ApiSecretChatsTransport(),
-      sessionID: () => getIt.get<Auth>().session.sessionID,
-      userID: () => getIt.get<Auth>().session.userID,
+      transport: _ApiSecretChatsTransport(scope),
+      sessionID: () => scope.auth.session.sessionID,
+      userID: () => scope.auth.session.userID,
       hasNetwork: () => getIt.get<Utils>().hasNetwork(),
       logger: () => getIt.get<Logger>(),
-    ),
-  );
+    );
+  });
 
   final SecretChatsRepository Function() _storeOf;
   final SecretChatCrypto Function() _cryptoOf;
@@ -256,7 +261,7 @@ class SecretChatsSync {
     for (final id in fileIDs) {
       SecretChatsMedia.instance.forget(id);
       unawaited(
-        getIt.get<CDNManager>().evict(id).catchError((Object error, StackTrace stackTrace) {
+        AccountScope.current.cdn.evict(id).catchError((Object error, StackTrace stackTrace) {
           getIt.get<Logger>().handle(error, stackTrace);
           return false;
         }),

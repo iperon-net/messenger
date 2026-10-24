@@ -6,6 +6,7 @@ import '../di.dart';
 import '../logger.dart';
 import '../repositories/repositories.dart';
 import '../utils.dart';
+import '../account_scope.dart';
 
 /// Раскрытые спойлеры (фото, видео, текст): вышли из чата и вернулись,
 /// пузырь пересоздан прокруткой или приложение перезапущено — раскрытое
@@ -36,7 +37,7 @@ abstract final class SpoilerReveals {
     _sync();
     if (!_revealed.add(key) || _owner.isEmpty) return;
     unawaited(
-      getIt.get<Repositories>().spoilerReveals.add(key).catchError((Object error, StackTrace stackTrace) {
+      AccountScope.current.repositories.spoilerReveals.add(key).catchError((Object error, StackTrace stackTrace) {
         getIt.get<Logger>().handle(error, stackTrace);
       }),
     );
@@ -53,7 +54,7 @@ abstract final class SpoilerReveals {
   /// зависимостей (тесты виджетов) — только память.
   static void _sync() {
     if (!getIt.isRegistered<Auth>() || !getIt.isRegistered<Repositories>()) return;
-    final userID = getIt.get<Auth>().session.userID;
+    final userID = AccountScope.current.auth.session.userID;
     final owner = userID.isEmpty ? '' : getIt.get<Utils>().bytesToHex(Uint8List.fromList(userID));
     if (owner == _owner) return;
     _owner = owner;
@@ -61,7 +62,7 @@ abstract final class SpoilerReveals {
     if (owner.isEmpty) return;
     _loading = () async {
       try {
-        final keys = await getIt.get<Repositories>().spoilerReveals.all();
+        final keys = await AccountScope.current.repositories.spoilerReveals.all();
         if (_owner == owner) _revealed.addAll(keys);
       } catch (error, stackTrace) {
         getIt.get<Logger>().handle(error, stackTrace);

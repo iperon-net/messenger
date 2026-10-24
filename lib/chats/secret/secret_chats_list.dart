@@ -2,8 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import '../../auth.dart';
-import '../../cdn.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
@@ -12,6 +10,7 @@ import '../../peer_names.dart';
 import '../../repositories.dart';
 import '../../utils.dart';
 import 'secret_chats_sync.dart';
+import '../../account_scope.dart';
 
 /// Префикс id секретного чата в общем списке чатов (`secret:<hex>`): по нему
 /// список открывает окно секретного чата, а не обычного.
@@ -77,10 +76,10 @@ Future<String> secretPeerAvatar(List<int> peerUserID) async => (await _secretPee
 /// Фото собеседника и его ThumbHash (превью, пока фото не скачано).
 Future<({String path, String thumbhash})> _secretPeerAvatar(List<int> peerUserID) async {
   try {
-    final profile = await getIt.get<Repositories>().profiles.getByUserID(userID: peerUserID);
+    final profile = await AccountScope.current.repositories.profiles.getByUserID(userID: peerUserID);
     final cdnID = profile.avatarCdnID;
     if (cdnID == null || cdnID.isEmpty) return (path: '', thumbhash: profile.avatarThumbhash);
-    final path = (await getIt.get<CDNManager>().cachedFile(Uint8List.fromList(cdnID)))?.path ?? '';
+    final path = (await AccountScope.current.cdn.cachedFile(Uint8List.fromList(cdnID)))?.path ?? '';
     return (path: path, thumbhash: profile.avatarThumbhash);
   } catch (error, stackTrace) {
     getIt.get<Logger>().handle(error, stackTrace);
@@ -91,14 +90,14 @@ Future<({String path, String thumbhash})> _secretPeerAvatar(List<int> peerUserID
 /// Секретные чаты этого устройства как строки общего списка чатов;
 /// перечитываются при изменении таблиц.
 Stream<List<models.Chat>> watchSecretChats() {
-  final repositories = getIt.get<Repositories>();
+  final repositories = AccountScope.current.repositories;
   final utils = getIt.get<Utils>();
   late final StreamController<List<models.Chat>> out;
   StreamSubscription<void>? changes;
   var pending = Future<void>.value();
 
   Future<List<models.Chat>> load() async {
-    final sessionID = getIt.get<Auth>().session.sessionID;
+    final sessionID = AccountScope.current.auth.session.sessionID;
     if (sessionID.isEmpty) return const [];
     final records = await repositories.secretChats.chats(sessionID: sessionID);
     final names = <String, String>{};

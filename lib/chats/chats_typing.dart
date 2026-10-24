@@ -3,7 +3,6 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 import '../api.dart';
-import '../auth.dart';
 import '../di.dart';
 import '../logger.dart';
 import '../models.dart' as models;
@@ -26,6 +25,10 @@ import '../account_scope.dart';
 /// вложений), пока идут — повторяются раз в [_resend]; [cancel] — поле
 /// очистили или сообщение ушло. Долгое действие главнее набора текста.
 class ChatsTyping {
+  /// Аккаунт этого сервиса: зависимости берутся из него, а не из «текущего» —
+  /// после переключения аккаунта незавершённые операции не уйдут в чужой.
+  final AccountScope _scope = AccountScope.current;
+
   ChatsTyping._() {
     _subscription = _api.on(MessageType.CHAT_TYPING).listen(_onSignal);
   }
@@ -39,7 +42,7 @@ class ChatsTyping {
   /// У получателя запись без продления — как в Telegram (6 с).
   static const _ttl = Duration(seconds: 6);
 
-  API get _api => getIt.get<API>();
+  API get _api => _scope.api;
   Logger get _logger => getIt.get<Logger>();
 
   // ignore: unused_field
@@ -79,7 +82,7 @@ class ChatsTyping {
     final userID = idHex(signal.userID);
     if (chatID.isEmpty || userID.isEmpty) return;
     // В группе сервер рассылает сигнал всем в subject чата — и нам самим.
-    if (userID == idHex(getIt.get<Auth>().session.userID)) return;
+    if (userID == idHex(_scope.auth.session.userID)) return;
     final activity = _activityOf(signal.action);
     if (activity == null) {
       if (_remove(chatID, userID)) _changed.add(null);

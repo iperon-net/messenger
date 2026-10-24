@@ -1,6 +1,11 @@
 import 'dart:io';
 
+import 'api.dart';
+import 'auth.dart';
+import 'cdn.dart';
+import 'di.dart';
 import 'models.dart' as models;
+import 'repositories.dart';
 
 /// Состояние одного аккаунта в памяти: синглтоны чатов (`ChatsSync`,
 /// `ChatsRemoteDataSource`, `ChatsPresence`, …) и мелкие кэши, которые раньше
@@ -20,6 +25,14 @@ class AccountScope {
   static AccountScope get current => _current;
 
   final _services = <Type, Object>{};
+
+  // Сервисы аккаунта из get_it. Пока scope один, это просто get_it; с
+  // переключением аккаунтов (этап 3.1) scope хранит свои экземпляры, и
+  // сервисы, созданные в нём, продолжают работать со своим аккаунтом.
+  API get api => getIt.get<API>();
+  Auth get auth => getIt.get<Auth>();
+  Repositories get repositories => getIt.get<Repositories>();
+  CDNManager get cdn => getIt.get<CDNManager>();
 
   /// Сервис [T] этого аккаунта: создаётся [create] при первом обращении и
   /// дальше один на scope. Классы чатов отдают его как `X.instance`, передавая

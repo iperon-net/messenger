@@ -21,15 +21,19 @@ import '../account_scope.dart';
 /// виртуальная строка списка чатов ([watchChat]) и лента ([watchReplies]).
 /// В демо «Ответов» нет.
 class ChatsReplies {
+  /// Аккаунт этого сервиса: зависимости берутся из него, а не из «текущего» —
+  /// после переключения аккаунта незавершённые операции не уйдут в чужой.
+  final AccountScope _scope = AccountScope.current;
+
   ChatsReplies._();
 
   static ChatsReplies get instance => AccountScope.current.resolve(ChatsReplies._);
 
   Logger get _logger => getIt.get<Logger>();
-  Repositories get _repositories => getIt.get<Repositories>();
+  Repositories get _repositories => _scope.repositories;
   ChatsRepository get _store => _repositories.chats;
   ChatsSync get _sync => ChatsSync.instance;
-  Auth get _auth => getIt.get<Auth>();
+  Auth get _auth => _scope.auth;
 
   /// Имена людей по общему правилу (hex userID → имя; и для баннера о
   /// новом ответе); в тестах — подмена.

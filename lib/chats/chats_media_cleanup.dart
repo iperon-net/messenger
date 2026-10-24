@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import '../cdn.dart';
 import '../di.dart';
 import '../logger.dart';
 import '../repositories/repositories.dart';
+import '../account_scope.dart';
 
 /// Очистка скачанных вложений на устройстве: удалили сообщения или чат (у
 /// себя, на другом устройстве или собеседник — «у обоих») — их файлы из кэша
@@ -61,7 +61,7 @@ class ChatsMediaCleanup {
         var evicted = 0;
         for (final id in batch) {
           if (referenced.contains(_hex(id))) continue;
-          if (await getIt.get<CDNManager>().evict(id)) evicted++;
+          if (await AccountScope.current.cdn.evict(id)) evicted++;
         }
         if (evicted > 0) logger.debug('chats: evicted $evicted unused media files');
       }
@@ -72,7 +72,7 @@ class ChatsMediaCleanup {
 
   /// Какие из [ids] (hex) ещё нужны: есть в сообщениях или это аватар.
   static Future<Set<String>> _referenced(List<Uint8List> ids) async {
-    final db = getIt.get<Repositories>().db;
+    final db = AccountScope.current.repositories.db;
     final found = <String>{};
     final any = List.filled(ids.length, '?').join(',');
     for (final table in ['profiles', 'myProfile']) {

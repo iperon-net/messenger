@@ -21,6 +21,10 @@ import '../account_scope.dart';
 /// `online` эфемерный — только в памяти; время захода пишем в кэш профилей
 /// (`profiles.lastSeenAt`), оттуда его берёт список чатов (и без сети).
 class ChatsPresence {
+  /// Аккаунт этого сервиса: зависимости берутся из него, а не из «текущего» —
+  /// после переключения аккаунта незавершённые операции не уйдут в чужой.
+  final AccountScope _scope = AccountScope.current;
+
   ChatsPresence._();
 
   static ChatsPresence get instance => AccountScope.current.resolve(ChatsPresence._);
@@ -30,7 +34,7 @@ class ChatsPresence {
   /// Сервер принимает до 1024 userID за запрос.
   static const _batchLimit = 1000;
 
-  API get _api => getIt.get<API>();
+  API get _api => _scope.api;
   Logger get _logger => getIt.get<Logger>();
 
   /// Кто сейчас в сети (hex userID). Нет записи — не в сети / неизвестно.

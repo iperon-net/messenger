@@ -179,6 +179,10 @@ class ChatsMembersRestrictedException implements Exception {
 /// Всё, что меняет локальное состояние, идёт последовательно через [_locked]:
 /// push, ответ на запрос и догон не применяются наперегонки.
 class ChatsSync {
+  /// Аккаунт этого сервиса: зависимости берутся из него, а не из «текущего» —
+  /// после переключения аккаунта незавершённые операции не уйдут в чужой.
+  final AccountScope _scope = AccountScope.current;
+
   ChatsSync._() {
     // Удалённые сообщения / чаты — их файлы с устройства, если больше не нужны.
     ChatsRepository.onMediaReleased = ChatsMediaCleanup.release;
@@ -187,9 +191,9 @@ class ChatsSync {
   static ChatsSync get instance => AccountScope.current.resolve(ChatsSync._);
 
   Logger get _logger => getIt.get<Logger>();
-  API get _api => getIt.get<API>();
-  ChatsRepository get _store => getIt.get<Repositories>().chats;
-  Auth get _auth => getIt.get<Auth>();
+  API get _api => _scope.api;
+  ChatsRepository get _store => _scope.repositories.chats;
+  Auth get _auth => _scope.auth;
 
   /// Мой userID (активная сессия).
   Uint8List get me => Uint8List.fromList(_auth.session.userID);
@@ -298,7 +302,7 @@ class ChatsSync {
     _enabled = value;
     _watchUnread(value);
     _watchExpired(value);
-    if (value && getIt.isRegistered<API>() && getIt.get<API>().connectionStatus == ApiConnectionStatus.connected) {
+    if (value && _scope.api.connectionStatus == ApiConnectionStatus.connected) {
       unawaited(onConnected());
     }
   }
@@ -320,7 +324,7 @@ class ChatsSync {
   /// диалогов перечитается на следующем подключении.
   void reloadDialogsOnConnect() {
     _reloadOnConnect = true;
-    if (getIt.isRegistered<API>() && getIt.get<API>().connectionStatus == ApiConnectionStatus.connected) {
+    if (_scope.api.connectionStatus == ApiConnectionStatus.connected) {
       unawaited(onConnected());
     }
   }
@@ -366,7 +370,7 @@ class ChatsSync {
       _setBadge(0);
       return;
     }
-    final repositories = getIt.get<Repositories>();
+    final repositories = _scope.repositories;
     // Скрыли/показали профиль — его личный чат входит в счётчик или выходит.
     final changes = StreamController<void>();
     final dialogsSub = repositories.db
@@ -418,7 +422,7 @@ class ChatsSync {
   Future<ChatsUnread> _countUnread() async {
     if (!_auth.isAuthorized) return ChatsUnread.empty;
     final now = DateTime.now();
-    final repositories = getIt.get<Repositories>();
+    final repositories = _scope.repositories;
     final hidden = await repositories.hiddenProfiles.hashByHex();
     final byChat = <String, int>{};
     // Публичные каналы без подписки (4.4) — не диалоги списка.
@@ -2225,7 +2229,7 @@ class ChatsSync {
     if (await _store.outboxByRandomID(userID: user, randomID: randomID) == null) return _Upload.skip;
     final local = OutboxMedia.decode(row.media);
     final dir = await outboxMediaDir();
-    final cdn = getIt.get<CDNManager>();
+    final cdn = _scope.cdn;
 
     // Что грузить: (индекс вложения, обложка ли, файл).
     final jobs = <({int index, bool thumb, File file})>[];

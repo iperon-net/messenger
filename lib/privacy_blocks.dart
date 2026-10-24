@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import 'api.dart';
-import 'auth.dart';
 import 'di.dart';
 import 'logger.dart';
 import 'protobuf.dart';
@@ -17,7 +16,7 @@ import 'account_scope.dart';
 /// заблокированный не пишет и не звонит мне (и я ему, пока не разблокирую),
 /// не видит моё «в сети», «О себе», день рождения и аватар.
 abstract final class PrivacyBlocks {
-  static Repositories get _repositories => getIt.get<Repositories>();
+  static Repositories get _repositories => AccountScope.current.repositories;
 
   /// Таблица кэша — подписка на изменения (`db.onChange`).
   static const table = 'privacySettings';
@@ -30,7 +29,7 @@ abstract final class PrivacyBlocks {
   }
 
   static Future<List<Uint8List>> list() async {
-    final buffer = await _repositories.privacySettings.get(userID: getIt.get<Auth>().session.userID);
+    final buffer = await _repositories.privacySettings.get(userID: AccountScope.current.auth.session.userID);
     if (buffer == null) return const [];
     try {
       return PrivacySettings_Response.fromBuffer(buffer).blocked.map(Uint8List.fromList).toList(growable: false);
@@ -49,7 +48,7 @@ abstract final class PrivacyBlocks {
   /// ничего: остаёмся на кэше.
   static Future<void> refresh() async {
     if (!await getIt.get<Utils>().hasNetwork()) return;
-    await getIt.get<API>().sendEncoded(MessageType.PRIVACY_SETTINGS, PrivacySettings_Request().writeToBuffer());
+    await AccountScope.current.api.sendEncoded(MessageType.PRIVACY_SETTINGS, PrivacySettings_Request().writeToBuffer());
   }
 
   /// [refresh] один раз за запуск на аккаунт (окно личного чата, профиль):
@@ -58,7 +57,7 @@ abstract final class PrivacyBlocks {
     final scope = AccountScope.current;
     if (scope.privacyBlocksRefreshed || !await getIt.get<Utils>().hasNetwork()) return;
     scope.privacyBlocksRefreshed = true;
-    await getIt.get<API>().sendEncoded(MessageType.PRIVACY_SETTINGS, PrivacySettings_Request().writeToBuffer());
+    await AccountScope.current.api.sendEncoded(MessageType.PRIVACY_SETTINGS, PrivacySettings_Request().writeToBuffer());
   }
 
   /// Заблокировать / разблокировать. Серверная операция: без сети или при
@@ -71,7 +70,7 @@ abstract final class PrivacyBlocks {
       logger.info('privacy: block update aborted, no network');
       return false;
     }
-    final status = await getIt.get<API>().unaryEncoded(
+    final status = await AccountScope.current.api.unaryEncoded(
       MessageType.PRIVACY_BLOCK_UPDATE,
       PrivacyBlockUpdate_Request(userId: userID, blocked: blocked).writeToBuffer(),
     );
@@ -80,7 +79,7 @@ abstract final class PrivacyBlocks {
       return false;
     }
 
-    final me = getIt.get<Auth>().session.userID;
+    final me = AccountScope.current.auth.session.userID;
     final buffer = await _repositories.privacySettings.get(userID: me);
     if (buffer == null) {
       // Кэша нет — снимок целиком придёт push'ем; на всякий случай и запросом.
