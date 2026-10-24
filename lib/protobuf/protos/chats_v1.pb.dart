@@ -9549,18 +9549,25 @@ class Chats_DeleteChatResult extends $pb.GeneratedMessage {
 /// индекс на сервере, регистр и ё/е не важны, все слова должны совпасть).
 /// С query порядок тот же (по дате вступления), total — 0 (неизвестно).
 /// При membersHidden не-админ ищет только среди владельца и админов.
+///
+/// admins — только владелец и админы, одной страницей (offset, limit и
+/// query не значат): клиент кэширует их при открытии группы ради подписи
+/// «звание / владелец / админ» в пузырях — обычный список идёт по дате
+/// вступления, и в большой группе админы далеко от первой страницы.
 class Chats_Members extends $pb.GeneratedMessage {
   factory Chats_Members({
     $core.List<$core.int>? chatID,
     $core.List<$core.int>? offset,
     $core.int? limit,
     $core.String? query,
+    $core.bool? admins,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
     if (offset != null) result.offset = offset;
     if (limit != null) result.limit = limit;
     if (query != null) result.query = query;
+    if (admins != null) result.admins = admins;
     return result;
   }
 
@@ -9577,6 +9584,7 @@ class Chats_Members extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'offset', $pb.PbFieldType.OY)
     ..aI(3, _omitFieldNames ? '' : 'limit')
     ..aOS(4, _omitFieldNames ? '' : 'query')
+    ..aOB(5, _omitFieldNames ? '' : 'admins')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -9631,6 +9639,15 @@ class Chats_Members extends $pb.GeneratedMessage {
   $core.bool hasQuery() => $_has(3);
   @$pb.TagNumber(4)
   void clearQuery() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.bool get admins => $_getBF(4);
+  @$pb.TagNumber(5)
+  set admins($core.bool value) => $_setBool(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasAdmins() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearAdmins() => $_clearField(5);
 }
 
 class Chats_MembersResult extends $pb.GeneratedMessage {

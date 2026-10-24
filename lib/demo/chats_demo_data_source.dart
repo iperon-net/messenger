@@ -305,6 +305,9 @@ class ChatsDemoDataSource implements ChatsDataSource {
   static const _demoMembersLimit = 5000;
 
   @override
+  Future<bool> refreshAdmins(String chatID) async => false;
+
+  @override
   Future<List<models.ChatMember>> members(String chatID) async {
     final all = _byActivity(_allMembers(chatID));
     return all.take(_staffCount(all) + _knownMembers).toList();

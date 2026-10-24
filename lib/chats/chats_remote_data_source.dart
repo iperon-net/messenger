@@ -1718,6 +1718,41 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     return _membersFrom(rows);
   }
 
+  /// Группы, чьих админов уже спросили за этот запуск ([refreshAdmins]).
+  final _adminsRefreshed = <String>{};
+
+  @override
+  Future<bool> refreshAdmins(String chatID) async {
+    if (!_auth.isAuthorized || _adminsRefreshed.contains(chatID)) return false;
+    final me = _sync.me;
+    final chat = idBytes(chatID);
+    final group = await _store.group(userID: me, chatID: chat);
+    // Подписи в пузырях — только у групп (в канале автор поста скрыт).
+    if (group == null || group.info.type != pb.ChatType.CHAT_TYPE_GROUP || group.browsing) return false;
+    if (!await _sync.hasNetwork()) return false;
+    try {
+      final before = {for (final r in await _store.groupMembers(userID: me, chatID: chat)) _memberKey(r)};
+      final response = await _sync.chats(pb.Chats_Request(members: pb.Chats_Members(chatID: chat, admins: true)));
+      _adminsRefreshed.add(chatID);
+      final page = response.members;
+      final api = getIt.get<API>();
+      for (final profile in page.profiles) {
+        await api.cacheProfile(profile, waitAvatar: false);
+      }
+      if (page.members.isEmpty) return false;
+      await _store.transaction((tx) => tx.upsertGroupMembers(userID: me, chatID: chat, members: page.members));
+      final after = {for (final r in await _store.groupMembers(userID: me, chatID: chat)) _memberKey(r)};
+      if (setEquals(before, after)) return false;
+      _sync.notifyMembersChanged(chatID);
+      return true;
+    } on ChatsOfflineException {
+      return false;
+    } on ChatsRequestException catch (error) {
+      _logger.warning('chats: admins not loaded: $error');
+      return false;
+    }
+  }
+
   /// Участники из кэша → модели: имя по общему правилу, «в сети» / «был(а)»,
   /// владелец первым.
   Future<List<models.ChatMember>> _membersFrom(List<ChatGroupMemberRow> rows) async {

@@ -1336,6 +1336,21 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
       }
     }
     if (!isClosed) emit(state.copyWith(members: members, banned: banned, bannedLoadFailed: bannedFailed));
+    _refreshAdmins();
+  }
+
+  bool _adminsRequested = false;
+
+  /// Владелец и админы с сервера — один раз за окно чата (сам источник ещё и
+  /// раз за запуск): без них нет подписей «звание / владелец / админ» у тех,
+  /// кого назначили до моего вступления.
+  void _refreshAdmins() {
+    final source = _source;
+    if (_adminsRequested || source == null) return;
+    _adminsRequested = true;
+    unawaited(() async {
+      if (await source.refreshAdmins(_chatID) && !isClosed) await loadMembers();
+    }());
   }
 
   /// Действие над участником (роль, исключение, админ …): без сети — «Нет
