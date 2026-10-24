@@ -198,7 +198,7 @@ class _ApiSecretChatsTransport implements SecretChatsTransport {
 /// отправки идёт теми же байтами (ключи не перегенерируются).
 ///
 /// Всё, что трогает состояние храповика, идёт последовательно через [_locked].
-class SecretChatsSync {
+class SecretChatsSync implements AccountService {
   SecretChatsSync({
     required SecretChatsRepository Function() store,
     required SecretChatCrypto Function() crypto,
@@ -1234,4 +1234,11 @@ class SecretChatsSync {
   }
 
   static String _hex(List<int> bytes) => bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+
+  /// Переключение аккаунта: остановить таймеры и подписки этого аккаунта.
+  @override
+  Future<void> dispose() async {
+    _expiryTimer?.cancel();
+    _expiryTimer = null;
+  }
 }

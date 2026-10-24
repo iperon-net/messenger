@@ -20,7 +20,7 @@ import '../account_scope.dart';
 ///
 /// `online` эфемерный — только в памяти; время захода пишем в кэш профилей
 /// (`profiles.lastSeenAt`), оттуда его берёт список чатов (и без сети).
-class ChatsPresence {
+class ChatsPresence implements AccountService {
   /// Аккаунт этого сервиса: зависимости берутся из него, а не из «текущего» —
   /// после переключения аккаунта незавершённые операции не уйдут в чужой.
   final AccountScope _scope = AccountScope.current;
@@ -163,5 +163,16 @@ class ChatsPresence {
       }
     }
     if (changed) _changed.add(null);
+  }
+
+  /// Переключение аккаунта: остановить таймеры и подписки этого аккаунта.
+  @override
+  Future<void> dispose() async {
+    await _pushSubscription?.cancel();
+    _pushSubscription = null;
+    await _connectionSubscription?.cancel();
+    _connectionSubscription = null;
+    _poll?.cancel();
+    _poll = null;
   }
 }

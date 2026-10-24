@@ -21,7 +21,7 @@ class CommonCubit extends Cubit<CommonState> {
   CommonCubit() : super(CommonState(settingsDevice: SettingsDeviceModel()));
 
   final logger = getIt.get<Logger>();
-  final repositories = getIt.get<Repositories>();
+  final repositories = getIt.get<DeviceRepositories>();
   final utils = getIt.get<Utils>();
 
   // Должен совпадать с параметрами хеширования в SettingsPasscodeCreateCubit,

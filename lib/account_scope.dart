@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 import 'api.dart';
 import 'auth.dart';
 import 'cdn.dart';
@@ -7,32 +9,67 @@ import 'di.dart';
 import 'models.dart' as models;
 import 'repositories.dart';
 
-/// Состояние одного аккаунта в памяти: синглтоны чатов (`ChatsSync`,
-/// `ChatsRemoteDataSource`, `ChatsPresence`, …) и мелкие кэши, которые раньше
-/// жили в статических полях классов.
-///
-/// Этап 2 мультиаккаунта (docs/plans/multi-account.md): аккаунт пока один, и
-/// [current] не меняется, — поведение прежнее. Дальше (этап 3) у каждого
-/// аккаунта будет свой scope, `X.instance` продолжит возвращать сервис
-/// активного аккаунта, а фоновые действия (ответ из пуша, звонок) получат
-/// scope своего аккаунта явно.
-class AccountScope {
-  AccountScope._();
+/// Сервис аккаунта, которому есть что освободить при переключении аккаунта
+/// (таймеры, подписки): [AccountScope.dispose] вызывает [dispose].
+abstract interface class AccountService {
+  Future<void> dispose();
+}
 
-  static final AccountScope _current = AccountScope._();
+/// Состояние одного аккаунта в памяти: синглтоны чатов (`ChatsSync`,
+/// `ChatsRemoteDataSource`, `ChatsPresence`, …), мелкие кэши и ссылки на
+/// сервисы аккаунта из его scope get_it (docs/plans/multi-account.md, этап 3).
+///
+/// [current] — активный аккаунт; `X.instance` возвращает сервис активного
+/// аккаунта. Сервис, созданный в scope, держит его у себя: после переключения
+/// его незавершённые операции остаются со своим аккаунтом.
+class AccountScope {
+  AccountScope(this.accountID);
+
+  /// Локальный id слота аккаунта (`accounts` в `device.db`).
+  final String accountID;
+
+  static AccountScope _current = AccountScope('');
 
   /// Scope активного аккаунта.
   static AccountScope get current => _current;
 
+  /// Растёт при каждом переключении аккаунта: корень приложения
+  /// пересобирается с новым ключом — кубиты и подписки UI заново, уже на новом
+  /// аккаунте.
+  static final generation = ValueNotifier<int>(0);
+
+  /// Сделать [scope] активным (до регистрации его сервисов в get_it).
+  static void activate(AccountScope scope) => _current = scope;
+
   final _services = <Type, Object>{};
 
-  // Сервисы аккаунта из get_it. Пока scope один, это просто get_it; с
-  // переключением аккаунтов (этап 3.1) scope хранит свои экземпляры, и
-  // сервисы, созданные в нём, продолжают работать со своим аккаунтом.
-  API get api => getIt.get<API>();
-  Auth get auth => getIt.get<Auth>();
-  Repositories get repositories => getIt.get<Repositories>();
-  CDNManager get cdn => getIt.get<CDNManager>();
+  API? _api;
+  Auth? _auth;
+  Repositories? _repositories;
+  CDNManager? _cdn;
+
+  // Сервисы аккаунта. Пока scope не привязан ([bind]) — из get_it: это время
+  // регистрации его же scope, другого там нет.
+  API get api => _api ?? getIt.get<API>();
+  Auth get auth => _auth ?? getIt.get<Auth>();
+  Repositories get repositories => _repositories ?? getIt.get<Repositories>();
+  CDNManager get cdn => _cdn ?? getIt.get<CDNManager>();
+
+  /// Запомнить сервисы аккаунта из его scope get_it (после `allReady`).
+  void bind() {
+    _api = getIt.get<API>();
+    _auth = getIt.get<Auth>();
+    _repositories = getIt.get<Repositories>();
+    _cdn = getIt.get<CDNManager>();
+  }
+
+  /// Освободить синглтоны аккаунта ([AccountService]) — при переключении на
+  /// другой аккаунт, до закрытия его scope get_it.
+  Future<void> dispose() async {
+    for (final service in _services.values) {
+      if (service is AccountService) await service.dispose();
+    }
+  }
 
   /// Сервис [T] этого аккаунта: создаётся [create] при первом обращении и
   /// дальше один на scope. Классы чатов отдают его как `X.instance`, передавая

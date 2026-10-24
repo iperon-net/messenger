@@ -24,7 +24,7 @@ import '../account_scope.dart';
 /// [begin] / [end] — долгие действия (запись голосового, сжатие и загрузка
 /// вложений), пока идут — повторяются раз в [_resend]; [cancel] — поле
 /// очистили или сообщение ушло. Долгое действие главнее набора текста.
-class ChatsTyping {
+class ChatsTyping implements AccountService {
   /// Аккаунт этого сервиса: зависимости берутся из него, а не из «текущего» —
   /// после переключения аккаунта незавершённые операции не уйдут в чужой.
   final AccountScope _scope = AccountScope.current;
@@ -240,6 +240,18 @@ class ChatsTyping {
           .catchError((Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace)),
     );
     return true;
+  }
+
+  /// Переключение аккаунта: остановить таймеры и подписки этого аккаунта.
+  @override
+  Future<void> dispose() async {
+    await _subscription.cancel();
+    _expiry?.cancel();
+    _resendTimer?.cancel();
+    for (final timer in _endCancels.values) {
+      timer.cancel();
+    }
+    _endCancels.clear();
   }
 }
 

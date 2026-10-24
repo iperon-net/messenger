@@ -178,7 +178,7 @@ class ChatsMembersRestrictedException implements Exception {
 ///
 /// Всё, что меняет локальное состояние, идёт последовательно через [_locked]:
 /// push, ответ на запрос и догон не применяются наперегонки.
-class ChatsSync {
+class ChatsSync implements AccountService {
   /// Аккаунт этого сервиса: зависимости берутся из него, а не из «текущего» —
   /// после переключения аккаунта незавершённые операции не уйдут в чужой.
   final AccountScope _scope = AccountScope.current;
@@ -2336,6 +2336,17 @@ class ChatsSync {
     } catch (error, stackTrace) {
       _logger.handle(error, stackTrace);
     }
+  }
+
+  /// Переключение аккаунта: остановить таймеры и подписки этого аккаунта.
+  @override
+  Future<void> dispose() async {
+    await _unreadSub?.cancel();
+    _unreadSub = null;
+    for (final timer in [_sweepTimer, _floodTimer, _reactionsFloodTimer, _retryTimer]) {
+      timer?.cancel();
+    }
+    _sweepTimer = _floodTimer = _reactionsFloodTimer = _retryTimer = null;
   }
 }
 

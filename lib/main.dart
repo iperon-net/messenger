@@ -8,14 +8,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'account_scope.dart';
 import 'app_cupertino.dart';
 import 'app_material.dart';
 import 'cubit.dart';
 import 'di.dart';
 import 'logger_livekit.dart';
-import 'push.dart';
-import 'call_push.dart';
-import 'chats/spoiler_reveals.dart';
 import 'firebase_options.dart';
 import 'i18n/translations.g.dart';
 import 'models.dart';
@@ -108,10 +106,8 @@ Future<void> main() async {
   // Не ждём: до ответа натива — «мощное», как было.
   unawaited(DevicePerformance.instance.init());
 
-  final repositories = getIt.get<Repositories>();
-
   // Get all settings
-  SettingsDeviceModel settingsDevice = await repositories.settingsDevice.getAll();
+  SettingsDeviceModel settingsDevice = await getIt.get<DeviceRepositories>().settingsDevice.getAll();
 
   final utils = getIt.get<Utils>();
 
@@ -124,19 +120,9 @@ Future<void> main() async {
     settingsDevice = settingsDevice.copyWith(locale: appLocale);
   }
 
-  // Регистрируем push-токены устройства (Android FCM, iOS APNs) для побудки
-  // входящих звонков и уведомлений при закрытом стриме. Fire-and-forget и
-  // само-гейтится на авторизацию; VoIP-токен iOS синхронизирует CallPush. См.
-  // docs/plans/push-notifications.md.
-  unawaited(
-    getIt.get<PushManager>().start(passcodeEnabled: settingsDevice.passcode.isNotEmpty && !settingsDevice.passcodeNotificationContent),
-  );
-
-  // Раскрытые спойлеры — в память до первого открытого чата.
-  unawaited(SpoilerReveals.preload());
-
-  // Мост call-пуш → нативный входящий (CallKit/ConnectionService) → Calls.
-  getIt.get<CallPush>().start();
+  // Пуш-токены, мост call-пушей, спойлеры — для активного аккаунта; при
+  // переключении аккаунта — заново (switchAccount).
+  await startAccountServices();
 
   // Доступность биометрии узнаём ДО первого кадра и прокидываем в кубит, чтобы
   // экран блокировки на холодном старте эмитился синхронно (без await) — иначе
@@ -148,9 +134,29 @@ Future<void> main() async {
       child: MultiBlocProvider(
         providers: <BlocProvider>[BlocProvider<CommonCubit>(create: (_) => CommonCubit())],
         // child: Platform.isIOS ? const IperonMessengerCupertino() : const IperonMessengerCupertino(),
-        child: Platform.isIOS
-            ? IperonMessengerCupertino(settingsDevice: settingsDevice, isBiometricAvailable: isBiometricAvailable)
-            : IperonMessengerMaterial(settingsDevice: settingsDevice, isBiometricAvailable: isBiometricAvailable),
+        // Корень приложения — на аккаунт: при переключении (AccountScope.generation)
+        // собирается заново, кубиты и подписки — уже на новом аккаунте; пока
+        // идёт переключение — пусто.
+        child: ValueListenableBuilder<bool>(
+          valueListenable: accountSwitching,
+          builder: (context, switching, _) {
+            if (switching) return const SizedBox.shrink();
+            return ValueListenableBuilder<int>(
+              valueListenable: AccountScope.generation,
+              builder: (context, generation, _) => Platform.isIOS
+                  ? IperonMessengerCupertino(
+                      key: ValueKey(generation),
+                      settingsDevice: settingsDevice,
+                      isBiometricAvailable: isBiometricAvailable,
+                    )
+                  : IperonMessengerMaterial(
+                      key: ValueKey(generation),
+                      settingsDevice: settingsDevice,
+                      isBiometricAvailable: isBiometricAvailable,
+                    ),
+            );
+          },
+        ),
       ),
     ),
   );

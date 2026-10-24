@@ -62,13 +62,8 @@ class Repositories {
   final logger = getIt.get<Logger>();
   final settings = getIt.get<Settings>();
 
-  final migrations = SqliteMigrations();
-
   late SqliteDatabase db;
 
-  /// Общая база устройства (`device.db`): настройки устройства и индекс
-  /// аккаунтов — см. [DeviceDatabase].
-  late SqliteDatabase deviceDb;
   late SettingsDevice settingsDevice;
   late Accounts accounts;
 
@@ -91,35 +86,61 @@ class Repositories {
   late SecretChatsRepository secretChats;
   late SpoilerRevealsRepository spoilerReveals;
 
-  static Future<Repositories> initialization() async {
+  /// База и файлы аккаунта [accountID]; общая часть — [device].
+  static Future<Repositories> initialization({required DeviceRepositories device, required String accountID}) async {
     final repositories = Repositories._();
-    await repositories._initialization();
+    await repositories._initialization(device: device, accountID: accountID);
     return repositories;
   }
 
   Repositories._();
 
-  Future<void> _initialization() async {
-    final supportDir = (await getApplicationSupportDirectory()).path;
-    final cacheRoot = (await getApplicationCacheDirectory()).path;
-    final legacyDatabasePath = p.join(supportDir, settings.databaseName);
-    final deviceDatabasePath = p.join(supportDir, 'device.db');
+  Future<void> _initialization({required DeviceRepositories device, required String accountID}) async {
+    accountFiles = AccountFiles(supportDir: device.supportDir, cacheRoot: device.cacheRoot, accountID: accountID);
+    await accountFiles.dataDir.create(recursive: true);
+    var databasePath = accountFiles.databasePath(settings.databaseName);
+    // Перенос не удался (или ещё идёт в другом isolate) — работаем со старой
+    // базой, а не с новой пустой: иначе вход пропал бы.
+    final legacyDatabasePath = p.join(device.supportDir, settings.databaseName);
+    if (!await File(databasePath).exists() && await File(legacyDatabasePath).exists()) {
+      logger.warning('account files: database is still at the legacy path');
+      databasePath = legacyDatabasePath;
+    }
+    logger.logCustom(RepositoriesLog("databasePath = $databasePath"));
 
-    // Secure storage. iOS: accessibility = afterFirstUnlockThisDeviceOnly (не
-    // дефолтный whenUnlocked) — иначе на cold-start от VoIP-push (входящий звонок
-    // на залоченном/только что разбуженном экране) Keychain-элемент с паролем БД
-    // недоступен, и `storage.read` ВИСНЕТ → `Repositories` не готов → `allReady()`
-    // не завершается → `main` не доходит до `runApp` (белый экран) и `CallPush`
-    // не стартует (входящий не поднимается, нет звука). afterFirstUnlock даёт
-    // доступ в фоне после первой разблокировки с момента загрузки — стандарт для
-    // VoIP/фоновых приложений. Вариант ThisDeviceOnly: пароль локальной БД не
-    // переносится в бэкап/на другое устройство (ему это и не нужно) — чуть строже
-    // по безопасности.
-    final storage = FlutterSecureStorage(
-      aOptions: AndroidOptions(),
-      iOptions: const IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device),
-    );
+    db = await device.openAccountDatabase(accountID, databasePath);
+    await accountMigrations().migrate(db);
+    final moved = device.takeMovedFiles(accountID);
+    if (moved.isNotEmpty) await AccountFilesMigration.rewritePaths(db, moved);
+    settingsDevice = device.settingsDevice;
+    accounts = device.accounts;
+    AccountScope.current.files = (data: accountFiles.dataDir, cache: accountFiles.cacheDir);
+    users = Users(logger: logger, db: db);
+    sessions = Sessions(logger: logger, db: db, accounts: accounts);
+    deviceSessions = DeviceSessions(logger: logger, db: db);
+    cache = Cache(logger: logger, db: db);
+    myProfile = MyProfile(logger: logger, db: db);
+    profiles = Profiles(logger: logger, db: db);
+    contacts = Contacts(logger: logger, db: db);
+    uploads = Uploads(logger: logger, db: db);
+    downloads = Downloads(logger: logger, db: db);
+    callLogs = CallLogs(logger: logger, db: db);
+    hiddenProfiles = HiddenProfiles(logger: logger, db: db);
+    privacySettings = PrivacySettings(logger: logger, db: db);
+    notifySettings = NotifySettings(logger: logger, db: db);
+    chats = ChatsRepository(logger: logger, db: db);
+    secretChats = SecretChatsRepository(logger: logger, db: db);
+    spoilerReveals = SpoilerRevealsRepository(logger: logger, db: db);
+  }
 
+  /// Закрыть базу аккаунта (переключение аккаунта); `device.db` общая и
+  /// остаётся открытой.
+  Future<void> close() => db.close();
+
+  /// Миграции базы аккаунта (`iperon.db`). Никогда не правим существующую —
+  /// только следующий номер.
+  static SqliteMigrations accountMigrations() {
+    final migrations = SqliteMigrations();
     migrations.add(
       SqliteMigration(1, (tx) async {
         await tx.execute("""
@@ -1011,121 +1032,6 @@ class Repositories {
       }),
     );
 
-    if (settings.isDeleteDatabase) {
-      logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
-
-      try {
-        for (final path in [legacyDatabasePath, deviceDatabasePath]) {
-          for (final file in [path, "$path-wal", "$path-shm"]) {
-            if (await File(file).exists()) await File(file).delete();
-          }
-        }
-        for (final root in [supportDir, cacheRoot]) {
-          final accountsDir = Directory(p.join(root, AccountFiles.accountsDirName));
-          if (await accountsDir.exists()) await accountsDir.delete(recursive: true);
-        }
-        logger.info("the database has been successfully deleted");
-      } catch (e) {
-        logger.error("error delete database $e");
-      }
-
-      for (final key in (await storage.readAll()).keys) {
-        if (key == "databasePassword" || key.startsWith("databasePassword:")) await storage.delete(key: key);
-      }
-    }
-
-    String? password;
-    if (!kDebugMode) {
-      password = await storage.read(key: "databasePassword");
-      if (password == null) {
-        password = _generatePassword();
-        await storage.write(key: 'databasePassword', value: password);
-        logger.logCustom(RepositoriesLog("A new password has been set for the database"));
-      } else {
-        // Миграция класса доступности: пароль, записанный старым дефолтом
-        // (whenUnlocked), недоступен на cold-start от VoIP-push. Перезаписываем
-        // его теми же (afterFirstUnlock) iOSOptions — так существующие установки
-        // получают доступ в фоне без сброса БД. Идемпотентно, no-op-эквивалент
-        // после первой миграции. Выполняется на обычном (foreground) запуске,
-        // где read уже успешен.
-        await storage.write(key: 'databasePassword', value: password);
-      }
-    }
-    deviceDb = SqliteDatabase.withFactory(_AppSqliteOpenFactory(path: deviceDatabasePath, password: password));
-
-    // Папка активного аккаунта: слот из device.db, иначе новый. Прежние общие
-    // файлы (iperon.db, outbox, кэш) переезжают в неё один раз.
-    final accountID = await DeviceDatabase.activeAccountID(deviceDb) ?? Accounts.newAccountID();
-    accountFiles = AccountFiles(supportDir: supportDir, cacheRoot: cacheRoot, accountID: accountID);
-    final moved = await AccountFilesMigration.run(
-      supportDir: supportDir,
-      cacheRoot: cacheRoot,
-      databaseName: settings.databaseName,
-      files: accountFiles,
-      logger: logger,
-    );
-    await accountFiles.dataDir.create(recursive: true);
-    var databasePath = accountFiles.databasePath(settings.databaseName);
-    // Перенос не удался (или ещё идёт в другом isolate) — работаем со старой
-    // базой, а не с новой пустой: иначе вход пропал бы.
-    if (!await File(databasePath).exists() && await File(legacyDatabasePath).exists()) {
-      logger.warning('account files: database is still at the legacy path');
-      databasePath = legacyDatabasePath;
-    }
-    logger.logCustom(RepositoriesLog("databasePath = $databasePath"));
-
-    String? accountPassword;
-    if (password != null) {
-      // Пароль базы — на аккаунт; для перенесённой базы — прежний общий.
-      final key = 'databasePassword:$accountID';
-      accountPassword = await storage.read(key: key);
-      if (accountPassword == null) {
-        accountPassword = await File(databasePath).exists() ? password : _generatePassword();
-        await storage.write(key: key, value: accountPassword);
-      }
-    }
-    db = SqliteDatabase.withFactory(_AppSqliteOpenFactory(path: databasePath, password: accountPassword));
-
-    await migrations.migrate(db);
-    if (moved.isNotEmpty) await AccountFilesMigration.rewritePaths(db, moved);
-    // device.db мигрирует после базы аккаунта: первая миграция переносит из
-    // неё settingsDevice и активный аккаунт.
-    await DeviceDatabase.migrations(account: db, accountID: accountID).migrate(deviceDb);
-    settingsDevice = SettingsDevice(logger: logger, db: deviceDb);
-    accounts = Accounts(logger: logger, db: deviceDb);
-    await accounts.ensureActive(accountID);
-    AccountScope.current.files = (data: accountFiles.dataDir, cache: accountFiles.cacheDir);
-    users = Users(logger: logger, db: db);
-    sessions = Sessions(logger: logger, db: db, accounts: accounts);
-    deviceSessions = DeviceSessions(logger: logger, db: db);
-    cache = Cache(logger: logger, db: db);
-    myProfile = MyProfile(logger: logger, db: db);
-    profiles = Profiles(logger: logger, db: db);
-    contacts = Contacts(logger: logger, db: db);
-    uploads = Uploads(logger: logger, db: db);
-    downloads = Downloads(logger: logger, db: db);
-    callLogs = CallLogs(logger: logger, db: db);
-    hiddenProfiles = HiddenProfiles(logger: logger, db: db);
-    privacySettings = PrivacySettings(logger: logger, db: db);
-    notifySettings = NotifySettings(logger: logger, db: db);
-    chats = ChatsRepository(logger: logger, db: db);
-    secretChats = SecretChatsRepository(logger: logger, db: db);
-    spoilerReveals = SpoilerRevealsRepository(logger: logger, db: db);
-  }
-
-  // Generate password
-  String _generatePassword() {
-    final random = Random.secure();
-    final characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    String password = '';
-
-    int min = 60;
-    int max = 100;
-    final length = min + random.nextInt(max - min);
-
-    for (int i = 0; i < length; i++) {
-      password += characters[random.nextInt(characters.length)];
-    }
-    return password;
+    return migrations;
   }
 }

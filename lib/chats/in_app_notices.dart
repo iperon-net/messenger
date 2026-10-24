@@ -52,7 +52,7 @@ class InAppNotice {
 /// «Без звука»), выключенный тип чатов в «Уведомлениях» тоже, без «Показывать
 /// текст» — «Новое сообщение». Где показывать (не в открытом чате, не в списке)
 /// решает экранный слой (`InAppNoticeHost`).
-class InAppNotices {
+class InAppNotices implements AccountService {
   /// Аккаунт этого сервиса: зависимости берутся из него, а не из «текущего» —
   /// после переключения аккаунта незавершённые операции не уйдут в чужой.
   final AccountScope _scope = AccountScope.current;
@@ -218,5 +218,14 @@ class InAppNotices {
       models.ChatType.group || models.ChatType.community => settings.hasGroups() ? settings.groups : null,
       models.ChatType.channel => settings.hasChannels() ? settings.channels : null,
     };
+  }
+
+  /// Переключение аккаунта: остановить таймеры и подписки этого аккаунта.
+  @override
+  Future<void> dispose() async {
+    await _chats?.cancel();
+    await _secret?.cancel();
+    await _replies?.cancel();
+    _chats = _secret = _replies = null;
   }
 }

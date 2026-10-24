@@ -16,7 +16,7 @@ import '../../account_scope.dart';
 /// обычные чаты): ссылку на шифротекст выдаёт сервер (`SecretChats.GetFiles`,
 /// только участнику чата), ключ / соль / хеш — из сообщения
 /// ([sp.SecretMedia]), расшифровка и кэш — `CDNManager.download`.
-class SecretChatsMedia {
+class SecretChatsMedia implements AccountService {
   /// Аккаунт этого сервиса: зависимости берутся из него, а не из «текущего» —
   /// после переключения аккаунта незавершённые операции не уйдут в чужой.
   final AccountScope _scope = AccountScope.current;
@@ -128,4 +128,11 @@ class SecretChatsMedia {
   }
 
   void _fail(String key) => _failed[key] = DateTime.now();
+
+  /// Переключение аккаунта: остановить таймеры и подписки этого аккаунта.
+  @override
+  Future<void> dispose() async {
+    _notify?.cancel();
+    _notify = null;
+  }
 }
