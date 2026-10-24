@@ -121,6 +121,8 @@ class DeviceRepositories {
     accounts = Accounts(logger: logger, db: db);
     await accounts.ensureActive(slot);
     activeAccountID = slot;
+    final abandoned = _abandonedSlot;
+    if (abandoned != null && abandoned != slot) await removeAccount(abandoned);
   }
 
   /// Слот, с которого стартуем: активный; но если в нём никто не вошёл
@@ -132,7 +134,29 @@ class DeviceRepositories {
     final signedIn = await db.getOptional("SELECT accountID FROM accounts WHERE accountID = ? AND length(userID) > 0;", [active]);
     if (signedIn != null) return active;
     final other = await db.getOptional("SELECT accountID FROM accounts WHERE length(userID) > 0 ORDER BY sortOrder, createdAt LIMIT 1;");
-    return other?['accountID'] as String? ?? active;
+    final fallback = other?['accountID'] as String?;
+    if (fallback == null) return active;
+    _abandonedSlot = active;
+    return fallback;
+  }
+
+  /// Пустой слот, с которого ушли на старте ([_startSlot]) — удаляется.
+  String? _abandonedSlot;
+
+  /// Удалить аккаунт [accountID] с устройства: слот, папку с базой и файлами,
+  /// кэш, пароль базы. Не активный (его scope должен быть закрыт).
+  Future<void> removeAccount(String accountID) async {
+    await accounts.remove(accountID);
+    final files = AccountFiles(supportDir: supportDir, cacheRoot: cacheRoot, accountID: accountID);
+    for (final dir in [files.dataDir, files.cacheDir]) {
+      try {
+        if (await dir.exists()) await dir.delete(recursive: true);
+      } catch (error, stackTrace) {
+        logger.handle(error, stackTrace);
+      }
+    }
+    await _storage.delete(key: 'databasePassword:$accountID');
+    logger.info('account: removed $accountID');
   }
 
   /// Открыть базу аккаунта [accountID] по [path]. Пароль — свой у аккаунта
@@ -179,36 +203,46 @@ class DeviceDatabase {
   /// [accountID] (база [account] уже лежит в его папке) и пользователем его
   /// сессии, если она есть.
   static SqliteMigrations migrations({required SqliteDatabase? account, required String accountID}) {
-    return SqliteMigrations()..add(
-      SqliteMigration(1, (tx) async {
-        if (account == null) throw StateError('device: the first migration needs the account database');
-        final schema = await account.getOptional("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'settingsDevice';");
-        final createSettings = schema?['sql'] as String?;
-        if (createSettings == null) throw StateError('device: settingsDevice is missing in the account database');
-        await tx.execute(createSettings);
-        final row = await account.getOptional('SELECT * FROM settingsDevice LIMIT 1;');
-        if (row != null) {
-          final columns = row.keys.toList();
-          await tx.execute('INSERT INTO settingsDevice (${columns.join(', ')}) VALUES (${List.filled(columns.length, '?').join(', ')});', [
-            for (final column in columns) row[column],
-          ]);
-        }
+    return SqliteMigrations()
+      ..add(
+        SqliteMigration(1, (tx) async {
+          if (account == null) throw StateError('device: the first migration needs the account database');
+          final schema = await account.getOptional("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'settingsDevice';");
+          final createSettings = schema?['sql'] as String?;
+          if (createSettings == null) throw StateError('device: settingsDevice is missing in the account database');
+          await tx.execute(createSettings);
+          final row = await account.getOptional('SELECT * FROM settingsDevice LIMIT 1;');
+          if (row != null) {
+            final columns = row.keys.toList();
+            await tx.execute(
+              'INSERT INTO settingsDevice (${columns.join(', ')}) VALUES (${List.filled(columns.length, '?').join(', ')});',
+              [for (final column in columns) row[column]],
+            );
+          }
 
-        await tx.execute(Accounts.schema);
-        final active = await account.getOptional('''
+          await tx.execute(Accounts.schema);
+          final active = await account.getOptional('''
           SELECT s.userID AS userID, u.phoneNumber AS phoneNumber, s.createAt AS createdAt
           FROM sessions s LEFT JOIN users u ON u.userID = s.userID
           WHERE s.isActive = 1 LIMIT 1;
         ''');
-        await Accounts._insertSlot(
-          tx,
-          accountID: accountID,
-          userID: active?['userID'] as List<int>? ?? const [],
-          phoneNumber: active?['phoneNumber'] as String? ?? '',
-          createdAt: active?['createdAt'] as int? ?? DateTime.now().millisecondsSinceEpoch,
-        );
-      }),
-    );
+          await Accounts._insertSlot(
+            tx,
+            accountID: accountID,
+            userID: active?['userID'] as List<int>? ?? const [],
+            phoneNumber: active?['phoneNumber'] as String? ?? '',
+            createdAt: active?['createdAt'] as int? ?? DateTime.now().millisecondsSinceEpoch,
+          );
+        }),
+      )
+      ..add(
+        SqliteMigration(2, (tx) async {
+          // Подписи слотов для списка аккаунтов (этап 3.2): имя и аватар
+          // аккаунта — его база закрыта, пока он не активный.
+          await tx.execute("ALTER TABLE accounts ADD COLUMN name TEXT NOT NULL DEFAULT '';");
+          await tx.execute("ALTER TABLE accounts ADD COLUMN avatarPath TEXT NOT NULL DEFAULT '';");
+        }),
+      );
   }
 
   /// `accountID` активного слота в уже существующей `device.db` [db] (до её
@@ -220,6 +254,9 @@ class DeviceDatabase {
     return row?['accountID'] as String?;
   }
 }
+
+/// Слот аккаунта из `device.db`: [userID] пуст — в нём никто не вошёл.
+typedef AccountSlot = ({String accountID, Uint8List userID, String phoneNumber, String name, String avatarPath, bool active});
 
 /// Индекс аккаунтов устройства (`device.db`). `accountID` — случайный
 /// локальный id: `userID` уникален только в пределах сервера.
@@ -253,17 +290,42 @@ class Accounts {
   }
 
   /// Все слоты по порядку.
-  Future<List<({String accountID, Uint8List userID, String phoneNumber, bool active})>> all() async {
-    final rows = await db.getAll('SELECT accountID, userID, phoneNumber, isActive FROM accounts ORDER BY sortOrder, createdAt;');
+  Future<List<AccountSlot>> all() async {
+    final rows = await db.getAll(
+      'SELECT accountID, userID, phoneNumber, name, avatarPath, isActive FROM accounts ORDER BY sortOrder, createdAt;',
+    );
     return [
       for (final row in rows)
         (
           accountID: row['accountID'] as String,
           userID: Uint8List.fromList(row['userID'] as List<int>),
           phoneNumber: row['phoneNumber'] as String,
+          name: row['name'] as String,
+          avatarPath: row['avatarPath'] as String,
           active: row['isActive'] == 1,
         ),
     ];
+  }
+
+  /// Изменения слотов (вход, выход, имя, аватар) — для списка аккаунтов.
+  Stream<void> changes() => db.onChange(['accounts'], triggerImmediately: false);
+
+  /// Имя и аватар аккаунта [accountID] для списка (пишет активный аккаунт
+  /// из своего профиля).
+  Future<void> setProfile({required String accountID, required String name, required String avatarPath}) async {
+    await db.execute('UPDATE accounts SET name = ?, avatarPath = ? WHERE accountID = ? AND (name != ? OR avatarPath != ?);', [
+      name,
+      avatarPath,
+      accountID,
+      name,
+      avatarPath,
+    ]);
+  }
+
+  /// Удалить слот [accountID] из индекса (папку удаляет
+  /// [DeviceRepositories.removeAccount]).
+  Future<void> remove(String accountID) async {
+    await db.execute('DELETE FROM accounts WHERE accountID = ?;', [accountID]);
   }
 
   /// Новый пустой слот (не активный); его папку заведёт первое открытие.

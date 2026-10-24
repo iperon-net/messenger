@@ -2073,6 +2073,15 @@ class Translations$screenSettings$en {
 
 	/// en: 'Logout'
 	String get logout => 'Logout';
+
+	/// en: 'Add account'
+	String get addAccount => 'Add account';
+
+	/// en: 'You can add up to {count} accounts'
+	String accountsLimit({required Object count}) => 'You can add up to ${count} accounts';
+
+	/// en: 'Can't switch accounts during a call'
+	String get accountSwitchCallActive => 'Can\'t switch accounts during a call';
 }
 
 // Path: screenSettingsNotifications
@@ -5248,6 +5257,9 @@ extension on Translations {
 			'screenSettings.aboutApplication' => 'About the application',
 			'screenSettings.logs' => 'Logs',
 			'screenSettings.logout' => 'Logout',
+			'screenSettings.addAccount' => 'Add account',
+			'screenSettings.accountsLimit' => ({required Object count}) => 'You can add up to ${count} accounts',
+			'screenSettings.accountSwitchCallActive' => 'Can\'t switch accounts during a call',
 			'screenSettingsNotifications.notifications' => 'Notifications and sounds',
 			'screenSettingsNotifications.messageNotifications' => 'Message notifications',
 			'screenSettingsNotifications.privateChats' => 'Private chats',
@@ -5656,11 +5668,11 @@ extension on Translations {
 			'screenContacts.onContacts' => 'On Contacts',
 			'screenContacts.cloudContacts' => 'Cloud contacts',
 			'screenContacts.invite' => 'Invite',
+			_ => null,
+		} ?? switch (path) {
 			'screenContacts.inviteAction' => 'Invite',
 			'screenContacts.search' => 'Search',
 			'screenContacts.permissionTitle' => 'Contacts access needed',
-			_ => null,
-		} ?? switch (path) {
 			'screenContacts.permissionMessage' => 'Allow access to your contacts to find friends already on Iperon. Your phone numbers are matched privately and never revealed to the server.',
 			'screenContacts.allowAccess' => 'Allow access',
 			'screenContacts.openSettings' => 'Open settings',

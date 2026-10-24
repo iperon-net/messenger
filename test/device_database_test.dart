@@ -112,4 +112,19 @@ void main() {
     expect(out?.accountID, first?.accountID);
     expect(out?.userID, isEmpty);
   });
+
+  test('слот: имя и аватар для списка, удаление', () async {
+    await migrate();
+    final accounts = Accounts(logger: Logger(), db: device);
+    await accounts.setProfile(accountID: slot, name: 'Костя', avatarPath: '/a.jpg');
+    final listed = (await accounts.all()).single;
+    expect(listed.name, 'Костя');
+    expect(listed.avatarPath, '/a.jpg');
+
+    final other = await accounts.createSlot();
+    expect((await accounts.all()).map((a) => a.accountID), [slot, other]);
+    expect((await accounts.all()).last.active, isFalse);
+    await accounts.remove(other);
+    expect((await accounts.all()).map((a) => a.accountID), [slot]);
+  });
 }

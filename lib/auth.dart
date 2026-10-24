@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import 'accounts.dart';
 import 'api.dart';
 import 'di.dart';
 import 'logger.dart';
@@ -49,6 +50,8 @@ class Auth extends ChangeNotifier {
     _session = Session();
     await _syncStream();
     notifyListeners();
+    // Есть другие вошедшие аккаунты — уходим в соседний, этот слот удаляется.
+    unawaited(afterLogout());
   }
 
   /// Сервер отозвал [revoked] (ответ UNAUTHENTICATED или LOGOUT по стриму).

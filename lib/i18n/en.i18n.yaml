@@ -663,6 +663,9 @@
   "aboutApplication": "About the application"
   "logs": "Logs"
   "logout": "Logout"
+  "addAccount": "Add account"
+  "accountsLimit": "You can add up to {count} accounts"
+  "accountSwitchCallActive": "Can't switch accounts during a call"
 
 "screenSettingsNotifications":
   "notifications": "Notifications and sounds"

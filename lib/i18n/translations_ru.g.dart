@@ -871,6 +871,9 @@ class _Translations$screenSettings$ru extends Translations$screenSettings$en {
 	@override String get aboutApplication => 'О приложении';
 	@override String get logs => 'Логи';
 	@override String get logout => 'Выйти';
+	@override String get addAccount => 'Добавить аккаунт';
+	@override String accountsLimit({required Object count}) => 'Можно добавить не больше ${count} аккаунтов';
+	@override String get accountSwitchCallActive => 'Во время звонка аккаунт не переключить';
 }
 
 // Path: screenSettingsNotifications
@@ -2583,6 +2586,9 @@ extension on TranslationsRu {
 			'screenSettings.aboutApplication' => 'О приложении',
 			'screenSettings.logs' => 'Логи',
 			'screenSettings.logout' => 'Выйти',
+			'screenSettings.addAccount' => 'Добавить аккаунт',
+			'screenSettings.accountsLimit' => ({required Object count}) => 'Можно добавить не больше ${count} аккаунтов',
+			'screenSettings.accountSwitchCallActive' => 'Во время звонка аккаунт не переключить',
 			'screenSettingsNotifications.notifications' => 'Уведомления и звуки',
 			'screenSettingsNotifications.messageNotifications' => 'Уведомления о сообщениях',
 			'screenSettingsNotifications.privateChats' => 'Личные чаты',
@@ -2991,11 +2997,11 @@ extension on TranslationsRu {
 			'screenContacts.onContacts' => 'В контактах',
 			'screenContacts.cloudContacts' => 'Облачные контакты',
 			'screenContacts.invite' => 'Пригласить',
+			_ => null,
+		} ?? switch (path) {
 			'screenContacts.inviteAction' => 'Пригласить',
 			'screenContacts.search' => 'Поиск',
 			'screenContacts.permissionTitle' => 'Нужен доступ к контактам',
-			_ => null,
-		} ?? switch (path) {
 			'screenContacts.permissionMessage' => 'Разрешите доступ к контактам, чтобы найти друзей, которые уже в Iperon. Ваши номера сверяются приватно и не раскрываются серверу.',
 			'screenContacts.allowAccess' => 'Разрешить доступ',
 			'screenContacts.openSettings' => 'Открыть настройки',

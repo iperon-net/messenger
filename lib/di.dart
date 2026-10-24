@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
 import 'package:messenger/repositories/repositories.dart';
 import 'account_scope.dart';
+import 'accounts.dart';
 import 'chats/spoiler_reveals.dart';
 import 'logger.dart';
 import 'routers.dart';
@@ -101,6 +102,8 @@ Future<void> startAccountServices() async {
   unawaited(SpoilerReveals.preload());
   // Мост call-пуш → нативный входящий (CallKit/ConnectionService) → Calls.
   getIt.get<CallPush>().start();
+  // Имя и аватар — в слот аккаунта (список аккаунтов в «Настройках»).
+  AccountProfileSync.instance.start();
 }
 
 /// Идёт переключение аккаунта: корень приложения на это время пустой — старое

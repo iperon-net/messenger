@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
@@ -15,6 +17,7 @@ import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
 import '../../settings.dart';
+import '../../accounts.dart';
 
 class AuthCupertinoScreen extends StatefulWidget {
   const AuthCupertinoScreen({super.key});
@@ -34,6 +37,10 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
   String? serverError;
 
   _SignInProvider? signInBusy;
+
+  /// Вход открыт из «Добавить аккаунт»: есть вошедший аккаунт, куда можно
+  /// вернуться («Отмена»).
+  bool _canReturn = false;
 
   /// Вход по ключу доступа или через Яндекс ID: нативный промпт/окно →
   /// навигация при успехе, диалог при ошибке. Отмена (пустой результат) ничего
@@ -78,6 +85,11 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(
+      returnAccount().then((id) {
+        if (mounted && id != null) setState(() => _canReturn = true);
+      }),
+    );
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   }
 
@@ -114,6 +126,14 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
       },
       builder: (context, state) {
         return CupertinoPageScaffold(
+          navigationBar: _canReturn
+              ? CupertinoNavigationBar(
+                  automaticBackgroundVisibility: false,
+                  border: null,
+                  backgroundColor: const Color(0x00000000),
+                  leading: NavBarButtonCupertino(NavBarAction.cancel, label: context.t.common.cancel, onPressed: cancelAddAccount),
+                )
+              : null,
           child: Form(
             key: formKey,
             child: SafeArea(

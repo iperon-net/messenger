@@ -7,6 +7,7 @@ import '../../i18n/translations.g.dart';
 import '../../cubit.dart';
 import '../../components.dart';
 import '../chats/chat_folders_material.dart';
+import 'settings_accounts_material.dart';
 
 class SettingsMaterial extends StatefulWidget {
   const SettingsMaterial({super.key});
@@ -51,6 +52,8 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                     isTrailing: true,
                   ),
                 ]),
+                const SizedBox(height: 6),
+                const SettingsAccountsMaterial(),
                 const SizedBox(height: 6),
                 _group(context, [
                   MaterialListTileIcon(

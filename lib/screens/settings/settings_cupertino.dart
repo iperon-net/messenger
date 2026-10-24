@@ -8,6 +8,7 @@ import '../../i18n/translations.g.dart';
 import '../../cubit.dart';
 import '../../components.dart';
 import '../chats/chat_folders_cupertino.dart';
+import 'settings_accounts_cupertino.dart';
 
 class SettingsCupertino extends StatefulWidget {
   const SettingsCupertino({super.key});
@@ -68,6 +69,7 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                     ),
                   ],
                 ),
+                const SettingsAccountsCupertino(),
                 CupertinoListSection.insetGrouped(
                   backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
                   decoration: BoxDecoration(

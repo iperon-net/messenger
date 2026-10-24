@@ -689,6 +689,9 @@
   "aboutApplication": "О приложении"
   "logs": "Логи"
   "logout": "Выйти"
+  "addAccount": "Добавить аккаунт"
+  "accountsLimit": "Можно добавить не больше {count} аккаунтов"
+  "accountSwitchCallActive": "Во время звонка аккаунт не переключить"
 
 "screenSettingsNotifications":
   "notifications": "Уведомления и звуки"

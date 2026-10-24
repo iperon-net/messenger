@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -14,6 +16,7 @@ import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
 import '../../settings.dart';
+import '../../accounts.dart';
 
 class AuthMaterialScreen extends StatefulWidget {
   const AuthMaterialScreen({super.key});
@@ -33,6 +36,10 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
   String? serverError;
 
   _SignInProvider? signInBusy;
+
+  /// Вход открыт из «Добавить аккаунт»: есть вошедший аккаунт, куда можно
+  /// вернуться («Отмена»).
+  bool _canReturn = false;
 
   /// Вход по ключу доступа или через Яндекс ID: нативный промпт/окно →
   /// навигация при успехе, SnackBar при ошибке. Отмена (пустой результат) ничего
@@ -66,6 +73,11 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(
+      returnAccount().then((id) {
+        if (mounted && id != null) setState(() => _canReturn = true);
+      }),
+    );
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   }
 
@@ -105,6 +117,12 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
 
         return Scaffold(
           backgroundColor: Theme.of(context).brightness == Brightness.light ? Colors.white : Color(0xFF1B263B),
+          appBar: _canReturn
+              ? AppBar(
+                  backgroundColor: Colors.transparent,
+                  leading: IconButton(tooltip: context.t.common.cancel, icon: const Icon(Icons.close), onPressed: cancelAddAccount),
+                )
+              : null,
           body: Form(
             key: formKey,
             child: SafeArea(
