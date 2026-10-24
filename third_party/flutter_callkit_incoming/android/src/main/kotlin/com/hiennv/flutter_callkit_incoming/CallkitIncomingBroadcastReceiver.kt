@@ -239,6 +239,11 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
         when (action) {
             "${context.packageName}.${CallkitConstants.ACTION_CALL_INCOMING}" -> {
                 try {
+                    val id = data.getString(CallkitConstants.EXTRA_CALLKIT_ID).orEmpty()
+                    if (id.isNotEmpty() && CallkitConnection.wasEnded(id)) {
+                        Log.d(TAG, "Incoming id=$id already ended — not shown")
+                        return
+                    }
                     registerTelecomIncomingCall(context, data)
                     val incomingData = Data.fromBundle(data)
                     if (incomingData.isFullScreen) {

@@ -337,6 +337,13 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
                     val calls = getDataActiveCalls(context)
                     val data = Data(call.arguments() ?: HashMap())
                     val currentCall = calls.firstOrNull { it.id == data.id }
+                    // ВЕНДОР-ПАТЧ (Iperon): отмена раньше показа (пуш отмены
+                    // обогнал ring) — запомнить, чтобы поздний показ не звонил.
+                    if (currentCall == null && data.id.isNotEmpty() &&
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                    ) {
+                        CallkitConnection.rememberEnded(data.id)
+                    }
                     if (currentCall != null && context != null) {
                         if(currentCall.isAccepted) {
                             context?.sendBroadcast(

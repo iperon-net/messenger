@@ -60,7 +60,7 @@ class CallkitConnectionService : ConnectionService() {
             Log.d(TAG, "onCreateIncomingConnection id=$callId duplicate — failed")
             return failed("Duplicate call id")
         }
-        if (CallkitConnection.takeEnded(callId)) {
+        if (CallkitConnection.wasEnded(callId)) {
             Log.d(TAG, "onCreateIncomingConnection id=$callId already ended — failed")
             return Connection.createFailedConnection(DisconnectCause(DisconnectCause.CANCELED))
         }

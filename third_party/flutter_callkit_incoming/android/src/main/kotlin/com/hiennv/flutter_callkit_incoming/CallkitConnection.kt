@@ -63,23 +63,30 @@ class CallkitConnection(
         }
 
         /**
-         * Звонки, завершённые (отбой / отклонение / таймаут) раньше, чем Telecom
-         * создал их Connection: addNewIncomingCall асинхронный, и отклонение в
-         * первые секунды приходит, когда [find] ещё пуст. Такой Connection
-         * [CallkitConnectionService] сразу отдаёт failed — иначе он навсегда
-         * остаётся RINGING в Telecom, служба остаётся привязанной системой и
-         * процесс приложения нельзя выгрузить (видно в `dumpsys telecom`).
+         * Звонки, завершённые (отбой звонящего, отклонение, таймаут) раньше, чем
+         * их показали: отмена из пуша и ring из стрима идут разными путями и
+         * приходят в любом порядке, а [find] пуст, пока Telecom не создал
+         * Connection. Такой звонок больше не показываем (ACTION_CALL_INCOMING
+         * пропускается), а уже запрошенный у Telecom Connection
+         * [CallkitConnectionService] отдаёт failed — иначе входящий звонит до
+         * таймаута, а Connection может навсегда остаться RINGING (служба
+         * привязана системой, процесс не выгрузить; видно в `dumpsys telecom`).
          */
-        private val endedBeforeCreate = LinkedHashSet<String>()
-        private const val ENDED_BEFORE_CREATE_LIMIT = 32
+        private val endedCalls = HashMap<String, Long>()
+        private const val ENDED_TTL_MS = 60_000L
 
         fun rememberEnded(callId: String) {
-            synchronized(endedBeforeCreate) {
-                endedBeforeCreate.add(callId)
-                while (endedBeforeCreate.size > ENDED_BEFORE_CREATE_LIMIT) {
-                    endedBeforeCreate.remove(endedBeforeCreate.first())
-                }
+            synchronized(endedCalls) {
+                val now = System.currentTimeMillis()
+                endedCalls.entries.removeAll { now - it.value > ENDED_TTL_MS }
+                endedCalls[callId] = now
             }
+        }
+
+        /** true — звонок уже завершён, показывать и создавать Connection не надо. */
+        fun wasEnded(callId: String): Boolean = synchronized(endedCalls) {
+            val at = endedCalls[callId] ?: return false
+            System.currentTimeMillis() - at <= ENDED_TTL_MS
         }
 
         /**
@@ -101,10 +108,6 @@ class CallkitConnection(
             true
         }
 
-        /** true — звонок уже завершён, Connection создавать не надо (отметка снимается). */
-        fun takeEnded(callId: String): Boolean = synchronized(endedBeforeCreate) {
-            endedBeforeCreate.remove(callId)
-        }
 
         /** For testing / cleanup — release all refs (Connection objects already destroyed by OS). */
         fun clearAll() {
