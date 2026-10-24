@@ -984,6 +984,19 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(50, (tx) async {
+        // chatReplies.read: сборки, собранные до коммита «Ответов», создали
+        // таблицу миграцией 47 без этой колонки — тогда каждая пачка
+        // обновлений с ответом падала и журнал вставал (не доходили, например,
+        // «прочитано»). Колонку добавляем, только если её нет.
+        final columns = await tx.getAll('PRAGMA table_info(chatReplies);');
+        if (!columns.any((c) => c['name'] == 'read')) {
+          await tx.execute('ALTER TABLE chatReplies ADD COLUMN read INTEGER NOT NULL DEFAULT 0;');
+        }
+      }),
+    );
+
     if (settings.isDeleteDatabase) {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 
