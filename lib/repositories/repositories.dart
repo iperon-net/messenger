@@ -36,6 +36,7 @@ part "notify_settings.dart";
 part "chats.dart";
 part "secret_chats.dart";
 part "spoiler_reveals.dart";
+part "device.dart";
 
 base class _AppSqliteOpenFactory extends NativeSqliteOpenFactory {
   final String? password;
@@ -62,7 +63,12 @@ class Repositories {
   final migrations = SqliteMigrations();
 
   late SqliteDatabase db;
+
+  /// Общая база устройства (`device.db`): настройки устройства и индекс
+  /// аккаунтов — см. [DeviceDatabase].
+  late SqliteDatabase deviceDb;
   late SettingsDevice settingsDevice;
+  late Accounts accounts;
   late Users users;
   late Sessions sessions;
   late DeviceSessions deviceSessions;
@@ -89,7 +95,9 @@ class Repositories {
   Repositories._();
 
   Future<void> _initialization() async {
-    String databasePath = p.join((await getApplicationSupportDirectory()).path, settings.databaseName);
+    final supportDir = (await getApplicationSupportDirectory()).path;
+    String databasePath = p.join(supportDir, settings.databaseName);
+    final deviceDatabasePath = p.join(supportDir, 'device.db');
 
     // Secure storage. iOS: accessibility = afterFirstUnlockThisDeviceOnly (не
     // дефолтный whenUnlocked) — иначе на cold-start от VoIP-push (входящий звонок
@@ -1001,18 +1009,12 @@ class Repositories {
       logger.warning("Deleting the database, flag set IS_DELETE_DATABASE: 1");
 
       try {
-        if (await File(databasePath).exists()) {
-          await File(databasePath).delete();
-          logger.info("the database has been successfully deleted");
+        for (final path in [databasePath, deviceDatabasePath]) {
+          for (final file in [path, "$path-wal", "$path-shm"]) {
+            if (await File(file).exists()) await File(file).delete();
+          }
         }
-
-        if (await File("$databasePath-wal").exists()) {
-          await File("$databasePath-wal").delete();
-        }
-
-        if (await File("$databasePath-shm").exists()) {
-          await File("$databasePath-shm").delete();
-        }
+        logger.info("the database has been successfully deleted");
       } catch (e) {
         logger.error("error delete database $e");
       }
@@ -1039,14 +1041,20 @@ class Repositories {
       }
 
       db = SqliteDatabase.withFactory(_AppSqliteOpenFactory(path: databasePath, password: password));
+      deviceDb = SqliteDatabase.withFactory(_AppSqliteOpenFactory(path: deviceDatabasePath, password: password));
     } else {
       db = SqliteDatabase.withFactory(_AppSqliteOpenFactory(path: databasePath));
+      deviceDb = SqliteDatabase.withFactory(_AppSqliteOpenFactory(path: deviceDatabasePath));
     }
 
     await migrations.migrate(db);
-    settingsDevice = SettingsDevice(logger: logger, db: db);
+    // device.db мигрирует после базы аккаунта: первая миграция переносит из
+    // неё settingsDevice и активный аккаунт.
+    await DeviceDatabase.migrations(account: db).migrate(deviceDb);
+    settingsDevice = SettingsDevice(logger: logger, db: deviceDb);
+    accounts = Accounts(logger: logger, db: deviceDb);
     users = Users(logger: logger, db: db);
-    sessions = Sessions(logger: logger, db: db);
+    sessions = Sessions(logger: logger, db: db, accounts: accounts);
     deviceSessions = DeviceSessions(logger: logger, db: db);
     cache = Cache(logger: logger, db: db);
     myProfile = MyProfile(logger: logger, db: db);

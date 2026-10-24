@@ -207,7 +207,11 @@ per account  <appSupport>/accounts/<accountId>/:
    - `deviceId` во всех `AUTH_CONFIRMATION` (`AuthLoginCompleter`);
    - `isSameDevice` проверен: сравниваются только сессии одного пользователя,
      мультиаккаунт его не задевает — менять не нужно.
-2. **Клиент, рефакторинг без изменения поведения:**
+2. **Клиент, рефакторинг без изменения поведения** (2026-10-24: `API` держит свою
+   сессию — `fd3c714`; `AccountScope` для синглтонов чатов — `6c4f5cb`; `device.db` с
+   `settingsDevice` и индексом `accounts` — `sessions`/`users` остались в базе аккаунта:
+   на `users` ссылаются внешние ключи, на `sessions` — выборки «владельца»
+   (`hiddenProfiles`, `spoilerReveals`), поэтому в `accounts` нет ключей сессии):
    - `accounts` вместо `sessions` и `users`;
    - миграция `iperon.db` в `accounts/<id>/`;
    - `AccountScope` с одним аккаунтом;

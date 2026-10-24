@@ -4,7 +4,10 @@ class Sessions {
   final Logger logger;
   final SqliteDatabase db;
 
-  Sessions({required this.logger, required this.db});
+  /// Индекс аккаунтов в `device.db`: вход и выход отражаются и в нём.
+  final Accounts accounts;
+
+  Sessions({required this.logger, required this.db, required this.accounts});
 
   Future<void> deleteAndCreate({
     required List<int> userID,
@@ -21,6 +24,9 @@ class Sessions {
         [sessionID, userID, session, sharedKey, sharedSalt, createAt.millisecondsSinceEpoch],
       );
     });
+    // Номер пишет Users.createOrUpdate перед созданием сессии.
+    final user = await db.getOptional("SELECT phoneNumber FROM users WHERE userID = ?;", [userID]);
+    await accounts.activate(userID: userID, phoneNumber: user?['phoneNumber'] as String? ?? '');
   }
 
   Future<models.Session> getActive() async {
@@ -34,5 +40,6 @@ class Sessions {
       // await txn.execute("UPDATE settingsDevice SET passcode = NULL;");
       await txn.execute("DELETE FROM sessions WHERE isActive = 1;");
     });
+    await accounts.removeActive();
   }
 }
