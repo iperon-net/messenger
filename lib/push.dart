@@ -21,6 +21,8 @@ import 'protobuf.dart';
 import 'protobuf/protos/chats_v1.pb.dart' as pb;
 import 'repositories.dart';
 import 'utils.dart';
+import 'account_scope.dart';
+import 'accounts.dart';
 
 /// Сборка расшифровывает call-пуши — уходит в `Subscribe.Request.capabilities`:
 /// сервер шлёт таким сессиям входящий/отмену звонка зашифрованным `PushPayload`
@@ -69,6 +71,10 @@ class PushManager {
   final api = getIt.get<API>();
   final auth = getIt.get<Auth>();
   final repositories = getIt.get<Repositories>();
+
+  /// Аккаунт этого экземпляра (слот `device.db`): им помечаются ключ пушей,
+  /// скрытые профили и аватары у натива — пуш знает, чей он.
+  final String _account = AccountScope.current.accountID;
 
   // Ключи кэша последнего отправленного токена (дедуп по каналу). VoIP — `_v2`:
   // старые клиенты слали VoIP-токен без флага sandbox, новый ключ заставляет
@@ -204,7 +210,7 @@ class PushManager {
     try {
       final session = auth.session;
       if (!auth.isAuthorized || session.session.length < _pushKeyIdLength || session.sharedKey.isEmpty) {
-        await _channel.invokeMethod<void>('clearPushKeys');
+        await forgetAccount(_account);
         // Разлогинились — непрочитанные старой сессии на иконке не нужны.
         await setBadge(0);
         return;
@@ -217,9 +223,31 @@ class PushManager {
       await _channel.invokeMethod<void>('setPushKey', {
         'keyId': Uint8List.fromList(session.session.sublist(0, _pushKeyIdLength)),
         'key': Uint8List.fromList(await key.extractBytes()),
+        'account': _account,
+        'accountName': await _accountName(),
       });
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
+    }
+  }
+
+  /// Подпись аккаунта в уведомлениях (когда их несколько): имя профиля,
+  /// иначе номер.
+  Future<String> _accountName() async {
+    for (final slot in await getIt.get<DeviceRepositories>().accounts.all()) {
+      if (slot.accountID == _account) return slot.name.isNotEmpty ? slot.name : '+${slot.phoneNumber}';
+    }
+    return '';
+  }
+
+  /// Аккаунт [account] ушёл с устройства (выход): натив забывает его ключи,
+  /// аватары, уведомления и шорткаты.
+  static Future<void> forgetAccount(String account) async {
+    if (!_hasNativePush || account.isEmpty) return;
+    try {
+      await _channel.invokeMethod<void>('removeAccount', {'account': account});
+    } catch (error, stackTrace) {
+      getIt.get<Logger>().handle(error, stackTrace);
     }
   }
 
@@ -241,7 +269,7 @@ class PushManager {
   Future<void> _syncHiddenUsers() async {
     try {
       final hidden = await repositories.hiddenProfiles.hashByHex();
-      await _channel.invokeMethod<void>('setHiddenUsers', hidden.keys.toList());
+      await _channel.invokeMethod<void>('setHiddenUsers', {'account': _account, 'users': hidden.keys.toList()});
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     }
@@ -285,9 +313,12 @@ class PushManager {
       final keys = avatars.keys.toList()..sort();
       final signature = [for (final key in keys) '$key=${avatars[key]!.id}'].join(',');
       if (signature == _avatarsSent) return;
-      await _channel.invokeMethod<void>('syncAvatars', [
-        for (final key in keys) {'key': key, 'id': avatars[key]!.id, 'path': avatars[key]!.path},
-      ]);
+      await _channel.invokeMethod<void>('syncAvatars', {
+        'account': _account,
+        'entries': [
+          for (final key in keys) {'key': key, 'id': avatars[key]!.id, 'path': avatars[key]!.path},
+        ],
+      });
       _avatarsSent = signature;
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
@@ -336,6 +367,7 @@ class PushManager {
     if (!_hasNativePush) return;
     try {
       await _channel.invokeMethod<void>('clearChatNotifications', {
+        'account': AccountScope.current.accountID,
         'chatID': [for (final b in chatID) b.toRadixString(16).padLeft(2, '0')].join(),
         'maxID': maxID,
         'messageIDs': messageIDs,
@@ -383,6 +415,11 @@ class PushManager {
   /// В конце отпускает процесс (`notificationActionDone`).
   Future<void> _handleAction(Object? arguments) async {
     final action = arguments as Map? ?? const {};
+    // Кнопка уведомления другого аккаунта — выполняет его PushManager (после
+    // переключения на этот аккаунт).
+    if (await _switchTo((action['account'] as String?) ?? '')) {
+      return getIt.get<PushManager>()._handleAction(arguments);
+    }
     final chatID = ((action['chatID'] as String?) ?? '').toLowerCase();
     final maxID = (action['maxID'] as num?)?.toInt() ?? 0;
     logger.info('push: notification action ${action['action']} chat=$chatID');
@@ -459,6 +496,11 @@ class PushManager {
 
   Future<void> _handleTap(Object? arguments) async {
     final tap = arguments as Map?;
+    // Уведомление другого аккаунта — сначала переключиться на него (как в
+    // Telegram), переход — уже его PushManager.
+    if (await _switchTo((tap?['account'] as String?) ?? '')) {
+      return getIt.get<PushManager>()._handleTap(arguments);
+    }
     final kind = PushPayload_Kind.valueOf((tap?['kind'] as int?) ?? 0);
     var route = routeForKind(
       kind,
@@ -477,6 +519,22 @@ class PushManager {
       handler(route);
     } else {
       _pendingRoute = route;
+    }
+  }
+
+  /// Переключиться на аккаунт [account] уведомления, если он не этот и на
+  /// устройстве вошёл. true — переключились (продолжает новый PushManager).
+  Future<bool> _switchTo(String account) async {
+    if (account.isEmpty || account == _account) return false;
+    final signedIn = await signedInAccounts();
+    if (!signedIn.any((entry) => entry.accountID == account)) return false;
+    try {
+      await switchAccount(account);
+      return true;
+    } catch (error, stackTrace) {
+      // Например, идёт звонок — остаёмся в текущем.
+      logger.handle(error, stackTrace);
+      return false;
     }
   }
 

@@ -17,9 +17,10 @@ import javax.crypto.spec.GCMParameterSpec
 /// Keystore (неэкспортируемый, привязан к устройству). Ключ по keyID — первые 8
 /// байт сессии из заголовка `p`.
 ///
-/// Аккаунт сейчас один, поэтому [put] заменяет все прежние ключи (старая сессия
-/// после перелогина пуши расшифровывать не должна). Под несколько аккаунтов —
-/// хранить по ключу на keyID и чистить по сессиям.
+/// Аккаунтов на устройстве несколько (docs/plans/multi-account.md, этап 3.3):
+/// ключ хранится на keyID вместе с аккаунтом (локальный `accountID` слота) — по
+/// нему пуш знает, чей он (теги, скрытые профили, переход по тапу). Новый ключ
+/// аккаунта заменяет его прежние (перелогин), ключи других аккаунтов не трогает.
 ///
 /// Здесь же — флаг «включён код-пароль»: тогда уведомления показываются без
 /// имени и текста (аналог Telegram updateDeviceLocked, только на клиенте), — и
@@ -28,6 +29,10 @@ import javax.crypto.spec.GCMParameterSpec
 object PushKeyStore {
     private const val PREFS = "iperon_push"
     private const val KEY_PREFIX = "key_"
+    // keyID → accountID: чей ключ.
+    private const val ACCOUNT_PREFIX = "acct_"
+    // accountID → имя аккаунта (подпись уведомления, когда аккаунтов несколько).
+    private const val NAME_PREFIX = "name_"
     private const val PASSCODE_ENABLED = "passcode_enabled"
     private const val HIDDEN_USERS = "hidden_users"
     private const val KEYSTORE = "AndroidKeyStore"
@@ -35,16 +40,57 @@ object PushKeyStore {
     private const val IV_LENGTH = 12
     private const val TAG_BITS = 128
 
-    fun put(context: Context, keyId: ByteArray, key: ByteArray) {
+    fun put(context: Context, keyId: ByteArray, key: ByteArray, account: String, accountName: String) {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.ENCRYPT_MODE, wrapKey())
         val wrapped = cipher.iv + cipher.doFinal(key)
 
         val prefs = prefs(context)
         val editor = prefs.edit()
-        prefs.all.keys.filter { it.startsWith(KEY_PREFIX) }.forEach { editor.remove(it) }
-        editor.putString(KEY_PREFIX + hex(keyId), Base64.encodeToString(wrapped, Base64.NO_WRAP))
+        // Прежние ключи этого аккаунта (до перелогина) — больше не нужны.
+        removeKeys(prefs, editor, account)
+        val id = hex(keyId)
+        editor.putString(KEY_PREFIX + id, Base64.encodeToString(wrapped, Base64.NO_WRAP))
+        editor.putString(ACCOUNT_PREFIX + id, account)
+        editor.putString(NAME_PREFIX + account, accountName)
         editor.apply()
+    }
+
+    /// Аккаунт ключа [keyId] (пусто — ключ из сборки до мультиаккаунта).
+    fun accountOf(context: Context, keyId: ByteArray): String = prefs(context).getString(ACCOUNT_PREFIX + hex(keyId), null).orEmpty()
+
+    /// Имя аккаунта [account] для подписи уведомления — только когда аккаунтов
+    /// с ключами больше одного (иначе подпись не нужна): null.
+    fun accountLabel(context: Context, account: String): String? {
+        if (account.isEmpty()) return null
+        val prefs = prefs(context)
+        val accounts = prefs.all.filterKeys { it.startsWith(ACCOUNT_PREFIX) }.values.toSet()
+        if (accounts.size < 2) return null
+        return prefs.getString(NAME_PREFIX + account, null)?.takeIf { it.isNotEmpty() }
+    }
+
+    /// Аккаунт ушёл с устройства (выход): его ключи, имя и скрытые профили.
+    fun removeAccount(context: Context, account: String) {
+        val prefs = prefs(context)
+        val editor = prefs.edit()
+        removeKeys(prefs, editor, account)
+        editor.remove(NAME_PREFIX + account)
+        editor.remove("${HIDDEN_USERS}_$account")
+        editor.apply()
+    }
+
+    private fun removeKeys(prefs: android.content.SharedPreferences, editor: android.content.SharedPreferences.Editor, account: String) {
+        for ((name, value) in prefs.all) {
+            if (!name.startsWith(ACCOUNT_PREFIX) || value != account) continue
+            val id = name.removePrefix(ACCOUNT_PREFIX)
+            editor.remove(name)
+            editor.remove(KEY_PREFIX + id)
+        }
+        // Ключи из сборки до мультиаккаунта (без аккаунта) — тоже: они той же
+        // сессии, что сейчас перевыпускается.
+        for (name in prefs.all.keys) {
+            if (name.startsWith(KEY_PREFIX) && !prefs.contains(ACCOUNT_PREFIX + name.removePrefix(KEY_PREFIX))) editor.remove(name)
+        }
     }
 
     fun get(context: Context, keyId: ByteArray): ByteArray? {
@@ -60,7 +106,7 @@ object PushKeyStore {
     fun clear(context: Context) {
         val prefs = prefs(context)
         val editor = prefs.edit()
-        prefs.all.keys.filter { it.startsWith(KEY_PREFIX) }.forEach { editor.remove(it) }
+        prefs.all.keys.filter { it.startsWith(KEY_PREFIX) || it.startsWith(ACCOUNT_PREFIX) || it.startsWith(NAME_PREFIX) }.forEach { editor.remove(it) }
         editor.apply()
     }
 
@@ -70,12 +116,12 @@ object PushKeyStore {
 
     fun isPasscodeEnabled(context: Context): Boolean = prefs(context).getBoolean(PASSCODE_ENABLED, false)
 
-    fun setHiddenUsers(context: Context, users: List<String>) {
-        prefs(context).edit().putStringSet(HIDDEN_USERS, users.map { it.lowercase() }.toSet()).apply()
+    fun setHiddenUsers(context: Context, account: String, users: List<String>) {
+        prefs(context).edit().putStringSet("${HIDDEN_USERS}_$account", users.map { it.lowercase() }.toSet()).apply()
     }
 
-    fun isHiddenUser(context: Context, userID: ByteArray): Boolean =
-        userID.isNotEmpty() && prefs(context).getStringSet(HIDDEN_USERS, null)?.contains(hex(userID)) == true
+    fun isHiddenUser(context: Context, account: String, userID: ByteArray): Boolean =
+        userID.isNotEmpty() && prefs(context).getStringSet("${HIDDEN_USERS}_$account", null)?.contains(hex(userID)) == true
 
     private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 

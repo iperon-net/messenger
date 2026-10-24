@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'account_scope.dart';
 import 'di.dart';
 import 'logger.dart';
+import 'push.dart';
 import 'repositories.dart';
 
 /// Несколько аккаунтов на устройстве (docs/plans/multi-account.md, этап 3.2):
@@ -71,6 +72,7 @@ Future<void> leaveAccount(String accountID) async {
   final leaving = AccountScope.current.accountID;
   await switchAccount(accountID);
   await _device.removeAccount(leaving);
+  await PushManager.forgetAccount(leaving);
 }
 
 /// Отмена «Добавить аккаунт» с экрана входа: назад в вошедший аккаунт, пустой

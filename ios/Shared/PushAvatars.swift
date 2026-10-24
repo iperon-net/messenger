@@ -10,9 +10,11 @@ import UIKit
 /// entitlements обоих target'ов). Аналог PushAvatars.kt на Android.
 ///
 /// Ключи — `u<hex userID>` (личный чат, звонок, реакция) и `c<hex chatID>`
-/// (группа). Dart присылает полный снимок ([sync], `syncAvatars` в
-/// PushBridge): новые и сменившиеся (другой cdnID) копируются, пропавшие
-/// удаляются; что уже скопировано — помнит `manifest.json` (ключ → cdnID).
+/// (группа). Dart присылает полный снимок своего аккаунта ([sync],
+/// `syncAvatars` в PushBridge): новые и сменившиеся (другой cdnID) копируются,
+/// копии, которых нет ни в одном снимке аккаунтов, удаляются; что уже
+/// скопировано — помнит `manifest.json` (ключ → cdnID), снимки — `sets.json`
+/// (accountID → ключи).
 ///
 /// Файл входит в оба target'а (Runner и NotificationService).
 enum PushAvatars {
@@ -52,11 +54,13 @@ enum PushAvatars {
 
   /// Снимок аватаров из Dart: `[{key, id (hex cdnID), path}]`. Работает в
   /// фоновой очереди — первый снимок может нести сотни картинок.
-  static func sync(_ entries: [[String: String]]) {
-    queue.async { apply(entries) }
+  static func sync(_ entries: [[String: String]], account: String) {
+    queue.async { apply(entries, account: account) }
   }
 
-  private static func apply(_ entries: [[String: String]]) {
+  private static let setsName = "sets.json"
+
+  private static func apply(_ entries: [[String: String]], account: String) {
     guard let dir = directory else {
       NSLog("IperonPush: app group container unavailable, avatars skipped")
       return
@@ -81,12 +85,44 @@ enum PushAvatars {
         NSLog("IperonPush: avatar write failed: \(error)")
       }
     }
-    for key in manifest.keys where !wanted.contains(key) {
-      try? fm.removeItem(at: dir.appendingPathComponent(key + ".jpg"))
-      manifest.removeValue(forKey: key)
-    }
+    var sets = readSets(dir)
+    sets[account] = Array(wanted)
+    prune(dir, manifest: &manifest, sets: sets)
     if let data = try? JSONSerialization.data(withJSONObject: manifest) {
       try? data.write(to: manifestURL, options: .atomic)
+    }
+  }
+
+  /// Аккаунт ушёл с устройства: его снимок больше не держит копии.
+  static func forget(account: String) {
+    queue.async {
+      guard let dir = directory else { return }
+      let manifestURL = dir.appendingPathComponent(manifestName)
+      var manifest = (try? Data(contentsOf: manifestURL))
+        .flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: String] } ?? [:]
+      var sets = readSets(dir)
+      sets.removeValue(forKey: account)
+      prune(dir, manifest: &manifest, sets: sets)
+      if let data = try? JSONSerialization.data(withJSONObject: manifest) {
+        try? data.write(to: manifestURL, options: .atomic)
+      }
+    }
+  }
+
+  private static func readSets(_ dir: URL) -> [String: [String]] {
+    (try? Data(contentsOf: dir.appendingPathComponent(setsName)))
+      .flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: [String]] } ?? [:]
+  }
+
+  /// Удалить копии, которых нет ни в одном снимке, и сохранить снимки.
+  private static func prune(_ dir: URL, manifest: inout [String: String], sets: [String: [String]]) {
+    let used = Set(sets.values.flatMap { $0 })
+    for key in manifest.keys where !used.contains(key) {
+      try? FileManager.default.removeItem(at: dir.appendingPathComponent(key + ".jpg"))
+      manifest.removeValue(forKey: key)
+    }
+    if let data = try? JSONSerialization.data(withJSONObject: sets) {
+      try? data.write(to: dir.appendingPathComponent(setsName), options: .atomic)
     }
   }
 

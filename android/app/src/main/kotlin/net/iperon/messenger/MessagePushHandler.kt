@@ -46,6 +46,7 @@ object MessagePushHandler {
     const val EXTRA_FROM_USER_ID = "push_from_user_id"
     const val EXTRA_PARENT_CHAT_ID = "push_parent_chat_id"
     const val EXTRA_POST_ID = "push_post_id"
+    const val EXTRA_ACCOUNT = "push_account"
 
     // Сколько последних сообщений чата держать в MessagingStyle.
     private const val MAX_STYLE_MESSAGES = 7
@@ -61,12 +62,18 @@ object MessagePushHandler {
     /// Расшифровывает и разбирает `p`. null — ключа нет (разлогинены или пуш
     /// для старой сессии) или формат битый: такой пуш молча отбрасываем.
     fun decrypt(context: Context, encrypted: String): PushPayload? = try {
-        val plaintext = PushCrypto.open(encrypted) { keyId -> PushKeyStore.get(context, keyId) }
+        // Аккаунт — по ключу пуша (keyID → accountID): несколько аккаунтов на
+        // устройстве, у каждого свой ключ.
+        var account = ""
+        val plaintext = PushCrypto.open(encrypted) { keyId ->
+            account = PushKeyStore.accountOf(context, keyId)
+            PushKeyStore.get(context, keyId)
+        }
         if (plaintext == null) {
             Log.i(LOG_TAG, "push: no key for payload, dropped")
             null
         } else {
-            PushPayload.parse(plaintext)
+            PushPayload.parse(plaintext)?.copy(account = account)
         }
     } catch (error: Exception) {
         Log.w(LOG_TAG, "push: decrypt/parse failed", error)
@@ -77,11 +84,11 @@ object MessagePushHandler {
         when (payload.kind) {
             // Прочитано / удалено на другом устройстве — снимаем показанное.
             PushPayload.KIND_READ_HISTORY -> {
-                clearChat(context, hex(payload.chatID), maxID = payload.messageID)
+                clearChat(context, payload.account, hex(payload.chatID), maxID = payload.messageID)
                 return
             }
             PushPayload.KIND_MESSAGE_DELETED -> {
-                clearChat(context, hex(payload.chatID), messageIDs = payload.messageIDs.toSet())
+                clearChat(context, payload.account, hex(payload.chatID), messageIDs = payload.messageIDs.toSet())
                 return
             }
         }
@@ -116,12 +123,12 @@ object MessagePushHandler {
         val appName = context.getString(R.string.push_app_name)
         // Включён код-пароль или отправитель — локально скрытый профиль («Скрыть
         // профиль») — ни имени, ни текста на экране блокировки/в шторке.
-        val hidden = PushKeyStore.isPasscodeEnabled(context) || PushKeyStore.isHiddenUser(context, payload.fromUserID)
+        val hidden = PushKeyStore.isPasscodeEnabled(context) || PushKeyStore.isHiddenUser(context, payload.account, payload.fromUserID)
         // Секретный чат — как сообщение, но текста у сервера нет.
         val secret = payload.kind == PushPayload.KIND_SECRET_MESSAGE
         val isMessage = payload.kind == PushPayload.KIND_MESSAGE || secret
         val isChat = isMessage || payload.kind == PushPayload.KIND_MESSAGE_REACTION
-        val tag = if (isMessage) chatTag(payload) else payload.id.ifEmpty { "kind:${payload.kind}" }
+        val tag = if (isMessage) chatTag(payload) else accountTag(payload.account, payload.id.ifEmpty { "kind:${payload.kind}" })
 
         val builder = NotificationCompat.Builder(context, if (isChat) NotificationChannels.MESSAGES else NotificationChannels.OTHER)
             .setSmallIcon(R.drawable.ic_stat_notification)
@@ -129,6 +136,8 @@ object MessagePushHandler {
             .setContentIntent(tapIntent(context, payload, tag))
             .setCategory(if (isChat) NotificationCompat.CATEGORY_MESSAGE else NotificationCompat.CATEGORY_SOCIAL)
         if (payload.date > 0) builder.setWhen(payload.date).setShowWhen(true)
+        // Аккаунтов несколько — чей пуш (как в Telegram: подпись аккаунта).
+        PushKeyStore.accountLabel(context, payload.account)?.let { builder.setSubText(it) }
 
         when {
             hidden -> builder
@@ -232,6 +241,7 @@ object MessagePushHandler {
             this.action = action
             putExtra(NotificationActionReceiver.EXTRA_CHAT_ID, hex(payload.chatID))
             putExtra(NotificationActionReceiver.EXTRA_MAX_ID, payload.messageID)
+            putExtra(NotificationActionReceiver.EXTRA_ACCOUNT, payload.account)
         }
         // RemoteInput дописывает текст в intent — PendingIntent ответа обязан
         // быть mutable (intent явный, на свой приёмник).
@@ -269,8 +279,8 @@ object MessagePushHandler {
     /// просит Android: перепоказ снимает индикатор отправки с поля ввода).
     /// id своего сообщения неизвестен (0) — «прочитано» снимет его вместе с
     /// остальными.
-    fun appendReply(context: Context, chatHex: String, text: String) {
-        val tag = "chat:$chatHex"
+    fun appendReply(context: Context, account: String, chatHex: String, text: String) {
+        val tag = chatTag(account, chatHex)
         val active = activeNotification(context, tag) ?: return
         val previous = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(active) ?: return
         val ids = messageIDs(active, previous.messages.size)
@@ -458,10 +468,10 @@ object MessagePushHandler {
     /// или все ([all]). Осталось что-то — уведомление пересобирается без звука,
     /// иначе снимается целиком. Зовётся из тихого пуша и из Dart (прочитано /
     /// удалено при живом стриме).
-    fun clearChat(context: Context, chatHex: String, maxID: Long = 0, messageIDs: Set<Long> = emptySet(), all: Boolean = false) {
+    fun clearChat(context: Context, account: String, chatHex: String, maxID: Long = 0, messageIDs: Set<Long> = emptySet(), all: Boolean = false) {
         val manager = NotificationManagerCompat.from(context)
-        clearReactions(context, chatHex, maxID, messageIDs, all)
-        val tag = "chat:$chatHex"
+        clearReactions(context, account, chatHex, maxID, messageIDs, all)
+        val tag = chatTag(account, chatHex)
         val active = activeNotification(context, tag) ?: return
         val style = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(active)
         if (all || style == null) {
@@ -499,9 +509,9 @@ object MessagePushHandler {
 
     /// Снимает уведомления о реакциях чата [chatHex] по тем же правилам, что
     /// [clearChat]: messageID — из тега `reaction:<chatHex>:<messageID>:…`.
-    private fun clearReactions(context: Context, chatHex: String, maxID: Long, messageIDs: Set<Long>, all: Boolean) {
+    private fun clearReactions(context: Context, account: String, chatHex: String, maxID: Long, messageIDs: Set<Long>, all: Boolean) {
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
-        val prefix = "reaction:$chatHex:"
+        val prefix = accountTag(account, "reaction:$chatHex:")
         for (active in manager.activeNotifications) {
             val tag = active.tag ?: continue
             if (!tag.startsWith(prefix)) continue
@@ -525,6 +535,7 @@ object MessagePushHandler {
             // Комментарий к посту канала: ветка открывается по каналу и посту.
             putExtra(EXTRA_PARENT_CHAT_ID, hex(payload.parentChatID))
             putExtra(EXTRA_POST_ID, payload.postID)
+            putExtra(EXTRA_ACCOUNT, payload.account)
         }
         return PendingIntent.getActivity(
             context, tag.hashCode(), intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
@@ -541,10 +552,37 @@ object MessagePushHandler {
             "fromUserID" to (intent.getStringExtra(EXTRA_FROM_USER_ID) ?: ""),
             "parentChatID" to (intent.getStringExtra(EXTRA_PARENT_CHAT_ID) ?: ""),
             "postID" to intent.getLongExtra(EXTRA_POST_ID, 0L),
+            "account" to (intent.getStringExtra(EXTRA_ACCOUNT) ?: ""),
         )
     }
 
-    private fun chatTag(payload: PushPayload) = "chat:" + hex(payload.chatID)
+    /// Аккаунт ушёл с устройства: его уведомления и шорткаты бесед.
+    fun removeAccount(context: Context, account: String) {
+        if (account.isEmpty()) return
+        val prefix = accountTag(account, "")
+        context.getSystemService(NotificationManager::class.java)?.let { manager ->
+            for (active in manager.activeNotifications) {
+                val tag = active.tag ?: continue
+                if (tag.startsWith(prefix)) manager.cancel(tag, active.id)
+            }
+        }
+        try {
+            val flags = ShortcutManagerCompat.FLAG_MATCH_DYNAMIC or ShortcutManagerCompat.FLAG_MATCH_CACHED
+            val ids = ShortcutManagerCompat.getShortcuts(context, flags).map { it.id }.filter { it.startsWith(prefix) }
+            if (ids.isNotEmpty()) ShortcutManagerCompat.removeLongLivedShortcuts(context, ids)
+        } catch (error: Exception) {
+            Log.w(LOG_TAG, "push: remove account shortcuts failed", error)
+        }
+    }
+
+    /// Тег уведомления чата: `<accountID>:chat:<chatHex>` — у двух аккаунтов
+    /// может быть один чат (личный друг с другом, общая группа). Без аккаунта
+    /// (ключ из сборки до мультиаккаунта) — прежний `chat:<chatHex>`.
+    private fun chatTag(payload: PushPayload) = chatTag(payload.account, hex(payload.chatID))
+
+    private fun chatTag(account: String, chatHex: String) = accountTag(account, "chat:$chatHex")
+
+    private fun accountTag(account: String, tag: String) = if (account.isEmpty()) tag else "$account:$tag"
 
     private fun hex(bytes: ByteArray) = bytes.joinToString("") { "%02x".format(it) }
 }

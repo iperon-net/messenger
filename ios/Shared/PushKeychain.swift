@@ -10,8 +10,9 @@ import Security
 ///
 /// Ключ пушей (HKDF от sharedKey сессии) выводит Dart (`PushManager`) и отдаёт
 /// по каналу `net.iperon.messenger/push`; ищется по keyID — первые 8 байт сессии
-/// из заголовка `p`. Аккаунт один, поэтому [putKey] заменяет все прежние ключи
-/// (после перелогина пуши старой сессии не расшифровываются).
+/// из заголовка `p`. Аккаунтов несколько (docs/plans/multi-account.md, этап
+/// 3.3): ключ хранится вместе с аккаунтом (accountID слота) — по нему пуш
+/// знает, чей он; новый ключ аккаунта заменяет только его прежние.
 ///
 /// Доступность — `AfterFirstUnlockThisDeviceOnly`: пуши приходят и на
 /// заблокированный телефон, а NSE должен их расшифровать; в бэкапы/на другое
@@ -21,6 +22,9 @@ import Security
 enum PushKeychain {
   private static let service = "net.iperon.messenger.push"
   private static let keyPrefix = "key_"
+  // keyID → accountID и accountID → имя (подпись, когда аккаунтов несколько).
+  private static let accountPrefix = "acct_"
+  private static let namePrefix = "name_"
   private static let passcodeAccount = "passcode_enabled"
   private static let hiddenUsersAccount = "hidden_users"
   private static let sharedGroupSuffix = "net.iperon.messenger.shared"
@@ -48,17 +52,58 @@ enum PushKeychain {
 
   // MARK: - Ключи пушей
 
-  static func putKey(keyId: Data, key: Data) {
-    clearKeys()
-    write(account: keyPrefix + hex(keyId), value: key)
+  static func putKey(keyId: Data, key: Data, account: String, accountName: String) {
+    removeKeys(account: account)
+    let id = hex(keyId)
+    write(account: keyPrefix + id, value: key)
+    write(account: accountPrefix + id, value: Data(account.utf8))
+    write(account: namePrefix + account, value: Data(accountName.utf8))
   }
 
   static func key(forId keyId: Data) -> Data? {
     read(account: keyPrefix + hex(keyId))
   }
 
+  /// Аккаунт ключа [keyId] (пусто — ключ из сборки до мультиаккаунта).
+  static func account(forId keyId: Data) -> String {
+    read(account: accountPrefix + hex(keyId)).map { String(decoding: $0, as: UTF8.self) } ?? ""
+  }
+
+  /// Подпись аккаунта для уведомления — только когда аккаунтов с ключами
+  /// больше одного.
+  static func accountLabel(_ account: String) -> String? {
+    guard !account.isEmpty else { return nil }
+    let owners = Set(accounts().filter { $0.hasPrefix(accountPrefix) }.compactMap { read(account: $0) })
+    guard owners.count > 1, let name = read(account: namePrefix + account) else { return nil }
+    let label = String(decoding: name, as: UTF8.self)
+    return label.isEmpty ? nil : label
+  }
+
+  /// Аккаунт ушёл с устройства: его ключи, имя и скрытые профили.
+  static func removeAccount(_ account: String) {
+    removeKeys(account: account)
+    delete(account: namePrefix + account)
+    delete(account: hiddenUsersAccount + "_" + account)
+  }
+
+  /// Ключи аккаунта [account] и ключи из сборки до мультиаккаунта (без
+  /// аккаунта — той же, перевыпускаемой, сессии).
+  private static func removeKeys(account: String) {
+    let all = accounts()
+    for item in all where item.hasPrefix(accountPrefix) {
+      guard let owner = read(account: item), String(decoding: owner, as: UTF8.self) == account else { continue }
+      let id = String(item.dropFirst(accountPrefix.count))
+      delete(account: item)
+      delete(account: keyPrefix + id)
+    }
+    for item in all where item.hasPrefix(keyPrefix) {
+      let id = String(item.dropFirst(keyPrefix.count))
+      if !all.contains(accountPrefix + id) { delete(account: item) }
+    }
+  }
+
   static func clearKeys() {
-    for account in accounts() where account.hasPrefix(keyPrefix) {
+    for account in accounts() where account.hasPrefix(keyPrefix) || account.hasPrefix(accountPrefix) || account.hasPrefix(namePrefix) {
       delete(account: account)
     }
   }
@@ -83,17 +128,18 @@ enum PushKeychain {
 
   /// hex(userID) локально скрытых профилей («Скрыть профиль», HiddenProfiles в
   /// Dart): их уведомления — без имени и текста, как при код-пароле.
-  static func setHiddenUsers(_ users: [String]) {
+  static func setHiddenUsers(_ users: [String], account: String) {
+    let item = hiddenUsersAccount + "_" + account
     if users.isEmpty {
-      delete(account: hiddenUsersAccount)
+      delete(account: item)
     } else {
-      write(account: hiddenUsersAccount, value: Data(users.map { $0.lowercased() }.joined(separator: ",").utf8))
+      write(account: item, value: Data(users.map { $0.lowercased() }.joined(separator: ",").utf8))
     }
   }
 
-  static func isHiddenUser(_ userID: Data) -> Bool {
+  static func isHiddenUser(_ userID: Data, account: String) -> Bool {
     guard !userID.isEmpty,
-          let data = read(account: hiddenUsersAccount),
+          let data = read(account: hiddenUsersAccount + "_" + account),
           let list = String(data: data, encoding: .utf8)
     else { return false }
     return list.split(separator: ",").contains(Substring(hex(userID)))

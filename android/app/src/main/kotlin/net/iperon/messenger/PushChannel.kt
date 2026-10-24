@@ -50,16 +50,26 @@ object PushChannel {
                 "setPushKey" -> {
                     val keyId = call.argument<ByteArray>("keyId")
                     val key = call.argument<ByteArray>("key")
+                    val account = call.argument<String>("account").orEmpty()
                     if (keyId == null || key == null) {
                         result.error("args", "keyId and key are required", null)
                     } else {
-                        PushKeyStore.put(app, keyId, key)
+                        PushKeyStore.put(app, keyId, key, account, call.argument<String>("accountName").orEmpty())
                         result.success(null)
                     }
                 }
+                // Аккаунт вышел / удалён с устройства: его ключи, аватары,
+                // уведомления и шорткаты.
+                "removeAccount" -> {
+                    val account = call.argument<String>("account").orEmpty()
+                    PushKeyStore.removeAccount(app, account)
+                    PushAvatars.clear(app, account)
+                    MessagePushHandler.removeAccount(app, account)
+                    result.success(null)
+                }
                 "clearPushKeys" -> {
                     PushKeyStore.clear(app)
-                    PushAvatars.clear(app)
+                    PushAvatars.clearAll(app)
                     MessagePushHandler.removeShortcuts(app)
                     result.success(null)
                 }
@@ -67,6 +77,7 @@ object PushChannel {
                 "clearChatNotifications" -> {
                     MessagePushHandler.clearChat(
                         app,
+                        account = call.argument<String>("account").orEmpty(),
                         chatHex = call.argument<String>("chatID") ?: "",
                         maxID = call.argument<Number>("maxID")?.toLong() ?: 0,
                         messageIDs = call.argument<List<Number>>("messageIDs").orEmpty().map { it.toLong() }.toSet(),
@@ -83,19 +94,19 @@ object PushChannel {
                 }
                 // Локально скрытые профили — их пуши без имени и текста.
                 "setHiddenUsers" -> {
-                    val users = (call.arguments as? List<*>).orEmpty().filterIsInstance<String>()
-                    PushKeyStore.setHiddenUsers(app, users)
+                    val users = call.argument<List<*>>("users").orEmpty().filterIsInstance<String>()
+                    PushKeyStore.setHiddenUsers(app, call.argument<String>("account").orEmpty(), users)
                     if (users.isNotEmpty()) MessagePushHandler.removeShortcuts(app, users.map { it.lowercase() }.toSet())
                     result.success(null)
                 }
                 // Снимок скачанных аватаров для уведомлений: [{key, id, path}].
                 "syncAvatars" -> {
-                    val entries = (call.arguments as? List<*>).orEmpty().mapNotNull { entry ->
+                    val entries = call.argument<List<*>>("entries").orEmpty().mapNotNull { entry ->
                         (entry as? Map<*, *>)?.entries
                             ?.mapNotNull { (k, v) -> if (k is String && v is String) k to v else null }
                             ?.toMap()
                     }
-                    PushAvatars.sync(app, entries)
+                    PushAvatars.sync(app, call.argument<String>("account").orEmpty(), entries)
                     result.success(null)
                 }
                 // Движок поднят без видимой Activity (кнопка уведомления) —

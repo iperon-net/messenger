@@ -22,9 +22,11 @@ import java.util.concurrent.Executors
 /// `filesDir/push_avatars`. Аналог PushAvatars.swift на iOS.
 ///
 /// Ключи — `u<hex userID>` (личный чат, звонок, реакция) и `c<hex chatID>`
-/// (группа). Снимок полный: новые и сменившиеся (другой cdnID) копируются,
-/// пропавшие удаляются; что уже скопировано — помнят SharedPreferences
-/// (ключ → cdnID).
+/// (группа). Снимок полный, свой у каждого аккаунта (на одном сервере
+/// собеседник у аккаунтов общий — копия тоже одна): новые и сменившиеся
+/// (другой cdnID) копируются, копии, которых нет ни в одном снимке,
+/// удаляются; что уже скопировано — помнят SharedPreferences (ключ → cdnID,
+/// `set_<accountID>` → ключи снимка аккаунта).
 object PushAvatars {
     private const val LOG_TAG = "IperonPush"
     private const val DIR = "push_avatars"
@@ -33,6 +35,7 @@ object PushAvatars {
     // Сторона квадрата копии в пикселях: в шторке аватар ~40dp.
     private const val SIDE = 192
     private val KEY = Regex("^[uc][0-9a-f]+$")
+    private const val SET_PREFIX = "set_"
     private val executor = Executors.newSingleThreadExecutor()
 
     // Фон заглушки с инициалом, когда аватара нет (как в Telegram).
@@ -43,12 +46,12 @@ object PushAvatars {
 
     /// Снимок аватаров из Dart: `[{key, id (hex cdnID), path}]`. В фоне —
     /// первый снимок может нести сотни картинок.
-    fun sync(context: Context, entries: List<Map<String, String>>) {
+    fun sync(context: Context, account: String, entries: List<Map<String, String>>) {
         val app = context.applicationContext
-        executor.execute { apply(app, entries) }
+        executor.execute { apply(app, account, entries) }
     }
 
-    private fun apply(context: Context, entries: List<Map<String, String>>) {
+    private fun apply(context: Context, account: String, entries: List<Map<String, String>>) {
         val dir = File(context.filesDir, DIR).apply { mkdirs() }
         val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val editor = prefs.edit()
@@ -75,12 +78,32 @@ object PushAvatars {
                 bitmap.recycle()
             }
         }
+        editor.putStringSet(SET_PREFIX + account, wanted)
+        editor.apply()
+        prune(context)
+    }
+
+    /// Удалить копии, которых нет ни в одном снимке аккаунтов.
+    private fun prune(context: Context) {
+        val dir = File(context.filesDir, DIR)
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val used = prefs.all.filterKeys { it.startsWith(SET_PREFIX) }.values.flatMap { (it as? Set<*>).orEmpty() }.toSet()
+        val editor = prefs.edit()
         for (key in prefs.all.keys) {
-            if (key in wanted) continue
+            if (key.startsWith(SET_PREFIX) || key in used) continue
             File(dir, "$key.jpg").delete()
             editor.remove(key)
         }
         editor.apply()
+    }
+
+    /// Аккаунт ушёл с устройства: его снимок больше не держит копии.
+    fun clear(context: Context, account: String) {
+        val app = context.applicationContext
+        executor.execute {
+            app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove(SET_PREFIX + account).apply()
+            prune(app)
+        }
     }
 
     /// Квадрат [SIDE]×[SIDE] по центру картинки (декодируем с прореживанием —
@@ -137,8 +160,8 @@ object PushAvatars {
         return result
     }
 
-    /// Разлогин: копии больше не нужны.
-    fun clear(context: Context) {
+    /// Все копии (сброс устройства).
+    fun clearAll(context: Context) {
         executor.execute {
             File(context.applicationContext.filesDir, DIR).deleteRecursively()
             context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().clear().apply()

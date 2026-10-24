@@ -49,8 +49,18 @@ final class PushBridge {
         result(FlutterError(code: "bad_args", message: "keyId/key required", details: nil))
         return
       }
-      PushKeychain.putKey(keyId: keyId, key: key)
+      PushKeychain.putKey(
+        keyId: keyId, key: key,
+        account: (args["account"] as? String) ?? "",
+        accountName: (args["accountName"] as? String) ?? ""
+      )
       result(nil)
+    case "removeAccount":
+      // Аккаунт вышел / удалён с устройства: его ключи, аватары, уведомления.
+      let account = ((call.arguments as? [String: Any])?["account"] as? String) ?? ""
+      PushKeychain.removeAccount(account)
+      PushAvatars.forget(account: account)
+      Self.removeDelivered(account: account) { result(nil) }
     case "clearPushKeys":
       PushKeychain.clearKeys()
       PushAvatars.forgetInteractions()
@@ -62,12 +72,14 @@ final class PushBridge {
       if enabled { PushAvatars.forgetInteractions() }
       result(nil)
     case "setHiddenUsers":
-      let users = (call.arguments as? [String]) ?? []
-      PushKeychain.setHiddenUsers(users)
+      let args = call.arguments as? [String: Any]
+      let users = (args?["users"] as? [String]) ?? []
+      PushKeychain.setHiddenUsers(users, account: (args?["account"] as? String) ?? "")
       PushAvatars.forgetInteractions(users: users)
       result(nil)
     case "syncAvatars":
-      PushAvatars.sync((call.arguments as? [[String: String]]) ?? [])
+      let args = call.arguments as? [String: Any]
+      PushAvatars.sync((args?["entries"] as? [[String: String]]) ?? [], account: (args?["account"] as? String) ?? "")
       result(nil)
     case "clearChatNotifications":
       guard let args = call.arguments as? [String: Any], let chatID = args["chatID"] as? String else {
@@ -77,6 +89,7 @@ final class PushBridge {
       let ids = Set(((args["messageIDs"] as? [NSNumber]) ?? []).map(\.int64Value))
       Self.clearChat(
         chatID,
+        account: (args["account"] as? String) ?? "",
         maxID: (args["maxID"] as? NSNumber)?.int64Value ?? 0,
         messageIDs: ids,
         all: (args["all"] as? Bool) ?? false
@@ -124,8 +137,12 @@ final class PushBridge {
     else { return false }
 
     let signal: SilentSignal?
+    var account = ""
     do {
-      signal = try PushCrypto.open(encrypted, keyLookup: PushKeychain.key(forId:)).flatMap(SilentSignal.parse)
+      signal = try PushCrypto.open(encrypted) { keyId in
+        account = PushKeychain.account(forId: keyId)
+        return PushKeychain.key(forId: keyId)
+      }.flatMap(SilentSignal.parse)
     } catch {
       NSLog("IperonPush: silent decrypt failed: \(error)")
       signal = nil
@@ -145,9 +162,9 @@ final class PushBridge {
     let chatID = PushKeychain.hex(signal.chatID)
     switch signal.kind {
     case SilentSignal.kindReadHistory:
-      clearChat(chatID, maxID: signal.messageID, messageIDs: [], all: false, completion: completion)
+      clearChat(chatID, account: account, maxID: signal.messageID, messageIDs: [], all: false, completion: completion)
     case SilentSignal.kindMessageDeleted:
-      clearChat(chatID, maxID: 0, messageIDs: Set(signal.messageIDs), all: false, completion: completion)
+      clearChat(chatID, account: account, maxID: 0, messageIDs: Set(signal.messageIDs), all: false, completion: completion)
     default:
       completion()
     }
@@ -170,18 +187,34 @@ final class PushBridge {
   /// уведомлений без messageID — тоже), [messageIDs] или все ([all]). chatID и
   /// messageID в userInfo кладёт NSE.
   static func clearChat(
-    _ chatID: String, maxID: Int64, messageIDs: Set<Int64>, all: Bool, completion: @escaping () -> Void
+    _ chatID: String, account: String, maxID: Int64, messageIDs: Set<Int64>, all: Bool, completion: @escaping () -> Void
   ) {
     let center = UNUserNotificationCenter.current()
     center.getDeliveredNotifications { notifications in
       let identifiers = notifications.compactMap { notification -> String? in
         let info = notification.request.content.userInfo
         guard (info["chatID"] as? String) == chatID else { return nil }
+        // Чат того же аккаунта (у двух аккаунтов чат может быть общим).
+        guard ((info["account"] as? String) ?? "") == account else { return nil }
         let id = (info["messageID"] as? NSNumber)?.int64Value ?? 0
         let remove = all || (maxID > 0 && id <= maxID) || (id != 0 && messageIDs.contains(id))
         return remove ? notification.request.identifier : nil
       }
       if !identifiers.isEmpty {
+        center.removeDeliveredNotifications(withIdentifiers: identifiers)
+      }
+      DispatchQueue.main.async(execute: completion)
+    }
+  }
+
+  /// Снимает доставленные уведомления аккаунта [account] (вышел с устройства).
+  static func removeDelivered(account: String, completion: @escaping () -> Void) {
+    let center = UNUserNotificationCenter.current()
+    center.getDeliveredNotifications { notifications in
+      let identifiers = notifications
+        .filter { ($0.request.content.userInfo["account"] as? String) == account }
+        .map(\.request.identifier)
+      if !identifiers.isEmpty, !account.isEmpty {
         center.removeDeliveredNotifications(withIdentifiers: identifiers)
       }
       DispatchQueue.main.async(execute: completion)
@@ -198,6 +231,8 @@ final class PushBridge {
       // Комментарий к посту канала: ветка открывается по каналу и посту.
       "parentChatID": (userInfo["parentChatID"] as? String) ?? "",
       "postID": (userInfo["postID"] as? NSNumber)?.int64Value ?? 0,
+      // Чей пуш: другой аккаунт — Dart сначала переключается на него.
+      "account": (userInfo["account"] as? String) ?? "",
     ]
     if dartReady, let channel {
       channel.invokeMethod("onNotificationTap", arguments: tap)

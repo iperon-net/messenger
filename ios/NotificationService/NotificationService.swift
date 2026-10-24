@@ -35,9 +35,16 @@ class NotificationService: UNNotificationServiceExtension {
 
     if let encrypted = content.userInfo["p"] as? String {
       do {
-        if let plaintext = try PushCrypto.open(encrypted, keyLookup: PushKeychain.key(forId:)) {
+        // Аккаунт пуша — по ключу (keyID → accountID): аккаунтов на
+        // устройстве несколько, у каждого свой ключ.
+        var account = ""
+        let plaintext = try PushCrypto.open(encrypted) { keyId in
+          account = PushKeychain.account(forId: keyId)
+          return PushKeychain.key(forId: keyId)
+        }
+        if let plaintext {
           let payload = try Iperon_V1_PushPayload(serializedBytes: plaintext)
-          if let intent = apply(payload, to: content) {
+          if let intent = apply(payload, account: account, to: content) {
             bestAttempt = Self.communication(content, intent: intent)
           }
         } else {
@@ -67,8 +74,10 @@ class NotificationService: UNNotificationServiceExtension {
 
   /// Подставляет заголовок и текст; возвращает intent для Communication
   /// Notification (nil — обычное уведомление с иконкой приложения).
-  private func apply(_ payload: Iperon_V1_PushPayload, to content: UNMutableNotificationContent) -> INSendMessageIntent? {
+  private func apply(_ payload: Iperon_V1_PushPayload, account: String, to content: UNMutableNotificationContent) -> INSendMessageIntent? {
     var userInfo = content.userInfo
+    // Чей пуш: тап переключает на этот аккаунт, «прочитано» снимает только его.
+    userInfo["account"] = account
     userInfo["kind"] = payload.kind.rawValue
     userInfo["id"] = payload.id
     userInfo["chatID"] = PushKeychain.hex(payload.chatID)
@@ -82,6 +91,10 @@ class NotificationService: UNNotificationServiceExtension {
       userInfo["postID"] = NSNumber(value: payload.postID)
     }
     content.userInfo = userInfo
+    // Аккаунтов несколько — подпись, чей пуш (как в Telegram).
+    if let label = PushKeychain.accountLabel(account) { content.subtitle = label }
+    // Треды по чату — свои у каждого аккаунта (общий чат двух аккаунтов).
+    let thread = (account.isEmpty ? "" : account + ":") + "chat:" + PushKeychain.hex(payload.chatID)
 
     let appName = Self.text("PUSH_APP_NAME")
     // Имя как в приложении: облачный контакт (title, titleFromContact) →
@@ -95,7 +108,7 @@ class NotificationService: UNNotificationServiceExtension {
 
     // Включён код-пароль или отправитель — локально скрытый профиль («Скрыть
     // профиль») — ни имени, ни текста на экране блокировки.
-    if PushKeychain.isPasscodeEnabled || PushKeychain.isHiddenUser(payload.fromUserID) {
+    if PushKeychain.isPasscodeEnabled || PushKeychain.isHiddenUser(payload.fromUserID, account: account) {
       content.title = appName
       content.body = Self.text("PUSH_FALLBACK_BODY")
       return nil
@@ -132,27 +145,27 @@ class NotificationService: UNNotificationServiceExtension {
         content.title = payload.chatTitle
         content.body = senderName.isEmpty ? body : senderName + ": " + body
       }
-      content.threadIdentifier = "chat:" + PushKeychain.hex(payload.chatID)
+      content.threadIdentifier = thread
       return Self.intent(payload, sender: title, body: body)
     case .secretMessage:
       // Секретный чат: текста у сервера нет — только «новое сообщение».
       content.title = title
       content.body = Self.text("PUSH_SECRET_MESSAGE")
-      content.threadIdentifier = "chat:" + PushKeychain.hex(payload.chatID)
+      content.threadIdentifier = thread
       return Self.intent(payload, sender: title, body: content.body)
     case .messageReaction:
       // messageID — моё сообщение: прочитал чат на другом устройстве —
       // READ_HISTORY снимет и это уведомление.
       content.title = title
       content.body = Self.reactionBody(payload)
-      content.threadIdentifier = "chat:" + PushKeychain.hex(payload.chatID)
+      content.threadIdentifier = thread
       return Self.intent(payload, sender: title, body: content.body)
     case .systemNotice:
       // Уведомление «Iperon» (новый вход, облачный пароль…): текст по виду
       // события, у входа — ещё устройство и место.
       content.title = title
       content.body = Self.systemNoticeBody(payload)
-      content.threadIdentifier = "chat:" + PushKeychain.hex(payload.chatID)
+      content.threadIdentifier = thread
       return nil
     default:
       // READ_HISTORY / MESSAGE_DELETED сюда не попадают: сервер шлёт их

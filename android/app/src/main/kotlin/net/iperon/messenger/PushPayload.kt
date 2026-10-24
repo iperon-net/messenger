@@ -32,6 +32,8 @@ data class PushPayload(
     // CALL_INCOMING / CALL_CANCEL: идентификатор звонка и вид.
     val callID: String = "",
     val video: Boolean = false,
+    // Не из `p`: аккаунт (accountID слота) по ключу, которым расшифрован пуш.
+    val account: String = "",
 ) {
     /// Комментарий к посту канала (есть канал ветки).
     val isComment: Boolean get() = parentChatID.isNotEmpty()
