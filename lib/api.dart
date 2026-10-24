@@ -6,7 +6,6 @@ import 'package:grpc/grpc.dart';
 import 'package:messenger/protobuf/protos/device_info_update_v1.pb.dart';
 import 'package:talker_grpc_logger/talker_grpc_logger.dart';
 
-import 'auth.dart';
 import 'cdn.dart';
 import 'chats/chats_sync.dart';
 import 'chats/media_prepare.dart' show avatarThumbhash;
@@ -115,7 +114,7 @@ class API {
   // подписываются несколько слушателей (кубиты).
   //
   // Открыт ли стрим, решает координатор [_reconcile] по двум условиям:
-  // пользователь авторизован ([_authorized], ставит `Auth`) и приложение на
+  // пользователь авторизован ([_session], ставит `Auth`) и приложение на
   // переднем плане ([_appActive], ставит наблюдатель жизненного цикла). При
   // уходе в фон стрим мягко ставится на паузу ([_pause]) — рвётся только gRPC-
   // соединение, а broadcast `_incoming` остаётся живым, чтобы подписки кубитов
@@ -136,8 +135,21 @@ class API {
   static const Duration _deviceInfoUpdateInterval = Duration(hours: 3);
   static const String _deviceInfoUpdateCacheKey = 'device_info_update_sent_at';
 
+  // Сессия аккаунта, от имени которого работает этот [API]: ей шифруются
+  // запросы и расшифровывается стрим. Ставит `Auth` ([setSession]); null — не
+  // авторизован. [API] не читает глобальный `Auth` — шаг к экземпляру на
+  // аккаунт (docs/plans/multi-account.md, этап 2).
+  models.Session? _session;
+
+  /// Отозвана сессия [session] (UNAUTHENTICATED или LOGOUT с сервера). Ставит
+  /// `Auth`: разлогинивает этот аккаунт, если [session] всё ещё его сессия.
+  void Function(models.Session session)? onUnauthenticated;
+
   // Условия работы стрима и отложенная пауза.
-  bool _authorized = false;
+  bool get _authorized => _session != null;
+
+  /// Сессия, которой шифруются запросы; пустая — не авторизован.
+  models.Session get _currentSession => _session ?? models.Session();
   bool _appActive = true;
   // Активный звонок: во время звонка приложение на iOS отдаёт передний план
   // CallKit (приходит paused/hidden, а resumed при возврате из CallKit может не
@@ -308,7 +320,10 @@ class API {
   /// всё HTTP/2-соединение канала, и первый unary после этого (например,
   /// `PASSKEY_LOGIN_BEGIN`) падает на умирающем соединении, а следующая попытка
   /// уже идёт по переподключённому каналу.
-  Future<APICallStatus> call(Function() func, {bool retryTransient = false}) async {
+  ///
+  /// [session] — сессия, которой зашифрован запрос: при UNAUTHENTICATED
+  /// разлогинивается она, а не та, что успела стать активной за время запроса.
+  Future<APICallStatus> call(Function() func, {bool retryTransient = false, models.Session? session}) async {
     Logger logger = getIt.get<Logger>();
 
     // Повторы — только для транзиентных обрывов; последняя попытка (или любая
@@ -320,23 +335,23 @@ class API {
         return const APICallStatus(status: APIStatus.success, statusCode: 0);
       } on GrpcError catch (err) {
         final isTransient = [StatusCode.unknown, StatusCode.unavailable].contains(err.code);
-        if (!isTransient || attempt >= maxAttempts) return _mapGrpcError(err);
+        if (!isTransient || attempt >= maxAttempts) return _mapGrpcError(err, session ?? _session);
         logger.logCustom(GrpcErrorLog('transient, retry #$attempt: $err'));
         await Future.delayed(Duration(milliseconds: 300 * attempt));
       }
     }
   }
 
-  APICallStatus _mapGrpcError(GrpcError err) {
+  APICallStatus _mapGrpcError(GrpcError err, models.Session? session) {
     Logger logger = getIt.get<Logger>();
 
     logger.logCustom(GrpcErrorLog(err.toString()));
 
     if ([StatusCode.unauthenticated].contains(err.code)) {
-      // Сервер отозвал сессию: удаляем активную сессию из БД и через
-      // notifyListeners() уводим пользователя на /auth (см. Auth.logout).
-      // Fire-and-forget: не гейтим ответ вызывающему коду на разлогине.
-      unawaited(getIt.get<Auth>().logout());
+      // Сервер отозвал сессию: `Auth` удалит её из БД и через
+      // notifyListeners() уведёт пользователя на /auth (см. Auth.logout).
+      // Не гейтим ответ вызывающему коду на разлогине.
+      _revoked(session);
       return APICallStatus(status: APIStatus.error, error: "grpcError.unauthenticated", isGrpc: true, statusCode: err.code);
     } else if ([StatusCode.unknown, StatusCode.unavailable].contains(err.code)) {
       return APICallStatus(status: APIStatus.error, error: "grpcError.errorConnectingServer", isGrpc: true, statusCode: err.code);
@@ -351,12 +366,29 @@ class API {
     }
   }
 
-  /// Сообщает, авторизован ли пользователь. Вызывается из `Auth` при старте,
-  /// логине и logout. Стрим сам поднимется/закроется через [_reconcile].
-  void setAuthorized(bool value) {
-    if (_authorized == value) return;
-    _authorized = value;
+  /// Сессия аккаунта (null — не авторизован). Вызывается из `Auth` при старте,
+  /// логине и logout. Стрим сам поднимется/закроется через [_reconcile]; смена
+  /// одной сессии на другую переоткрывает его — стрим подписан старой.
+  void setSession(models.Session? session) {
+    final previous = _session;
+    if (previous == null && session == null) return;
+    if (previous != null && session != null && listEquals(previous.sessionID, session.sessionID)) {
+      _session = session;
+      return;
+    }
+    _session = session;
+    if (previous != null && session != null) {
+      // Другой аккаунт: стрим подписан прежней сессией — закрыть и открыть заново.
+      unawaited(_close().then((_) => _reconcile()));
+      return;
+    }
     _reconcile();
+  }
+
+  /// Сервер отозвал [session] — сообщить владельцу ([onUnauthenticated]).
+  void _revoked(models.Session? session) {
+    if (session == null) return;
+    onUnauthenticated?.call(session);
   }
 
   /// Сообщает, на переднем ли плане приложение. Вызывается наблюдателем
@@ -403,9 +435,8 @@ class API {
     unawaited(() async {
       try {
         final crypto = getIt.get<Crypto>();
-        final auth = getIt.get<Auth>();
         final encoded = await crypto.syncer.encode(
-          session: auth.session,
+          session: _currentSession,
           message: AppState_Request(foreground: foreground).writeToBuffer(),
         );
         if (outgoing != null && identical(outgoing, _outgoing) && !outgoing.isClosed) {
@@ -430,7 +461,7 @@ class API {
   /// (`AppLifecycleState.detached`).
   Future<void> shutdown() async {
     _appActive = false;
-    _authorized = false;
+    _session = null;
     _callActive = false;
     await _close();
 
@@ -510,10 +541,10 @@ class API {
 
           // Сервер отозвал сессию прямо на стриме: не переподключаемся (это
           // бесполезно — сервер снова ответит UNAUTHENTICATED), а разлогиниваем.
-          // logout() удалит активную сессию из БД и через notifyListeners()
-          // уведёт пользователя на /auth; заодно setAuthorized(false) закроет стрим.
+          // `Auth` удалит сессию из БД и через notifyListeners() уведёт
+          // пользователя на /auth; заодно setSession(null) закроет стрим.
           if (error is GrpcError && error.code == StatusCode.unauthenticated) {
-            unawaited(getIt.get<Auth>().logout());
+            _revoked(_session);
             return;
           }
 
@@ -544,20 +575,20 @@ class API {
   void _subscribe() {
     unawaited(
       () async {
-        // _open() вызывается ещё из Auth.initialization() (через setAuthorized),
-        // когда Auth/Crypto ещё не зарегистрированы в get_it. Ждём готовности DI,
-        // иначе getIt.get<Auth>() бросит «not ready yet» и подписка не уйдёт.
+        // _open() вызывается ещё из Auth.initialization() (через setSession),
+        // когда Crypto ещё не зарегистрирован в get_it. Ждём готовности DI,
+        // иначе getIt.get<Crypto>() бросит «not ready yet» и подписка не уйдёт.
         await getIt.allReady();
 
         final crypto = getIt.get<Crypto>();
-        final auth = getIt.get<Auth>();
+        final session = _currentSession;
 
         // Send subscribe. background — запущены системой в фоне: стрим нужен, но
         // presence online сервер не ставит (см. [_presenceForeground]).
         final background = !await _resolvePresenceForeground();
         if (background) logger.info('subscribe: background launch, presence stays offline');
         final encodedSubscribe = await crypto.syncer.encode(
-          session: auth.session,
+          session: session,
           message: Subscribe_Request(
             background: background,
             capabilities: [secretChatsCapability, callPushEncryptedCapability, groupsCapability, channelsCapability],
@@ -579,7 +610,7 @@ class API {
         // DEVICE_INFO_UPDATE троттлится (см. _deviceInfoUpdateInterval): SUBSCRIBE
         // обязателен на каждое открытие стрима, а инфо об устройстве меняется
         // редко — незачем слать её при каждом переподключении/resume из фона.
-        await _sendDeviceInfoUpdate(crypto: crypto, auth: auth);
+        await _sendDeviceInfoUpdate(crypto: crypto, session: session);
       }().catchError((Object error, StackTrace stackTrace) {
         logger.handle(error, stackTrace);
       }),
@@ -591,9 +622,9 @@ class API {
   /// локальном кэше (ключ [_deviceInfoUpdateCacheKey]) по userID активной сессии:
   /// при смене аккаунта у нового userID своя метка, апдейт уйдёт сразу. Проверка
   /// делается до шифрования, чтобы в окне троттлинга не тратить и crypto-работу.
-  Future<void> _sendDeviceInfoUpdate({required Crypto crypto, required Auth auth}) async {
+  Future<void> _sendDeviceInfoUpdate({required Crypto crypto, required models.Session session}) async {
     final repositories = getIt.get<Repositories>();
-    final userID = Uint8List.fromList(auth.session.userID);
+    final userID = Uint8List.fromList(session.userID);
 
     final now = DateTime.now().millisecondsSinceEpoch;
     final lastSent = await repositories.cache.getInt(userID: userID, key: _deviceInfoUpdateCacheKey);
@@ -607,7 +638,7 @@ class API {
     final deviceInfo = await utils.deviceInfo();
 
     final encodedDeviceInfoUpdate = await crypto.syncer.encode(
-      session: auth.session,
+      session: session,
       message: DeviceInfoUpdate_Request(
         deviceModel: deviceInfo.deviceModel,
         os: deviceInfo.osCode,
@@ -636,19 +667,19 @@ class API {
   /// через [_processingChain].
   Future<void> _dispatch(Message message) async {
     final crypto = getIt.get<Crypto>();
-    final auth = getIt.get<Auth>();
+    final session = _session;
 
     // Сессия могла быть удалена (logout / терминация текущей сессии), пока это
     // сообщение стояло в очереди _processingChain. Расшифровка пустым сессионным
     // ключом всё равно упадёт с MAC-ошибкой — просто отбрасываем сообщение.
-    if (!auth.isAuthorized) {
+    if (session == null) {
       logger.debug('dispatch skipped: no active session');
       return;
     }
 
     // Весь трафик по стриму зашифрован сессионным ключом — расшифровываем
     // централизованно, чтобы кубиты не знали про crypto/auth.
-    final decoded = await crypto.syncer.decode(session: auth.session, message: Uint8List.fromList(message.message));
+    final decoded = await crypto.syncer.decode(session: session, message: Uint8List.fromList(message.message));
     final payload = Uint8List.fromList(decoded);
 
     final incoming = IncomingMessage(messageType: message.messageType, payload: payload);
@@ -657,7 +688,7 @@ class API {
     _incoming?.add(incoming);
 
     // Персистентность.
-    await _handleMessage(incoming, auth.session);
+    await _handleMessage(incoming, session);
   }
 
   /// Асинхронная запись входящего сообщения в БД. Вызывается строго
@@ -820,9 +851,7 @@ class API {
         // нас здесь не касается — их отобразит следующий DEVICE_SESSIONS.
         final payload = Logout_Request.fromBuffer(message.payload);
         final revoked = payload.sessionID.isEmpty || payload.sessionID.any((id) => listEquals(id, session.sessionID));
-        if (revoked) {
-          await getIt.get<Auth>().logout();
-        }
+        if (revoked) _revoked(session);
 
       case MessageType.UPDATES:
         // Журнал обновлений чатов (pts): применяет ChatsSync — по порядку, с
@@ -880,9 +909,8 @@ class API {
   /// ```
   Future<void> sendEncoded(MessageType type, Uint8List payload) async {
     final crypto = getIt.get<Crypto>();
-    final auth = getIt.get<Auth>();
 
-    final encoded = await crypto.syncer.encode(session: auth.session, message: payload);
+    final encoded = await crypto.syncer.encode(session: _currentSession, message: payload);
 
     send(Message(messageType: type, message: encoded));
   }
@@ -898,13 +926,13 @@ class API {
   /// операция падает с "context canceled").
   Future<APICallStatus> unaryEncoded(MessageType type, Uint8List payload) async {
     final crypto = getIt.get<Crypto>();
-    final auth = getIt.get<Auth>();
+    final session = _currentSession;
 
-    final encoded = await crypto.syncer.encode(session: auth.session, message: payload);
+    final encoded = await crypto.syncer.encode(session: session, message: payload);
 
     return call(() async {
       await client.unary(Message(messageType: type, message: encoded));
-    });
+    }, session: _session == null ? null : session);
   }
 
   /// Как [unaryEncoded], но также расшифровывает и возвращает тело ответа
@@ -915,16 +943,16 @@ class API {
   /// тело ответа не требуется.
   Future<(APICallStatus, Uint8List?)> unaryEncodedWithResponse(MessageType type, Uint8List payload) async {
     final crypto = getIt.get<Crypto>();
-    final auth = getIt.get<Auth>();
+    final session = _currentSession;
 
-    final encoded = await crypto.syncer.encode(session: auth.session, message: payload);
+    final encoded = await crypto.syncer.encode(session: session, message: payload);
 
     Uint8List? responsePayload;
     final status = await call(() async {
       final response = await client.unary(Message(messageType: type, message: encoded));
-      final decoded = await crypto.syncer.decode(session: auth.session, message: Uint8List.fromList(response.message));
+      final decoded = await crypto.syncer.decode(session: session, message: Uint8List.fromList(response.message));
       responsePayload = Uint8List.fromList(decoded);
-    });
+    }, session: _session == null ? null : session);
 
     return (status, responsePayload);
   }
@@ -1004,7 +1032,7 @@ class API {
   /// `_open()` создавал новый, и подписка `Calls` навсегда оставалась на мёртвом
   /// контроллере. Контроллер должен жить столько же, сколько синглтон [API].
   /// Доставка сообщений чужой сессии при этом безопасна: [_dispatch] гейтится на
-  /// `auth.isAuthorized` и расшифровывает активной сессией.
+  /// наличие [_session] и расшифровывает ею.
   Future<void> _close() async {
     _reconnectTimer?.cancel();
     _reconnectTimer = null;

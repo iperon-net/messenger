@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import 'api.dart';
@@ -29,6 +31,7 @@ class Auth extends ChangeNotifier {
 
   static Future<Auth> initialization() async {
     final auth = Auth();
+    auth.api.onUnauthenticated = auth._onRevoked;
     auth._session = await auth.repositories.sessions.getActive();
     await auth._syncStream();
     return auth;
@@ -48,10 +51,21 @@ class Auth extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Сервер отозвал [revoked] (ответ UNAUTHENTICATED или LOGOUT по стриму).
+  /// Разлогиниваем, только если это всё ещё наша сессия: запоздалый отказ по
+  /// старой сессии не должен выбить уже выполненный новый вход.
+  void _onRevoked(Session revoked) {
+    if (!isAuthorized || !listEquals(revoked.sessionID, _session.sessionID)) {
+      logger.info('auth: revoked session is not the active one — ignored');
+      return;
+    }
+    unawaited(logout());
+  }
+
   /// Сообщает API о состоянии авторизации. Реальное открытие/закрытие стрима
   /// решает координатор в [API] (с учётом переднего/фонового плана), поэтому
   /// метод безопасно вызывать на каждом изменении сессии.
   Future<void> _syncStream() async {
-    api.setAuthorized(isAuthorized);
+    api.setSession(isAuthorized ? _session : null);
   }
 }
