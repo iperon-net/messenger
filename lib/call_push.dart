@@ -479,7 +479,13 @@ class CallPush {
         // про текущий звонок: иначе запоздалый ENDED прошлого звонка оборвал бы новый.
         final callId = callKitParams.id;
         if (callId.isEmpty || callId == _acceptedCallId) _acceptedCallId = null;
-        if (callId.isEmpty || callId == calls.snapshot.callId) await calls.hangup();
+        if (calls.snapshot.status == CallStatus.incoming && callId == calls.snapshot.callId) {
+          // Не ответили: баннер снят отменой звонящего мимо этого isolate'а —
+          // только свернуть снимок, без отбоя собеседнику.
+          await calls.endIncomingFromNative(callId);
+        } else if (callId.isEmpty || callId == calls.snapshot.callId) {
+          await calls.hangup();
+        }
       case CallEventActionCallToggleHold(:final id, :final isOnHold):
         // CallKit поставил наш звонок на удержание (ответили на чужой) или снял.
         // Звук гейтится по ToggleAudioSession выше; здесь лишь ускоряем сигнал

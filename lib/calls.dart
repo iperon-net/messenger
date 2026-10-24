@@ -848,6 +848,16 @@ class Calls {
     await accept();
   }
 
+  /// Нативный баннер входящего [callId] снят не нами: звонящий отменил, а
+  /// отмена пришла пушем в фоновый isolate (или опередила показ — тогда плагин
+  /// показ пропускает и шлёт ENDED). Сворачиваем снимок `incoming` без сигналов
+  /// собеседнику — его звонок уже завершён, а `CALL_HANGUP` от нас лишь
+  /// продублировал бы отбой.
+  Future<void> endIncomingFromNative(String callId) async {
+    if (_snapshot.status != CallStatus.incoming || _snapshot.callId != callId) return;
+    await _teardown(CallEndReason.none);
+  }
+
   /// Отклоняет звонок из нативного экрана по push. Если входящий уже поднят —
   /// обычный [reject]; иначе (ring ещё в пути) шлём `CALL_REJECT` напрямую по
   /// [fromUserID] из push, чтобы звонящий сразу увидел «отклонён».

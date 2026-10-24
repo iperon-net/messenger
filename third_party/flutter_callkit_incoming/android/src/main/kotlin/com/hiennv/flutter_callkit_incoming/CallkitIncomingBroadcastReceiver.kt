@@ -241,7 +241,11 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
                 try {
                     val id = data.getString(CallkitConstants.EXTRA_CALLKIT_ID).orEmpty()
                     if (id.isNotEmpty() && CallkitConnection.wasEnded(id)) {
+                        // Показ запросил isolate, который ещё считает звонок
+                        // входящим (ring из стрима, а отмена ушла пушем в фоновый
+                        // isolate), — ENDED, чтобы приложение сняло свой снимок.
                         Log.d(TAG, "Incoming id=$id already ended — not shown")
+                        sendEventFlutter(CallkitConstants.ACTION_CALL_ENDED, data)
                         return
                     }
                     registerTelecomIncomingCall(context, data)
