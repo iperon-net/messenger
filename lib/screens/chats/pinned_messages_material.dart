@@ -99,7 +99,9 @@ class PinnedMessagesMaterial extends StatelessWidget {
         final chat = state.chat;
         // В ленте — от старых к новым.
         final pinned = state.pinnedMessages.reversed.toList();
-        final canUnpin = chat != null && chat.type != models.ChatType.channel;
+        // Канал — открепляют только админы с правом закреплять (подписчик
+        // своих закрепов в канале не имеет).
+        final canUnpin = chat != null && (chat.type != models.ChatType.channel || context.read<ChatCubit>().canPinForEveryone);
         return Scaffold(
           backgroundColor: dark ? const Color(0xFF000000) : scheme.surfaceContainerLow,
           appBar: AppBar(
