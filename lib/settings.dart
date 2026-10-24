@@ -102,11 +102,19 @@ class Settings {
     return remoteConfig.getBool("API_SECURE");
   }
 
-  String get phoneNumberModerationApplicationStore {
-    final res = dotenv.get('PHONE_NUMBER_MODERATION_APPLICATION_STORE', fallback: "");
-    if (res.isNotEmpty) return res;
-    return remoteConfig.getString("PHONE_NUMBER_MODERATION_APPLICATION_STORE");
+  /// Номера с постоянным кодом (ревьюер стора и тестовые аккаунты стенда,
+  /// `testAccounts` сервера): вход без звонка. Через запятую; первый — номер
+  /// ревьюера (кнопка «вставить номер» в debug).
+  List<String> get phoneNumbersModerationApplicationStore {
+    var res = dotenv.get('PHONE_NUMBER_MODERATION_APPLICATION_STORE', fallback: "");
+    if (res.isEmpty) res = remoteConfig.getString("PHONE_NUMBER_MODERATION_APPLICATION_STORE");
+    return [
+      for (final number in res.split(','))
+        if (number.trim().isNotEmpty) number.trim(),
+    ];
   }
+
+  String get phoneNumberModerationApplicationStore => phoneNumbersModerationApplicationStore.firstOrNull ?? '';
 
   bool get phoneNumberModerationApplicationStoreEnable {
     if (kDebugMode) {

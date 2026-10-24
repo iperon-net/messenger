@@ -67,7 +67,7 @@ class AuthCubit extends Cubit<AuthState> {
 
     // Workflow moderation application store
     final phoneNumberEnable = settings.phoneNumberModerationApplicationStoreEnable;
-    if (phoneNumberEnable && settings.phoneNumberModerationApplicationStore == phoneNumberNormalization.raw) {
+    if (phoneNumberEnable && settings.phoneNumbersModerationApplicationStore.contains(phoneNumberNormalization.raw)) {
       final messageRequest = Message(
         messageType: MessageType.AUTH_MODERATION_APPLICATION_STORE,
         message: AuthModerationApplicationStore_Request(phoneNumber: phoneNumberNormalization.raw).writeToBuffer(),
