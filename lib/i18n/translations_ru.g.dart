@@ -922,6 +922,11 @@ class _Translations$screenDeveloper$ru extends Translations$screenDeveloper$en {
 	@override String get logs => _root.screenSettings.logs;
 	@override String get exportLogs => 'Экспорт логов';
 	@override String get callPreview => 'Превью экрана звонка';
+	@override String get accounts => 'Аккаунты (разработка)';
+	@override String get accountsNew => 'Новый слот';
+	@override String get accountsActive => 'активный';
+	@override String get accountsEmpty => 'без входа';
+	@override String get accountsCallActive => 'Во время звонка аккаунт не переключить';
 	@override String get chatsDemo => 'Демо чатов';
 	@override String get testPush => 'Тестовое уведомление';
 	@override String testPushSent({required Object apns, required Object fcm, required Object failed}) => 'Отправлено: APNs — ${apns}, FCM — ${fcm}, ошибок — ${failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне.';
@@ -2611,6 +2616,11 @@ extension on TranslationsRu {
 			'screenDeveloper.logs' => _root.screenSettings.logs,
 			'screenDeveloper.exportLogs' => 'Экспорт логов',
 			'screenDeveloper.callPreview' => 'Превью экрана звонка',
+			'screenDeveloper.accounts' => 'Аккаунты (разработка)',
+			'screenDeveloper.accountsNew' => 'Новый слот',
+			'screenDeveloper.accountsActive' => 'активный',
+			'screenDeveloper.accountsEmpty' => 'без входа',
+			'screenDeveloper.accountsCallActive' => 'Во время звонка аккаунт не переключить',
 			'screenDeveloper.chatsDemo' => 'Демо чатов',
 			'screenDeveloper.testPush' => 'Тестовое уведомление',
 			'screenDeveloper.testPushSent' => ({required Object apns, required Object fcm, required Object failed}) => 'Отправлено: APNs — ${apns}, FCM — ${fcm}, ошибок — ${failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне.',
@@ -2984,13 +2994,13 @@ extension on TranslationsRu {
 			'screenContacts.inviteAction' => 'Пригласить',
 			'screenContacts.search' => 'Поиск',
 			'screenContacts.permissionTitle' => 'Нужен доступ к контактам',
+			_ => null,
+		} ?? switch (path) {
 			'screenContacts.permissionMessage' => 'Разрешите доступ к контактам, чтобы найти друзей, которые уже в Iperon. Ваши номера сверяются приватно и не раскрываются серверу.',
 			'screenContacts.allowAccess' => 'Разрешить доступ',
 			'screenContacts.openSettings' => 'Открыть настройки',
 			'screenContacts.empty' => 'Контакты не найдены',
 			'screenContacts.inviteMessage' => 'Давай общаться в Iperon',
-			_ => null,
-		} ?? switch (path) {
 			'screenContacts.statusOnline' => 'в сети',
 			'screenContacts.statusLastSeenRecently' => 'был(а) недавно',
 			'screenContacts.statusLastSeen' => ({required Object date}) => 'был(а) ${date}',

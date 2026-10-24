@@ -10,6 +10,7 @@ import '../../components.dart';
 import '../../cubit.dart';
 import '../../di.dart';
 import '../../logger.dart';
+import 'developer_accounts.dart';
 import 'developer_export_logs.dart';
 import 'developer_remote_config.dart';
 import 'developer_test_push.dart';
@@ -20,6 +21,46 @@ import 'developer_test_push.dart';
 /// доставки APNs/FCM — нужна и в TestFlight-сборке, поэтому без kDebugMode).
 class SettingsDeveloperCupertino extends StatelessWidget {
   const SettingsDeveloperCupertino({super.key});
+
+  /// Слоты аккаунтов: переключиться или завести новый (вход откроется в нём).
+  Future<void> _pickAccount(BuildContext context) async {
+    final t = context.t.screenDeveloper;
+    final slots = await developerAccountSlots(signedOut: t.accountsEmpty);
+    if (!context.mounted) return;
+    final picked = await showCupertinoDialog<({String? accountID})>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => CupertinoAlertDialog(
+        title: Text(t.accounts),
+        actions: [
+          for (final slot in slots)
+            CupertinoDialogAction(
+              isDefaultAction: slot.active,
+              onPressed: () => Navigator.of(dialogContext).pop((accountID: slot.accountID)),
+              child: Text(slot.active ? '${slot.title} · ${t.accountsActive}' : slot.title),
+            ),
+          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop((accountID: null)), child: Text(t.accountsNew)),
+          CupertinoDialogAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(context.t.common.cancel),
+          ),
+        ],
+      ),
+    );
+    if (picked == null || !context.mounted) return;
+    if (!developerCanSwitchAccount()) {
+      await showCupertinoDialog<void>(
+        context: context,
+        builder: (dialogContext) => CupertinoAlertDialog(
+          title: Text(t.accountsCallActive),
+          actions: [CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.ok))],
+        ),
+      );
+      return;
+    }
+    await developerSwitchAccount(picked.accountID);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -140,6 +181,13 @@ class SettingsDeveloperCupertino extends StatelessWidget {
                     ),
                     onTab: () => context.read<CommonCubit>().setChatsDemo(value: !chatsDemo),
                   ),
+                ),
+                CupertinoListTileIcon(
+                  title: Text(context.t.screenDeveloper.accounts),
+                  color: const Color(0xFF30B0C7),
+                  icon: FontAwesomeIcons.users,
+                  onTab: () => _pickAccount(context),
+                  isTrailing: true,
                 ),
                 if (kDebugMode)
                   CupertinoListTileIcon(

@@ -2191,6 +2191,21 @@ class Translations$screenDeveloper$en {
 	/// en: 'Call screen preview'
 	String get callPreview => 'Call screen preview';
 
+	/// en: 'Accounts (development)'
+	String get accounts => 'Accounts (development)';
+
+	/// en: 'New slot'
+	String get accountsNew => 'New slot';
+
+	/// en: 'active'
+	String get accountsActive => 'active';
+
+	/// en: 'signed out'
+	String get accountsEmpty => 'signed out';
+
+	/// en: 'Can't switch accounts during a call'
+	String get accountsCallActive => 'Can\'t switch accounts during a call';
+
 	/// en: 'Chats demo'
 	String get chatsDemo => 'Chats demo';
 
@@ -5266,6 +5281,11 @@ extension on Translations {
 			'screenDeveloper.logs' => _root.screenSettings.logs,
 			'screenDeveloper.exportLogs' => 'Export logs',
 			'screenDeveloper.callPreview' => 'Call screen preview',
+			'screenDeveloper.accounts' => 'Accounts (development)',
+			'screenDeveloper.accountsNew' => 'New slot',
+			'screenDeveloper.accountsActive' => 'active',
+			'screenDeveloper.accountsEmpty' => 'signed out',
+			'screenDeveloper.accountsCallActive' => 'Can\'t switch accounts during a call',
 			'screenDeveloper.chatsDemo' => 'Chats demo',
 			'screenDeveloper.testPush' => 'Test notification',
 			'screenDeveloper.testPushSent' => ({required Object apns, required Object fcm, required Object failed}) => 'Sent: APNs — ${apns}, FCM — ${fcm}, failed — ${failed}. Minimize the app or lock the screen to check background delivery.',
@@ -5639,13 +5659,13 @@ extension on Translations {
 			'screenContacts.inviteAction' => 'Invite',
 			'screenContacts.search' => 'Search',
 			'screenContacts.permissionTitle' => 'Contacts access needed',
+			_ => null,
+		} ?? switch (path) {
 			'screenContacts.permissionMessage' => 'Allow access to your contacts to find friends already on Iperon. Your phone numbers are matched privately and never revealed to the server.',
 			'screenContacts.allowAccess' => 'Allow access',
 			'screenContacts.openSettings' => 'Open settings',
 			'screenContacts.empty' => 'No contacts found',
 			'screenContacts.inviteMessage' => 'Let\'s chat on Iperon',
-			_ => null,
-		} ?? switch (path) {
 			'screenContacts.statusOnline' => 'online',
 			'screenContacts.statusLastSeenRecently' => 'last seen recently',
 			'screenContacts.statusLastSeen' => ({required Object date}) => 'last seen ${date}',

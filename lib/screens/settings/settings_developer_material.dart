@@ -9,6 +9,7 @@ import '../../components.dart';
 import '../../cubit.dart';
 import '../../di.dart';
 import '../../logger.dart';
+import 'developer_accounts.dart';
 import 'developer_export_logs.dart';
 import 'developer_remote_config.dart';
 import 'developer_test_push.dart';
@@ -19,6 +20,44 @@ import 'developer_test_push.dart';
 /// доставки APNs/FCM — нужна и в TestFlight-сборке, поэтому без kDebugMode).
 class SettingsDeveloperMaterial extends StatelessWidget {
   const SettingsDeveloperMaterial({super.key});
+
+  /// Слоты аккаунтов: переключиться или завести новый (вход откроется в нём).
+  Future<void> _pickAccount(BuildContext context) async {
+    final t = context.t.screenDeveloper;
+    final slots = await developerAccountSlots(signedOut: t.accountsEmpty);
+    if (!context.mounted) return;
+    final picked = await showModalBottomSheet<({String? accountID})>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final slot in slots)
+              ListTile(
+                leading: Icon(slot.active ? Icons.radio_button_checked : Icons.radio_button_unchecked),
+                title: Text(slot.title),
+                subtitle: slot.active ? Text(t.accountsActive) : null,
+                onTap: () => Navigator.of(sheetContext).pop((accountID: slot.accountID)),
+              ),
+            ListTile(
+              leading: const Icon(Icons.add),
+              title: Text(t.accountsNew),
+              onTap: () => Navigator.of(sheetContext).pop((accountID: null)),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (picked == null || !context.mounted) return;
+    if (!developerCanSwitchAccount()) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(t.accountsCallActive)));
+      return;
+    }
+    await developerSwitchAccount(picked.accountID);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,6 +150,13 @@ class SettingsDeveloperMaterial extends StatelessWidget {
                       ),
                       onTab: () => context.read<CommonCubit>().setChatsDemo(value: !chatsDemo),
                     ),
+                  ),
+                  MaterialListTileIcon(
+                    title: Text(context.t.screenDeveloper.accounts),
+                    color: const Color(0xFF30B0C7),
+                    icon: FontAwesomeIcons.users,
+                    onTab: () => _pickAccount(context),
+                    isTrailing: true,
                   ),
                   if (kDebugMode)
                     MaterialListTileIcon(
