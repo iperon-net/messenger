@@ -10,6 +10,7 @@ import '../../protobuf/protos/secret_payload_v1.pb.dart' as sp;
 import '../../utils.dart';
 import '../chats_sync.dart' show ChatsOfflineException;
 import 'secret_chats_sync.dart';
+import '../../account_scope.dart';
 
 /// Скачивание вложений секретных чатов (открытый чат качает всё сам, как
 /// обычные чаты): ссылку на шифротекст выдаёт сервер (`SecretChats.GetFiles`,
@@ -18,7 +19,7 @@ import 'secret_chats_sync.dart';
 class SecretChatsMedia {
   SecretChatsMedia._();
 
-  static final instance = SecretChatsMedia._();
+  static SecretChatsMedia get instance => AccountScope.current.resolve(SecretChatsMedia._);
 
   /// Скачанные: fileID (hex) → путь в кэше.
   final _paths = <String, String>{};

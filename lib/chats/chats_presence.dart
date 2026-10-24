@@ -8,6 +8,7 @@ import '../logger.dart';
 import '../protobuf.dart';
 import '../repositories.dart';
 import 'chats_mapping.dart';
+import '../account_scope.dart';
 
 /// «В сети» собеседников личных чатов. Сервер шлёт PRESENCE-push только тем,
 /// у кого человек в контактах, поэтому для открытого окна чата (собеседник
@@ -22,7 +23,7 @@ import 'chats_mapping.dart';
 class ChatsPresence {
   ChatsPresence._();
 
-  static final ChatsPresence instance = ChatsPresence._();
+  static ChatsPresence get instance => AccountScope.current.resolve(ChatsPresence._);
 
   static const _pollInterval = Duration(seconds: 30);
 

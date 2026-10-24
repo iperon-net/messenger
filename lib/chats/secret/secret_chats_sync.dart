@@ -22,6 +22,7 @@ import '../../repositories.dart';
 import '../../utils.dart';
 import '../chats_sync.dart' show ChatsOfflineException, ChatsFloodException;
 import 'secret_chats_media.dart';
+import '../../account_scope.dart';
 
 /// Сборка умеет секретные чаты — уходит в `Subscribe.Request.capabilities`:
 /// запрос на секретный чат сервер шлёт только таким устройствам.
@@ -224,17 +225,17 @@ class SecretChatsSync {
        _clock = clock ?? DateTime.now,
        _clearNotifications = clearNotifications ?? _clearPushes;
 
-  static SecretChatsSync? _instance;
-
-  /// Синглтон приложения (зависимости — из get_it, лениво).
-  static SecretChatsSync get instance => _instance ??= SecretChatsSync(
-    store: () => getIt.get<Repositories>().secretChats,
-    crypto: () => getIt.get<Crypto>().secretChat,
-    transport: _ApiSecretChatsTransport(),
-    sessionID: () => getIt.get<Auth>().session.sessionID,
-    userID: () => getIt.get<Auth>().session.userID,
-    hasNetwork: () => getIt.get<Utils>().hasNetwork(),
-    logger: () => getIt.get<Logger>(),
+  /// Синглтон аккаунта ([AccountScope]; зависимости — из get_it, лениво).
+  static SecretChatsSync get instance => AccountScope.current.resolve(
+    () => SecretChatsSync(
+      store: () => getIt.get<Repositories>().secretChats,
+      crypto: () => getIt.get<Crypto>().secretChat,
+      transport: _ApiSecretChatsTransport(),
+      sessionID: () => getIt.get<Auth>().session.sessionID,
+      userID: () => getIt.get<Auth>().session.userID,
+      hasNetwork: () => getIt.get<Utils>().hasNetwork(),
+      logger: () => getIt.get<Logger>(),
+    ),
   );
 
   final SecretChatsRepository Function() _storeOf;

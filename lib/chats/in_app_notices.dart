@@ -16,6 +16,7 @@ import 'chats_replies.dart';
 import 'chats_sync.dart';
 import 'secret/secret_chats_list.dart';
 import 'secret/secret_chats_sync.dart';
+import '../account_scope.dart';
 
 /// Баннер о новом сообщении поверх приложения ([InAppNotices]).
 @immutable
@@ -54,7 +55,7 @@ class InAppNotice {
 class InAppNotices {
   InAppNotices._();
 
-  static final instance = InAppNotices._();
+  static InAppNotices get instance => AccountScope.current.resolve(InAppNotices._);
 
   Logger get _logger => getIt.get<Logger>();
   Repositories get _repositories => getIt.get<Repositories>();

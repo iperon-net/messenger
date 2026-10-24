@@ -34,6 +34,7 @@ import '../../repositories/repositories.dart';
 import 'chat_state.dart';
 import 'message_dust.dart';
 import '../../chats/animated_emoji.dart';
+import '../../account_scope.dart';
 
 /// Окно чата. Данные — из того же [ChatsDataSource], что и список чатов: демо
 /// или настоящие ([ChatsRemoteDataSource], см.
@@ -106,11 +107,10 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   int? _openUnread;
   bool _unreadPlaced = false;
 
-  /// Пересылка в другой чат: сообщения ждут здесь, пока не откроется окно
-  /// чата-получателя (его cubit забирает их в [ChatState.forwarding]).
-  static final _pendingForwards = <String, List<models.Message>>{};
-
-  static void forwardTo(String chatID, List<models.Message> messages) => _pendingForwards[chatID] = messages;
+  /// Пересылка в другой чат: сообщения ждут в [AccountScope.pendingForwards],
+  /// пока не откроется окно чата-получателя (его cubit забирает их в
+  /// [ChatState.forwarding]).
+  static void forwardTo(String chatID, List<models.Message> messages) => AccountScope.current.pendingForwards[chatID] = messages;
 
   /// Что доступно в источнике и в этом чате — экраны прячут остальное
   /// (реакции, закреп …; в группе на сервере — см. [ChatsFeatures.forChat]).
@@ -133,7 +133,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
       emit(state.copyWith(status: Status.success));
       return;
     }
-    final pending = _pendingForwards.remove(chatID);
+    final pending = AccountScope.current.pendingForwards.remove(chatID);
     if (pending != null) emit(state.copyWith(forwarding: pending));
     if (source is ChatsRemoteDataSource) {
       _syncFlood(ChatsSync.instance.floodUntil);

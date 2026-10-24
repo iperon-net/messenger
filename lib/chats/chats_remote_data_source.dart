@@ -35,6 +35,7 @@ import 'reactions.dart';
 import 'history_window.dart';
 import 'reactions_list.dart';
 import 'read_receipts.dart';
+import '../account_scope.dart';
 
 /// Настоящие чаты: SQLite-кэш ([ChatsRepository]) + сервер (chats_v1.proto).
 /// Первый срез — только личные чаты и «Избранное» (см.
@@ -60,7 +61,7 @@ import 'read_receipts.dart';
 class ChatsRemoteDataSource implements ChatsDataSource {
   ChatsRemoteDataSource._();
 
-  static final ChatsRemoteDataSource instance = ChatsRemoteDataSource._();
+  static ChatsRemoteDataSource get instance => AccountScope.current.resolve(ChatsRemoteDataSource._);
 
   Logger get _logger => getIt.get<Logger>();
   Repositories get _repositories => getIt.get<Repositories>();

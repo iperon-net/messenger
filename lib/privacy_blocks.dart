@@ -9,6 +9,7 @@ import 'logger.dart';
 import 'protobuf.dart';
 import 'repositories.dart';
 import 'utils.dart';
+import 'account_scope.dart';
 
 /// Заблокированные пользователи (как в Telegram): список — поле `blocked`
 /// снимка `PrivacySettings` (кэш в SQLite, `privacySettings`; пишет
@@ -51,13 +52,12 @@ abstract final class PrivacyBlocks {
     await getIt.get<API>().sendEncoded(MessageType.PRIVACY_SETTINGS, PrivacySettings_Request().writeToBuffer());
   }
 
-  static bool _refreshed = false;
-
-  /// [refresh] один раз за запуск (окно личного чата, профиль): дальше
-  /// изменения приходят push'ем по стриму.
+  /// [refresh] один раз за запуск на аккаунт (окно личного чата, профиль):
+  /// дальше изменения приходят push'ем по стриму.
   static Future<void> refreshOnce() async {
-    if (_refreshed || !await getIt.get<Utils>().hasNetwork()) return;
-    _refreshed = true;
+    final scope = AccountScope.current;
+    if (scope.privacyBlocksRefreshed || !await getIt.get<Utils>().hasNetwork()) return;
+    scope.privacyBlocksRefreshed = true;
     await getIt.get<API>().sendEncoded(MessageType.PRIVACY_SETTINGS, PrivacySettings_Request().writeToBuffer());
   }
 

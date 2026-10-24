@@ -24,6 +24,7 @@ import 'updates_plan.dart';
 import 'chats_media_cleanup.dart';
 import 'chats_typing.dart';
 import 'secret/secret_chats_list.dart' show secretChatListID;
+import '../account_scope.dart';
 
 /// Capability сессии «умеет группы» (`Subscribe.capabilities`): групповое
 /// сервер отдаёт только таким сессиям (старые сборки групп не знают).
@@ -183,7 +184,7 @@ class ChatsSync {
     ChatsRepository.onMediaReleased = ChatsMediaCleanup.release;
   }
 
-  static final ChatsSync instance = ChatsSync._();
+  static ChatsSync get instance => AccountScope.current.resolve(ChatsSync._);
 
   Logger get _logger => getIt.get<Logger>();
   API get _api => getIt.get<API>();

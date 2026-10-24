@@ -10,6 +10,7 @@ import '../models.dart' as models;
 import '../protobuf.dart';
 import '../protobuf/protos/chats_v1.pb.dart' as pb;
 import 'chats_mapping.dart';
+import '../account_scope.dart';
 
 /// «Печатает…» / «отправляет фото…» — эфемерные сигналы `CHAT_TYPING` по
 /// стриму (см. `ChatTyping` в chats_v1.proto). Ничего не хранится: всё в
@@ -29,7 +30,7 @@ class ChatsTyping {
     _subscription = _api.on(MessageType.CHAT_TYPING).listen(_onSignal);
   }
 
-  static final ChatsTyping instance = ChatsTyping._();
+  static ChatsTyping get instance => AccountScope.current.resolve(ChatsTyping._);
 
   /// Отправитель повторяет сигнал, пока действие идёт (чуть меньше 5 с —
   /// таймер и ввод не совпадают по фазе).

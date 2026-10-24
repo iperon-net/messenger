@@ -12,6 +12,7 @@ import '../repositories.dart';
 import 'chats_mapping.dart';
 import 'chats_remote_data_source.dart';
 import 'chats_sync.dart';
+import '../account_scope.dart';
 
 /// «Ответы» (подэтап 4.6, docs/plans/chats-channels.md; как Replies в
 /// Telegram): ответы на мои комментарии и упоминания меня в ветках
@@ -22,7 +23,7 @@ import 'chats_sync.dart';
 class ChatsReplies {
   ChatsReplies._();
 
-  static final instance = ChatsReplies._();
+  static ChatsReplies get instance => AccountScope.current.resolve(ChatsReplies._);
 
   Logger get _logger => getIt.get<Logger>();
   Repositories get _repositories => getIt.get<Repositories>();
