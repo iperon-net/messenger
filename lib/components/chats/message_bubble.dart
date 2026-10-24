@@ -2277,10 +2277,12 @@ class _PollViewState extends State<_PollView> {
 }
 
 /// Строка ленты: наше сообщение с непрочитанными реакциями или упоминание
-/// нас ещё не прочитано, и оно построено (лента ленивая — на экране или у
-/// края) или получило флаг, уже будучи построенным, — сообщает [onShown]
-/// после кадра. Обёртка есть всегда (дерево
-/// не меняется, когда флаг появляется / пропадает).
+/// нас ещё не прочитано — сообщает [onShown], когда строка действительно
+/// видна в ленте (а не только построена: ленивая лента строит и строки у
+/// края, а на первом кадре чат стоит внизу, пока не перейдёт к первому
+/// непрочитанному, — так упоминание выше по ленте считалось просмотренным, и
+/// кнопка «@» сразу пропадала). Не видна — ждём прокрутки. Обёртка есть
+/// всегда (дерево не меняется, когда флаг появляется / пропадает).
 class _ReactionsShown extends StatefulWidget {
   final models.Message message;
   final ValueChanged<models.Message>? onShown;
@@ -2293,6 +2295,8 @@ class _ReactionsShown extends StatefulWidget {
 }
 
 class _ReactionsShownState extends State<_ReactionsShown> {
+  ScrollPosition? _position;
+
   @override
   void initState() {
     super.initState();
@@ -2305,15 +2309,61 @@ class _ReactionsShownState extends State<_ReactionsShown> {
     if (!old.message.reactionsUnread || !old.message.mentionUnread) _notify();
   }
 
+  @override
+  void dispose() {
+    _detach();
+    super.dispose();
+  }
+
+  bool get _unread => widget.message.outgoing ? widget.message.reactionsUnread : widget.message.mentionUnread;
+
   void _notify() {
-    final onShown = widget.onShown;
-    final message = widget.message;
-    final unread = message.outgoing ? message.reactionsUnread : message.mentionUnread;
-    if (onShown == null || !unread) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) onShown(message);
+    if (widget.onShown == null || !_unread) return;
+    // После кадра и ещё одного: переход ленты к первому непрочитанному
+    // (jumpTo после первого кадра) раскладывается только в следующем.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted) return;
+      if (!_check()) _attach();
     });
   }
+
+  /// Видна — сообщить и больше не следить.
+  bool _check() {
+    if (!mounted || widget.onShown == null || !_unread) {
+      _detach();
+      return true;
+    }
+    if (!_visible()) return false;
+    _detach();
+    widget.onShown!(widget.message);
+    return true;
+  }
+
+  bool _visible() {
+    final box = context.findRenderObject();
+    final scrollable = Scrollable.maybeOf(context);
+    final viewport = scrollable?.context.findRenderObject();
+    if (box is! RenderBox || !box.attached || !box.hasSize || viewport is! RenderBox || !viewport.hasSize) {
+      // Не в прокрутке (закреплённые, шапка ветки) — показана, раз построена.
+      return scrollable == null;
+    }
+    final top = box.localToGlobal(Offset.zero, ancestor: viewport).dy;
+    return top + box.size.height > 0 && top < viewport.size.height;
+  }
+
+  void _attach() {
+    if (_position != null) return;
+    _position = Scrollable.maybeOf(context)?.position;
+    _position?.addListener(_onScroll);
+  }
+
+  void _detach() {
+    _position?.removeListener(_onScroll);
+    _position = null;
+  }
+
+  void _onScroll() => _check();
 
   @override
   Widget build(BuildContext context) => widget.child;
