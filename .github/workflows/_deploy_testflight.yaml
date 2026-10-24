@@ -222,7 +222,7 @@ jobs:
       - name: Restore Swift packages
         # Без кэша Xcode ~2 мин заново клонирует Swift-пакеты (firebase-ios-sdk
         # и др.) в build/ios/SourcePackages. Только чтение: сохраняет warm_cache.
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           path: build/ios/SourcePackages
           key: spm-${{ runner.os }}-${{ inputs.flutter_version }}-${{ hashFiles('pubspec.lock') }}
