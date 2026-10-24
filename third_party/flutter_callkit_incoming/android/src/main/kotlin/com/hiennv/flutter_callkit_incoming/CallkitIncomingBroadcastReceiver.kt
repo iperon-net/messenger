@@ -122,7 +122,7 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
             null
         } ?: return
         if (parsed.id.isEmpty()) return
-        if (CallkitConnection.find(parsed.id) != null) {
+        if (CallkitConnection.find(parsed.id) != null || !CallkitConnection.claimIncoming(parsed.id)) {
             Log.d(TAG, "Telecom call already registered id=${parsed.id} — skip")
             return
         }

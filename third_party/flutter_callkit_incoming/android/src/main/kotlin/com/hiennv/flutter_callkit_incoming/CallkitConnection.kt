@@ -82,6 +82,25 @@ class CallkitConnection(
             }
         }
 
+        /**
+         * Входящие, для которых уже вызван addNewIncomingCall (id → когда).
+         * ACTION_CALL_INCOMING для одного звонка приходит дважды (показ из стрима
+         * и из пуша), а [find] пуст, пока Telecom не создал Connection, — без
+         * этой отметки Telecom получает два звонка с одним id: в [activeConnections]
+         * остаётся один, отбой закрывает только его, второй навсегда RINGING.
+         */
+        private val claimedIncoming = HashMap<String, Long>()
+        private const val CLAIM_TTL_MS = 60_000L
+
+        /** true — этот вызов первый за [CLAIM_TTL_MS], регистрировать в Telecom. */
+        fun claimIncoming(callId: String): Boolean = synchronized(claimedIncoming) {
+            val now = System.currentTimeMillis()
+            claimedIncoming.entries.removeAll { now - it.value > CLAIM_TTL_MS }
+            if (claimedIncoming.containsKey(callId)) return false
+            claimedIncoming[callId] = now
+            true
+        }
+
         /** true — звонок уже завершён, Connection создавать не надо (отметка снимается). */
         fun takeEnded(callId: String): Boolean = synchronized(endedBeforeCreate) {
             endedBeforeCreate.remove(callId)
