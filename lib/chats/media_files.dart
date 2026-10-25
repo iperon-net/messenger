@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../components/share_origin.dart';
 import '../di.dart';
 import '../logger.dart';
 
@@ -130,10 +131,11 @@ class MediaFiles {
     return dir.path;
   }
 
-  /// Системное «Поделиться».
-  static Future<void> share(List<MediaFile> files) async {
+  /// Системное «Поделиться»; [context] — откуда раскрыть popover на iPad.
+  static Future<void> share(List<MediaFile> files, {BuildContext? context}) async {
+    final origin = shareOrigin(context);
     final named = [for (final f in files) XFile(await _named(f))];
-    await SharePlus.instance.share(ShareParams(files: named));
+    await SharePlus.instance.share(ShareParams(files: named, sharePositionOrigin: origin));
   }
 
   static Future<MediaSaveResult> _save(String method, Map<String, Object> args, {bool retried = false}) async {

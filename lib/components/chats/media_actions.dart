@@ -55,7 +55,7 @@ Future<void> openChatFile(BuildContext context, models.Message m) async {
   if (files == null) return showChatToast(context, context.t.screenChat.mediaNotReady);
   if (await MediaFiles.open(files.first) || !context.mounted) return;
   if (Platform.isIOS) {
-    await MediaFiles.share(files);
+    await MediaFiles.share(files, context: context);
   } else {
     showChatToast(context, context.t.screenChat.noAppToOpen);
   }
@@ -93,5 +93,5 @@ Future<void> saveChatMedia(BuildContext context, models.Message m, {int? index, 
 Future<void> shareChatMedia(BuildContext context, models.Message m, {int? index, bool overlay = false}) async {
   final files = _files(m, index);
   if (files == null) return showChatToast(context, context.t.screenChat.mediaNotReady, overlay: overlay);
-  await MediaFiles.share(files);
+  await MediaFiles.share(files, context: context);
 }

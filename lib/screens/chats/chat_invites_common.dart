@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../components/share_origin.dart';
 import '../../cubit.dart';
 import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
@@ -21,7 +22,9 @@ String inviteShort(String path) => 'iperon.net/$path';
 
 void copyInvite(String path) => Clipboard.setData(ClipboardData(text: inviteUrl(path)));
 
-Future<void> shareInvite(String path) => SharePlus.instance.share(ShareParams(text: inviteUrl(path)));
+/// [context] — кнопка, от которой на iPad раскрыть popover.
+Future<void> shareInvite(String path, {BuildContext? context}) =>
+    SharePlus.instance.share(ShareParams(text: inviteUrl(path), sharePositionOrigin: shareOrigin(context)));
 
 /// Срок действия ссылки — дата и время в формате локали.
 String inviteDate(DateTime date) => '${DateFormat.yMd().format(date.toLocal())} ${DateFormat.Hm().format(date.toLocal())}';

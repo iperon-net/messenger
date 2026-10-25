@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../components/share_origin.dart';
 import '../../di.dart';
 import '../../logger.dart';
 
@@ -31,5 +32,5 @@ Future<void> exportDeviceLogs() async {
   final file = await File('${dir.path}/iperon_logs_$stamp.txt').create(recursive: true);
   await file.writeAsString(buffer.toString());
 
-  await SharePlus.instance.share(ShareParams(files: <XFile>[XFile(file.path)], subject: 'Iperon logs'));
+  await SharePlus.instance.share(ShareParams(files: <XFile>[XFile(file.path)], subject: 'Iperon logs', sharePositionOrigin: shareOrigin()));
 }

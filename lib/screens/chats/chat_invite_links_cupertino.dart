@@ -65,7 +65,7 @@ class ChatInviteLinksCupertino extends StatelessWidget {
       case 'copy':
         _copy(link.link);
       case 'share':
-        await shareInvite(link.link);
+        await shareInvite(link.link, context: context);
       case 'edit':
         await showChatInviteLinkEditCupertino(context, cubit, link: link);
       case 'revoke':
@@ -211,11 +211,13 @@ class ChatInviteLinksCupertino extends StatelessWidget {
                                         onPressed: () => _copy(path),
                                         child: HugeIcon(icon: HugeIcons.strokeRoundedCopy01, color: action, size: 21),
                                       ),
-                                      CupertinoButton(
-                                        padding: const EdgeInsets.only(left: 4, right: 10),
-                                        minimumSize: const Size(40, 44),
-                                        onPressed: () => shareInvite(path),
-                                        child: HugeIcon(icon: HugeIcons.strokeRoundedShare08, color: action, size: 21),
+                                      Builder(
+                                        builder: (button) => CupertinoButton(
+                                          padding: const EdgeInsets.only(left: 4, right: 10),
+                                          minimumSize: const Size(40, 44),
+                                          onPressed: () => shareInvite(path, context: button),
+                                          child: HugeIcon(icon: HugeIcons.strokeRoundedShare08, color: action, size: 21),
+                                        ),
                                       ),
                                     ],
                                   ),
