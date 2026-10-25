@@ -137,25 +137,38 @@ Future<void> main() async {
         // Корень приложения — на аккаунт: при переключении (AccountScope.generation)
         // собирается заново, кубиты и подписки — уже на новом аккаунте; пока
         // идёт переключение — пусто.
-        child: ValueListenableBuilder<bool>(
-          valueListenable: accountSwitching,
-          builder: (context, switching, _) {
-            if (switching) return const SizedBox.shrink();
-            return ValueListenableBuilder<int>(
-              valueListenable: AccountScope.generation,
-              builder: (context, generation, _) => Platform.isIOS
-                  ? IperonMessengerCupertino(
-                      key: ValueKey(generation),
-                      settingsDevice: settingsDevice,
-                      isBiometricAvailable: isBiometricAvailable,
-                    )
-                  : IperonMessengerMaterial(
-                      key: ValueKey(generation),
-                      settingsDevice: settingsDevice,
-                      isBiometricAvailable: isBiometricAvailable,
+        // пока идёт переключение — застывший снимок прежнего экрана, затем
+        // плавный переход (без чёрного кадра).
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: ValueListenableBuilder<bool>(
+            valueListenable: accountSwitching,
+            builder: (context, switching, _) => AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              // Уходящее дерево аккаунта снимается сразу (его сервисы сейчас
+              // закроются), плавно появляется только новое.
+              reverseDuration: Duration.zero,
+              child: switching
+                  ? AccountSwitchSnapshot(key: const ValueKey('switching'), image: accountSwitchSnapshot.value)
+                  : RepaintBoundary(
+                      key: accountRootKey,
+                      child: ValueListenableBuilder<int>(
+                        valueListenable: AccountScope.generation,
+                        builder: (context, generation, _) => Platform.isIOS
+                            ? IperonMessengerCupertino(
+                                key: ValueKey(generation),
+                                settingsDevice: settingsDevice,
+                                isBiometricAvailable: isBiometricAvailable,
+                              )
+                            : IperonMessengerMaterial(
+                                key: ValueKey(generation),
+                                settingsDevice: settingsDevice,
+                                isBiometricAvailable: isBiometricAvailable,
+                              ),
+                      ),
                     ),
-            );
-          },
+            ),
+          ),
         ),
       ),
     ),

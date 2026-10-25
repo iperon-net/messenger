@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'dart:ui' as ui;
+
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
 import 'package:messenger/repositories/repositories.dart';
@@ -106,9 +109,45 @@ Future<void> startAccountServices() async {
   AccountProfileSync.instance.start();
 }
 
-/// Идёт переключение аккаунта: корень приложения на это время пустой — старое
-/// дерево не должно обращаться к сервисам закрываемого аккаунта.
+/// Идёт переключение аккаунта: дерево приложения на это время снято — старое
+/// не должно обращаться к сервисам закрываемого аккаунта; вместо него —
+/// [accountSwitchSnapshot].
 final accountSwitching = ValueNotifier<bool>(false);
+
+/// Корень приложения (`RepaintBoundary` в main.dart) — с него снимок экрана
+/// перед переключением.
+final accountRootKey = GlobalKey();
+
+/// Снимок экрана до переключения аккаунта: показывается вместо пустоты, пока
+/// закрывается старый аккаунт и открывается новый.
+final accountSwitchSnapshot = ValueNotifier<ui.Image?>(null);
+
+/// Застывший снимок прежнего экрана на время переключения (нет снимка — фон).
+class AccountSwitchSnapshot extends StatelessWidget {
+  const AccountSwitchSnapshot({required this.image, super.key});
+
+  final ui.Image? image;
+
+  @override
+  Widget build(BuildContext context) {
+    final image = this.image;
+    if (image == null) return const ColoredBox(color: Color(0xFF808080));
+    return SizedBox.expand(
+      child: RawImage(image: image, fit: BoxFit.cover),
+    );
+  }
+}
+
+Future<ui.Image?> _captureRoot() async {
+  try {
+    final boundary = accountRootKey.currentContext?.findRenderObject();
+    if (boundary is! RenderRepaintBoundary || !boundary.hasSize) return null;
+    final view = WidgetsBinding.instance.platformDispatcher.views.first;
+    return await boundary.toImage(pixelRatio: view.devicePixelRatio);
+  } catch (_) {
+    return null;
+  }
+}
 
 /// Сделать активным аккаунт [accountID] (слот в `device.db`). Во время звонка
 /// нельзя — [StateError].
@@ -119,9 +158,12 @@ Future<void> switchAccount(String accountID) async {
 
   final logger = getIt.get<Logger>();
   logger.info('account: switching ${AccountScope.current.accountID} → $accountID');
+  accountSwitchSnapshot.value = await _captureRoot();
   accountSwitching.value = true;
   try {
-    // Старое дерево виджетов (кубиты, подписки) уходит до закрытия сервисов.
+    // Старое дерево виджетов (кубиты, подписки) уходит до закрытия сервисов:
+    // кадр со снимком, затем кадр, где уходящее дерево уже снято.
+    await WidgetsBinding.instance.endOfFrame;
     await WidgetsBinding.instance.endOfFrame;
     await closeAccount();
     await getIt.get<DeviceRepositories>().accounts.ensureActive(accountID);
@@ -130,6 +172,10 @@ Future<void> switchAccount(String accountID) async {
   } finally {
     AccountScope.generation.value++;
     accountSwitching.value = false;
+    // Снимок ещё нужен переходу (AnimatedSwitcher) — освобождаем после него.
+    final snapshot = accountSwitchSnapshot.value;
+    accountSwitchSnapshot.value = null;
+    if (snapshot != null) unawaited(Future<void>.delayed(const Duration(seconds: 1), snapshot.dispose));
   }
 }
 
