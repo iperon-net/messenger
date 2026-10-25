@@ -60,6 +60,7 @@ final class PushBridge {
       let account = ((call.arguments as? [String: Any])?["account"] as? String) ?? ""
       PushKeychain.removeAccount(account)
       PushAvatars.forget(account: account)
+      Self.setBadge(PushBadges.remove(account: account))
       Self.removeDelivered(account: account) { result(nil) }
     case "clearPushKeys":
       PushKeychain.clearKeys()
@@ -95,8 +96,11 @@ final class PushBridge {
         all: (args["all"] as? Bool) ?? false
       ) { result(nil) }
     case "setBadge":
-      // Dart: непрочитанные по локальному списку чатов (приложение открыто).
-      Self.setBadge((call.arguments as? Int) ?? 0)
+      // Dart: непрочитанные активного аккаунта по локальному списку чатов
+      // (приложение открыто); на иконке — сумма с остальными аккаунтами.
+      let args = call.arguments as? [String: Any]
+      let count = (args?["count"] as? Int) ?? (call.arguments as? Int) ?? 0
+      Self.setBadge(PushBadges.set(count, account: (args?["account"] as? String) ?? ""))
       result(nil)
     case "isInBackground":
       // Фоновый запуск системой (VoIP / тихий пуш): Dart не ставит presence
@@ -156,7 +160,7 @@ final class PushBridge {
     // переднем плане бейдж ведёт приложение по локальному списку — серверное
     // число (без скрытых профилей, из кэша) его не перетирает.
     if let badge = signal.badge, UIApplication.shared.applicationState != .active {
-      setBadge(badge)
+      setBadge(PushBadges.set(badge, account: account))
     }
 
     let chatID = PushKeychain.hex(signal.chatID)

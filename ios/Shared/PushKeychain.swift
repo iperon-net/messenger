@@ -190,3 +190,41 @@ enum PushKeychain {
     data.map { String(format: "%02x", $0) }.joined()
   }
 }
+
+/// Непрочитанные каждого аккаунта для бейджа на иконке (этап 3.4
+/// мультиаккаунта): сервер шлёт число своего пользователя (`aps.badge`,
+/// `PushPayload.badge`), а на иконке — сумма по аккаунтам. Последнее число
+/// аккаунта хранится в общих UserDefaults App Group — их видят приложение и
+/// NSE.
+enum PushBadges {
+  private static let appGroup = "group.net.iperon.messenger"
+  private static let key = "push_badges"
+
+  private static var defaults: UserDefaults? { UserDefaults(suiteName: appGroup) }
+
+  /// Запомнить [count] аккаунта [account]; вернуть сумму по всем.
+  @discardableResult
+  static func set(_ count: Int, account: String) -> Int {
+    var badges = all()
+    if account.isEmpty {
+      // Пуш из сборки до мультиаккаунта — число одного (единственного) аккаунта.
+      return max(count, 0)
+    }
+    badges[account] = max(count, 0)
+    defaults?.set(badges, forKey: key)
+    return badges.values.reduce(0, +)
+  }
+
+  /// Аккаунт ушёл с устройства; вернуть сумму по оставшимся.
+  @discardableResult
+  static func remove(account: String) -> Int {
+    var badges = all()
+    badges.removeValue(forKey: account)
+    defaults?.set(badges, forKey: key)
+    return badges.values.reduce(0, +)
+  }
+
+  private static func all() -> [String: Int] {
+    (defaults?.dictionary(forKey: key) as? [String: Int]) ?? [:]
+  }
+}

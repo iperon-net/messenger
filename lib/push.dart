@@ -347,12 +347,15 @@ class PushManager {
   /// приложение открыто, его ведёт [ChatsSync] по локальному списку диалогов, в
   /// фоне — пуши (alert — `aps.badge`, тихий — `PushPayload.badge`). На Android
   /// число на иконке рисует лаунчер по уведомлениям.
+  ///
+  /// [count] — непрочитанные активного аккаунта; на иконке натив показывает
+  /// сумму с последними числами остальных аккаунтов (из их пушей).
   static Future<void> setBadge(int count) async {
     if (!Platform.isIOS) return;
     // info — в файловый лог: по нему видно, ставило ли приложение счётчик.
     getIt.get<Logger>().info('badge: set $count');
     try {
-      await _channel.invokeMethod<void>('setBadge', count);
+      await _channel.invokeMethod<void>('setBadge', {'account': AccountScope.current.accountID, 'count': count});
     } catch (error, stackTrace) {
       getIt.get<Logger>().handle(error, stackTrace);
     }

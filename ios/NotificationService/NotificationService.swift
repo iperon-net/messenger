@@ -91,6 +91,11 @@ class NotificationService: UNNotificationServiceExtension {
       userInfo["postID"] = NSNumber(value: payload.postID)
     }
     content.userInfo = userInfo
+    // Бейдж на иконке — сумма по аккаунтам: число этого аккаунта из пуша
+    // (aps.badge, иначе PushPayload.badge) плюс последние числа остальных.
+    if let badge = content.badge?.intValue ?? (payload.hasBadge ? Int(payload.badge) : nil) {
+      content.badge = NSNumber(value: PushBadges.set(badge, account: account))
+    }
     // Аккаунтов несколько — подпись, чей пуш (как в Telegram).
     if let label = PushKeychain.accountLabel(account) { content.subtitle = label }
     // Треды по чату — свои у каждого аккаунта (общий чат двух аккаунтов).
