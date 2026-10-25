@@ -22,7 +22,17 @@ class Routers {
   final repositories = getIt.get<Repositories>();
   final auth = getIt.get<Auth>();
 
-  final initialLocation = "/chats";
+  /// Куда откроется корень следующего аккаунта вместо «Чатов» — один раз
+  /// (отмена «Добавить аккаунт» возвращает в «Настройки», откуда добавляли).
+  static String? nextLocation;
+
+  final String initialLocation = _takeNextLocation();
+
+  static String _takeNextLocation() {
+    final location = nextLocation ?? '/chats';
+    nextLocation = null;
+    return location;
+  }
 
   // go_router определяет тип Page по типу App-виджета через
   // findAncestorWidgetOfExactType<CupertinoApp>() (из package:flutter).

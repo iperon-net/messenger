@@ -89,6 +89,13 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
         }
 
         /**
+         * Iperon: whether some Flutter engine listens to call events (the app's
+         * `onEvent`). Without one, a decline from a killed app is handled natively
+         * by the app (CallDeclineBridge), not lost.
+         */
+        fun hasEventListeners(): Boolean = eventHandlers.values.any { it.hasListener() }
+
+        /**
          * Register a callback to receive call events (accept/decline) natively.
          * This allows other plugins/services to handle call events
          * even when Flutter engine is terminated.

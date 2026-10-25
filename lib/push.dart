@@ -418,6 +418,7 @@ class PushManager {
   /// В конце отпускает процесс (`notificationActionDone`).
   Future<void> _handleAction(Object? arguments) async {
     final action = arguments as Map? ?? const {};
+    if (action['action'] == 'callDecline') return _declineCall(action);
     // Кнопка уведомления другого аккаунта — выполняет его PushManager (после
     // переключения на этот аккаунт).
     if (await _switchTo((action['account'] as String?) ?? '')) {
@@ -441,14 +442,44 @@ class PushManager {
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     } finally {
-      // Подняты кнопкой без Activity — стрим не держим: пауза через грейс,
-      // откроет пользователь — resumed вернёт его.
-      if (Platform.isAndroid && await isLaunchedInBackground()) api.setForeground(false);
-      try {
-        await _channel.invokeMethod<void>('notificationActionDone', action['id']);
-      } catch (error, stackTrace) {
-        logger.handle(error, stackTrace);
+      await _actionDone(action);
+    }
+  }
+
+  /// «Отклонить» входящего, нажатое, пока приложение было выгружено (Android,
+  /// `CallDeclineBridge`: событие плагина некому было слушать, натив поднял
+  /// движок ради него). Отказ — unary от сессии аккаунта, которому звонили,
+  /// без переключения; без сети звонящий дождётся таймаута.
+  Future<void> _declineCall(Map action) async {
+    final callId = (action['callId'] as String?) ?? '';
+    final fromUserID = (action['fromUserID'] as String?) ?? '';
+    final account = (action['account'] as String?) ?? '';
+    logger.info('push: call decline from native callId=$callId');
+    try {
+      if (callId.isEmpty || fromUserID.isEmpty) return;
+      final toUserID = getIt.get<Utils>().hexToBytes(fromUserID);
+      if (account.isNotEmpty && account != AccountScope.current.accountID) {
+        await rejectCallAs(account, callId: callId, toUserID: toUserID);
+      } else if (auth.isAuthorized) {
+        final ring = CallRing(callId: callId, toUserID: Uint8List.fromList(toUserID));
+        await api.unaryEncoded(MessageType.CALL_REJECT, ring.writeToBuffer());
       }
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    } finally {
+      await _actionDone(action);
+    }
+  }
+
+  /// Действие доделано: стрим не держим, если подняты без Activity (пауза
+  /// через грейс, откроет пользователь — resumed вернёт его), и отпускаем
+  /// процесс (`notificationActionDone`).
+  Future<void> _actionDone(Map action) async {
+    if (Platform.isAndroid && await isLaunchedInBackground()) api.setForeground(false);
+    try {
+      await _channel.invokeMethod<void>('notificationActionDone', action['id']);
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
     }
   }
 

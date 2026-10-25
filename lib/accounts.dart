@@ -6,6 +6,7 @@ import 'di.dart';
 import 'logger.dart';
 import 'push.dart';
 import 'repositories.dart';
+import 'routers.dart';
 import 'api.dart';
 import 'protobuf.dart';
 
@@ -97,7 +98,14 @@ Future<void> leaveAccount(String accountID) async {
 /// слот — удалить.
 Future<void> cancelAddAccount() async {
   final target = await returnAccount();
-  if (target != null) await leaveAccount(target);
+  if (target == null) return;
+  Routers.nextLocation = '/settings';
+  try {
+    await leaveAccount(target);
+  } finally {
+    // Переключение сорвалось — следующий корень откроется как обычно.
+    Routers.nextLocation = null;
+  }
 }
 
 /// Выход из активного аккаунта уже прошёл (сессия удалена): если есть другие

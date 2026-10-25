@@ -44,6 +44,13 @@ import io.flutter.plugins.firebase.messaging.FlutterFirebaseRemoteMessageLiveDat
 /// т.к. Android отдаёт FCM-сообщение только одному сервису.
 class CallFcmService : FlutterFirebaseMessagingService() {
 
+    override fun onCreate() {
+        super.onCreate()
+        // Выгруженное приложение поднимает именно этот сервис (call-пуш):
+        // «Отклонить» на его баннере должно дойти до звонящего.
+        CallDeclineBridge.register(this)
+    }
+
     override fun onMessageReceived(received: RemoteMessage) {
         // Тестовый push (экран «Разработчик», PUSH_TEST) рисуем нативно и в Dart
         // не отдаём — поднимать Flutter-isolate ради уведомления незачем.
