@@ -34,6 +34,12 @@ class SettingsCubit extends Cubit<SettingsState> {
       emit(state.copyWith(status: Status.success, countDeviceSessions: response.results.length));
     });
 
+    // Свой профиль: ответ MY_PROFILE (API._handleMessage) скачивает аватар и
+    // привязывает его к профилю, а оттуда он попадает в список аккаунтов.
+    // Иначе аватар с другого устройства (или после переустановки) появлялся
+    // только после захода в «Мой профиль». Без сети — что есть в кэше.
+    unawaited(api.sendEncoded(MessageType.MY_PROFILE, MyProfile_Request().writeToBuffer()).catchError((_) {}));
+
     // sendEncoded может ждать готовности стрима — за время await кубит мог
     // закрыться, поэтому не эмитим в закрытый кубит.
     await api.sendEncoded(MessageType.DEVICE_SESSIONS, DeviceSessions_Request().writeToBuffer());
