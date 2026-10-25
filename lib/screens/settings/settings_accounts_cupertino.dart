@@ -2,13 +2,13 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../accounts.dart';
-import '../../di.dart';
+import '../../components.dart';
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
 import 'settings_accounts_common.dart';
 
-/// «Настройки» → аккаунты: вошедшие (активный — с галочкой, тап по другому —
-/// переключение) и «Добавить аккаунт».
+/// «Настройки» → аккаунты: вошедшие (активный — с галочкой, у других —
+/// непрочитанные; тап — переключение) и «Добавить аккаунт».
 class SettingsAccountsCupertino extends StatefulWidget {
   const SettingsAccountsCupertino({super.key});
 
@@ -16,46 +16,7 @@ class SettingsAccountsCupertino extends StatefulWidget {
   State<SettingsAccountsCupertino> createState() => _SettingsAccountsCupertino();
 }
 
-class _SettingsAccountsCupertino extends State<SettingsAccountsCupertino> with SettingsAccountsState {
-  Future<void> _notice(String text) => showCupertinoDialog<void>(
-    context: context,
-    builder: (dialogContext) => CupertinoAlertDialog(
-      title: Text(text),
-      actions: [CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.ok))],
-    ),
-  );
-
-  Future<void> _open(AccountEntry account) async {
-    if (account.active) return;
-    if (callActive) return _notice(context.t.screenSettings.accountSwitchCallActive);
-    await switchAccount(account.accountID);
-  }
-
-  Future<void> _add() async {
-    if (callActive) return _notice(context.t.screenSettings.accountSwitchCallActive);
-    if (!await canAddAccount()) {
-      if (mounted) await _notice(context.t.screenSettings.accountsLimit(count: maxAccounts));
-      return;
-    }
-    await addAccount();
-  }
-
-  Widget _avatar(AccountEntry account) {
-    final image = avatarOf(account);
-    return SizedBox(
-      width: 32,
-      height: 32,
-      child: ClipOval(
-        child: image != null
-            ? Image(image: image, fit: BoxFit.cover)
-            : ColoredBox(
-                color: CupertinoColors.systemGrey4.resolveFrom(context),
-                child: Center(child: Text(initialOf(account))),
-              ),
-      ),
-    );
-  }
-
+class _SettingsAccountsCupertino extends State<SettingsAccountsCupertino> with SettingsAccountsState, _AccountsCupertino {
   @override
   Widget build(BuildContext context) {
     return CupertinoListSection.insetGrouped(
@@ -67,19 +28,98 @@ class _SettingsAccountsCupertino extends State<SettingsAccountsCupertino> with S
       children: [
         for (final account in accounts)
           CupertinoListTile(
-            leading: _avatar(account),
+            leading: avatar(account),
             title: Text(account.title),
-            trailing: account.active
-                ? FaIcon(FontAwesomeIcons.solidCircleCheck, size: 18, color: CupertinoTheme.of(context).primaryColor)
-                : null,
-            onTap: () => _open(account),
+            trailing: trailing(account),
+            onTap: () => pickAccount(account),
           ),
         CupertinoListTile(
           leading: Icon(CupertinoIcons.add_circled, color: CupertinoTheme.of(context).primaryColor),
           title: Text(context.t.screenSettings.addAccount),
-          onTap: _add,
+          onTap: startAddAccount,
         ),
       ],
+    );
+  }
+}
+
+/// Быстрый выбор аккаунта — долгий тап на вкладку «Настройки» (как в
+/// Telegram): выпадающее меню аккаунтов над вкладкой. Прозрачная зона поверх
+/// вкладки: обычный тап проходит к таб-бару, долгий — открывает меню.
+class AccountSwitcherCupertino extends StatefulWidget {
+  const AccountSwitcherCupertino({super.key});
+
+  @override
+  State<AccountSwitcherCupertino> createState() => _AccountSwitcherCupertino();
+}
+
+class _AccountSwitcherCupertino extends State<AccountSwitcherCupertino> with SettingsAccountsState, _AccountsCupertino {
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoMenuAnchor(
+      useRootOverlay: true,
+      onOpen: () => load(),
+      menuChildren: [
+        for (final account in accounts)
+          CupertinoMenuItem(
+            leading: avatar(account, size: 28),
+            trailing: trailing(account),
+            onPressed: () => pickAccount(account),
+            child: Text(account.title),
+          ),
+        CupertinoMenuItem(
+          trailing: const Icon(CupertinoIcons.add_circled),
+          onPressed: startAddAccount,
+          child: Text(context.t.screenSettings.addAccount),
+        ),
+      ],
+      builder: (context, controller, child) =>
+          GestureDetector(behavior: HitTestBehavior.translucent, onLongPress: controller.open, child: const SizedBox.expand()),
+    );
+  }
+}
+
+/// Общее оформление строк аккаунта (Cupertino): аватар, галочка активного,
+/// счётчик непрочитанных у остальных, диалог-сообщение.
+mixin _AccountsCupertino<T extends StatefulWidget> on SettingsAccountsState<T> {
+  @override
+  Future<void> notice(String text) => showCupertinoDialog<void>(
+    context: context,
+    builder: (dialogContext) => CupertinoAlertDialog(
+      title: Text(text),
+      actions: [CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.ok))],
+    ),
+  );
+
+  Widget avatar(AccountEntry account, {double size = 32}) {
+    final image = avatarOf(account);
+    return SizedBox(
+      width: size,
+      height: size,
+      child: ClipOval(
+        child: image != null
+            ? Image(image: image, fit: BoxFit.cover)
+            : ColoredBox(
+                color: CupertinoColors.systemGrey4.resolveFrom(context),
+                child: Center(child: Text(initialOf(account))),
+              ),
+      ),
+    );
+  }
+
+  Widget? trailing(AccountEntry account) {
+    if (account.active) return FaIcon(FontAwesomeIcons.solidCircleCheck, size: 18, color: CupertinoTheme.of(context).primaryColor);
+    if (account.unread <= 0) return null;
+    return Container(
+      height: 20,
+      constraints: const BoxConstraints(minWidth: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(color: CupertinoColors.systemRed.resolveFrom(context), borderRadius: BorderRadius.circular(10)),
+      child: Text(
+        ChatTileContent.badge(account.unread),
+        style: const TextStyle(color: CupertinoColors.white, fontSize: 13, fontWeight: FontWeight.w600, height: 1.1),
+      ),
     );
   }
 }

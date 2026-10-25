@@ -18,22 +18,29 @@ import 'protobuf.dart';
 const maxAccounts = 3;
 
 /// Вошедший аккаунт для списка: подпись (имя или номер), аватар (путь к
-/// файлу, пусто — нет) и активный ли.
-typedef AccountEntry = ({String accountID, String title, String avatarPath, bool active});
+/// файлу, пусто — нет), активный ли и непрочитанные чаты (у неактивного —
+/// последнее известное число из его пушей, у активного — 0: его счётчик на
+/// вкладке «Чаты»).
+typedef AccountEntry = ({String accountID, String title, String avatarPath, bool active, int unread});
 
 DeviceRepositories get _device => getIt.get<DeviceRepositories>();
 
-/// Вошедшие аккаунты по порядку слотов.
-Future<List<AccountEntry>> signedInAccounts() async {
+/// Вошедшие аккаунты по порядку слотов; [withUnread] — с непрочитанными
+/// неактивных (спрашивает натив).
+Future<List<AccountEntry>> signedInAccounts({bool withUnread = false}) async {
   final current = AccountScope.current.accountID;
+  final slots = await _device.accounts.all();
+  final others = slots.any((slot) => slot.userID.isNotEmpty && slot.accountID != current);
+  final badges = withUnread && others ? await PushManager.accountBadges() : const <String, int>{};
   return [
-    for (final slot in await _device.accounts.all())
+    for (final slot in slots)
       if (slot.userID.isNotEmpty)
         (
           accountID: slot.accountID,
           title: slot.name.isNotEmpty ? slot.name : '+${slot.phoneNumber}',
           avatarPath: slot.avatarPath,
           active: slot.accountID == current,
+          unread: slot.accountID == current ? 0 : badges[slot.accountID] ?? 0,
         ),
   ];
 }

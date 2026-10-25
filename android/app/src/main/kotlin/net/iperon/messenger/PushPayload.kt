@@ -13,7 +13,8 @@ data class PushPayload(
     val title: String = "",
     val body: String = "",
     val args: List<String> = emptyList(),
-    val badge: Int = 0,
+    // Не задан (null) — бейдж не трогать.
+    val badge: Int? = null,
     val date: Long = 0,
     val messageIDs: List<Long> = emptyList(),
     // Номер отправителя (E.164): не titleFromContact — имя ищем в адресной книге.

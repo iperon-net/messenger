@@ -7,6 +7,7 @@ import '../../i18n/translations.g.dart';
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../themes.dart';
+import '../settings/settings_accounts_cupertino.dart';
 
 class HomeCupertino extends StatefulWidget {
   const HomeCupertino({super.key, required this.navigationShell});
@@ -130,6 +131,15 @@ class _HomeCupertinoState extends State<HomeCupertino> {
                 ),
               ),
               Positioned(left: 0, right: 0, bottom: 0, child: tabBar),
+              // Долгий тап по «Настройкам» — быстрый выбор аккаунта (как в
+              // Telegram); обычный тап проходит к таб-бару.
+              Positioned(
+                right: 0,
+                bottom: bottomInset,
+                width: MediaQuery.sizeOf(context).width / 4,
+                height: tabBarHeight,
+                child: const AccountSwitcherCupertino(),
+              ),
             ],
           ),
         );

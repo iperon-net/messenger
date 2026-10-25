@@ -63,12 +63,14 @@ object PushChannel {
                 "removeAccount" -> {
                     val account = call.argument<String>("account").orEmpty()
                     PushKeyStore.removeAccount(app, account)
+                    PushBadges.remove(app, account)
                     PushAvatars.clear(app, account)
                     MessagePushHandler.removeAccount(app, account)
                     result.success(null)
                 }
                 "clearPushKeys" -> {
                     PushKeyStore.clear(app)
+                    PushBadges.clearAll(app)
                     PushAvatars.clearAll(app)
                     MessagePushHandler.removeShortcuts(app)
                     result.success(null)
@@ -109,6 +111,15 @@ object PushChannel {
                     PushAvatars.sync(app, call.argument<String>("account").orEmpty(), entries)
                     result.success(null)
                 }
+                // Непрочитанные активного аккаунта (Dart, по списку чатов):
+                // число на иконке рисует лаунчер, здесь только запоминаем —
+                // для списка аккаунтов, когда он станет неактивным.
+                "setBadge" -> {
+                    PushBadges.set(app, call.argument<String>("account").orEmpty(), call.argument<Number>("count")?.toInt() ?: 0)
+                    result.success(null)
+                }
+                // Последние непрочитанные каждого аккаунта: accountID → число.
+                "accountBadges" -> result.success(PushBadges.all(app))
                 // Движок поднят без видимой Activity (кнопка уведомления) —
                 // presence сессии «в фоне», сервер продолжает слать пуши.
                 "isInBackground" -> result.success(!MainActivity.isForeground)

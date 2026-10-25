@@ -81,6 +81,9 @@ object MessagePushHandler {
     }
 
     fun handle(context: Context, payload: PushPayload) {
+        // Непрочитанные аккаунта — для его строки в списке аккаунтов (их пуши
+        // приходят и когда он не активен).
+        payload.badge?.let { PushBadges.set(context, payload.account, it) }
         when (payload.kind) {
             // Прочитано / удалено на другом устройстве — снимаем показанное.
             PushPayload.KIND_READ_HISTORY -> {

@@ -349,15 +349,31 @@ class PushManager {
   /// число на иконке рисует лаунчер по уведомлениям.
   ///
   /// [count] — непрочитанные активного аккаунта; на иконке натив показывает
-  /// сумму с последними числами остальных аккаунтов (из их пушей).
+  /// сумму с последними числами остальных аккаунтов (из их пушей). Android
+  /// иконку не трогает (её рисует лаунчер) — только запоминает число для
+  /// [accountBadges].
   static Future<void> setBadge(int count) async {
-    if (!Platform.isIOS) return;
+    if (!_hasNativePush) return;
     // info — в файловый лог: по нему видно, ставило ли приложение счётчик.
     getIt.get<Logger>().info('badge: set $count');
     try {
       await _channel.invokeMethod<void>('setBadge', {'account': AccountScope.current.accountID, 'count': count});
     } catch (error, stackTrace) {
       getIt.get<Logger>().handle(error, stackTrace);
+    }
+  }
+
+  /// Последние непрочитанные каждого аккаунта (accountID → число): у
+  /// неактивных — из их пушей (сервер считает так же, как [ChatsSync.unread]),
+  /// у активного — из [setBadge]. Неизвестно — аккаунта нет в ответе.
+  static Future<Map<String, int>> accountBadges() async {
+    if (!_hasNativePush) return const {};
+    try {
+      final badges = await _channel.invokeMapMethod<String, int>('accountBadges');
+      return badges ?? const {};
+    } catch (error, stackTrace) {
+      getIt.get<Logger>().handle(error, stackTrace);
+      return const {};
     }
   }
 

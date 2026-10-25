@@ -102,6 +102,10 @@ final class PushBridge {
       let count = (args?["count"] as? Int) ?? (call.arguments as? Int) ?? 0
       Self.setBadge(PushBadges.set(count, account: (args?["account"] as? String) ?? ""))
       result(nil)
+    case "accountBadges":
+      // Последние непрочитанные каждого аккаунта — счётчики неактивных в
+      // списке аккаунтов.
+      result(PushBadges.all())
     case "isInBackground":
       // Фоновый запуск системой (VoIP / тихий пуш): Dart не ставит presence
       // online (Subscribe{background}). См. PushManager.isLaunchedInBackground.

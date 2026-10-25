@@ -224,7 +224,8 @@ enum PushBadges {
     return badges.values.reduce(0, +)
   }
 
-  private static func all() -> [String: Int] {
+  /// Последние непрочитанные каждого аккаунта (список аккаунтов в Dart).
+  static func all() -> [String: Int] {
     (defaults?.dictionary(forKey: key) as? [String: Int]) ?? [:]
   }
 }

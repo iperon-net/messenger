@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../i18n/translations.g.dart';
 import '../../components.dart';
 import '../../cubit.dart';
+import '../settings/settings_accounts_material.dart';
 
 class HomeMaterial extends StatefulWidget {
   const HomeMaterial({super.key, required this.navigationShell});
@@ -55,25 +56,40 @@ class _HomeMaterialState extends State<HomeMaterial> {
       builder: (context, state) {
         return Scaffold(
           body: widget.navigationShell,
-          bottomNavigationBar: NavigationBar(
-            selectedIndex: widget.navigationShell.currentIndex,
-            onDestinationSelected: _onTap,
-            destinations: <NavigationDestination>[
-              NavigationDestination(
-                icon: const HugeIcon(icon: HugeIcons.strokeRoundedUserCircle, size: 24.0, strokeWidth: 2),
-                selectedIcon: const HugeIcon(icon: HugeIcons.strokeRoundedUserCircle, size: 24.0, strokeWidth: 2),
-                label: context.t.screenHome.contacts,
+          // Долгий тап по «Настройкам» — быстрый выбор аккаунта (как в
+          // Telegram); обычный тап проходит к панели.
+          bottomNavigationBar: Stack(
+            children: [
+              NavigationBar(
+                selectedIndex: widget.navigationShell.currentIndex,
+                onDestinationSelected: _onTap,
+                destinations: <NavigationDestination>[
+                  NavigationDestination(
+                    icon: const HugeIcon(icon: HugeIcons.strokeRoundedUserCircle, size: 24.0, strokeWidth: 2),
+                    selectedIcon: const HugeIcon(icon: HugeIcons.strokeRoundedUserCircle, size: 24.0, strokeWidth: 2),
+                    label: context.t.screenHome.contacts,
+                  ),
+                  NavigationDestination(
+                    icon: const HugeIcon(icon: HugeIcons.strokeRoundedCall02, size: 24.0, strokeWidth: 2),
+                    selectedIcon: const HugeIcon(icon: HugeIcons.strokeRoundedCall02, size: 24.0, strokeWidth: 2),
+                    label: context.t.screenHome.calls,
+                  ),
+                  NavigationDestination(icon: const _ChatsIcon(), selectedIcon: const _ChatsIcon(), label: context.t.screenHome.chats),
+                  NavigationDestination(
+                    icon: const HugeIcon(icon: HugeIcons.strokeRoundedSettings01, size: 24.0, strokeWidth: 2),
+                    selectedIcon: const HugeIcon(icon: HugeIcons.strokeRoundedSettings01, size: 24.0, strokeWidth: 2),
+                    label: context.t.screenHome.settings,
+                    // Подсказку по долгому тапу заменяет выбор аккаунта.
+                    tooltip: '',
+                  ),
+                ],
               ),
-              NavigationDestination(
-                icon: const HugeIcon(icon: HugeIcons.strokeRoundedCall02, size: 24.0, strokeWidth: 2),
-                selectedIcon: const HugeIcon(icon: HugeIcons.strokeRoundedCall02, size: 24.0, strokeWidth: 2),
-                label: context.t.screenHome.calls,
-              ),
-              NavigationDestination(icon: const _ChatsIcon(), selectedIcon: const _ChatsIcon(), label: context.t.screenHome.chats),
-              NavigationDestination(
-                icon: const HugeIcon(icon: HugeIcons.strokeRoundedSettings01, size: 24.0, strokeWidth: 2),
-                selectedIcon: const HugeIcon(icon: HugeIcons.strokeRoundedSettings01, size: 24.0, strokeWidth: 2),
-                label: context.t.screenHome.settings,
+              Positioned(
+                top: 0,
+                bottom: 0,
+                right: 0,
+                width: MediaQuery.sizeOf(context).width / 4,
+                child: GestureDetector(behavior: HitTestBehavior.translucent, onLongPress: () => showAccountSwitcherMaterial(context)),
               ),
             ],
           ),

@@ -388,7 +388,9 @@ class ChatsSync implements AccountService {
   }
 
   void _setBadge(int count, {bool force = false}) {
-    if (!Platform.isIOS || (!force && _badge == count)) return;
+    // На Android число на иконке рисует лаунчер — натив лишь запоминает его
+    // для списка аккаунтов (PushManager.setBadge).
+    if (!force && _badge == count) return;
     _badge = count;
     unawaited(PushManager.setBadge(count));
   }
