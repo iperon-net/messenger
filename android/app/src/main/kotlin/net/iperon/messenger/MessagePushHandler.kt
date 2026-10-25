@@ -98,14 +98,21 @@ object MessagePushHandler {
 
         // Приложение на экране — событие придёт по стриму, системное уведомление
         // не нужно (сервер такие сессии обычно и не будит — presence; это страховка
-        // на гонку APP_STATE). Тестовое показываем всегда: его шлют нажатием в
-        // открытом приложении.
-        if (MainActivity.isForeground && payload.kind != PushPayload.KIND_TEST) {
+        // на гонку APP_STATE). Только для активного аккаунта: у остальных стрима
+        // нет, их уведомления показываем и на переднем плане. Тестовое — всегда:
+        // его шлют нажатием в открытом приложении.
+        if (MainActivity.isForeground && payload.kind != PushPayload.KIND_TEST && isActiveAccount(payload.account)) {
             Log.i(LOG_TAG, "push: app in foreground, kind=${payload.kind} not shown")
             return
         }
 
         show(context, payload)
+    }
+
+    /// Пуш активного аккаунта (или неизвестно чей / Dart ещё не сообщил активный).
+    private fun isActiveAccount(account: String): Boolean {
+        val active = PushChannel.activeAccount
+        return active == null || account.isEmpty() || account == active
     }
 
     private fun show(context: Context, received: PushPayload) {

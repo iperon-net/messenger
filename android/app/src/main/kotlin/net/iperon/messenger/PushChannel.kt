@@ -32,6 +32,13 @@ object PushChannel {
     // Dart-сторона готова (вызвала takeInitialTap). Живёт на процесс, как и движок.
     private var dartReady = false
 
+    /// Активный аккаунт (accountID слота) — от Dart; `null` — ещё не сообщил.
+    /// На переднем плане не показываем уведомления только его: остальные
+    /// аккаунты стрим не держат ([MessagePushHandler.handle]).
+    @Volatile
+    var activeAccount: String? = null
+        private set
+
     // Тап холодного старта, ещё не забранный Dart.
     private var pendingTap: Map<String, Any>? = null
 
@@ -114,6 +121,10 @@ object PushChannel {
                 // Непрочитанные активного аккаунта (Dart, по списку чатов):
                 // число на иконке рисует лаунчер, здесь только запоминаем —
                 // для списка аккаунтов, когда он станет неактивным.
+                "setActiveAccount" -> {
+                    activeAccount = call.argument<String>("account").orEmpty()
+                    result.success(null)
+                }
                 "setBadge" -> {
                     PushBadges.set(app, call.argument<String>("account").orEmpty(), call.argument<Number>("count")?.toInt() ?: 0)
                     result.success(null)

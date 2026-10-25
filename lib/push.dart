@@ -140,6 +140,7 @@ class PushManager {
 
       if (_hasNativePush) {
         _channel.setMethodCallHandler(_onNativeCall);
+        unawaited(_setActiveAccount());
         unawaited(setPasscodeEnabled(passcodeEnabled));
         // Локально скрытые профили: их пуши натив показывает без имени и текста.
         _hiddenSub = repositories.hiddenProfiles.changes.listen((_) {
@@ -175,6 +176,17 @@ class PushManager {
     }
 
     await Future.wait([syncTokens(), _syncPushKey()]);
+  }
+
+  /// Активный аккаунт — нативу: на переднем плане он не показывает уведомления
+  /// только этого аккаунта (его события приходят по стриму), пуши остальных
+  /// аккаунтов показывает как обычно.
+  Future<void> _setActiveAccount() async {
+    try {
+      await _channel.invokeMethod<void>('setActiveAccount', {'account': _account});
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
   }
 
   /// Синхронизирует push-токены уведомлений текущей платформы: FCM на Android,

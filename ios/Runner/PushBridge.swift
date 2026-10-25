@@ -102,6 +102,9 @@ final class PushBridge {
       let count = (args?["count"] as? Int) ?? (call.arguments as? Int) ?? 0
       Self.setBadge(PushBadges.set(count, account: (args?["account"] as? String) ?? ""))
       result(nil)
+    case "setActiveAccount":
+      Self.activeAccount = ((call.arguments as? [String: Any])?["account"] as? String) ?? ""
+      result(nil)
     case "accountBadges":
       // Последние непрочитанные каждого аккаунта — счётчики неактивных в
       // списке аккаунтов.
@@ -133,8 +136,16 @@ final class PushBridge {
   /// страховка на гонку APP_STATE). Тестовое показываем всегда: его шлют
   /// нажатием в открытом приложении. Kind кладёт NSE после расшифровки.
   static func foregroundOptions(_ userInfo: [AnyHashable: Any]) -> UNNotificationPresentationOptions {
-    kind(userInfo) == kindTest ? [.banner, .list, .sound] : []
+    if kind(userInfo) == kindTest { return [.banner, .list, .sound] }
+    // Другой аккаунт: стрима у него нет, на переднем плане показываем как обычно.
+    let account = (userInfo["account"] as? String) ?? ""
+    if let active = activeAccount, !account.isEmpty, account != active { return [.banner, .list, .sound] }
+    return []
   }
+
+  /// Активный аккаунт (accountID слота) — от Dart (`setActiveAccount`); nil —
+  /// ещё не сообщил. На переднем плане скрываем уведомления только его.
+  private static var activeAccount: String?
 
   /// Тихий background-пуш конвейера (READ_HISTORY / MESSAGE_DELETED, без
   /// `aps.alert`): расшифровываем `p` и снимаем показанные уведомления чата.
