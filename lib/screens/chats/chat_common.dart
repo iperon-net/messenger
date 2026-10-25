@@ -11,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart' as m;
 import 'package:path/path.dart' as p;
 
+import '../../split_layout.dart';
 import '../../chats/channel_rights.dart';
 import '../../chats/chats_remote_data_source.dart';
 import '../../chats/chats_sync.dart';
@@ -383,7 +384,7 @@ Future<void> _openForwardChannel(BuildContext context, models.MessageForward for
   final at = forward.messageID.isEmpty ? '' : '?message=${forward.messageID}';
   final chat = chats.where((c) => c.id == forward.chatID).firstOrNull;
   if (chat != null && (chat.isMember || chat.browsing)) {
-    await context.push('/chats/chat/${forward.chatID}$at');
+    await openChat(context, '/chats/chat/${forward.chatID}$at');
     return;
   }
   if (forward.username.isEmpty) {
@@ -409,7 +410,7 @@ Future<void> _openForwardChannel(BuildContext context, models.MessageForward for
     return;
   }
   // Имя могло перейти к другому каналу — тогда без прокрутки к посту.
-  await context.push('/chats/chat/$chatID${chatID == forward.chatID ? at : ''}');
+  await openChat(context, '/chats/chat/$chatID${chatID == forward.chatID ? at : ''}');
 }
 
 /// Показывает [showChatsNoConnection], когда cubit сообщает о действии без
@@ -613,7 +614,7 @@ Future<void> openPrivateChatWith(BuildContext context, String userID) async {
     if (context.mounted) showChatsFlood(context, error.seconds);
     return;
   }
-  if (chatID.isNotEmpty && context.mounted) await context.push('/chats/chat/$chatID');
+  if (chatID.isNotEmpty && context.mounted) await openChat(context, '/chats/chat/$chatID');
 }
 
 /// Кнопка внизу, когда писать нельзя: подпись (`null` — «Звук» канала) и
@@ -666,7 +667,7 @@ Future<bool> openIperonLink(BuildContext context, Uri uri) async {
   }
   if (!context.mounted) return true;
   if (chatID.isNotEmpty) {
-    await context.push('/chats/chat/$chatID');
+    await openChat(context, '/chats/chat/$chatID');
     return true;
   }
   await _showNotice(context, username ? context.t.screenChat.userNotFound : context.t.screenChat.linkInvalid);

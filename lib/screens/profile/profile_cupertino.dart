@@ -4,6 +4,7 @@ import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../split_layout.dart';
 import '../../chats/media_prepare.dart' show thumbhashImage;
 import '../../components.dart';
 import '../../cubit.dart';
@@ -540,7 +541,7 @@ class _ProfileViewState extends State<_ProfileView> {
                     style: style,
                     // Из окна чата — назад к сообщению, иначе — открыть чат.
                     onOpenMessage: (id) =>
-                        widget.fromChat ? Navigator.of(context).pop(ChatInfoResult.goTo(id)) : context.push('/chats/chat/${chat.id}'),
+                        widget.fromChat ? Navigator.of(context).pop(ChatInfoResult.goTo(id)) : openChat(context, '/chats/chat/${chat.id}'),
                   ),
                 ),
               ),

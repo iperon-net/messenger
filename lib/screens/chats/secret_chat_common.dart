@@ -4,9 +4,9 @@ import 'package:cupertino_ui/cupertino_ui.dart' as c;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart' as m;
 
+import '../../split_layout.dart';
 import '../../auth.dart';
 import '../../chats/chats_sync.dart' show ChatsOfflineException, ChatsFloodException;
 import '../../chats/secret/secret_chats_list.dart';
@@ -52,7 +52,7 @@ Future<void> startSecretChat(BuildContext context, List<int> peerUserID) async {
   String error;
   try {
     final chatID = await SecretChatsSync.instance.create(peerUserID);
-    if (context.mounted) await context.push('/chats/secret/${getIt.get<Utils>().bytesToHex(chatID)}');
+    if (context.mounted) await openChat(context, '/chats/secret/${getIt.get<Utils>().bytesToHex(chatID)}');
     return;
   } on ChatsOfflineException {
     error = t.common.noConnectionTitle;

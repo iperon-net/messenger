@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../split_layout.dart';
 import '../../chats/chats_mapping.dart';
 import '../../chats/reactions.dart';
 import '../../chats/slow_mode.dart';
@@ -303,7 +304,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
         final chatID = await cubit.privateChatWith(member);
         if (chatID != null && chatID.isNotEmpty && context.mounted) {
           // Поверх профиля / сообщества — «назад» вернёт туда.
-          await context.push('/chats/chat/$chatID');
+          await openChat(context, '/chats/chat/$chatID');
         }
       case 'admin':
         await showChatAdminRightsMaterial(context, cubit, member);
