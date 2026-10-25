@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../components/readable_width.dart';
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../di.dart';
@@ -45,49 +46,51 @@ class _AuthCallpasswordConfirmationCupertino extends State<AuthCallpasswordConfi
       builder: (context, state) {
         return CupertinoPageScaffold(
           navigationBar: AppCupertinoNavigationBar(child: CupertinoNavigationBar()),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(25, 10, 25, 50),
-              child: Column(
-                spacing: 20,
-                children: [
-                  SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SizedBox(height: 30, width: double.infinity),
-                        SvgPicture.asset(
-                          CupertinoTheme.brightnessOf(context) == Brightness.light
-                              ? 'assets/images/logo_light.svg'
-                              : 'assets/images/logo_dark.svg',
-                        ),
-                        SizedBox(height: 30, width: double.infinity),
-                        Text(
-                          context.t.screenAuthCallpasswordConfirmation.confirmYourNumberDetail(
-                            confirmationPhoneNumberRu: utils.phoneNormalization(phoneNumber: state.confirmationPhoneNumber).international,
+          child: ReadableWidth(
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(25, 10, 25, 50),
+                child: Column(
+                  spacing: 20,
+                  children: [
+                    SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(height: 30, width: double.infinity),
+                          SvgPicture.asset(
+                            CupertinoTheme.brightnessOf(context) == Brightness.light
+                                ? 'assets/images/logo_light.svg'
+                                : 'assets/images/logo_dark.svg',
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: 30, width: double.infinity),
-                        Text(
-                          context.t.screenAuthCallpasswordConfirmation.weAreExpectingYourCallWithin(
-                            duration: utils.formatDuration(Duration(seconds: state.tickerSecond)),
+                          SizedBox(height: 30, width: double.infinity),
+                          Text(
+                            context.t.screenAuthCallpasswordConfirmation.confirmYourNumberDetail(
+                              confirmationPhoneNumberRu: utils.phoneNormalization(phoneNumber: state.confirmationPhoneNumber).international,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: 50, width: double.infinity),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: CupertinoButton.filled(
-                            onPressed: () async => await utils.makePhoneCall(state.confirmationPhoneNumber),
-                            child: Text(context.t.screenAuthCallpasswordConfirmation.callForFree),
+                          SizedBox(height: 30, width: double.infinity),
+                          Text(
+                            context.t.screenAuthCallpasswordConfirmation.weAreExpectingYourCallWithin(
+                              duration: utils.formatDuration(Duration(seconds: state.tickerSecond)),
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                        ),
-                      ],
+                          SizedBox(height: 50, width: double.infinity),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: CupertinoButton.filled(
+                              onPressed: () async => await utils.makePhoneCall(state.confirmationPhoneNumber),
+                              child: Text(context.t.screenAuthCallpasswordConfirmation.callForFree),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

@@ -10,6 +10,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messenger/utils.dart';
 
+import '../../components/readable_width.dart';
 import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
@@ -136,135 +137,137 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
               : null,
           child: Form(
             key: formKey,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(25, 10, 25, 50),
-                child: Column(
-                  spacing: 20,
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            SizedBox(height: 30, width: double.infinity),
-                            SvgPicture.asset(
-                              CupertinoTheme.brightnessOf(context) == Brightness.light
-                                  ? 'assets/images/logo_light.svg'
-                                  : 'assets/images/logo_dark.svg',
-                            ),
-                            SizedBox(height: 30, width: double.infinity),
-                            Container(
-                              padding: const EdgeInsets.fromLTRB(0, 1, 0, 1),
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  top: BorderSide(
-                                    color: const CupertinoDynamicColor.withBrightness(
-                                      color: Color(0x1F000000),
-                                      darkColor: Color(0x3DFFFFFF),
-                                    ).resolveFrom(context),
-                                  ),
-                                  bottom: BorderSide(
-                                    color: const CupertinoDynamicColor.withBrightness(
-                                      color: Color(0x1F000000),
-                                      darkColor: Color(0x3DFFFFFF),
-                                    ).resolveFrom(context),
+            child: ReadableWidth(
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(25, 10, 25, 50),
+                  child: Column(
+                    spacing: 20,
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              SizedBox(height: 30, width: double.infinity),
+                              SvgPicture.asset(
+                                CupertinoTheme.brightnessOf(context) == Brightness.light
+                                    ? 'assets/images/logo_light.svg'
+                                    : 'assets/images/logo_dark.svg',
+                              ),
+                              SizedBox(height: 30, width: double.infinity),
+                              Container(
+                                padding: const EdgeInsets.fromLTRB(0, 1, 0, 1),
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    top: BorderSide(
+                                      color: const CupertinoDynamicColor.withBrightness(
+                                        color: Color(0x1F000000),
+                                        darkColor: Color(0x3DFFFFFF),
+                                      ).resolveFrom(context),
+                                    ),
+                                    bottom: BorderSide(
+                                      color: const CupertinoDynamicColor.withBrightness(
+                                        color: Color(0x1F000000),
+                                        darkColor: Color(0x3DFFFFFF),
+                                      ).resolveFrom(context),
+                                    ),
                                   ),
                                 ),
+                                child: CupertinoTextFormFieldRow(
+                                  controller: phoneNumberController,
+                                  focusNode: phoneNumberFocus,
+                                  autocorrect: true,
+                                  keyboardType: TextInputType.phone,
+                                  prefix: Padding(padding: EdgeInsets.fromLTRB(0, 0, 10, 0), child: Icon(CupertinoIcons.phone)),
+                                  inputFormatters: [PhoneInputFormatter()],
+                                  autofillHints: const [AutofillHints.telephoneNumber],
+                                  placeholder: context.t.common.mobilePhone,
+                                  validator: (value) {
+                                    final error = switch (context.read<AuthCubit>().validatePhoneNumber(value)) {
+                                      PhoneValidationError.empty => context.t.screenAuth.enterYourMobilePhoneNumber,
+                                      PhoneValidationError.notAllowRegion =>
+                                        context.t.screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators,
+                                      null => null,
+                                    };
+                                    return error ?? serverError;
+                                  },
+                                ),
                               ),
-                              child: CupertinoTextFormFieldRow(
-                                controller: phoneNumberController,
-                                focusNode: phoneNumberFocus,
-                                autocorrect: true,
-                                keyboardType: TextInputType.phone,
-                                prefix: Padding(padding: EdgeInsets.fromLTRB(0, 0, 10, 0), child: Icon(CupertinoIcons.phone)),
-                                inputFormatters: [PhoneInputFormatter()],
-                                autofillHints: const [AutofillHints.telephoneNumber],
-                                placeholder: context.t.common.mobilePhone,
-                                validator: (value) {
-                                  final error = switch (context.read<AuthCubit>().validatePhoneNumber(value)) {
-                                    PhoneValidationError.empty => context.t.screenAuth.enterYourMobilePhoneNumber,
-                                    PhoneValidationError.notAllowRegion =>
-                                      context.t.screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators,
-                                    null => null,
-                                  };
-                                  return error ?? serverError;
-                                },
-                              ),
-                            ),
 
-                            if (kDebugMode) ...[
-                              SizedBox(height: 30),
-                              FilledButton.tonal(
-                                child: Text(t.screenAuth.insertDebugPhone),
-                                onPressed: () {
-                                  phoneNumberController.text = utils
-                                      .phoneNormalization(phoneNumber: settings.phoneNumberModerationApplicationStore)
-                                      .international;
-                                },
-                              ),
+                              if (kDebugMode) ...[
+                                SizedBox(height: 30),
+                                FilledButton.tonal(
+                                  child: Text(t.screenAuth.insertDebugPhone),
+                                  onPressed: () {
+                                    phoneNumberController.text = utils
+                                        .phoneNormalization(phoneNumber: settings.phoneNumberModerationApplicationStore)
+                                        .international;
+                                  },
+                                ),
+                              ],
                             ],
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width,
-                      child: CupertinoButton.filled(
-                        disabledColor: Color.fromARGB(255, 56, 96, 143),
-                        onPressed: [Status.success, Status.initialization].contains(state.status)
-                            ? () async {
-                                serverError = null;
-                                if (formKey.currentState!.validate()) {
-                                  await context.read<AuthCubit>().onPressed(phoneNumberController.text);
-                                }
-                              }
-                            : null,
-                        child: [Status.success, Status.initialization].contains(state.status)
-                            ? Text(context.t.screenAuth.kContinue)
-                            : CupertinoActivityIndicator(color: Color(0xffffffff)),
-                      ),
-                    ),
-                    DividerTextWidget(text: context.t.screenAuth.signInWith),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 30,
-                      children: [
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: signInBusy != null ? null : () => _onSignIn(_SignInProvider.yandex),
-                          child: SizedBox(
-                            width: 42,
-                            height: 42,
-                            child: signInBusy == _SignInProvider.yandex
-                                ? Container(
-                                    decoration: BoxDecoration(color: const Color(0xFFFC3F1D), borderRadius: BorderRadius.circular(8)),
-                                    child: const Center(child: CupertinoActivityIndicator(color: Color(0xffffffff))),
-                                  )
-                                : SvgPicture.asset('assets/images/yandex_id.svg', width: 42, height: 42),
                           ),
                         ),
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: signInBusy != null ? null : () => _onSignIn(_SignInProvider.passkey),
-                          child: Container(
-                            width: 42,
-                            height: 42,
-                            decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(8)),
-                            child: Center(
-                              child: signInBusy == _SignInProvider.passkey
-                                  ? const CupertinoActivityIndicator(color: Color(0xffffffff))
-                                  : SvgPicture.asset(
-                                      'assets/icons/passkey.svg',
-                                      width: 28,
-                                      theme: const SvgTheme(currentColor: Colors.white),
-                                    ),
+                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: CupertinoButton.filled(
+                          disabledColor: Color.fromARGB(255, 56, 96, 143),
+                          onPressed: [Status.success, Status.initialization].contains(state.status)
+                              ? () async {
+                                  serverError = null;
+                                  if (formKey.currentState!.validate()) {
+                                    await context.read<AuthCubit>().onPressed(phoneNumberController.text);
+                                  }
+                                }
+                              : null,
+                          child: [Status.success, Status.initialization].contains(state.status)
+                              ? Text(context.t.screenAuth.kContinue)
+                              : CupertinoActivityIndicator(color: Color(0xffffffff)),
+                        ),
+                      ),
+                      DividerTextWidget(text: context.t.screenAuth.signInWith),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        spacing: 30,
+                        children: [
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: signInBusy != null ? null : () => _onSignIn(_SignInProvider.yandex),
+                            child: SizedBox(
+                              width: 42,
+                              height: 42,
+                              child: signInBusy == _SignInProvider.yandex
+                                  ? Container(
+                                      decoration: BoxDecoration(color: const Color(0xFFFC3F1D), borderRadius: BorderRadius.circular(8)),
+                                      child: const Center(child: CupertinoActivityIndicator(color: Color(0xffffffff))),
+                                    )
+                                  : SvgPicture.asset('assets/images/yandex_id.svg', width: 42, height: 42),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: signInBusy != null ? null : () => _onSignIn(_SignInProvider.passkey),
+                            child: Container(
+                              width: 42,
+                              height: 42,
+                              decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(8)),
+                              child: Center(
+                                child: signInBusy == _SignInProvider.passkey
+                                    ? const CupertinoActivityIndicator(color: Color(0xffffffff))
+                                    : SvgPicture.asset(
+                                        'assets/icons/passkey.svg',
+                                        width: 28,
+                                        theme: const SvgTheme(currentColor: Colors.white),
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

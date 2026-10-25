@@ -9,6 +9,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:messenger/utils.dart';
 
+import '../../components/readable_width.dart';
 import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
@@ -125,142 +126,144 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
               : null,
           body: Form(
             key: formKey,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(25, 10, 25, 50),
-                child: Column(
-                  spacing: 20,
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const SizedBox(height: 30, width: double.infinity),
-                            SvgPicture.asset(
-                              Theme.of(context).brightness == Brightness.light
-                                  ? 'assets/images/logo_light.svg'
-                                  : 'assets/images/logo_dark.svg',
-                            ),
-                            const SizedBox(height: 30, width: double.infinity),
-                            TextFormField(
-                              controller: phoneNumberController,
-                              focusNode: phoneNumberFocus,
-                              autocorrect: true,
-                              keyboardType: TextInputType.phone,
-                              keyboardAppearance: Theme.of(context).brightness,
-                              inputFormatters: [PhoneInputFormatter()],
-                              autofillHints: const [AutofillHints.telephoneNumber],
-                              decoration: InputDecoration(
-                                errorMaxLines: 2,
-                                prefixIcon: const Icon(Icons.phone),
-                                labelText: context.t.common.mobilePhone,
-                                floatingLabelBehavior: FloatingLabelBehavior.always,
-                                border: const OutlineInputBorder(),
+            child: ReadableWidth(
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(25, 10, 25, 50),
+                  child: Column(
+                    spacing: 20,
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              const SizedBox(height: 30, width: double.infinity),
+                              SvgPicture.asset(
+                                Theme.of(context).brightness == Brightness.light
+                                    ? 'assets/images/logo_light.svg'
+                                    : 'assets/images/logo_dark.svg',
                               ),
-                              validator: (value) {
-                                final error = switch (context.read<AuthCubit>().validatePhoneNumber(value)) {
-                                  PhoneValidationError.empty => context.t.screenAuth.enterYourMobilePhoneNumber,
-                                  PhoneValidationError.notAllowRegion =>
-                                    context.t.screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators,
-                                  null => null,
-                                };
-                                return error ?? serverError;
-                              },
-                            ),
-
-                            if (kDebugMode) ...[
-                              const SizedBox(height: 30),
-                              FilledButton.tonal(
-                                child: Text(t.screenAuth.insertDebugPhone),
-                                onPressed: () {
-                                  phoneNumberController.text = utils
-                                      .phoneNormalization(phoneNumber: settings.phoneNumberModerationApplicationStore)
-                                      .international;
+                              const SizedBox(height: 30, width: double.infinity),
+                              TextFormField(
+                                controller: phoneNumberController,
+                                focusNode: phoneNumberFocus,
+                                autocorrect: true,
+                                keyboardType: TextInputType.phone,
+                                keyboardAppearance: Theme.of(context).brightness,
+                                inputFormatters: [PhoneInputFormatter()],
+                                autofillHints: const [AutofillHints.telephoneNumber],
+                                decoration: InputDecoration(
+                                  errorMaxLines: 2,
+                                  prefixIcon: const Icon(Icons.phone),
+                                  labelText: context.t.common.mobilePhone,
+                                  floatingLabelBehavior: FloatingLabelBehavior.always,
+                                  border: const OutlineInputBorder(),
+                                ),
+                                validator: (value) {
+                                  final error = switch (context.read<AuthCubit>().validatePhoneNumber(value)) {
+                                    PhoneValidationError.empty => context.t.screenAuth.enterYourMobilePhoneNumber,
+                                    PhoneValidationError.notAllowRegion =>
+                                      context.t.screenAuth.currentlyWeOnlySupportPhoneNumbersFromRussianMobileOperators,
+                                    null => null,
+                                  };
+                                  return error ?? serverError;
                                 },
                               ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).brightness == Brightness.dark ? Color.fromARGB(255, 56, 96, 143) : null,
 
-                          // null = дефолт темы для светлой
-                          // foregroundColor: ... // при необходимости цвет текста/иконки
+                              if (kDebugMode) ...[
+                                const SizedBox(height: 30),
+                                FilledButton.tonal(
+                                  child: Text(t.screenAuth.insertDebugPhone),
+                                  onPressed: () {
+                                    phoneNumberController.text = utils
+                                        .phoneNormalization(phoneNumber: settings.phoneNumberModerationApplicationStore)
+                                        .international;
+                                  },
+                                ),
+                              ],
+                            ],
+                          ),
                         ),
-                        onPressed: isReady
-                            ? () async {
-                                serverError = null;
-                                if (formKey.currentState!.validate()) {
-                                  await context.read<AuthCubit>().onPressed(phoneNumberController.text);
-                                }
-                              }
-                            : null,
-                        child: isReady
-                            ? Text(context.t.screenAuth.kContinue)
-                            : const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xffffffff)),
-                              ),
                       ),
-                    ),
-                    DividerTextWidget(text: context.t.screenAuth.signInWith),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 30,
-                      children: [
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: signInBusy != null ? null : () => _onSignIn(_SignInProvider.yandex),
-                          child: SizedBox(
-                            width: 42,
-                            height: 42,
-                            child: signInBusy == _SignInProvider.yandex
-                                ? Container(
-                                    decoration: BoxDecoration(color: const Color(0xFFFC3F1D), borderRadius: BorderRadius.circular(8)),
-                                    child: const Center(
-                                      child: SizedBox(
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).brightness == Brightness.dark ? Color.fromARGB(255, 56, 96, 143) : null,
+
+                            // null = дефолт темы для светлой
+                            // foregroundColor: ... // при необходимости цвет текста/иконки
+                          ),
+                          onPressed: isReady
+                              ? () async {
+                                  serverError = null;
+                                  if (formKey.currentState!.validate()) {
+                                    await context.read<AuthCubit>().onPressed(phoneNumberController.text);
+                                  }
+                                }
+                              : null,
+                          child: isReady
+                              ? Text(context.t.screenAuth.kContinue)
+                              : const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xffffffff)),
+                                ),
+                        ),
+                      ),
+                      DividerTextWidget(text: context.t.screenAuth.signInWith),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        spacing: 30,
+                        children: [
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: signInBusy != null ? null : () => _onSignIn(_SignInProvider.yandex),
+                            child: SizedBox(
+                              width: 42,
+                              height: 42,
+                              child: signInBusy == _SignInProvider.yandex
+                                  ? Container(
+                                      decoration: BoxDecoration(color: const Color(0xFFFC3F1D), borderRadius: BorderRadius.circular(8)),
+                                      child: const Center(
+                                        child: SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xffffffff)),
+                                        ),
+                                      ),
+                                    )
+                                  : SvgPicture.asset('assets/images/yandex_id.svg', width: 42, height: 42),
+                            ),
+                          ),
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: signInBusy != null ? null : () => _onSignIn(_SignInProvider.passkey),
+                            child: Container(
+                              width: 42,
+                              height: 42,
+                              decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(8)),
+                              child: Center(
+                                child: signInBusy == _SignInProvider.passkey
+                                    ? const SizedBox(
                                         width: 20,
                                         height: 20,
                                         child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xffffffff)),
+                                      )
+                                    : SvgPicture.asset(
+                                        'assets/icons/passkey.svg',
+                                        width: 28,
+                                        theme: const SvgTheme(currentColor: Colors.white),
                                       ),
-                                    ),
-                                  )
-                                : SvgPicture.asset('assets/images/yandex_id.svg', width: 42, height: 42),
-                          ),
-                        ),
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: signInBusy != null ? null : () => _onSignIn(_SignInProvider.passkey),
-                          child: Container(
-                            width: 42,
-                            height: 42,
-                            decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(8)),
-                            child: Center(
-                              child: signInBusy == _SignInProvider.passkey
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xffffffff)),
-                                    )
-                                  : SvgPicture.asset(
-                                      'assets/icons/passkey.svg',
-                                      width: 28,
-                                      theme: const SvgTheme(currentColor: Colors.white),
-                                    ),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

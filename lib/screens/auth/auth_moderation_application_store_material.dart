@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
+import '../../components/readable_width.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -52,69 +53,74 @@ class _AuthModerationApplicationStoreMaterial extends State<AuthModerationApplic
           backgroundColor: Theme.of(context).brightness == Brightness.light ? Colors.white : Color(0xFF1B263B),
           body: Form(
             key: formKey,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(25, 10, 25, 50),
-                child: Column(
-                  spacing: 20,
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const SizedBox(height: 30, width: double.infinity),
-                            SvgPicture.asset(isDark ? 'assets/images/logo_dark.svg' : 'assets/images/logo_light.svg'),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 30, left: 30, right: 30),
-                              child: Text(
-                                context.t.screenAuthModerationApplicationStore.enterTheCode,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppFontSizes.emphasis),
+            child: ReadableWidth(
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(25, 10, 25, 50),
+                  child: Column(
+                    spacing: 20,
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              const SizedBox(height: 30, width: double.infinity),
+                              SvgPicture.asset(isDark ? 'assets/images/logo_dark.svg' : 'assets/images/logo_light.svg'),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 30, left: 30, right: 30),
+                                child: Text(
+                                  context.t.screenAuthModerationApplicationStore.enterTheCode,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppFontSizes.emphasis),
+                                ),
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 10, left: 30, right: 30, bottom: 30),
-                              child: Text(
-                                context.t.screenAuthModerationApplicationStore.sentConfirmationCodeToNumber(phoneNumber: state.phoneNumber),
-                                textAlign: TextAlign.center,
+                              Padding(
+                                padding: const EdgeInsets.only(top: 10, left: 30, right: 30, bottom: 30),
+                                child: Text(
+                                  context.t.screenAuthModerationApplicationStore.sentConfirmationCodeToNumber(
+                                    phoneNumber: state.phoneNumber,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
-                            ),
-                            MaterialPinField(
-                              length: 4,
-                              pinController: pinInputController,
-                              onCompleted: (verificationCode) async =>
-                                  await context.read<AuthModerationApplicationStoreCubit>().onCompleted(verificationCode: verificationCode),
-                              autoFocus: true,
-                              keyboardAppearance: Theme.of(context).brightness,
-                              theme: MaterialPinTheme(
-                                entryAnimation: MaterialPinAnimation.none,
-                                animateCursor: false,
-                                borderWidth: 1.5,
-                                focusedBorderWidth: 1.5,
-                                spacing: 4,
-                                shape: MaterialPinShape.underlined,
-                                borderRadius: BorderRadius.circular(8),
-                                cursorWidth: 1,
-                                animationDuration: const Duration(milliseconds: 0),
-                                fillColor: fill,
-                                focusedFillColor: fill,
-                                followingFillColor: fill,
-                                completeFillColor: fill,
-                                filledFillColor: filledFill,
-                                filledBorderColor: accent,
-                                focusedBorderColor: accent,
-                                completeBorderColor: accent,
-                                followingBorderColor: accent,
-                                cursorColor: accent,
-                                textStyle: TextStyle(color: accent, fontSize: AppFontSizes.emphasisLarge),
+                              MaterialPinField(
+                                length: 4,
+                                pinController: pinInputController,
+                                onCompleted: (verificationCode) async => await context
+                                    .read<AuthModerationApplicationStoreCubit>()
+                                    .onCompleted(verificationCode: verificationCode),
+                                autoFocus: true,
+                                keyboardAppearance: Theme.of(context).brightness,
+                                theme: MaterialPinTheme(
+                                  entryAnimation: MaterialPinAnimation.none,
+                                  animateCursor: false,
+                                  borderWidth: 1.5,
+                                  focusedBorderWidth: 1.5,
+                                  spacing: 4,
+                                  shape: MaterialPinShape.underlined,
+                                  borderRadius: BorderRadius.circular(8),
+                                  cursorWidth: 1,
+                                  animationDuration: const Duration(milliseconds: 0),
+                                  fillColor: fill,
+                                  focusedFillColor: fill,
+                                  followingFillColor: fill,
+                                  completeFillColor: fill,
+                                  filledFillColor: filledFill,
+                                  filledBorderColor: accent,
+                                  focusedBorderColor: accent,
+                                  completeBorderColor: accent,
+                                  followingBorderColor: accent,
+                                  cursorColor: accent,
+                                  textStyle: TextStyle(color: accent, fontSize: AppFontSizes.emphasisLarge),
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

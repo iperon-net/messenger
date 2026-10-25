@@ -2,6 +2,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../components/readable_width.dart';
 import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
@@ -50,12 +51,14 @@ class _AuthCloudPasswordCupertino extends State<AuthCloudPasswordCupertino> {
               trailing: _trailing(context, state, loading),
             ),
           ),
-          child: SafeArea(
-            child: switch (state.phase) {
-              AuthCloudPasswordPhase.enterEmail => _enterEmail(context, state, loading),
-              AuthCloudPasswordPhase.recovery => _recovery(context, state, loading),
-              AuthCloudPasswordPhase.enterPassword => _enterPassword(context, state, loading),
-            },
+          child: ReadableWidth(
+            child: SafeArea(
+              child: switch (state.phase) {
+                AuthCloudPasswordPhase.enterEmail => _enterEmail(context, state, loading),
+                AuthCloudPasswordPhase.recovery => _recovery(context, state, loading),
+                AuthCloudPasswordPhase.enterPassword => _enterPassword(context, state, loading),
+              },
+            ),
           ),
         );
       },

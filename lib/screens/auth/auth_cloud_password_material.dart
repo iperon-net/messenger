@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../components/readable_width.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -40,12 +41,14 @@ class _AuthCloudPasswordMaterial extends State<AuthCloudPasswordMaterial> {
 
         return Scaffold(
           appBar: AppBar(title: Text(context.t.cloudPassword.title), actions: _actions(context, state, loading)),
-          body: SafeArea(
-            child: switch (state.phase) {
-              AuthCloudPasswordPhase.enterEmail => _enterEmail(context, state, loading),
-              AuthCloudPasswordPhase.recovery => _recovery(context, state, loading),
-              AuthCloudPasswordPhase.enterPassword => _enterPassword(context, state, loading),
-            },
+          body: ReadableWidth(
+            child: SafeArea(
+              child: switch (state.phase) {
+                AuthCloudPasswordPhase.enterEmail => _enterEmail(context, state, loading),
+                AuthCloudPasswordPhase.recovery => _recovery(context, state, loading),
+                AuthCloudPasswordPhase.enterPassword => _enterPassword(context, state, loading),
+              },
+            ),
           ),
         );
       },
