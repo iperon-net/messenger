@@ -194,7 +194,8 @@ class EmojiPanel extends StatelessWidget {
           locale: Locale(locale),
           checkPlatformCompatibility: true,
           emojiViewConfig: EmojiViewConfig(
-            columns: 8,
+            // На телефоне 8, на iPad / планшете — по ширине, а не 8 огромных.
+            columns: math.max(8, MediaQuery.sizeOf(context).width ~/ 50),
             // https://github.com/flutter/flutter/issues/28894 — на iOS глифы мельче.
             emojiSizeMax: 28 * (defaultTargetPlatform == TargetPlatform.iOS ? 1.2 : 1.0),
             backgroundColor: style.background,

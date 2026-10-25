@@ -434,7 +434,8 @@ class ChatInfoTabContent extends StatelessWidget {
 
   Widget _list(String empty, List<Widget> rows) => rows.isEmpty ? _empty(empty) : Column(children: rows);
 
-  /// Фото и видео сеткой по 3, от новых к старым; тап — просмотр.
+  /// Фото и видео сеткой (на телефоне по 3, на iPad / планшете — больше), от
+  /// новых к старым; тап — просмотр.
   Widget _media(BuildContext context) {
     final items = ChatMediaItem.of(messages).reversed.toList();
     if (items.isEmpty) return _empty(context.t.screenChatInfo.emptyMedia);
@@ -442,7 +443,7 @@ class ChatInfoTabContent extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       padding: EdgeInsets.zero,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 2, crossAxisSpacing: 2),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: 140, mainAxisSpacing: 2, crossAxisSpacing: 2),
       itemCount: items.length,
       itemBuilder: (context, i) {
         final item = items[i];
