@@ -100,7 +100,12 @@ class FullSwipeBackRoute<T> extends PageRoute<T> with CupertinoRouteTransitionMi
     // Как в cupertino_ui: drive уже подписан на родителя, CurvedAnimation
     // больше не нужна.
     curve?.dispose();
-    return SlideTransition(position: position, textDirection: Directionality.of(context), transformHitTests: false, child: child);
+    return SlideTransition(
+      position: position,
+      textDirection: Directionality.of(context),
+      transformHitTests: false,
+      child: _RouteSnapshot(animation: secondaryAnimation, child: child),
+    );
   }
 
   static final _parallax = Tween<Offset>(begin: Offset.zero, end: const Offset(-1 / 3, 0));
@@ -275,4 +280,53 @@ class _BackGestureController {
       navigator.didStopUserGesture();
     }
   }
+}
+
+/// Экран под входящим, пока идёт переход (и свайп назад), рисуется снимком:
+/// одна текстура вместо живой страницы в каждом кадре. Первые кадры перехода
+/// приходятся на видеочип, сброшенный на минимальную частоту, пока экран стоял,
+/// — живой список чатов под окном чата в них не укладывался. Сам входящий
+/// экран живой: его содержимое (сообщения) подгружается во время перехода.
+class _RouteSnapshot extends StatefulWidget {
+  final Animation<double> animation;
+  final Widget? child;
+
+  const _RouteSnapshot({required this.animation, required this.child});
+
+  @override
+  State<_RouteSnapshot> createState() => _RouteSnapshotState();
+}
+
+class _RouteSnapshotState extends State<_RouteSnapshot> {
+  final _controller = SnapshotController();
+
+  @override
+  void initState() {
+    super.initState();
+    widget.animation.addStatusListener(_update);
+    _update(widget.animation.status);
+  }
+
+  @override
+  void didUpdateWidget(_RouteSnapshot oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.animation != widget.animation) {
+      oldWidget.animation.removeStatusListener(_update);
+      widget.animation.addStatusListener(_update);
+    }
+    _update(widget.animation.status);
+  }
+
+  void _update(AnimationStatus status) => _controller.allowSnapshotting = status.isAnimating;
+
+  @override
+  void dispose() {
+    widget.animation.removeStatusListener(_update);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      SnapshotWidget(controller: _controller, mode: SnapshotMode.permissive, autoresize: true, child: widget.child);
 }
