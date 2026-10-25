@@ -112,55 +112,102 @@ class _ChatWallpaperState extends State<ChatWallpaper> {
         .catchError((Object _) {});
   }
 
+  /// Плитка узора уже в цвете темы, растром ([_PatternTile]); своя копия
+  /// (clone) — освобождается вместе с виджетом.
+  ui.Image? _tile;
+  _PatternTileKey? _tileKey;
+
+  ui.Image? _tileFor(_PatternTileKey key, PictureInfo picture) {
+    if (_tileKey == key) return _tile;
+    _tile?.dispose();
+    _tileKey = key;
+    return _tile = _PatternTile.of(key, picture)?.clone();
+  }
+
+  @override
+  void dispose() {
+    _tile?.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = ChatWallpaperColors.of(widget.colorIndex, dark: widget.dark, intensity: widget.intensity);
-    final picture = _loaded[chatWallpaperPatternOf(widget.pattern)];
+    final pattern = chatWallpaperPatternOf(widget.pattern);
+    final picture = _loaded[pattern];
+    final key = (pattern: pattern, color: colors.pattern, scale: widget.tileScale, pixelRatio: MediaQuery.devicePixelRatioOf(context));
+    final tile = picture == null ? null : _tileFor(key, picture);
     return DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [colors.top, colors.bottom]),
       ),
-      child: picture == null
+      child: picture == null || tile == null
           ? const SizedBox.expand()
           // Свой слой: лента сообщений над обоями перерисовывается при прокрутке,
           // узор — нет.
           : RepaintBoundary(
               child: CustomPaint(
                 size: Size.infinite,
-                painter: _PatternPainter(picture: picture, color: colors.pattern, scale: widget.tileScale),
+                painter: _PatternPainter(tile: tile, size: picture.size * widget.tileScale),
               ),
             ),
     );
   }
 }
 
-class _PatternPainter extends CustomPainter {
-  final PictureInfo picture;
-  final Color color;
-  final double scale;
+typedef _PatternTileKey = ({String pattern, Color color, double scale, double pixelRatio});
 
-  _PatternPainter({required this.picture, required this.color, required this.scale});
+/// Плитки узора растром: SVG — сотня с лишним штрихов на плитку, а Impeller не
+/// кэширует векторную картинку между кадрами и заново строит каждый штрих на
+/// всех плитках экрана в каждом кадре — переход в чат и прокрутка теряли кадры.
+/// Растр рисуется один раз на узор/цвет/масштаб и дальше это одна текстура.
+abstract final class _PatternTile {
+  static final _cache = <_PatternTileKey, ui.Image>{};
+
+  /// Узоров на экране одновременно немного (чат, превью в «Оформлении»).
+  static const _limit = 8;
+
+  static ui.Image? of(_PatternTileKey key, PictureInfo picture) {
+    final cached = _cache.remove(key);
+    if (cached != null) return _cache[key] = cached;
+
+    final size = picture.size;
+    final width = (size.width * key.scale * key.pixelRatio).round();
+    final height = (size.height * key.scale * key.pixelRatio).round();
+    if (width <= 0 || height <= 0) return null;
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder)..scale(width / size.width, height / size.height);
+    // Узор чёрный — перекрашиваем в цвет темы (с прозрачностью) одним слоем.
+    canvas
+      ..saveLayer(Offset.zero & size, Paint()..colorFilter = ui.ColorFilter.mode(key.color, BlendMode.srcIn))
+      ..drawPicture(picture.picture)
+      ..restore();
+    final recorded = recorder.endRecording();
+    final image = recorded.toImageSync(width, height);
+    recorded.dispose();
+
+    if (_cache.length >= _limit) _cache.remove(_cache.keys.first)?.dispose();
+    return _cache[key] = image;
+  }
+}
+
+class _PatternPainter extends CustomPainter {
+  final ui.Image tile;
+
+  /// Размер плитки в логических пикселях.
+  final Size size;
+
+  _PatternPainter({required this.tile, required this.size});
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final tile = picture.size * scale;
-    if (tile.isEmpty) return;
-    // Узор чёрный — перекрашиваем в цвет темы (с прозрачностью) одним слоем.
-    canvas.saveLayer(Offset.zero & size, Paint()..colorFilter = ui.ColorFilter.mode(color, BlendMode.srcIn));
-    for (var y = 0.0; y < size.height; y += tile.height) {
-      for (var x = 0.0; x < size.width; x += tile.width) {
-        canvas
-          ..save()
-          ..translate(x, y)
-          ..scale(scale)
-          ..drawPicture(picture.picture)
-          ..restore();
-      }
-    }
-    canvas.restore();
+  void paint(Canvas canvas, Size area) {
+    final transform = Matrix4.diagonal3Values(size.width / tile.width, size.height / tile.height, 1);
+    final paint = Paint()
+      ..filterQuality = FilterQuality.low
+      ..shader = ImageShader(tile, TileMode.repeated, TileMode.repeated, transform.storage);
+    canvas.drawRect(Offset.zero & area, paint);
   }
 
   @override
-  bool shouldRepaint(_PatternPainter oldDelegate) =>
-      oldDelegate.picture != picture || oldDelegate.color != color || oldDelegate.scale != scale;
+  bool shouldRepaint(_PatternPainter oldDelegate) => oldDelegate.tile != tile || oldDelegate.size != size;
 }
