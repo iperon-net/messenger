@@ -37,6 +37,22 @@ Future<List<AccountEntry>> signedInAccounts() async {
   ];
 }
 
+/// userID других аккаунтов, уже вошедших на устройстве: сервер не даст войти
+/// в них ещё раз (`AuthConfirmation.signedInUserIDs`).
+Future<List<Uint8List>> signedInUserIDs() async => [
+  for (final slot in await _device.accounts.all())
+    if (slot.userID.isNotEmpty && !slot.active) slot.userID,
+];
+
+/// Уже вошёл ли на устройстве другой аккаунт с номером [phoneNumber] (сравнение
+/// по цифрам): проверка до звонка-пароля, без похода на сервер.
+Future<bool> isPhoneSignedIn(String phoneNumber) async {
+  String digits(String value) => value.replaceAll(RegExp(r'\D'), '');
+  final phone = digits(phoneNumber);
+  if (phone.isEmpty) return false;
+  return (await _device.accounts.all()).any((slot) => slot.userID.isNotEmpty && !slot.active && digits(slot.phoneNumber) == phone);
+}
+
 /// Изменения списка аккаунтов (вход, выход, имя, аватар).
 Stream<void> accountsChanged() => _device.accounts.changes();
 

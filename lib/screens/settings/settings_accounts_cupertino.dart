@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../accounts.dart';
 import '../../di.dart';
@@ -59,12 +60,18 @@ class _SettingsAccountsCupertino extends State<SettingsAccountsCupertino> with S
   Widget build(BuildContext context) {
     return CupertinoListSection.insetGrouped(
       backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+      decoration: BoxDecoration(
+        color: ThemesCupertino.groupedCard.resolveFrom(context),
+        borderRadius: const BorderRadius.all(Radius.circular(10)),
+      ),
       children: [
         for (final account in accounts)
           CupertinoListTile(
             leading: _avatar(account),
             title: Text(account.title),
-            trailing: account.active ? Icon(CupertinoIcons.check_mark, color: CupertinoTheme.of(context).primaryColor) : null,
+            trailing: account.active
+                ? FaIcon(FontAwesomeIcons.solidCircleCheck, size: 18, color: CupertinoTheme.of(context).primaryColor)
+                : null,
             onTap: () => _open(account),
           ),
         CupertinoListTile(

@@ -701,6 +701,7 @@ class AuthConfirmation_Request extends $pb.GeneratedMessage {
     $core.String? appVersion,
     $core.String? appBuildNumber,
     $core.String? deviceId,
+    $core.Iterable<$core.List<$core.int>>? signedInUserIDs,
   }) {
     final result = create();
     if (confirmationSession != null) result.confirmationSession = confirmationSession;
@@ -712,6 +713,7 @@ class AuthConfirmation_Request extends $pb.GeneratedMessage {
     if (appVersion != null) result.appVersion = appVersion;
     if (appBuildNumber != null) result.appBuildNumber = appBuildNumber;
     if (deviceId != null) result.deviceId = deviceId;
+    if (signedInUserIDs != null) result.signedInUserIDs.addAll(signedInUserIDs);
     return result;
   }
 
@@ -733,6 +735,7 @@ class AuthConfirmation_Request extends $pb.GeneratedMessage {
     ..aOS(7, _omitFieldNames ? '' : 'appVersion', protoName: 'appVersion')
     ..aOS(8, _omitFieldNames ? '' : 'appBuildNumber', protoName: 'appBuildNumber')
     ..aOS(9, _omitFieldNames ? '' : 'deviceId', protoName: 'deviceId')
+    ..p<$core.List<$core.int>>(10, _omitFieldNames ? '' : 'signedInUserIDs', $pb.PbFieldType.PY, protoName: 'signedInUserIDs')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -837,6 +840,14 @@ class AuthConfirmation_Request extends $pb.GeneratedMessage {
   $core.bool hasDeviceId() => $_has(8);
   @$pb.TagNumber(9)
   void clearDeviceId() => $_clearField(9);
+
+  /// userID аккаунтов, уже вошедших на этом устройстве (несколько аккаунтов,
+  /// docs/plans/multi-account.md). Если подтверждённый вход — в один из них,
+  /// сервер отказывает (ALREADY_EXISTS, «grpcError.accountAlreadyAdded») ДО
+  /// выпуска сессии: иначе дедуп по deviceId заменил бы сессию того аккаунта.
+  /// Нужен входам без номера на клиенте (ключ доступа, Яндекс ID).
+  @$pb.TagNumber(10)
+  $pb.PbList<$core.List<$core.int>> get signedInUserIDs => $_getList(9);
 }
 
 class AuthConfirmation_Response extends $pb.GeneratedMessage {

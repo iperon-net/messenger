@@ -1238,6 +1238,7 @@ grpcError:
   "unableConnectServer": "Не удалось подключиться к серверу"
   "internalServerError": "Внутренняя ошибка сервера"
   "unknownError": "Unknown error"
+  "accountAlreadyAdded": "Этот аккаунт уже добавлен на устройство"
 
 dateTime:
   "relativeDateTimeToday": "сегодня в {time}"

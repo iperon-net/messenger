@@ -9,6 +9,7 @@ import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
 import 'package:yandex_login_sdk/yandex_login_sdk.dart';
 
+import '../../accounts.dart';
 import '../../api.dart';
 import '../../constants.dart';
 import '../../di.dart';
@@ -64,6 +65,13 @@ class AuthCubit extends Cubit<AuthState> {
     emit(state.copyWith(status: Status.loading, error: null));
 
     final phoneNumberNormalization = utils.phoneNormalization(phoneNumber: phoneNumber);
+
+    // Этот аккаунт уже вошёл на устройстве (другой слот): повторный вход
+    // заменил бы его сессию на сервере.
+    if (await isPhoneSignedIn(phoneNumberNormalization.raw)) {
+      emit(state.copyWith(status: Status.success, error: "grpcError.accountAlreadyAdded"));
+      return;
+    }
 
     // Workflow moderation application store
     final phoneNumberEnable = settings.phoneNumberModerationApplicationStoreEnable;

@@ -1209,6 +1209,7 @@ grpcError:
   "unableConnectServer": "Unable to connect to the server"
   "internalServerError": "Internal server error"
   "unknownError": "Unknown error"
+  "accountAlreadyAdded": "This account is already added on this device"
 
 dateTime:
   "relativeDateTimeToday": "today at {time}"

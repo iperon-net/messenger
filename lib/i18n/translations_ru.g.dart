@@ -1578,6 +1578,7 @@ class _Translations$grpcError$ru extends Translations$grpcError$en {
 	@override String get unableConnectServer => 'Не удалось подключиться к серверу';
 	@override String get internalServerError => 'Внутренняя ошибка сервера';
 	@override String get unknownError => 'Unknown error';
+	@override String get accountAlreadyAdded => 'Этот аккаунт уже добавлен на устройство';
 }
 
 // Path: dateTime
@@ -3082,6 +3083,7 @@ extension on TranslationsRu {
 			'grpcError.unableConnectServer' => 'Не удалось подключиться к серверу',
 			'grpcError.internalServerError' => 'Внутренняя ошибка сервера',
 			'grpcError.unknownError' => 'Unknown error',
+			'grpcError.accountAlreadyAdded' => 'Этот аккаунт уже добавлен на устройство',
 			'dateTime.relativeDateTimeToday' => ({required Object time}) => 'сегодня в ${time}',
 			'dateTime.relativeDateTimeYesterday' => ({required Object time}) => 'вчера в ${time}',
 			'dateTime.relativeDateTimeOther' => ({required Object date, required Object time}) => '${date} в ${time}',

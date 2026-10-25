@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:grpc/grpc.dart';
 import 'package:pqcrypto/pqcrypto.dart';
 
+import '../../accounts.dart';
 import '../../api.dart';
 import '../../auth.dart';
 import '../../di.dart';
@@ -70,6 +71,7 @@ class AuthLoginCompleter {
         appVersion: packageInfo.appVersion,
         appBuildNumber: packageInfo.appBuildNumber,
         deviceId: deviceID,
+        signedInUserIDs: await signedInUserIDs(),
       ).writeToBuffer(),
     );
 

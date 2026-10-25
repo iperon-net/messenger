@@ -3765,6 +3765,9 @@ class Translations$grpcError$en {
 
 	/// en: 'Unknown error'
 	String get unknownError => 'Unknown error';
+
+	/// en: 'This account is already added on this device'
+	String get accountAlreadyAdded => 'This account is already added on this device';
 }
 
 // Path: dateTime
@@ -5753,6 +5756,7 @@ extension on Translations {
 			'grpcError.unableConnectServer' => 'Unable to connect to the server',
 			'grpcError.internalServerError' => 'Internal server error',
 			'grpcError.unknownError' => 'Unknown error',
+			'grpcError.accountAlreadyAdded' => 'This account is already added on this device',
 			'dateTime.relativeDateTimeToday' => ({required Object time}) => 'today at ${time}',
 			'dateTime.relativeDateTimeYesterday' => ({required Object time}) => 'yesterday at ${time}',
 			'dateTime.relativeDateTimeOther' => ({required Object date, required Object time}) => '${date} at ${time}',
