@@ -18,12 +18,18 @@ import 'peer_names.dart';
 import 'push.dart';
 import 'repositories.dart';
 import 'utils.dart';
+import 'account_scope.dart';
+import 'accounts.dart';
 
 // Ключи полезной нагрузки call-пуша. Должны совпадать с сервером —
 // internal/services/push.go (map data в SendCallPush).
 const _kCallId = 'callId';
 const _kFromUserID = 'fromUserID';
 const _kVideo = 'video';
+// Какому аккаунту звонят (accountID слота, натив — по ключу пуша) и его
+// подпись, когда аккаунтов несколько.
+const _kAccount = 'account';
+const _kAccountName = 'accountName';
 const _kAction = 'action';
 // Имя звонящего для показа в системной звонилке (CallKit/ConnectionService).
 // Сервер кладёт облачный контакт получателя (тогда nameFromContact=true), иначе
@@ -125,18 +131,25 @@ CallKitParams _incomingParams(Map<String, dynamic> data, String callId, String b
   final isVideo = (data[_kVideo] ?? '').toString() == 'true';
   final fromUserID = (data[_kFromUserID] ?? '').toString();
   final nameCaller = bookName.isNotEmpty ? bookName : (data[_kNameCaller] ?? '').toString();
+  final account = (data[_kAccount] ?? '').toString();
+  final accountName = (data[_kAccountName] ?? '').toString();
 
   return CallKitParams(
     id: callId,
     // Имя звонящего из push (профиль/телефон); пусто — фолбэк на 'Iperon'.
-    nameCaller: nameCaller.isNotEmpty ? nameCaller : 'Iperon',
+    // Android: системный стиль звонка показывает своё «Входящий вызов» вместо
+    // handle — подпись аккаунта (их несколько) ставим к имени.
+    nameCaller: Platform.isAndroid && accountName.isNotEmpty
+        ? '${nameCaller.isNotEmpty ? nameCaller : 'Iperon'} · $accountName'
+        : (nameCaller.isNotEmpty ? nameCaller : 'Iperon'),
     appName: 'Iperon',
-    handle: _handleText(isVideo),
+    handle: accountName.isEmpty ? _handleText(isVideo) : '${_handleText(isVideo)} · $accountName',
     type: isVideo ? 1 : 0,
     // Авто-снятие баннера как пропущенного, если не ответили (см. _kIncomingBannerTimeoutMs).
     duration: _kIncomingBannerTimeoutMs,
-    // extra доедет до события accept/decline — оттуда берём собеседника и тип.
-    extra: {_kFromUserID: fromUserID, _kVideo: isVideo},
+    // extra доедет до события accept/decline — оттуда берём собеседника, тип
+    // и аккаунт, которому звонят.
+    extra: {_kFromUserID: fromUserID, _kVideo: isVideo, _kAccount: account},
     // Пропущенный — серверный CALL_MISSED (MessagePushHandler): плагин рисует свой
     // только по таймауту баннера, а на отбой звонящего — нет. Свой не показываем.
     missedCallNotification: const NotificationParams(showNotification: false),
@@ -449,7 +462,8 @@ class CallPush {
           final fromUserIDHex = (callKitParams.extra?[_kFromUserID] ?? '').toString();
           final fromUserID = fromUserIDHex.isEmpty ? <int>[] : utils.hexToBytes(fromUserIDHex);
           final video = callKitParams.extra?[_kVideo] == true || (callKitParams.extra?[_kVideo] ?? '').toString() == 'true';
-          await calls.acceptFromPush(callId, fromUserID: fromUserID, video: video);
+          final target = await _callsFor((callKitParams.extra?[_kAccount] ?? '').toString());
+          await target.acceptFromPush(callId, fromUserID: fromUserID, video: video);
         }
       case CallEventActionCallDecline(:final callKitParams):
         final callId = callKitParams.id;
@@ -464,7 +478,13 @@ class CallPush {
           if (_acceptedCallId == callId) _acceptedCallId = null;
           final fromUserIDHex = (callKitParams.extra?[_kFromUserID] ?? '').toString();
           final fromUserID = fromUserIDHex.isEmpty ? <int>[] : utils.hexToBytes(fromUserIDHex);
-          await calls.rejectFromPush(callId, fromUserID);
+          final account = (callKitParams.extra?[_kAccount] ?? '').toString();
+          if (await _isOtherAccount(account)) {
+            // Звонят неактивному аккаунту — отказ от его имени, без переключения.
+            await rejectCallAs(account, callId: callId, toUserID: fromUserID);
+          } else {
+            await calls.rejectFromPush(callId, fromUserID);
+          }
         }
       case CallEventActionCallToggleAudioSession(:final isActive):
         // iOS CallKit активировал/деактивировал аудиосессию (provider
@@ -501,6 +521,25 @@ class CallPush {
     }
   }
 
+  /// Входящий другому вошедшему аккаунту (не активному).
+  Future<bool> _isOtherAccount(String account) async {
+    if (account.isEmpty || account == AccountScope.current.accountID) return false;
+    return (await signedInAccounts()).any((entry) => entry.accountID == account);
+  }
+
+  /// [Calls] аккаунта, которому звонят: другому — сначала переключиться на
+  /// него (как в Telegram), разговор идёт уже в нём.
+  Future<Calls> _callsFor(String account) async {
+    if (!await _isOtherAccount(account)) return calls;
+    try {
+      await switchAccount(account);
+      return getIt.get<Calls>();
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+      return calls;
+    }
+  }
+
   /// Переигрывает accept, потерянный на холодном старте (см. [start]). Читает
   /// принятый звонок из ACTIVE_CALLS плагина (`isAccepted == true`) и поднимает
   /// его тем же путём, что и живое событие accept. Кроссплатформенно: на Android
@@ -522,7 +561,8 @@ class CallPush {
         final fromUserIDHex = (extra is Map ? (extra[_kFromUserID] ?? '') : '').toString();
         final fromUserID = fromUserIDHex.isEmpty ? <int>[] : utils.hexToBytes(fromUserIDHex);
         final video = extra is Map && (extra[_kVideo] == true || (extra[_kVideo] ?? '').toString() == 'true');
-        await calls.acceptFromPush(callId, fromUserID: fromUserID, video: video);
+        final target = await _callsFor(extra is Map ? (extra[_kAccount] ?? '').toString() : '');
+        await target.acceptFromPush(callId, fromUserID: fromUserID, video: video);
 
         // iOS cold-start: событие CallKit `didActivate`
         // (ACTION_CALL_TOGGLE_AUDIO_SESSION) прилетело в onEvent до нашей подписки

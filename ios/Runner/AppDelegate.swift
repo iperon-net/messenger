@@ -355,13 +355,17 @@ import flutter_callkit_incoming
       return
     }
 
+    // Аккаунтов несколько — на какой звонят (подпись после вида звонка).
+    let account = (dict["account"] as? String) ?? ""
+    let accountName = (dict["accountName"] as? String) ?? ""
+    let kindText = isVideo ? "Видеозвонок" : "Аудиозвонок"
     let data = flutter_callkit_incoming.Data(
       id: callId,
       nameCaller: nameCaller.isEmpty ? "Iperon" : nameCaller,
-      handle: isVideo ? "Видеозвонок" : "Аудиозвонок",
+      handle: accountName.isEmpty ? kindText : kindText + " · " + accountName,
       type: isVideo ? 1 : 0
     )
-    data.extra = ["fromUserID": fromUserID, "video": isVideo]
+    data.extra = ["fromUserID": fromUserID, "video": isVideo, "account": account]
     // appName → CXProviderConfiguration.localizedName (подпись «Аудиовызов
     // <appName>»). Иначе плагин подставит дефолт "Callkit".
     data.appName = "Iperon"

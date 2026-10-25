@@ -124,6 +124,10 @@ class CallFcmService : FlutterFirebaseMessagingService() {
         bundle.putString(KEY_ACTION, if (payload.kind == PushPayload.KIND_CALL_INCOMING) ACTION_INCOMING else ACTION_CANCEL)
         bundle.putString(KEY_FROM_USER_ID, payload.fromUserID.joinToString("") { "%02x".format(it) })
         bundle.putString(KEY_VIDEO, payload.video.toString())
+        // Какому аккаунту звонят (по ключу пуша): принять — в нём; подпись
+        // аккаунта на баннере, когда их несколько.
+        bundle.putString(KEY_ACCOUNT, payload.account)
+        bundle.putString(KEY_ACCOUNT_NAME, PushKeyStore.accountLabel(this, payload.account).orEmpty())
         if (payload.kind == PushPayload.KIND_CALL_INCOMING) {
             if (payload.title.isNotEmpty()) bundle.putString(KEY_NAME_CALLER, payload.title)
             if (payload.senderPhone.isNotEmpty()) bundle.putString(KEY_CALLER_PHONE, payload.senderPhone)
@@ -185,6 +189,8 @@ class CallFcmService : FlutterFirebaseMessagingService() {
         const val KEY_CALLER_PHONE = "callerPhone"
         const val KEY_NAME_FROM_CONTACT = "nameFromContact"
         const val KEY_SHOW_MISSED = "showMissed"
+        const val KEY_ACCOUNT = "account"
+        const val KEY_ACCOUNT_NAME = "accountName"
         // FlutterFirebaseMessagingUtils.EXTRA_REMOTE_MESSAGE (package-private).
         const val EXTRA_REMOTE_MESSAGE = "notification"
 

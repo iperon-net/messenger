@@ -935,6 +935,18 @@ class API {
     }, session: _session == null ? null : session);
   }
 
+  /// Как [unaryEncoded], но от имени другой сессии [session] — неактивного
+  /// аккаунта того же сервера (отклонить звонок ему, не переключаясь). Отказ
+  /// UNAUTHENTICATED не разлогинивает активный аккаунт: `Auth` сверяет сессию.
+  Future<APICallStatus> unaryEncodedAs(models.Session session, MessageType type, Uint8List payload) async {
+    final crypto = getIt.get<Crypto>();
+    final encoded = await crypto.syncer.encode(session: session, message: payload);
+
+    return call(() async {
+      await client.unary(Message(messageType: type, message: encoded));
+    }, session: session);
+  }
+
   /// Как [unaryEncoded], но также расшифровывает и возвращает тело ответа
   /// (тем же `crypto.syncer.decode`, что [_dispatch] использует для входящих
   /// сообщений стрима) — для вызовов, чей `_Response` не пуст (например,

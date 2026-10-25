@@ -6,6 +6,8 @@ import 'di.dart';
 import 'logger.dart';
 import 'push.dart';
 import 'repositories.dart';
+import 'api.dart';
+import 'protobuf.dart';
 
 /// Несколько аккаунтов на устройстве (docs/plans/multi-account.md, этап 3.2):
 /// список вошедших, добавление, переключение и уход из аккаунта. Экраны
@@ -90,6 +92,21 @@ Future<void> afterLogout() async {
   if (target == null) return;
   try {
     await leaveAccount(target);
+  } catch (error, stackTrace) {
+    getIt.get<Logger>().handle(error, stackTrace);
+  }
+}
+
+/// Отклонить входящий звонок неактивному аккаунту [accountID], не
+/// переключаясь: `CALL_REJECT` от его сессии по общему каналу (сервер тот же).
+/// Его сессии нет — ничего (звонящий дождётся отмены по таймауту).
+Future<void> rejectCallAs(String accountID, {required String callId, required List<int> toUserID}) async {
+  if (toUserID.isEmpty) return;
+  try {
+    final session = await _device.sessionOf(accountID);
+    if (session == null) return;
+    final ring = CallRing(callId: callId, toUserID: Uint8List.fromList(toUserID));
+    await getIt.get<API>().unaryEncodedAs(session, MessageType.CALL_REJECT, ring.writeToBuffer());
   } catch (error, stackTrace) {
     getIt.get<Logger>().handle(error, stackTrace);
   }

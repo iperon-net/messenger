@@ -355,8 +355,12 @@ struct CallSignal {
   static func legacyData(_ payload: [AnyHashable: Any]) -> [AnyHashable: Any] {
     guard let encrypted = payload["p"] as? String else { return payload }
     let signal: CallSignal?
+    var account = ""
     do {
-      signal = try PushCrypto.open(encrypted, keyLookup: PushKeychain.key(forId:)).flatMap(parse)
+      signal = try PushCrypto.open(encrypted) { keyId in
+        account = PushKeychain.account(forId: keyId)
+        return PushKeychain.key(forId: keyId)
+      }.flatMap(parse)
     } catch {
       NSLog("IPERON_CALL voip push decrypt failed: \(error)")
       signal = nil
@@ -371,6 +375,9 @@ struct CallSignal {
       "action": signal.kind == kindIncoming ? "incoming" : "cancel",
       "fromUserID": PushKeychain.hex(signal.fromUserID),
       "video": signal.video ? "true" : "false",
+      // Какому аккаунту звонят: принять — в нём; подпись на баннере.
+      "account": account,
+      "accountName": PushKeychain.accountLabel(account) ?? "",
     ]
     if !signal.title.isEmpty { data["nameCaller"] = signal.title }
     if !signal.senderPhone.isEmpty { data["callerPhone"] = signal.senderPhone }

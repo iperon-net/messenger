@@ -176,6 +176,20 @@ class DeviceRepositories {
     return SqliteDatabase.withFactory(_AppSqliteOpenFactory(path: path, password: password));
   }
 
+  /// Сессия аккаунта [accountID] из его базы (аккаунт не активный — база
+  /// открывается на время чтения); null — базы нет или в ней никто не вошёл.
+  Future<models.Session?> sessionOf(String accountID) async {
+    final path = AccountFiles(supportDir: supportDir, cacheRoot: cacheRoot, accountID: accountID).databasePath(settings.databaseName);
+    if (!await File(path).exists()) return null;
+    final account = await openAccountDatabase(accountID, path);
+    try {
+      final session = await Sessions(logger: logger, db: account, accounts: accounts).getActive();
+      return session.sessionID.isEmpty ? null : session;
+    } finally {
+      await account.close();
+    }
+  }
+
   /// Перенесённые каталоги аккаунта (один раз).
   Map<String, String> takeMovedFiles(String accountID) => _movedFiles.remove(accountID) ?? const {};
 
