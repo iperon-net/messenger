@@ -352,6 +352,8 @@ object MessagePushHandler {
                 putExtra(EXTRA_FROM_USER_ID, hex(payload.fromUserID))
                 putExtra(EXTRA_PARENT_CHAT_ID, hex(payload.parentChatID))
                 putExtra(EXTRA_POST_ID, payload.postID)
+                // Чат другого аккаунта — Dart сначала переключится на него.
+                putExtra(EXTRA_ACCOUNT, payload.account)
             }
             val shortcut = ShortcutInfoCompat.Builder(context, id)
                 .setShortLabel(name)
