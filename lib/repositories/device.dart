@@ -324,16 +324,19 @@ class Accounts {
   /// Изменения слотов (вход, выход, имя, аватар) — для списка аккаунтов.
   Stream<void> changes() => db.onChange(['accounts'], triggerImmediately: false);
 
-  /// Имя и аватар аккаунта [accountID] для списка (пишет активный аккаунт
-  /// из своего профиля).
-  Future<void> setProfile({required String accountID, required String name, required String avatarPath}) async {
-    await db.execute('UPDATE accounts SET name = ?, avatarPath = ? WHERE accountID = ? AND (name != ? OR avatarPath != ?);', [
-      name,
-      avatarPath,
-      accountID,
-      name,
-      avatarPath,
-    ]);
+  /// Имя, аватар и номер аккаунта [accountID] для списка (пишет активный
+  /// аккаунт из своего профиля). Номер ещё и чинит слоты, где он не записался
+  /// при входе: по нему не дают добавить тот же аккаунт второй раз.
+  Future<void> setProfile({
+    required String accountID,
+    required String name,
+    required String avatarPath,
+    required String phoneNumber,
+  }) async {
+    await db.execute(
+      'UPDATE accounts SET name = ?, avatarPath = ?, phoneNumber = ? WHERE accountID = ? AND (name != ? OR avatarPath != ? OR phoneNumber != ?);',
+      [name, avatarPath, phoneNumber, accountID, name, avatarPath, phoneNumber],
+    );
   }
 
   /// Удалить слот [accountID] из индекса (папку удаляет

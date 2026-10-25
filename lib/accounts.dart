@@ -152,7 +152,13 @@ class AccountProfileSync implements AccountService {
       final name = [profile.fistName, profile.lastName].where((part) => part.trim().isNotEmpty).join(' ').trim();
       final cdnID = profile.avatarCdnID;
       final avatar = cdnID == null || cdnID.isEmpty ? null : await _scope.cdn.cachedFile(Uint8List.fromList(cdnID));
-      await _device.accounts.setProfile(accountID: _scope.accountID, name: name, avatarPath: avatar?.path ?? '');
+      final user = await _scope.repositories.users.getBySession(session: _scope.auth.session);
+      await _device.accounts.setProfile(
+        accountID: _scope.accountID,
+        name: name,
+        avatarPath: avatar?.path ?? '',
+        phoneNumber: user.phoneNumber,
+      );
     } catch (error, stackTrace) {
       getIt.get<Logger>().handle(error, stackTrace);
     }

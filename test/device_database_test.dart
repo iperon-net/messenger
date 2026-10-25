@@ -113,13 +113,14 @@ void main() {
     expect(out?.userID, isEmpty);
   });
 
-  test('слот: имя и аватар для списка, удаление', () async {
+  test('слот: имя, аватар и номер для списка, удаление', () async {
     await migrate();
     final accounts = Accounts(logger: Logger(), db: device);
-    await accounts.setProfile(accountID: slot, name: 'Костя', avatarPath: '/a.jpg');
+    await accounts.setProfile(accountID: slot, name: 'Костя', avatarPath: '/a.jpg', phoneNumber: '79990000002');
     final listed = (await accounts.all()).single;
     expect(listed.name, 'Костя');
     expect(listed.avatarPath, '/a.jpg');
+    expect(listed.phoneNumber, '79990000002');
 
     final other = await accounts.createSlot();
     expect((await accounts.all()).map((a) => a.accountID), [slot, other]);
