@@ -143,7 +143,8 @@ Future<ui.Image?> _captureRoot() async {
     final boundary = accountRootKey.currentContext?.findRenderObject();
     if (boundary is! RenderRepaintBoundary || !boundary.hasSize) return null;
     final view = WidgetsBinding.instance.platformDispatcher.views.first;
-    return await boundary.toImage(pixelRatio: view.devicePixelRatio);
+    // Без экрана (подняты в фоне) снимок может не прийти — не ждём.
+    return await boundary.toImage(pixelRatio: view.devicePixelRatio).timeout(const Duration(milliseconds: 500));
   } catch (_) {
     return null;
   }
@@ -162,9 +163,12 @@ Future<void> switchAccount(String accountID) async {
   accountSwitching.value = true;
   try {
     // Старое дерево виджетов (кубиты, подписки) уходит до закрытия сервисов:
-    // кадр со снимком, затем кадр, где уходящее дерево уже снято.
-    await WidgetsBinding.instance.endOfFrame;
-    await WidgetsBinding.instance.endOfFrame;
+    // кадр со снимком, затем кадр, где уходящее дерево уже снято. Поднятые в
+    // фоне без экрана (ответ из шторки, звонок) кадров не получают — не ждём
+    // дольше доли секунды, иначе переключение висит до первого кадра.
+    for (var i = 0; i < 2; i++) {
+      await WidgetsBinding.instance.endOfFrame.timeout(const Duration(milliseconds: 300), onTimeout: () {});
+    }
     await closeAccount();
     await getIt.get<DeviceRepositories>().accounts.ensureActive(accountID);
     await openAccount(accountID);
