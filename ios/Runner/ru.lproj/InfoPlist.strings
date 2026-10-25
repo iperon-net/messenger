@@ -4,3 +4,6 @@
 "NSMicrophoneUsageDescription" = "Используем микрофон для звонков и голосовых сообщений";
 "NSContactsUsageDescription" = "Находим, кто из ваших контактов есть в Iperon. Номера телефонов не покидают устройство в открытом виде — сверка выполняется приватно.";
 "NSPhotoLibraryAddUsageDescription" = "Сохраняем фото и видео из чатов в вашу галерею";
+"New Message" = "Новое сообщение";
+"Search" = "Поиск";
+"Saved Messages" = "Избранное";

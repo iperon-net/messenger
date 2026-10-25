@@ -66,6 +66,8 @@
                  на старых он не действует и в приложение идут все пути сайта —
                  чужие приложение открывает во встроенном браузере. -->
             <meta-data android:name="flutter_deeplinking_enabled" android:value="true" />
+            <!-- Быстрые действия долгого тапа по иконке. -->
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />

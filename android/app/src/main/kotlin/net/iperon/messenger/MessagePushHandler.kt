@@ -47,6 +47,9 @@ object MessagePushHandler {
     const val EXTRA_PARENT_CHAT_ID = "push_parent_chat_id"
     const val EXTRA_POST_ID = "push_post_id"
     const val EXTRA_ACCOUNT = "push_account"
+    /// Быстрое действие иконки (res/xml/shortcuts.xml): new_message / search /
+    /// saved_messages.
+    const val EXTRA_SHORTCUT = "push_shortcut"
 
     // Сколько последних сообщений чата держать в MessagingStyle.
     private const val MAX_STYLE_MESSAGES = 7
@@ -565,6 +568,7 @@ object MessagePushHandler {
             "parentChatID" to (intent.getStringExtra(EXTRA_PARENT_CHAT_ID) ?: ""),
             "postID" to intent.getLongExtra(EXTRA_POST_ID, 0L),
             "account" to (intent.getStringExtra(EXTRA_ACCOUNT) ?: ""),
+            "shortcut" to (intent.getStringExtra(EXTRA_SHORTCUT) ?: ""),
         )
     }
 

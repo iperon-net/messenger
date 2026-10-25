@@ -53,6 +53,24 @@ mixin SearchHideOnScroll<T extends StatefulWidget> on State<T> {
     return _scrollControllers.putIfAbsent(key, () => ScrollController(initialScrollOffset: _collapse.value));
   }
 
+  /// Показать строку поиска (докрутить активный список до начала) и поставить
+  /// в неё фокус — быстрое действие иконки «Поиск».
+  void revealSearch() {
+    final controller = _scrollControllers[_activeKey];
+    if (controller != null && controller.hasClients && controller.offset > 0) {
+      controller.animateTo(0, duration: const Duration(milliseconds: 200), curve: Curves.easeOutCubic);
+    }
+    _animateCollapse(0);
+    // Фокус остался с прошлого раза (клавиатуру скрыл уход из приложения) —
+    // повторный requestFocus её не поднимет: снимаем и ставим заново.
+    if (searchFocus.hasFocus) {
+      searchFocus.unfocus();
+      WidgetsBinding.instance.addPostFrameCallback((_) => searchFocus.requestFocus());
+    } else {
+      searchFocus.requestFocus();
+    }
+  }
+
   /// Сменился активный список (папка в `PageView`). Шапку не трогаем — список
   /// подгоняем под неё (если он короткий и не докручивается — открываем шапку).
   void onSearchListChanged(String key) {

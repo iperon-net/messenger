@@ -23,6 +23,7 @@ import 'repositories.dart';
 import 'utils.dart';
 import 'account_scope.dart';
 import 'accounts.dart';
+import 'app_shortcuts.dart';
 
 /// Сборка расшифровывает call-пуши — уходит в `Subscribe.Request.capabilities`:
 /// сервер шлёт таким сессиям входящий/отмену звонка зашифрованным `PushPayload`
@@ -563,6 +564,8 @@ class PushManager {
     if (await _switchTo((tap?['account'] as String?) ?? '')) {
       return getIt.get<PushManager>()._handleTap(arguments);
     }
+    final shortcut = (tap?['shortcut'] as String?) ?? '';
+    if (shortcut.isNotEmpty) return _openRoute(await _shortcutRoute(shortcut));
     final kind = PushPayload_Kind.valueOf((tap?['kind'] as int?) ?? 0);
     var route = routeForKind(
       kind,
@@ -574,14 +577,42 @@ class PushManager {
     // только список: раскрыть его можно «/код-фразой» в поиске.
     if (route != null && route.startsWith('/chats/') && await _fromHiddenUser(tap)) route = '/chats';
     logger.info('push: notification tap kind=$kind route=$route');
-    if (route == null) return;
+    _openRoute(route);
+  }
 
+  void _openRoute(String? route) {
+    if (route == null) return;
     final handler = _routeHandler;
     if (handler != null) {
       handler(route);
     } else {
       _pendingRoute = route;
     }
+  }
+
+  /// Куда ведёт быстрое действие иконки ([AppShortcuts]). «Избранное» — чат с
+  /// собой: есть локально — сразу, нет — его создаёт сервер; без сети или в
+  /// демо — список чатов.
+  Future<String?> _shortcutRoute(String shortcut) async {
+    logger.info('push: app shortcut $shortcut');
+    switch (shortcut) {
+      case AppShortcuts.newMessage:
+        return '/chats/new';
+      case AppShortcuts.search:
+        AppShortcuts.searchRequested.value = true;
+        return '/chats';
+      case AppShortcuts.savedMessages:
+        final source = chatsDataSource(demo: false);
+        if (source == null || !auth.isAuthorized) return '/chats';
+        try {
+          final chatID = await source.openPrivateChat(idHex(ChatsSync.instance.me));
+          return chatID.isEmpty ? '/chats' : '/chats/chat/$chatID';
+        } catch (error, stackTrace) {
+          logger.handle(error, stackTrace);
+          return '/chats';
+        }
+    }
+    return null;
   }
 
   /// Переключиться на аккаунт [account] уведомления, если он не этот и на

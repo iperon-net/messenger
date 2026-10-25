@@ -2,4 +2,7 @@
 <resources>
     <color name="ic_launcher_background">#38608F</color>
     <color name="splash_background">#38608F</color>
+    <!-- Быстрые действия иконки (res/xml/shortcuts.xml). -->
+    <color name="shortcut_background">#FFFFFF</color>
+    <color name="shortcut_foreground">#38608F</color>
 </resources>

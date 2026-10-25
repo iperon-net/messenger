@@ -36,4 +36,9 @@
     <string name="push_action_reply">Ответить</string>
     <string name="push_action_read">Прочитано</string>
     <string name="push_reply_self">Вы</string>
+
+    <!-- Быстрые действия иконки (res/xml/shortcuts.xml). -->
+    <string name="shortcut_new_message">Новое сообщение</string>
+    <string name="shortcut_search">Поиск</string>
+    <string name="shortcut_saved_messages">Избранное</string>
 </resources>

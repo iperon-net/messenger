@@ -240,6 +240,12 @@ final class PushBridge {
     }
   }
 
+  /// Быстрое действие иконки ([type] — new_message / search / saved_messages):
+  /// в Dart тем же путём, что тап по уведомлению.
+  func handleShortcut(_ type: String) {
+    deliverTap(["kind": 0, "shortcut": type])
+  }
+
   /// Тап по уведомлению: Dart решает, куда перейти (PushManager.routeForKind).
   func handleTap(_ userInfo: [AnyHashable: Any]) {
     let tap: [String: Any] = [
@@ -253,6 +259,10 @@ final class PushBridge {
       // Чей пуш: другой аккаунт — Dart сначала переключается на него.
       "account": (userInfo["account"] as? String) ?? "",
     ]
+    deliverTap(tap)
+  }
+
+  private func deliverTap(_ tap: [String: Any]) {
     if dartReady, let channel {
       channel.invokeMethod("onNotificationTap", arguments: tap)
     } else {

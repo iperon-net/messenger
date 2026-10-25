@@ -7,6 +7,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../themes.dart';
 import '../../cubit.dart';
+import 'chats_search_shortcut.dart';
 import '../../i18n/translations.g.dart';
 import '../../components.dart';
 import 'secret_chat_common.dart';
@@ -28,7 +29,7 @@ class ChatsCupertino extends StatefulWidget {
   State<ChatsCupertino> createState() => _ChatsCupertino();
 }
 
-class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll {
+class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll, ChatsSearchShortcut {
   late final PageController _pageController;
 
   @override

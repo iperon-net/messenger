@@ -4,3 +4,6 @@
 "NSMicrophoneUsageDescription" = "Uses the microphone for calls and voice messages";
 "NSContactsUsageDescription" = "Finds which of your contacts are on Iperon. Phone numbers never leave your device in the clear — they are matched privately.";
 "NSPhotoLibraryAddUsageDescription" = "Saves photos and videos from chats to your library";
+"New Message" = "New Message";
+"Search" = "Search";
+"Saved Messages" = "Saved Messages";
