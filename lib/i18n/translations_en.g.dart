@@ -214,6 +214,9 @@ class Translations$screenChats$en {
 
 	// Translations
 
+	/// en: 'Select a chat to start messaging'
+	String get selectChat => 'Select a chat to start messaging';
+
 	/// en: 'Chats'
 	String get chats => 'Chats';
 
@@ -4673,6 +4676,7 @@ extension on Translations {
 			'screenHome.calls' => 'Calls',
 			'screenHome.chats' => _root.screenChats.chats,
 			'screenHome.settings' => _root.screenSettings.settings,
+			'screenChats.selectChat' => 'Select a chat to start messaging',
 			'screenChats.chats' => 'Chats',
 			'screenChats.notificationPermissionTitle' => 'Turn on notifications',
 			'screenChats.notificationPermissionMessage' => 'Allow notifications to hear about new messages and contacts even when Iperon is in the background.',
@@ -5156,9 +5160,9 @@ extension on Translations {
 			'screenChat.unpin' => 'Unpin',
 			'screenChat.pinnedTitle' => 'Pinned message',
 			'screenChat.pinnedNumber' => ({required Object n}) => 'Pinned message #${n}',
-			'screenChat.unpinTitle' => 'Unpin message?',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.unpinTitle' => 'Unpin message?',
 			'screenChat.pinTitle' => 'Pin message?',
 			'screenChat.scopeForBoth' => 'For me and the other person',
 			'screenChat.scopeForMe' => 'Only for me',
@@ -5670,9 +5674,9 @@ extension on Translations {
 			'screenContacts.onIperon' => 'On Iperon',
 			'screenContacts.onContacts' => 'On Contacts',
 			'screenContacts.cloudContacts' => 'Cloud contacts',
-			'screenContacts.invite' => 'Invite',
 			_ => null,
 		} ?? switch (path) {
+			'screenContacts.invite' => 'Invite',
 			'screenContacts.inviteAction' => 'Invite',
 			'screenContacts.search' => 'Search',
 			'screenContacts.permissionTitle' => 'Contacts access needed',

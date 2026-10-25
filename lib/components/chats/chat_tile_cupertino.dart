@@ -7,6 +7,7 @@ import '../../models.dart' as models;
 import 'chat_avatar.dart';
 import 'chat_tile.dart';
 import 'message_bubble.dart' show failedStatusColor;
+import '../../split_layout.dart';
 import '../../themes.dart';
 
 /// Строка списка чатов (iOS, по мотивам Telegram): аватар, название с иконкой
@@ -43,6 +44,8 @@ class _ChatTileCupertinoState extends State<ChatTileCupertino> {
     final typeIcon = ChatTileContent.typeIcon(chat);
     final statusIcon = ChatTileContent.statusIcon(chat);
     final preview = ChatTileContent.preview(t, chat);
+    // iPad: открытый в правой панели чат подсвечен, как в Telegram.
+    final highlighted = _pressed || SplitSelection.of(context) == chat.id;
     final date = chat.lastMessage?.date;
 
     return GestureDetector(
@@ -60,7 +63,7 @@ class _ChatTileCupertinoState extends State<ChatTileCupertino> {
               widget.onLongPress!.call();
             },
       child: ColoredBox(
-        color: _pressed ? CupertinoColors.systemGrey5.resolveFrom(context) : const Color(0x00000000),
+        color: highlighted ? CupertinoColors.systemGrey5.resolveFrom(context) : const Color(0x00000000),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(10, 8, 12, 8),
           child: Row(
@@ -71,7 +74,7 @@ class _ChatTileCupertinoState extends State<ChatTileCupertino> {
                 accentColor: primary,
                 accentForeground: ThemesCupertino.onAccent(context),
                 size: 49,
-                onlineRingColor: _pressed
+                onlineRingColor: highlighted
                     ? CupertinoColors.systemGrey5.resolveFrom(context)
                     : ThemesCupertino.appBackground.resolveFrom(context),
               ),

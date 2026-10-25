@@ -35,6 +35,7 @@
   "settings": "@:screenSettings.settings"
 
 "screenChats":
+  "selectChat": "Select a chat to start messaging"
   "chats": "Chats"
   "notificationPermissionTitle": "Turn on notifications"
   "notificationPermissionMessage": "Allow notifications to hear about new messages and contacts even when Iperon is in the background."

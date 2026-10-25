@@ -155,6 +155,7 @@ class _Translations$screenChats$ru extends Translations$screenChats$en {
 	final TranslationsRu _root; // ignore: unused_field
 
 	// Translations
+	@override String get selectChat => 'Выберите чат, чтобы начать общение';
 	@override String get chats => 'Чаты';
 	@override String get notificationPermissionTitle => 'Включите уведомления';
 	@override String get notificationPermissionMessage => 'Разрешите уведомления, чтобы узнавать о новых сообщениях и контактах, даже когда Iperon свёрнут.';
@@ -2000,6 +2001,7 @@ extension on TranslationsRu {
 			'screenHome.calls' => 'Звонки',
 			'screenHome.chats' => _root.screenChats.chats,
 			'screenHome.settings' => _root.screenSettings.settings,
+			'screenChats.selectChat' => 'Выберите чат, чтобы начать общение',
 			'screenChats.chats' => 'Чаты',
 			'screenChats.notificationPermissionTitle' => 'Включите уведомления',
 			'screenChats.notificationPermissionMessage' => 'Разрешите уведомления, чтобы узнавать о новых сообщениях и контактах, даже когда Iperon свёрнут.',
@@ -2483,9 +2485,9 @@ extension on TranslationsRu {
 			'screenChat.unpin' => 'Открепить',
 			'screenChat.pinnedTitle' => 'Закреплённое сообщение',
 			'screenChat.pinnedNumber' => ({required Object n}) => 'Закреплённое сообщение #${n}',
-			'screenChat.unpinTitle' => 'Открепить сообщение?',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.unpinTitle' => 'Открепить сообщение?',
 			'screenChat.pinTitle' => 'Закрепить сообщение?',
 			'screenChat.scopeForBoth' => 'У меня и у собеседника',
 			'screenChat.scopeForMe' => 'Только у меня',
@@ -2997,9 +2999,9 @@ extension on TranslationsRu {
 			'screenContacts.onIperon' => 'В Iperon',
 			'screenContacts.onContacts' => 'В контактах',
 			'screenContacts.cloudContacts' => 'Облачные контакты',
-			'screenContacts.invite' => 'Пригласить',
 			_ => null,
 		} ?? switch (path) {
+			'screenContacts.invite' => 'Пригласить',
 			'screenContacts.inviteAction' => 'Пригласить',
 			'screenContacts.search' => 'Поиск',
 			'screenContacts.permissionTitle' => 'Нужен доступ к контактам',

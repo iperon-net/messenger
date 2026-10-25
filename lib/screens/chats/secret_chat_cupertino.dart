@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:screen_protector/screen_protector.dart';
 
+import '../../split_layout.dart';
 import '../../chats/secret/secret_chats_list.dart' show secretChatIDPrefix;
 import '../../components.dart';
 import '../../cubit.dart';
@@ -113,6 +114,7 @@ class _SecretChatCupertinoState extends State<SecretChatCupertino> with UnreadBa
             backgroundColor: background,
             navigationBar: AppCupertinoNavigationBar(
               child: CupertinoNavigationBar(
+                automaticallyImplyLeading: !context.isSplitPaneRoot,
                 previousPageTitle: unreadBack > 0 ? ChatTileContent.badge(unreadBack) : '',
                 automaticBackgroundVisibility: false,
                 backgroundColor: barColor,

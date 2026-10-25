@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../split_layout.dart';
 import '../../themes.dart';
 import '../../cubit.dart';
 import 'chats_search_shortcut.dart';
@@ -220,7 +221,7 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll, Cha
       separatorBuilder: (_, index) => index == chats.length + offset - 1 && global.isNotEmpty ? const SizedBox.shrink() : divider,
       itemBuilder: (context, index) {
         if (index == chats.length + offset) return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: global);
-        if (index < offset) return _ArchiveTileCupertino(archived: archived, onTap: () => context.push('/chats/archive'));
+        if (index < offset) return _ArchiveTileCupertino(archived: archived, onTap: () => openFromList(context, '/chats/archive'));
         final chat = chats[index - offset];
         // «Ответы» (4.6): без свайпов, в меню — только «Прочитать все».
         if (chat.isReplies) {
@@ -229,9 +230,9 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll, Cha
                   key: ValueKey(chat.id),
                   chat: chat,
                   confirmDelete: ({afterContextMenu = false}) async => null,
-                  onTap: () => context.push(chatRoute(chat)),
+                  onTap: () => openFromList(context, chatRoute(chat)),
                 )
-              : ChatTileCupertino(key: ValueKey(chat.id), chat: chat, onTap: () => context.push(chatRoute(chat)));
+              : ChatTileCupertino(key: ValueKey(chat.id), chat: chat, onTap: () => openFromList(context, chatRoute(chat)));
         }
         return ChatDeleteMenuAnchorCupertino(
           key: ValueKey(chat.id),
@@ -242,7 +243,7 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll, Cha
             // Секретный — без свайп-действий (они про серверные чаты).
             enabled: state.folders.length < 2 && !chat.isSecret,
             confirmDelete: confirmDelete,
-            child: ChatContextMenuCupertino(chat: chat, confirmDelete: confirmDelete, onTap: () => context.push(chatRoute(chat))),
+            child: ChatContextMenuCupertino(chat: chat, confirmDelete: confirmDelete, onTap: () => openFromList(context, chatRoute(chat))),
           ),
         );
       },
@@ -251,12 +252,12 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll, Cha
 
   Future<void> _openFoundChat(BuildContext context, models.Chat chat) async {
     final chatID = await context.read<ChatsCubit>().openFoundChat(chat);
-    if (chatID.isNotEmpty && context.mounted) await context.push('/chats/chat/$chatID');
+    if (chatID.isNotEmpty && context.mounted) await openFromList(context, '/chats/chat/$chatID');
   }
 
   Future<void> _openGlobal(BuildContext context, models.ChatMember member) async {
     final chatID = await context.read<ChatsCubit>().openPrivateChat(member);
-    if (chatID.isNotEmpty && context.mounted) await context.push('/chats/chat/$chatID');
+    if (chatID.isNotEmpty && context.mounted) await openFromList(context, '/chats/chat/$chatID');
   }
 
   /// Пусто — тоже прокручиваемый список папки (см. searchListView): иначе

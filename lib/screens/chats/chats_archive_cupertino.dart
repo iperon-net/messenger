@@ -3,6 +3,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
+import '../../split_layout.dart';
 import '../../themes.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -24,6 +25,7 @@ class ChatsArchiveCupertino extends StatelessWidget {
         backgroundColor: ThemesCupertino.appBackground,
         navigationBar: AppCupertinoNavigationBar(
           child: CupertinoNavigationBar(
+            automaticallyImplyLeading: !context.isSplitPaneRoot,
             previousPageTitle: '',
             automaticBackgroundVisibility: false,
             backgroundColor: ThemesCupertino.appBackground,

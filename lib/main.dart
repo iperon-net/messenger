@@ -18,6 +18,7 @@ import 'firebase_options.dart';
 import 'i18n/translations.g.dart';
 import 'models.dart';
 import 'repositories.dart';
+import 'split_layout.dart';
 import 'utils.dart';
 import 'device_performance.dart';
 
@@ -97,6 +98,8 @@ Future<void> main() async {
 
   // Dependencies
   await registerCommonDependencies();
+  // iPad — двухпанельные «Чаты» (до роутера: от этого зависят маршруты).
+  await SplitLayout.detect();
 
   // Подробные логи LiveKit (FINE) → talker: диагностика ICE/TURN звонков видна в
   // экране «Логи» и в экспорте логов (экран «Разработчик»).

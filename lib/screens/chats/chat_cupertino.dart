@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../../split_layout.dart';
 import '../../chats/edit_media.dart';
 import '../../chats/message_formatting.dart';
 import '../../components/chats/emoji_panel.dart';
@@ -585,6 +586,8 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
                         )
                       : AppCupertinoNavigationBar(
                           child: CupertinoNavigationBar(
+                            // iPad: корень правой панели — без «назад», список слева.
+                            automaticallyImplyLeading: !context.isSplitPaneRoot,
                             // Непрочитанные в других чатах — «‹ 3» (как в Telegram).
                             previousPageTitle: unreadBack > 0 ? ChatTileContent.badge(unreadBack) : '',
                             // Фон панели всегда (без автоскрытия у края ленты): иначе у верха

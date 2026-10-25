@@ -66,6 +66,7 @@ export 'settings/settings_my_profile_edit_material.dart';
 export 'settings/settings_my_profile_username_cupertino.dart';
 export 'settings/settings_my_profile_username_material.dart';
 export 'chats/chats_cupertino.dart';
+export 'chats/chats_split_cupertino.dart';
 export 'chats/chats_material.dart';
 export 'chats/chats_archive_cupertino.dart';
 export 'chats/chats_new_cupertino.dart';

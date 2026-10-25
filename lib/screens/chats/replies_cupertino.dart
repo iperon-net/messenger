@@ -1,5 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 
+import '../../split_layout.dart';
 import '../../components.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
@@ -27,6 +28,7 @@ class _RepliesCupertinoState extends State<RepliesCupertino> with UnreadBackCoun
       backgroundColor: background,
       navigationBar: AppCupertinoNavigationBar(
         child: CupertinoNavigationBar(
+          automaticallyImplyLeading: !context.isSplitPaneRoot,
           // Непрочитанные в других чатах — «‹ 3» (как в окне чата).
           previousPageTitle: unreadBack > 0 ? ChatTileContent.badge(unreadBack) : '',
           automaticBackgroundVisibility: false,
