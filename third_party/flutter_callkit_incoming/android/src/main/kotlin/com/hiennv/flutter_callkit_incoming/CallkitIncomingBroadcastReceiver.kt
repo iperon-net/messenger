@@ -316,7 +316,14 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
                     FlutterCallkitIncomingPlugin.notifyEventCallbacks(CallkitEventCallback.CallEvent.END, data)
                     // clear notification and stop service
                     getCallkitNotificationManager()?.clearIncomingNotification(data, false)
-                    CallkitNotificationService.stopService(context)
+                    // ВЕНДОР-ПАТЧ (Iperon): сервис с уведомлением «идёт звонок» —
+                    // у принятого звонка. Сняли ВТОРОЙ, неотвеченный входящий
+                    // («занято», пока идёт разговор) — сервис не трогаем, иначе
+                    // текущий звонок теряет своё уведомление.
+                    val endedID = data.getString(CallkitConstants.EXTRA_CALLKIT_ID).orEmpty()
+                    if (getDataActiveCalls(context).none { it.isAccepted && it.id != endedID }) {
+                        CallkitNotificationService.stopService(context)
+                    }
                     sendEventFlutter(CallkitConstants.ACTION_CALL_ENDED, data)
                     removeCall(context, Data.fromBundle(data))
                 } catch (error: Exception) {

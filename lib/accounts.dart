@@ -130,13 +130,14 @@ Future<void> afterLogout() async {
 
 /// Отклонить входящий звонок неактивному аккаунту [accountID], не
 /// переключаясь: `CALL_REJECT` от его сессии по общему каналу (сервер тот же).
+/// [busy] — «занято» (идёт другой звонок): звонящий услышит короткие гудки.
 /// Его сессии нет — ничего (звонящий дождётся отмены по таймауту).
-Future<void> rejectCallAs(String accountID, {required String callId, required List<int> toUserID}) async {
+Future<void> rejectCallAs(String accountID, {required String callId, required List<int> toUserID, bool busy = false}) async {
   if (toUserID.isEmpty) return;
   try {
     final session = await _device.sessionOf(accountID);
     if (session == null) return;
-    final ring = CallRing(callId: callId, toUserID: Uint8List.fromList(toUserID));
+    final ring = CallRing(callId: callId, toUserID: Uint8List.fromList(toUserID), busy: busy);
     await getIt.get<API>().unaryEncodedAs(session, MessageType.CALL_REJECT, ring.writeToBuffer());
   } catch (error, stackTrace) {
     getIt.get<Logger>().handle(error, stackTrace);

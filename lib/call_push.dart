@@ -257,13 +257,17 @@ class CallPush {
 
     FirebaseMessaging.onBackgroundMessage(callPushBackgroundHandler);
 
-    // foreground: входящий приходит по стриму и поднимается через системную
-    // звонилку из [Calls.incomingRings] (см. _onIncomingRing), не из FCM. Здесь
-    // обрабатываем только cancel — снять возможный подвисший нативный экран.
+    // foreground: входящий активному аккаунту приходит по стриму и поднимается
+    // через системную звонилку из [Calls.incomingRings] (см. _onIncomingRing),
+    // не из FCM. Из пуша здесь — cancel (снять возможный подвисший нативный
+    // экран) и входящий неактивному аккаунту: стрима у него нет.
     FirebaseMessaging.onMessage.listen((message) {
-      if (message.data[_kAction] == _kActionCancel) {
+      final action = message.data[_kAction];
+      if (action == _kActionCancel) {
         final callId = (message.data[_kCallId] ?? '').toString();
         if (callId.isNotEmpty) unawaited(FlutterCallkitIncoming.endCall(callId));
+      } else if (action == _kActionIncoming) {
+        unawaited(_onIncomingPush(message.data));
       }
     });
 
@@ -465,6 +469,10 @@ class CallPush {
           final target = await _callsFor((callKitParams.extra?[_kAccount] ?? '').toString());
           await target.acceptFromPush(callId, fromUserID: fromUserID, video: video);
         }
+      case CallEventActionCallIncoming(:final callKitParams):
+        // Занятость по всем аккаунтам: пока идёт звонок, второй входящий (в т.ч.
+        // неактивному аккаунту) — «занято».
+        await _rejectBusyIncoming(callKitParams);
       case CallEventActionCallDecline(:final callKitParams):
         final callId = callKitParams.id;
         if (callId.isNotEmpty && await _isIosSimulator) {
@@ -518,6 +526,40 @@ class CallPush {
         await _syncVoipToken();
       default:
         break;
+    }
+  }
+
+  /// Входящий из пуша при открытом приложении (Android): показать, если он
+  /// неактивному аккаунту; идёт звонок — сразу «занято», без баннера.
+  Future<void> _onIncomingPush(Map<String, dynamic> data) async {
+    final account = (data[_kAccount] ?? '').toString();
+    if (!await _isOtherAccount(account)) return;
+    final callId = (data[_kCallId] ?? '').toString();
+    if (calls.hasActiveCall) {
+      logger.info('call: busy — rejecting incoming $callId for account $account');
+      final fromUserIDHex = (data[_kFromUserID] ?? '').toString();
+      final fromUserID = fromUserIDHex.isEmpty ? <int>[] : utils.hexToBytes(fromUserIDHex);
+      await rejectCallAs(account, callId: callId, toUserID: fromUserID, busy: true);
+      return;
+    }
+    await _handleCallData(data);
+  }
+
+  /// Баннер входящего поднят мимо [Calls] (пуш: фоновый isolate Android, VoIP
+  /// iOS), а у нас уже идёт звонок — снять его и ответить «занято» от того
+  /// аккаунта, которому звонят (как авто-отклонение в `Calls._onRing`).
+  Future<void> _rejectBusyIncoming(CallKitParams params) async {
+    final callId = params.id;
+    if (callId.isEmpty || !calls.hasActiveCall || callId == calls.snapshot.callId) return;
+    final account = (params.extra?[_kAccount] ?? '').toString();
+    logger.info('call: busy — rejecting incoming $callId (account ${account.isEmpty ? 'active' : account})');
+    await FlutterCallkitIncoming.endCall(callId);
+    final fromUserIDHex = (params.extra?[_kFromUserID] ?? '').toString();
+    final fromUserID = fromUserIDHex.isEmpty ? <int>[] : utils.hexToBytes(fromUserIDHex);
+    if (await _isOtherAccount(account)) {
+      await rejectCallAs(account, callId: callId, toUserID: fromUserID, busy: true);
+    } else {
+      await calls.rejectBusy(callId, fromUserID);
     }
   }
 

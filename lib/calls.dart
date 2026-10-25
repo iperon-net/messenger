@@ -629,6 +629,16 @@ class Calls {
 
   bool get _hasActiveCall => _snapshot.status != CallStatus.idle && _snapshot.status != CallStatus.ended;
 
+  /// Идёт звонок (входящий, исходящий или разговор): другой входящий — «занято».
+  bool get hasActiveCall => _hasActiveCall;
+
+  /// «Занято» на входящий [callId] от [fromUserID], показанный мимо [_onRing]
+  /// (баннер из пуша, пока идёт другой звонок): как авто-отклонение в нём.
+  Future<void> rejectBusy(String callId, List<int> fromUserID) async {
+    if (fromUserID.isEmpty) return;
+    await _sendRing(MessageType.CALL_REJECT, toUserID: fromUserID, callId: callId, video: false, busy: true);
+  }
+
   // ВРЕМЕННАЯ ДИАГНОСТИКА двойного входа в комнату (DUPLICATE_IDENTITY).
   // Пишем на info с легко грепаемым префиксом CALLDIAG — виден и в logcat, и в
   // in-app-логе. По pid/isolate/room# разделяем: второй изолят vs дырявый гард
