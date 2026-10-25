@@ -19,6 +19,9 @@ class SettingsAccountsMaterial extends StatefulWidget {
 }
 
 class _SettingsAccountsMaterial extends State<SettingsAccountsMaterial> with SettingsAccountsState {
+  /// Аватар — размером с иконки соседних строк настроек ([MaterialListTileIcon]).
+  static const _avatarSize = 28.0;
+
   @override
   Future<void> notice(String text) async {
     ScaffoldMessenger.of(context)
@@ -56,13 +59,17 @@ class _SettingsAccountsMaterial extends State<SettingsAccountsMaterial> with Set
         children: [
           for (final account in accounts)
             ListTile(
-              leading: CircleAvatar(foregroundImage: avatarOf(account), child: Text(initialOf(account))),
+              leading: CircleAvatar(
+                radius: _avatarSize / 2,
+                foregroundImage: avatarOf(account),
+                child: Text(initialOf(account), style: const TextStyle(fontSize: 13)),
+              ),
               title: Text(account.title),
               trailing: _trailing(account),
               onTap: () => _open(account),
             ),
           ListTile(
-            leading: const CircleAvatar(child: Icon(Icons.add)),
+            leading: const CircleAvatar(radius: _avatarSize / 2, child: Icon(Icons.add, size: 18)),
             title: Text(context.t.screenSettings.addAccount),
             onTap: _add,
           ),

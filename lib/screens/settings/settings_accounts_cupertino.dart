@@ -28,12 +28,15 @@ class _SettingsAccountsCupertino extends State<SettingsAccountsCupertino> with S
       children: [
         for (final account in accounts)
           CupertinoListTile(
+            // Отступы — как у строк с иконками ([CupertinoListTileIcon]).
+            padding: const EdgeInsets.all(10),
             leading: avatar(account),
             title: Text(account.title),
             trailing: trailing(account),
             onTap: () => pickAccount(account),
           ),
         CupertinoListTile(
+          padding: const EdgeInsets.all(10),
           leading: Icon(CupertinoIcons.add_circled, color: CupertinoTheme.of(context).primaryColor),
           title: Text(context.t.screenSettings.addAccount),
           onTap: startAddAccount,
@@ -62,6 +65,12 @@ class _AccountSwitcherCupertino extends State<AccountSwitcherCupertino> with Set
       menuChildren: [
         for (final account in accounts)
           CupertinoMenuItem(
+            // Место под аватар шире стандартного (там — под иконку высотой со
+            // строку текста): иначе круг сжимается по высоте и прилипает к
+            // имени. Вертикальный отступ меньше, чтобы аватар вошёл по высоте.
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            leadingWidth: 48,
+            leadingMidpointAlignment: const AlignmentDirectional(-0.08, 0),
             leading: avatar(account, size: 28),
             trailing: trailing(account),
             onPressed: () => pickAccount(account),
@@ -91,7 +100,7 @@ mixin _AccountsCupertino<T extends StatefulWidget> on SettingsAccountsState<T> {
     ),
   );
 
-  Widget avatar(AccountEntry account, {double size = 32}) {
+  Widget avatar(AccountEntry account, {double size = 28}) {
     final image = avatarOf(account);
     return SizedBox(
       width: size,

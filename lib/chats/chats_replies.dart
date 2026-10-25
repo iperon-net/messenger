@@ -36,12 +36,15 @@ class ChatsReplies {
   Auth get _auth => _scope.auth;
 
   /// Имена людей по общему правилу (hex userID → имя; и для баннера о
-  /// новом ответе); в тестах — подмена.
-  static Future<Map<String, String>> Function(List<Uint8List> userIDs) names = ChatsRemoteDataSource.instance.peopleNames;
+  /// новом ответе); в тестах — подмена. Источник берётся на каждый вызов:
+  /// ссылка на метод запомнила бы первый аккаунт, и после переключения чтение
+  /// шло бы в его закрытую базу.
+  static Future<Map<String, String>> Function(List<Uint8List> userIDs) names = (userIDs) =>
+      ChatsRemoteDataSource.instance.peopleNames(userIDs);
 
   /// Скачанный файл по cdnID; в тестах — подмена.
   @visibleForTesting
-  static Future<String> Function(List<int> cdnID) cachedFile = ChatsRemoteDataSource.instance.cachedFilePath;
+  static Future<String> Function(List<int> cdnID) cachedFile = (cdnID) => ChatsRemoteDataSource.instance.cachedFilePath(cdnID);
 
   static const _rowTables = [ChatsRepository.repliesTable, ChatsRepository.repliesStateTable, 'profiles', 'contacts'];
   static const _feedTables = [..._rowTables, ChatsRepository.repliesChatsTable, ChatsRepository.groupsTable];
