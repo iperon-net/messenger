@@ -123,17 +123,67 @@ final accountRootKey = GlobalKey();
 final accountSwitchSnapshot = ValueNotifier<ui.Image?>(null);
 
 /// Застывший снимок прежнего экрана на время переключения (нет снимка — фон).
-class AccountSwitchSnapshot extends StatelessWidget {
-  const AccountSwitchSnapshot({required this.image, super.key});
+/// С [fading] (переключение закончилось, новый корень уже под ним) ждёт, пока
+/// новый экран нарисуется и подтянет данные, и плавно гаснет; погаснув —
+/// убирает снимок ([accountSwitchSnapshot]) и освобождает его.
+class AccountSwitchSnapshot extends StatefulWidget {
+  const AccountSwitchSnapshot({required this.image, required this.fading, super.key});
 
   final ui.Image? image;
+  final bool fading;
+
+  @override
+  State<AccountSwitchSnapshot> createState() => _AccountSwitchSnapshotState();
+}
+
+class _AccountSwitchSnapshotState extends State<AccountSwitchSnapshot> with SingleTickerProviderStateMixin {
+  late final _opacity = AnimationController(vsync: this, duration: const Duration(milliseconds: 200), value: 1);
+  bool _started = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _maybeFade();
+  }
+
+  @override
+  void didUpdateWidget(AccountSwitchSnapshot oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _maybeFade();
+  }
+
+  Future<void> _maybeFade() async {
+    if (!widget.fading || _started) return;
+    _started = true;
+    // Первые кадры нового корня: роутер, кубиты, чтение списка из базы.
+    for (var i = 0; i < 3; i++) {
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+    if (!mounted) return;
+    await _opacity.reverse();
+    if (mounted && accountSwitchSnapshot.value == widget.image) accountSwitchSnapshot.value = null;
+  }
+
+  @override
+  void dispose() {
+    _opacity.dispose();
+    // RawImage держит свою копию — исходник можно освободить сразу.
+    widget.image?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final image = this.image;
-    if (image == null) return const ColoredBox(color: Color(0xFF808080));
-    return SizedBox.expand(
-      child: RawImage(image: image, fit: BoxFit.cover),
+    final image = widget.image;
+    final brightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    return FadeTransition(
+      opacity: _opacity,
+      child: image == null
+          ? ColoredBox(color: brightness == Brightness.dark ? const Color(0xFF1B263B) : const Color(0xFFF2F2F7))
+          : SizedBox.expand(
+              child: RawImage(image: image, fit: BoxFit.cover),
+            ),
     );
   }
 }
@@ -175,11 +225,8 @@ Future<void> switchAccount(String accountID) async {
     await startAccountServices();
   } finally {
     AccountScope.generation.value++;
+    // Снимок остаётся поверх нового корня и гаснет сам (AccountSwitchSnapshot).
     accountSwitching.value = false;
-    // Снимок ещё нужен переходу (AnimatedSwitcher) — освобождаем после него.
-    final snapshot = accountSwitchSnapshot.value;
-    accountSwitchSnapshot.value = null;
-    if (snapshot != null) unawaited(Future<void>.delayed(const Duration(seconds: 1), snapshot.dispose));
   }
 }
 

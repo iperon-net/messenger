@@ -135,38 +135,43 @@ Future<void> main() async {
         providers: <BlocProvider>[BlocProvider<CommonCubit>(create: (_) => CommonCubit())],
         // child: Platform.isIOS ? const IperonMessengerCupertino() : const IperonMessengerCupertino(),
         // Корень приложения — на аккаунт: при переключении (AccountScope.generation)
-        // собирается заново, кубиты и подписки — уже на новом аккаунте; пока
-        // идёт переключение — пусто.
-        // пока идёт переключение — застывший снимок прежнего экрана, затем
-        // плавный переход (без чёрного кадра).
+        // собирается заново, кубиты и подписки — уже на новом аккаунте. Пока идёт
+        // переключение — застывший снимок прежнего экрана; новый корень
+        // собирается под ним, и снимок плавно гаснет, когда тот уже нарисован
+        // (без чёрного кадра и мерцания).
         child: Directionality(
           textDirection: TextDirection.ltr,
           child: ValueListenableBuilder<bool>(
             valueListenable: accountSwitching,
-            builder: (context, switching, _) => AnimatedSwitcher(
-              duration: const Duration(milliseconds: 250),
-              // Уходящее дерево аккаунта снимается сразу (его сервисы сейчас
-              // закроются), плавно появляется только новое.
-              reverseDuration: Duration.zero,
-              child: switching
-                  ? AccountSwitchSnapshot(key: const ValueKey('switching'), image: accountSwitchSnapshot.value)
-                  : RepaintBoundary(
-                      key: accountRootKey,
-                      child: ValueListenableBuilder<int>(
-                        valueListenable: AccountScope.generation,
-                        builder: (context, generation, _) => Platform.isIOS
-                            ? IperonMessengerCupertino(
-                                key: ValueKey(generation),
-                                settingsDevice: settingsDevice,
-                                isBiometricAvailable: isBiometricAvailable,
-                              )
-                            : IperonMessengerMaterial(
-                                key: ValueKey(generation),
-                                settingsDevice: settingsDevice,
-                                isBiometricAvailable: isBiometricAvailable,
-                              ),
-                      ),
+            builder: (context, switching, _) => Stack(
+              fit: StackFit.expand,
+              children: [
+                if (!switching)
+                  RepaintBoundary(
+                    key: accountRootKey,
+                    child: ValueListenableBuilder<int>(
+                      valueListenable: AccountScope.generation,
+                      builder: (context, generation, _) => Platform.isIOS
+                          ? IperonMessengerCupertino(
+                              key: ValueKey(generation),
+                              settingsDevice: settingsDevice,
+                              isBiometricAvailable: isBiometricAvailable,
+                            )
+                          : IperonMessengerMaterial(
+                              key: ValueKey(generation),
+                              settingsDevice: settingsDevice,
+                              isBiometricAvailable: isBiometricAvailable,
+                            ),
                     ),
+                  ),
+                ValueListenableBuilder(
+                  key: const ValueKey('accountSwitchSnapshot'),
+                  valueListenable: accountSwitchSnapshot,
+                  builder: (context, image, _) => image == null && !switching
+                      ? const SizedBox.shrink()
+                      : AccountSwitchSnapshot(key: ObjectKey(image), image: image, fading: !switching),
+                ),
+              ],
             ),
           ),
         ),
