@@ -3,16 +3,22 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
+import 'package:objectid/objectid.dart';
 
 import '../../accounts.dart';
 import '../../calls.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
+import '../../utils.dart';
 
 /// Список аккаунтов в «Настройках» (этап 3.2 мультиаккаунта): общее для
 /// Material и Cupertino — данные, подписка на изменения, действия.
 mixin SettingsAccountsState<T extends StatefulWidget> on State<T> {
   List<AccountEntry> accounts = const [];
+
+  /// Заглушки аватаров по userID (hex) — те же, что в «Моём профиле».
+  final Map<String, BoringAvatarType> _placeholderTypes = {};
   StreamSubscription<void>? _changes;
   AppLifecycleListener? _lifecycle;
   Timer? _refresh;
@@ -35,6 +41,15 @@ mixin SettingsAccountsState<T extends StatefulWidget> on State<T> {
   /// Перечитать список (с непрочитанными неактивных).
   Future<void> load() async {
     final list = await signedInAccounts(withUnread: true);
+    for (final account in list) {
+      if (account.avatarPath.isNotEmpty || _placeholderTypes.containsKey(account.userHex)) continue;
+      try {
+        final placeholder = await getIt.get<Utils>().boringAvatar(ObjectId.fromHexString(account.userHex));
+        _placeholderTypes[account.userHex] = placeholder.type;
+      } on FormatException {
+        _placeholderTypes[account.userHex] = BoringAvatarType.beam;
+      }
+    }
     if (mounted && !listEquals(list, accounts)) setState(() => accounts = list);
   }
 
@@ -49,10 +64,18 @@ mixin SettingsAccountsState<T extends StatefulWidget> on State<T> {
   /// Аватар аккаунта: файл, если скачан.
   ImageProvider? avatarOf(AccountEntry account) => account.avatarPath.isEmpty ? null : FileImage(File(account.avatarPath));
 
-  /// Первая буква подписи — вместо аватара.
-  String initialOf(AccountEntry account) {
-    final title = account.title.replaceAll('+', '').trim();
-    return title.isEmpty ? '?' : title.characters.first.toUpperCase();
+  /// Аватар аккаунта: картинка, если скачана, иначе заглушка как в «Моём
+  /// профиле».
+  Widget accountAvatar(AccountEntry account, {required double size}) {
+    final image = avatarOf(account);
+    return SizedBox.square(
+      dimension: size,
+      child: image != null
+          ? ClipOval(
+              child: Image(image: image, fit: BoxFit.cover),
+            )
+          : BoringAvatar(name: account.userHex, type: _placeholderTypes[account.userHex], shape: const CircleBorder()),
+    );
   }
 
   /// Во время звонка аккаунт не переключить.

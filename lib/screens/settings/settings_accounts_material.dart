@@ -59,11 +59,7 @@ class _SettingsAccountsMaterial extends State<SettingsAccountsMaterial> with Set
         children: [
           for (final account in accounts)
             ListTile(
-              leading: CircleAvatar(
-                radius: _avatarSize / 2,
-                foregroundImage: avatarOf(account),
-                child: Text(initialOf(account), style: const TextStyle(fontSize: 13)),
-              ),
+              leading: accountAvatar(account, size: _avatarSize),
               title: Text(account.title),
               trailing: _trailing(account),
               onTap: () => _open(account),

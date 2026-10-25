@@ -100,21 +100,7 @@ mixin _AccountsCupertino<T extends StatefulWidget> on SettingsAccountsState<T> {
     ),
   );
 
-  Widget avatar(AccountEntry account, {double size = 28}) {
-    final image = avatarOf(account);
-    return SizedBox(
-      width: size,
-      height: size,
-      child: ClipOval(
-        child: image != null
-            ? Image(image: image, fit: BoxFit.cover)
-            : ColoredBox(
-                color: CupertinoColors.systemGrey4.resolveFrom(context),
-                child: Center(child: Text(initialOf(account))),
-              ),
-      ),
-    );
-  }
+  Widget avatar(AccountEntry account, {double size = 28}) => accountAvatar(account, size: size);
 
   Widget? trailing(AccountEntry account) {
     if (account.active) return FaIcon(FontAwesomeIcons.solidCircleCheck, size: 18, color: CupertinoTheme.of(context).primaryColor);

@@ -9,6 +9,7 @@ import 'repositories.dart';
 import 'routers.dart';
 import 'api.dart';
 import 'protobuf.dart';
+import 'utils.dart';
 
 /// Несколько аккаунтов на устройстве (docs/plans/multi-account.md, этап 3.2):
 /// список вошедших, добавление, переключение и уход из аккаунта. Экраны
@@ -17,11 +18,11 @@ import 'protobuf.dart';
 /// Сколько аккаунтов можно держать на устройстве (как в Telegram).
 const maxAccounts = 3;
 
-/// Вошедший аккаунт для списка: подпись (имя или номер), аватар (путь к
-/// файлу, пусто — нет), активный ли и непрочитанные чаты (у неактивного —
-/// последнее известное число из его пушей, у активного — 0: его счётчик на
-/// вкладке «Чаты»).
-typedef AccountEntry = ({String accountID, String title, String avatarPath, bool active, int unread});
+/// Вошедший аккаунт для списка: userID (hex, для заглушки аватара), подпись
+/// (имя или отформатированный номер), аватар (путь к файлу, пусто — нет),
+/// активный ли и непрочитанные чаты (у неактивного — последнее известное
+/// число из его пушей, у активного — 0: его счётчик на вкладке «Чаты»).
+typedef AccountEntry = ({String accountID, String userHex, String title, String avatarPath, bool active, int unread});
 
 DeviceRepositories get _device => getIt.get<DeviceRepositories>();
 
@@ -32,12 +33,19 @@ Future<List<AccountEntry>> signedInAccounts({bool withUnread = false}) async {
   final slots = await _device.accounts.all();
   final others = slots.any((slot) => slot.userID.isNotEmpty && slot.accountID != current);
   final badges = withUnread && others ? await PushManager.accountBadges() : const <String, int>{};
+  final utils = getIt.get<Utils>();
+  String phone(String digits) {
+    final formatted = utils.phoneNormalization(phoneNumber: digits).international;
+    return formatted.isNotEmpty ? formatted : '+$digits';
+  }
+
   return [
     for (final slot in slots)
       if (slot.userID.isNotEmpty)
         (
           accountID: slot.accountID,
-          title: slot.name.isNotEmpty ? slot.name : '+${slot.phoneNumber}',
+          userHex: utils.bytesToHex(slot.userID),
+          title: slot.name.isNotEmpty ? slot.name : phone(slot.phoneNumber),
           avatarPath: slot.avatarPath,
           active: slot.accountID == current,
           unread: slot.accountID == current ? 0 : badges[slot.accountID] ?? 0,
