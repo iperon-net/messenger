@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+// Вход на десктопе по QR с телефона (docs/plans/desktop-client.md §3.4, как в
+// Telegram Desktop). Десктоп без сессии берёт одноразовый токен (AUTH_QR,
+// newToken) и показывает его QR-кодом `iperon://login?token=<base64url>`;
+// телефон, где пользователь уже вошёл, сканирует, видит, какое устройство
+// входит (AUTH_QR_CONFIRM, accept=false), и подтверждает (accept=true).
+// Десктоп опрашивает токен (AUTH_QR, poll) и, когда вход подтверждён,
+// получает confirmationSession — дальше как у Яндекса и passkey: облачный
+// пароль (если включён) и AUTH_CONFIRMATION с обменом ключами.
+message AuthQr {
+  // Что за устройство входит — показывается на телефоне перед подтверждением.
+  message Device {
+    string deviceModel = 1;
+    // Код ОС как в сессии: 1 iOS, 2 Android, 3 macOS, 4 Windows.
+    int32 os = 2;
+    string osVersion = 3;
+    string appVersion = 4;
+  }
+
+  // Новый токен (каждый раз — новый; старый живёт до своего срока).
+  message Create {
+    Device device = 1;
+  }
+
+  // Состояние токена.
+  message Check {
+    bytes token = 1;
+  }
+
+  // Pre-auth (без сессии), unary.
+  message Request {
+    oneof action {
+      Create newToken = 1;
+      Check poll = 2;
+    }
+  }
+
+  enum Status {
+    PENDING = 0;
+    // Подтверждён на телефоне — в ответе confirmationSession (один раз).
+    ACCEPTED = 1;
+    // Истёк или уже использован — показать новый QR.
+    EXPIRED = 2;
+  }
+
+  message Response {
+    // Create: токен и когда он истечёт (мс от эпохи, UTC).
+    bytes token = 1;
+    int64 expiresAt = 2;
+    // Check.
+    Status status = 3;
+    bytes confirmationSession = 4;
+    bool hasTwoStepVerification = 5;
+  }
+}
+
+// Телефон (с сессией, зашифровано): что за устройство просит войти по
+// отсканированному токену, и подтверждение входа.
+message AuthQrConfirm {
+  message Request {
+    bytes token = 1;
+    // false — только показать устройство; true — подтвердить вход.
+    bool accept = 2;
+  }
+
+  message Response {
+    AuthQr.Device device = 1;
+    string locationEnglish = 2;
+    string locationRussian = 3;
+  }
+}

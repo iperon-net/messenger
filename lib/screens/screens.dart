@@ -1,5 +1,6 @@
 export 'auth/auth_cupertino.dart';
 export 'auth/auth_material.dart';
+export 'auth/auth_qr_material.dart';
 export 'auth/auth_moderation_application_store_cupertino.dart';
 export 'auth/auth_moderation_application_store_material.dart';
 export 'auth/auth_callpassword_confirmation_cupertino.dart';

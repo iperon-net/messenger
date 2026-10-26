@@ -171,6 +171,10 @@ enum MessageType {
   PRIVACY_GROUP_INVITES_DENY_UPDATE = 93;
   // Отчёты о сбоях клиента без Crashlytics (десктоп). См. crash_report_v1.proto.
   CRASH_REPORT = 94;
+  // Вход на десктопе по QR с телефона: AUTH_QR — десктоп без сессии (токен,
+  // опрос), AUTH_QR_CONFIRM — телефон подтверждает. См. qr_login_v1.proto.
+  AUTH_QR = 95;
+  AUTH_QR_CONFIRM = 96;
 }
 
 service Iperon {

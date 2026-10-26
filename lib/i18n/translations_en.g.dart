@@ -86,6 +86,9 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$chatNoForwards$en chatNoForwards = Translations$chatNoForwards$en.internal(_root);
 	late final Translations$secretChat$en secretChat = Translations$secretChat$en.internal(_root);
 	late final Translations$systemNotice$en systemNotice = Translations$systemNotice$en.internal(_root);
+	late final Translations$authQr$en authQr = Translations$authQr$en.internal(_root);
+	late final Translations$deviceLink$en deviceLink = Translations$deviceLink$en.internal(_root);
+	late final Translations$qrLogin$en qrLogin = Translations$qrLogin$en.internal(_root);
 }
 
 // Path: common
@@ -4834,6 +4837,81 @@ class Translations$systemNotice$en {
 	String get terminateFailed => 'Couldn\'t end the session. Please try again.';
 }
 
+// Path: authQr
+class Translations$authQr$en {
+	Translations$authQr$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Log in to Iperon'
+	String get title => 'Log in to Iperon';
+
+	/// en: 'Open Iperon on your phone'
+	String get step1 => 'Open Iperon on your phone';
+
+	/// en: 'Go to Settings → Devices → Link a device'
+	String get step2 => 'Go to Settings → Devices → Link a device';
+
+	/// en: 'Point your phone at this QR code'
+	String get step3 => 'Point your phone at this QR code';
+
+	/// en: 'Logging in…'
+	String get completing => 'Logging in…';
+
+	/// en: 'Retry'
+	String get retry => 'Retry';
+
+	/// en: 'Log in with phone number (debug)'
+	String get phoneLogin => 'Log in with phone number (debug)';
+}
+
+// Path: deviceLink
+class Translations$deviceLink$en {
+	Translations$deviceLink$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Link a device'
+	String get linkDevice => 'Link a device';
+
+	/// en: 'Open Iperon on your computer and point the camera at the QR code'
+	String get hint => 'Open Iperon on your computer and point the camera at the QR code';
+
+	/// en: 'Log in on this device?'
+	String get confirmTitle => 'Log in on this device?';
+
+	/// en: 'Confirm only if this is your computer and you opened Iperon on it yourself.'
+	String get confirmMessage => 'Confirm only if this is your computer and you opened Iperon on it yourself.';
+
+	/// en: 'Log in'
+	String get confirm => 'Log in';
+
+	/// en: 'Device linked'
+	String get linked => 'Device linked';
+
+	/// en: 'This is not an Iperon login QR code'
+	String get invalidCode => 'This is not an Iperon login QR code';
+
+	/// en: 'No camera access. Allow it in settings.'
+	String get cameraDenied => 'No camera access. Allow it in settings.';
+}
+
+// Path: qrLogin
+class Translations$qrLogin$en {
+	Translations$qrLogin$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'The QR code has expired — scan a new one on your computer'
+	String get expired => 'The QR code has expired — scan a new one on your computer';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -6265,6 +6343,22 @@ extension on Translations {
 			'systemNotice.enableCloudPassword' => 'Turn on cloud password',
 			'systemNotice.later' => 'Later',
 			'systemNotice.terminateFailed' => 'Couldn\'t end the session. Please try again.',
+			'authQr.title' => 'Log in to Iperon',
+			'authQr.step1' => 'Open Iperon on your phone',
+			'authQr.step2' => 'Go to Settings → Devices → Link a device',
+			'authQr.step3' => 'Point your phone at this QR code',
+			'authQr.completing' => 'Logging in…',
+			'authQr.retry' => 'Retry',
+			'authQr.phoneLogin' => 'Log in with phone number (debug)',
+			'deviceLink.linkDevice' => 'Link a device',
+			'deviceLink.hint' => 'Open Iperon on your computer and point the camera at the QR code',
+			'deviceLink.confirmTitle' => 'Log in on this device?',
+			'deviceLink.confirmMessage' => 'Confirm only if this is your computer and you opened Iperon on it yourself.',
+			'deviceLink.confirm' => 'Log in',
+			'deviceLink.linked' => 'Device linked',
+			'deviceLink.invalidCode' => 'This is not an Iperon login QR code',
+			'deviceLink.cameraDenied' => 'No camera access. Allow it in settings.',
+			'qrLogin.expired' => 'The QR code has expired — scan a new one on your computer',
 			_ => null,
 		};
 	}

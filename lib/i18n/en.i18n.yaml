@@ -1561,3 +1561,25 @@ dateTime:
   "enableCloudPassword": "Turn on cloud password"
   "later": "Later"
   "terminateFailed": "Couldn't end the session. Please try again."
+
+"authQr":
+  "title": "Log in to Iperon"
+  "step1": "Open Iperon on your phone"
+  "step2": "Go to Settings → Devices → Link a device"
+  "step3": "Point your phone at this QR code"
+  "completing": "Logging in…"
+  "retry": "Retry"
+  "phoneLogin": "Log in with phone number (debug)"
+
+"deviceLink":
+  "linkDevice": "Link a device"
+  "hint": "Open Iperon on your computer and point the camera at the QR code"
+  "confirmTitle": "Log in on this device?"
+  "confirmMessage": "Confirm only if this is your computer and you opened Iperon on it yourself."
+  "confirm": "Log in"
+  "linked": "Device linked"
+  "invalidCode": "This is not an Iperon login QR code"
+  "cameraDenied": "No camera access. Allow it in settings."
+
+"qrLogin":
+  "expired": "The QR code has expired — scan a new one on your computer"

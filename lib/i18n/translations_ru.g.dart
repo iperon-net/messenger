@@ -84,6 +84,9 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$chatNoForwards$ru chatNoForwards = _Translations$chatNoForwards$ru._(_root);
 	@override late final _Translations$secretChat$ru secretChat = _Translations$secretChat$ru._(_root);
 	@override late final _Translations$systemNotice$ru systemNotice = _Translations$systemNotice$ru._(_root);
+	@override late final _Translations$authQr$ru authQr = _Translations$authQr$ru._(_root);
+	@override late final _Translations$deviceLink$ru deviceLink = _Translations$deviceLink$ru._(_root);
+	@override late final _Translations$qrLogin$ru qrLogin = _Translations$qrLogin$ru._(_root);
 }
 
 // Path: common
@@ -2043,6 +2046,49 @@ class _Translations$systemNotice$ru extends Translations$systemNotice$en {
 	@override String get terminateFailed => 'Не удалось завершить сеанс. Попробуйте ещё раз.';
 }
 
+// Path: authQr
+class _Translations$authQr$ru extends Translations$authQr$en {
+	_Translations$authQr$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Вход в Iperon';
+	@override String get step1 => 'Откройте Iperon на телефоне';
+	@override String get step2 => 'Перейдите в Настройки → Устройства → Подключить устройство';
+	@override String get step3 => 'Наведите камеру телефона на этот QR-код';
+	@override String get completing => 'Входим…';
+	@override String get retry => 'Повторить';
+	@override String get phoneLogin => 'Войти по номеру (debug)';
+}
+
+// Path: deviceLink
+class _Translations$deviceLink$ru extends Translations$deviceLink$en {
+	_Translations$deviceLink$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get linkDevice => 'Подключить устройство';
+	@override String get hint => 'Откройте Iperon на компьютере и наведите камеру на QR-код';
+	@override String get confirmTitle => 'Войти на этом устройстве?';
+	@override String get confirmMessage => 'Подтверждайте, только если это ваш компьютер и вы сами открыли на нём Iperon.';
+	@override String get confirm => 'Войти';
+	@override String get linked => 'Устройство подключено';
+	@override String get invalidCode => 'Это не QR-код входа в Iperon';
+	@override String get cameraDenied => 'Нет доступа к камере. Разрешите его в настройках.';
+}
+
+// Path: qrLogin
+class _Translations$qrLogin$ru extends Translations$qrLogin$en {
+	_Translations$qrLogin$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get expired => 'QR-код устарел — отсканируйте новый на компьютере';
+}
+
 /// The flat map containing all translations for locale <ru>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -3474,6 +3520,22 @@ extension on TranslationsRu {
 			'systemNotice.enableCloudPassword' => 'Включить облачный пароль',
 			'systemNotice.later' => 'Позже',
 			'systemNotice.terminateFailed' => 'Не удалось завершить сеанс. Попробуйте ещё раз.',
+			'authQr.title' => 'Вход в Iperon',
+			'authQr.step1' => 'Откройте Iperon на телефоне',
+			'authQr.step2' => 'Перейдите в Настройки → Устройства → Подключить устройство',
+			'authQr.step3' => 'Наведите камеру телефона на этот QR-код',
+			'authQr.completing' => 'Входим…',
+			'authQr.retry' => 'Повторить',
+			'authQr.phoneLogin' => 'Войти по номеру (debug)',
+			'deviceLink.linkDevice' => 'Подключить устройство',
+			'deviceLink.hint' => 'Откройте Iperon на компьютере и наведите камеру на QR-код',
+			'deviceLink.confirmTitle' => 'Войти на этом устройстве?',
+			'deviceLink.confirmMessage' => 'Подтверждайте, только если это ваш компьютер и вы сами открыли на нём Iperon.',
+			'deviceLink.confirm' => 'Войти',
+			'deviceLink.linked' => 'Устройство подключено',
+			'deviceLink.invalidCode' => 'Это не QR-код входа в Iperon',
+			'deviceLink.cameraDenied' => 'Нет доступа к камере. Разрешите его в настройках.',
+			'qrLogin.expired' => 'QR-код устарел — отсканируйте новый на компьютере',
 			_ => null,
 		};
 	}

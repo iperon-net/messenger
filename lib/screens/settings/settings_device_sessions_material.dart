@@ -9,6 +9,8 @@ import '../../cubit.dart';
 import '../../models.dart' show osWithVersion;
 import '../../extensions/date_time_extensions.dart';
 import '../../i18n/translations.g.dart';
+import '../../platform.dart';
+import 'device_link_material.dart';
 import 'device_os.dart';
 import '../../themes.dart';
 
@@ -103,6 +105,19 @@ class _SettingsDeviceSessionsMaterial extends State<SettingsDeviceSessionsMateri
                           ],
                         ),
                       ),
+                      // Вход на компьютере по QR (как в Telegram); на десктопе камеры нет.
+                      if (AppPlatform.isMobile) ...[
+                        const SizedBox(height: 12),
+                        Card(
+                          margin: const EdgeInsets.symmetric(horizontal: 12),
+                          clipBehavior: Clip.antiAlias,
+                          child: ListTile(
+                            leading: Icon(Icons.qr_code_scanner, color: Theme.of(context).colorScheme.primary),
+                            title: Text(context.t.deviceLink.linkDevice, style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+                            onTap: () => DeviceLinkMaterial.open(context),
+                          ),
+                        ),
+                      ],
                       if (others.isNotEmpty) ...[
                         _sectionHeader(context, context.t.screenSettingsDevices.activeDeviceSession),
                         Card(

@@ -139,6 +139,8 @@ dependencies:
   screen_protector: ^1.5.3
   desktop_drop: ^0.8.0
   pasteboard: ^0.6.0
+  qr_flutter: ^4.1.0
+  mobile_scanner: ^7.4.2
 
 dev_dependencies:
   flutter_test:

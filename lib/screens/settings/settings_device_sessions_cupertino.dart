@@ -12,6 +12,7 @@ import '../../cubit.dart';
 import '../../models.dart' show osWithVersion;
 import '../../extensions/date_time_extensions.dart';
 import '../../i18n/translations.g.dart';
+import 'device_link_cupertino.dart';
 import 'device_os.dart';
 
 class SettingsDeviceSessionsCupertino extends StatefulWidget {
@@ -111,6 +112,26 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
                               ),
                             ),
                           ],
+                        ],
+                      ),
+
+                      // Вход на компьютере по QR (как в Telegram).
+                      CupertinoListSection.insetGrouped(
+                        backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                        decoration: BoxDecoration(
+                          color: ThemesCupertino.groupedCard.resolveFrom(context),
+                          borderRadius: const BorderRadius.all(Radius.circular(10)),
+                        ),
+                        children: [
+                          CupertinoListTile(
+                            padding: const EdgeInsets.all(10),
+                            leading: Icon(CupertinoIcons.qrcode_viewfinder, color: CupertinoTheme.of(context).primaryColor),
+                            title: Text(
+                              context.t.deviceLink.linkDevice,
+                              style: TextStyle(fontWeight: FontWeight.normal, color: CupertinoTheme.of(context).primaryColor),
+                            ),
+                            onTap: () => DeviceLinkCupertino.open(context),
+                          ),
                         ],
                       ),
 

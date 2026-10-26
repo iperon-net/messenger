@@ -11,6 +11,8 @@ export 'auth/auth_callpassword_confirmation_cubit.dart';
 export 'auth/auth_callpassword_confirmation_state.dart';
 export 'auth/auth_cloud_password_cubit.dart';
 export 'auth/auth_cloud_password_state.dart';
+export 'auth/auth_qr_cubit.dart';
+export 'auth/auth_qr_state.dart';
 export 'settings/settings_cubit.dart';
 export 'settings/settings_state.dart';
 export 'settings/settings_language_cubit.dart';

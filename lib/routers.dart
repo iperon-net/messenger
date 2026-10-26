@@ -11,6 +11,7 @@ import 'cubit.dart';
 import 'di.dart';
 import 'logger.dart';
 import 'models.dart' as models;
+import 'platform.dart';
 import 'repositories.dart';
 import 'screens.dart';
 import 'split_layout.dart';
@@ -2150,7 +2151,11 @@ class Routers {
     _profileMaterial("/profile/:userID", rootNavigatorKey),
     GoRoute(
       path: "/auth",
-      builder: (_, _) => BlocProvider<AuthCubit>(create: (_) => AuthCubit()..initialization(), child: const AuthMaterialScreen()),
+      // Десктоп — вход только по QR с телефона (docs/plans/desktop-client.md §3.4).
+      builder: (_, _) => BlocProvider<AuthCubit>(
+        create: (_) => AuthCubit()..initialization(),
+        child: AppPlatform.isDesktop ? const AuthDesktopMaterial() : const AuthMaterialScreen(),
+      ),
       routes: [
         GoRoute(
           path: "/call_password_confirmation",
