@@ -39,6 +39,8 @@ class ChatTileMaterial extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         onLongPress: onLongPress,
+        // Правый клик мышью (десктоп) — те же действия.
+        onSecondaryTap: onLongPress,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(

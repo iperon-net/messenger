@@ -1099,6 +1099,8 @@ class MessageBubble extends StatelessWidget {
         child: GestureDetector(
           // С обёрткой (iOS-меню) long-press ловит `CupertinoContextMenu`.
           onLongPress: menuWrapper == null && !preview ? onLongPress : null,
+          // Правый клик мышью (десктоп) — то же меню.
+          onSecondaryTap: menuWrapper == null && !preview ? onLongPress : null,
           child: DecoratedBox(
             decoration: BoxDecoration(
               color: bigEmoji > 0 ? null : (out ? style.outgoing : style.incoming),

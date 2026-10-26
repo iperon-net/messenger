@@ -24,6 +24,7 @@ import 'package:go_router/go_router.dart';
 import 'package:local_auth/local_auth.dart';
 
 import 'api.dart';
+import 'app_shortcuts.dart';
 import 'calls.dart';
 import 'cubit.dart';
 import 'di.dart';
@@ -211,6 +212,9 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
           child: MaterialApp.router(
             debugShowCheckedModeBanner: kDebugMode,
             routerConfig: goRouter,
+            // Десктоп: ⌘/Ctrl+F — поиск, ⌘/Ctrl+N — новое сообщение.
+            shortcuts: AppPlatform.isDesktop ? DesktopShortcuts.shortcuts() : null,
+            actions: AppPlatform.isDesktop ? DesktopShortcuts.actions(goRouter.go) : null,
             localizationsDelegates: const <LocalizationsDelegate<Object>>[
               GlobalMaterialLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
