@@ -124,8 +124,10 @@ dependencies:
   # (#2174/#2175) — то же для data-channel event channel, hotfix.4 (#2190) — крэш
   # EXC_BAD_ACCESS в `-[FlutterRTCVideoRenderer renderFrame:]` при уничтожении
   # рендерера с живым потоком кадров (см. [[webrtc-renderer-recreation-crash]]).
-  flutter_webrtc: 1.6.2+hotfix.4
-  livekit_client: ^2.13.1
+  # 2.13.2 (2026-10-26) пинит flutter_webrtc 1.6.3: WebRTC-SDK 150.7871.04 без
+  # корня AAA Certificate Services (скомпрометированные CA eMudhra) в TURN/TLS.
+  flutter_webrtc: 1.6.3
+  livekit_client: ^2.13.2
   hugeicons: ^1.2.0
   passkeys: ^2.23.1
   flutter_image_compress: ^2.5.1
