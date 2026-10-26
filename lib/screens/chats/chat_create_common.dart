@@ -7,7 +7,9 @@ import '../../components.dart';
 import '../../cubit.dart';
 import '../../di.dart';
 import '../../extensions.dart';
+import '../../components/desktop_image_crop.dart';
 import '../../i18n/translations.g.dart';
+import '../../platform.dart';
 import '../../models.dart' as models;
 import '../../utils.dart';
 import 'chat_info_common.dart';
@@ -25,6 +27,10 @@ Future<String?> pickChatPhoto(BuildContext context, models.ChatType type) async 
     context,
     tabs: const [ToolbarAttachmentTabKind.gallery],
     processImage: (file) async {
+      // Десктоп: у image_cropper нет macOS / Windows.
+      if (AppPlatform.isDesktop) {
+        return cropImageDesktop(context, file.path, title: title, circle: cropStyle == CropStyle.circle);
+      }
       final cropped = await ImageCropper().cropImage(
         sourcePath: file.path,
         aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
@@ -54,6 +60,9 @@ Future<String?> pickCommunityCover(BuildContext context) async {
     context,
     tabs: const [ToolbarAttachmentTabKind.gallery],
     processImage: (file) async {
+      if (AppPlatform.isDesktop) {
+        return cropImageDesktop(context, file.path, title: title, aspectRatio: 16 / 9, maxWidth: 1280, maxHeight: 720, quality: 85);
+      }
       final cropped = await ImageCropper().cropImage(
         sourcePath: file.path,
         aspectRatio: const CropAspectRatio(ratioX: 16, ratioY: 9),

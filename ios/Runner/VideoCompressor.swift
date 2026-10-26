@@ -1,7 +1,13 @@
 import AVFoundation
 import VideoToolbox
+#if os(iOS)
 import Flutter
 import UIKit
+#else
+// Тот же файл собирается и в macOS-приложение (ссылкой из macos/Runner).
+import FlutterMacOS
+import AppKit
+#endif
 
 /// Сжатие видео для чата перед отправкой (сервер видит только шифротекст и
 /// пережать сам не может — см. lib/chats/video_prepare.dart). Канал
@@ -129,7 +135,7 @@ final class VideoCompressor {
       }
       let at = CMTime(value: CMTimeValue(thumbAtMs), timescale: 1000)
       if let image = try? generator.copyCGImage(at: at, actualTime: nil),
-         let data = UIImage(cgImage: image).jpegData(compressionQuality: 0.75),
+         let data = Self.jpeg(image, quality: 0.75),
          (try? data.write(to: URL(fileURLWithPath: thumb))) != nil {
         info["thumb"] = thumb
       }
@@ -153,11 +159,19 @@ final class VideoCompressor {
       let time = CMTime(seconds: duration * (Double(i) + 0.5) / Double(count), preferredTimescale: 600)
       let file = "\(prefix)_\(i).jpg"
       guard let image = try? generator.copyCGImage(at: time, actualTime: nil),
-            let data = UIImage(cgImage: image).jpegData(compressionQuality: 0.7),
+            let data = Self.jpeg(image, quality: 0.7),
             (try? data.write(to: URL(fileURLWithPath: file))) != nil
       else { return "" }
       return file
     }
+  }
+
+  private static func jpeg(_ image: CGImage, quality: CGFloat) -> Data? {
+    #if os(iOS)
+    return UIImage(cgImage: image).jpegData(compressionQuality: quality)
+    #else
+    return NSBitmapImageRep(cgImage: image).representation(using: .jpeg, properties: [.compressionFactor: quality])
+    #endif
   }
 
   static func displaySize(_ natural: CGSize, _ transform: CGAffineTransform) -> CGSize {

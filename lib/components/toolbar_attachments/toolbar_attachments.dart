@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart' show showModalBottomSheet, Colors,
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import '../../platform.dart';
 import 'toolbar_attachments_cupertino.dart';
 import 'toolbar_attachments_material.dart';
 
@@ -160,6 +161,10 @@ Future<ToolbarAttachmentResult?> showToolbarAttachments(
   assert(tabs.isNotEmpty, 'Нужен хотя бы один таб');
   final resolvedInitial = initial != null && tabs.contains(initial) ? initial : tabs.first;
 
+  // Десктоп: галереи и камеры нет (photo_manager полез бы в «Фото» macOS) —
+  // сразу системный выбор файла; картинка проходит [processImage] (кадрирование).
+  if (AppPlatform.isDesktop) return _pickDesktop(tabs: tabs, media: media, multiSelect: multiSelect, processImage: processImage);
+
   // Выбор дизайна — по платформе, как и весь app-scaffolding (см. main.dart):
   // iOS → Cupertino-лист, Android → Material-лист.
   if (Platform.isIOS) {
@@ -198,4 +203,31 @@ Future<ToolbarAttachmentResult?> showToolbarAttachments(
       processImage: processImage,
     ),
   );
+}
+
+/// [showToolbarAttachments] на десктопе: одно или несколько изображений / видео
+/// из системного выбора файлов (у аватаров — одно и через [processImage]).
+Future<ToolbarAttachmentResult?> _pickDesktop({
+  required List<ToolbarAttachmentTabKind> tabs,
+  required ToolbarAttachmentMediaType media,
+  required bool multiSelect,
+  Future<XFile?> Function(XFile file)? processImage,
+}) async {
+  final type = switch (media) {
+    ToolbarAttachmentMediaType.image => FileType.image,
+    ToolbarAttachmentMediaType.video => FileType.video,
+    ToolbarAttachmentMediaType.all => FileType.media,
+  };
+  final single = !multiSelect || processImage != null;
+  final picked = single ? [?await FilePicker.pickFile(type: type)] : await FilePicker.pickFiles(type: type);
+  final files = [
+    for (final file in picked)
+      if (file.path != null) XFile(file.path!, name: file.name),
+  ];
+  if (files.isEmpty) return null;
+  final source = tabs.contains(ToolbarAttachmentTabKind.gallery) ? ToolbarAttachmentTabKind.gallery : tabs.first;
+  if (files.length > 1) return ToolbarAttachmentMultiImageResult(files, source: source);
+  final process = processImage;
+  final file = process == null ? files.first : await process(files.first);
+  return file == null ? null : ToolbarAttachmentImageResult(file, source);
 }

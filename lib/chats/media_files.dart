@@ -81,6 +81,7 @@ class MediaFiles {
 
   /// Фото / видео — в галерею (iOS — «Фото», Android — Pictures|Movies/Iperon).
   static Future<MediaSaveResult> saveToGallery(List<MediaFile> files) async {
+    if (AppPlatform.isDesktop) return _saveDesktop(files);
     for (final file in files) {
       final result = await _save('saveToGallery', {'path': await _named(file), 'video': file.video});
       if (result != MediaSaveResult.saved) return result;
@@ -90,7 +91,31 @@ class MediaFiles {
 
   /// Файл: iOS — «Сохранить в Файлы» (место выбирают), Android — в
   /// Download/Iperon.
-  static Future<MediaSaveResult> saveFile(MediaFile file) async => _save('saveFile', {'path': await _named(file)});
+  static Future<MediaSaveResult> saveFile(MediaFile file) async =>
+      AppPlatform.isDesktop ? _saveDesktop([file]) : _save('saveFile', {'path': await _named(file)});
+
+  /// Десктоп: галереи нет — фото, видео и файлы в «Загрузки/Iperon» (как
+  /// Android и Telegram Desktop), занятое имя — «имя (1).ext».
+  static Future<MediaSaveResult> _saveDesktop(List<MediaFile> files) async {
+    try {
+      final downloads = await getDownloadsDirectory();
+      if (downloads == null) return MediaSaveResult.failed;
+      final dir = await Directory(p.join(downloads.path, 'Iperon')).create(recursive: true);
+      for (final file in files) {
+        final name = _safeName(file.name).isEmpty ? p.basename(file.path) : _safeName(file.name);
+        var target = File(p.join(dir.path, name));
+        for (var i = 1; await target.exists(); i++) {
+          target = File(p.join(dir.path, '${p.basenameWithoutExtension(name)} ($i)${p.extension(name)}'));
+        }
+        await File(file.path).copy(target.path);
+      }
+      _logger.info('media files: saved ${files.length} to ${dir.path}');
+      return MediaSaveResult.saved;
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace, 'media files: save');
+      return MediaSaveResult.failed;
+    }
+  }
 
   /// Есть ли в буфере обмена фото / видео (без чтения содержимого).
   static Future<bool> clipboardHasMedia() async {

@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 
 import '../../chats/media_files.dart';
 import '../../i18n/translations.g.dart';
+import '../../platform.dart';
 import '../../models.dart' as models;
 import 'chat_toast.dart';
 
@@ -70,7 +71,8 @@ Future<void> copyChatMedia(BuildContext context, models.Message m, {int? index, 
   if (context.mounted) showChatToast(context, ok ? t.copied : t.copyFailed, overlay: overlay);
 }
 
-/// Сохранить: фото / видео — в галерею, файл — в «Файлы» / «Загрузки».
+/// Сохранить: фото / видео — в галерею, файл — в «Файлы» / «Загрузки»
+/// (десктоп — всё в «Загрузки»).
 Future<void> saveChatMedia(BuildContext context, models.Message m, {int? index, bool overlay = false}) async {
   final t = context.t.screenChat;
   final files = _files(m, index);
@@ -81,7 +83,8 @@ Future<void> saveChatMedia(BuildContext context, models.Message m, {int? index, 
   final text = switch (result) {
     // iOS: место в «Файлах» выбрали сами — подтверждать нечего.
     MediaSaveResult.saved when file && Platform.isIOS => null,
-    MediaSaveResult.saved => file ? t.savedToDownloads : t.savedToGallery,
+    // Десктоп: всё — в «Загрузки».
+    MediaSaveResult.saved => file || AppPlatform.isDesktop ? t.savedToDownloads : t.savedToGallery,
     MediaSaveResult.canceled => null,
     MediaSaveResult.denied => t.galleryDenied,
     MediaSaveResult.failed => t.saveFailed,

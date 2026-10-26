@@ -12,7 +12,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../components.dart';
+import '../../components/desktop_image_crop.dart';
 import '../../i18n/translations.g.dart';
+import '../../platform.dart';
 import '../../themes.dart';
 
 class SettingsMyProfileMaterial extends StatefulWidget {
@@ -66,6 +68,8 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
   /// Круглый кроп 1:1 выбранного фото. Возвращает обрезанный файл или `null`,
   /// если пользователь отменил обрезку (тогда лист остаётся открытым).
   Future<XFile?> _cropAvatar(XFile file, String title) async {
+    // Десктоп: у image_cropper нет macOS / Windows.
+    if (AppPlatform.isDesktop) return cropImageDesktop(context, file.path, title: title, circle: true);
     final cropped = await ImageCropper().cropImage(
       sourcePath: file.path,
       aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),

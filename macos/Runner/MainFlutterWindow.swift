@@ -21,6 +21,8 @@ class MainFlutterWindow: NSWindow {
 
     RegisterGeneratedPlugins(registry: flutterViewController)
     desktop = DesktopChannel(messenger: flutterViewController.engine.binaryMessenger, window: self)
+    // Сжатие видео перед отправкой — тот же код, что на iOS (ios/Runner/VideoCompressor.swift).
+    VideoCompressor.shared.attach(messenger: flutterViewController.engine.binaryMessenger)
 
     super.awakeFromNib()
   }
