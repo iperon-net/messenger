@@ -162,7 +162,8 @@ screen_protector (наш форк — android/ios).
 4. Вход по QR (сервер + клиент: экран QR на десктопе, сканер и подтверждение в
    «Устройствах» на телефоне).
 5. Медиа (сжатие, видео-плеер, обрезка).
-6. Выпуск macOS: подпись, нотаризация, DMG, автообновление, CI, страница на сайте.
+6. Выпуск macOS: подпись, нотаризация, DMG, автообновление, CI, страница на сайте
+   (подробно — §10).
 7. Windows: то же (установщик, подпись, WinSparkle, CI).
 
 Порядок платформ: **macOS → Windows** (решено 2026-10-26). Linux — решим позже (у
@@ -311,6 +312,44 @@ UI на обеих сторонах. Строится поверх шагов 1�
   десктопе не догоняет очередь, «Начать секретный чат» скрыт (`secretChatAvailable`).
 - **Порядок выкатки:** сначала сервер, потом клиент. Старый сервер на неизвестный
   тип `CRASH_REPORT` отвечает успехом — клиент удаляет отчёты, они теряются
-  (проверено на стенде).
+  (проверено на стенде). Сервер выкачен 2026-10-26 (`29e90b7`); отчёт с macOS дошёл
+  до Loki целиком (os 3, версия ОС, модель, текст, стек).
 - Не сделано: сбои из `Logger.handle` (перехваченные ошибки) не отправляются —
   только необработанные, как на мобильных.
+
+## 10. Сборка и выпуск macOS (этап 6)
+
+Решено 2026-10-26: собираем в CI по тому же тегу `v0.0.N`, что и TestFlight.
+
+1. **CI.** Новый reusable workflow `.github/workflows/_deploy_macos.yaml` на
+   macOS-раннере, вызывается из `build_and_deploy.yaml` параллельно с
+   `_deploy_testflight.yaml` (`needs: Linter`). Восстановление `firebase_options.dart`
+   / `.env`, `build_runner` + `slang` — как в TestFlight-задании; кэши — те же ключи
+   (`warm_cache.yaml`). `flutter build macos --release --build-name <тег>
+   --build-number <date -u +%y%m%d%H%M>` — universal (arm64 + x86_64).
+2. **Подпись.** Сертификат **Developer ID Application** (не iOS Distribution;
+   выпускает владелец аккаунта Apple Developer) — секрет `.p12` + пароль, импорт во
+   временный keychain раннера. Ручная подпись через дописанные ключи в
+   `macos/Runner/Configs/Release.xcconfig` (как `ios/Flutter/Release.xcconfig`, pbxproj
+   не трогаем), hardened runtime, `Release.entitlements`: сеть (клиент), микрофон /
+   камера — когда появятся звонки (§7).
+3. **Keychain.** Вместе с подписью — provisioning profile Developer ID для macOS с
+   `keychain-access-groups`, и `macOSKeychainOptions` → data protection keychain
+   (сейчас login keychain, §8). Переход ломает чтение старых записей — на
+   разработческих Mac перелогиниться (в релиз до этого ничего не уходило).
+4. **Нотаризация.** `xcrun notarytool submit --wait` с ключом App Store Connect API
+   (тот же, что у fastlane), затем `xcrun stapler staple` — иначе Gatekeeper не даст
+   открыть скачанное с сайта приложение.
+5. **DMG.** `create-dmg` (или `hdiutil`) с ярлыком «Программы», подпись + нотаризация
+   + staple самого DMG. Имя `Iperon-<версия>.dmg`.
+6. **Публикация и автообновление.** DMG и `appcast.xml` — на `iperon.net/download/`
+   (nginx или существующий S3-бакет — решить). `auto_updater` (Sparkle) в приложении,
+   appcast подписан EdDSA-ключом Sparkle (приватный — секрет CI, публичный —
+   `SUPublicEDKey` в `Info.plist`). Страница скачивания на сайте.
+7. **Иконка и имя.** Своя иконка `AppIcon` вместо стандартной Flutter; версия в «О
+   программе» — из тега.
+
+Нужно от владельца аккаунта: сертификат Developer ID Application + provisioning
+profile Developer ID (macOS, `net.iperon.messenger`); решение, где лежат DMG и
+appcast. До CI можно собрать локально: `flutter build macos --release` →
+`build/macos/Build/Products/Release/Iperon.app` (без подписи — только на своём Mac).
