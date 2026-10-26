@@ -698,6 +698,9 @@
   "logout": "Выйти"
   "addAccount": "Добавить аккаунт"
   "accountsLimit": "Можно добавить не больше {count} аккаунтов"
+  "launchAtLogin": "Запускать при входе в систему"
+  "launchAtLoginApproval": "Разрешите Iperon в Системных настройках → Основные → Объекты входа"
+  "launchAtLoginFailed": "Не удалось изменить автозапуск: {error}"
   "accountSwitchCallActive": "Во время звонка аккаунт не переключить"
 
 "screenSettingsNotifications":

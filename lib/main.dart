@@ -13,6 +13,7 @@ import 'app_cupertino.dart';
 import 'app_material.dart';
 import 'crash_reports.dart';
 import 'cubit.dart';
+import 'desktop.dart';
 import 'di.dart';
 import 'logger_livekit.dart';
 import 'firebase_options.dart';
@@ -77,6 +78,8 @@ Future<void> main() async {
   // Dependencies
   await registerCommonDependencies();
   if (!AppPlatform.hasFirebase) await CrashReports.instance.attach(getIt.get<DeviceRepositories>().db);
+  // Десктоп: уведомления, счётчик в Dock, «в сети» по присутствию за компьютером.
+  unawaited(Desktop.start());
   // iPad — двухпанельные «Чаты» (до роутера: от этого зависят маршруты).
   await SplitLayout.detect();
 

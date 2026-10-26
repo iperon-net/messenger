@@ -5,7 +5,9 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../chats/in_app_notices.dart';
+import '../../desktop.dart';
 import '../../i18n/translations.g.dart';
+import '../../platform.dart';
 import '../chats/chat_tile.dart';
 
 export '../../chats/in_app_notices.dart' show InAppNotice;
@@ -96,7 +98,24 @@ class _InAppNoticeHostState extends State<InAppNoticeHost> with SingleTickerProv
   }
 
   void _show(InAppNotice notice) {
-    if (!mounted || !_allowed(notice)) return;
+    if (!mounted) return;
+    // Десктоп: окно не в фокусе — системное уведомление вместо баннера (его не
+    // увидят), как в Telegram Desktop.
+    if (AppPlatform.isDesktop && WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+      final t = context.t;
+      final chat = notice.chat;
+      unawaited(
+        Desktop.showNotification(
+          id: '${chat.id}:${(chat.lastMessage?.date ?? DateTime.now()).millisecondsSinceEpoch}',
+          title: InAppNoticeContent.title(t, notice),
+          body: InAppNoticeContent.text(t, notice),
+          route: notice.anonymous ? '/chats' : notice.route,
+          thread: notice.anonymous ? null : chat.id,
+        ),
+      );
+      return;
+    }
+    if (!_allowed(notice)) return;
     setState(() {
       _notice = notice;
       _drag = 0;

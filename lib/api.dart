@@ -456,6 +456,15 @@ class API {
     _reconcile();
   }
 
+  /// Десктоп: человек за компьютером ([DesktopPresence]) — presence сессии
+  /// онлайн / нет. В отличие от [setForeground] стрим не трогает: на десктопе
+  /// он живёт, пока запущено приложение.
+  void setPresenceActive(bool value) {
+    final previous = _presenceForeground;
+    _presenceForeground = value;
+    if (previous != null && previous != value) _sendAppState(value);
+  }
+
   /// Открыто ли приложение пользователем — для Subscribe{background}. Первый раз
   /// спрашиваем натив ([PushManager.isLaunchedInBackground]); дальше значение
   /// ведёт [setForeground]. Если жизненный цикл успел прийти за время запроса —

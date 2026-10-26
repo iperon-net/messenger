@@ -16,6 +16,8 @@ import 'chats/chats_mapping.dart';
 import 'chats/chats_remote_data_source.dart';
 import 'chats/chats_sync.dart';
 import 'di.dart';
+import 'platform.dart';
+import 'desktop.dart';
 import 'logger.dart';
 import 'protobuf.dart';
 import 'protobuf/protos/chats_v1.pb.dart' as pb;
@@ -366,6 +368,8 @@ class PushManager {
   /// иконку не трогает (её рисует лаунчер) — только запоминает число для
   /// [accountBadges].
   static Future<void> setBadge(int count) async {
+    // Десктоп: пушей нет — число на значке в Dock ставит само приложение.
+    if (AppPlatform.isDesktop) return Desktop.setBadge(count);
     if (!_hasNativePush) return;
     // info — в файловый лог: по нему видно, ставило ли приложение счётчик.
     getIt.get<Logger>().info('badge: set $count');

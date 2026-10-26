@@ -890,6 +890,9 @@ class _Translations$screenSettings$ru extends Translations$screenSettings$en {
 	@override String get logout => 'Выйти';
 	@override String get addAccount => 'Добавить аккаунт';
 	@override String accountsLimit({required Object count}) => 'Можно добавить не больше ${count} аккаунтов';
+	@override String get launchAtLogin => 'Запускать при входе в систему';
+	@override String get launchAtLoginApproval => 'Разрешите Iperon в Системных настройках → Основные → Объекты входа';
+	@override String launchAtLoginFailed({required Object error}) => 'Не удалось изменить автозапуск: ${error}';
 	@override String get accountSwitchCallActive => 'Во время звонка аккаунт не переключить';
 }
 
@@ -2671,6 +2674,9 @@ extension on TranslationsRu {
 			'screenSettings.logout' => 'Выйти',
 			'screenSettings.addAccount' => 'Добавить аккаунт',
 			'screenSettings.accountsLimit' => ({required Object count}) => 'Можно добавить не больше ${count} аккаунтов',
+			'screenSettings.launchAtLogin' => 'Запускать при входе в систему',
+			'screenSettings.launchAtLoginApproval' => 'Разрешите Iperon в Системных настройках → Основные → Объекты входа',
+			'screenSettings.launchAtLoginFailed' => ({required Object error}) => 'Не удалось изменить автозапуск: ${error}',
 			'screenSettings.accountSwitchCallActive' => 'Во время звонка аккаунт не переключить',
 			'screenSettingsNotifications.notifications' => 'Уведомления и звуки',
 			'screenSettingsNotifications.messageNotifications' => 'Уведомления о сообщениях',
@@ -3071,11 +3077,11 @@ extension on TranslationsRu {
 			'screenMyProfile.username' => 'Имя пользователя',
 			'screenMyProfile.validationFirstNameMaxLength' => 'Должно содержать не более 25 символов',
 			'screenMyProfile.validationLastNameMaxLength' => 'Должно содержать не более 25 символов',
+			_ => null,
+		} ?? switch (path) {
 			'screenMyProfile.validationAboutMeMaxLength' => 'Должно содержать не более 140 символов',
 			'screenMyProfile.cancel' => _root.common.cancel,
 			'screenMyProfile.done' => _root.common.done,
-			_ => null,
-		} ?? switch (path) {
 			'screenMyProfile.edit' => _root.common.edit,
 			'screenMyProfile.close' => _root.common.close,
 			'screenMyProfile.error' => _root.common.error,

@@ -2109,6 +2109,15 @@ class Translations$screenSettings$en {
 	/// en: 'You can add up to {count} accounts'
 	String accountsLimit({required Object count}) => 'You can add up to ${count} accounts';
 
+	/// en: 'Launch at login'
+	String get launchAtLogin => 'Launch at login';
+
+	/// en: 'Allow Iperon in System Settings → General → Login Items'
+	String get launchAtLoginApproval => 'Allow Iperon in System Settings → General → Login Items';
+
+	/// en: 'Couldn't change launch at login: {error}'
+	String launchAtLoginFailed({required Object error}) => 'Couldn\'t change launch at login: ${error}';
+
 	/// en: 'Can't switch accounts during a call'
 	String get accountSwitchCallActive => 'Can\'t switch accounts during a call';
 }
@@ -5456,6 +5465,9 @@ extension on Translations {
 			'screenSettings.logout' => 'Logout',
 			'screenSettings.addAccount' => 'Add account',
 			'screenSettings.accountsLimit' => ({required Object count}) => 'You can add up to ${count} accounts',
+			'screenSettings.launchAtLogin' => 'Launch at login',
+			'screenSettings.launchAtLoginApproval' => 'Allow Iperon in System Settings → General → Login Items',
+			'screenSettings.launchAtLoginFailed' => ({required Object error}) => 'Couldn\'t change launch at login: ${error}',
 			'screenSettings.accountSwitchCallActive' => 'Can\'t switch accounts during a call',
 			'screenSettingsNotifications.notifications' => 'Notifications and sounds',
 			'screenSettingsNotifications.messageNotifications' => 'Message notifications',
@@ -5856,11 +5868,11 @@ extension on Translations {
 			'screenMyProfile.username' => 'Username',
 			'screenMyProfile.validationFirstNameMaxLength' => 'Must contain no more than 25 characters',
 			'screenMyProfile.validationLastNameMaxLength' => 'Must contain no more than 25 characters',
+			_ => null,
+		} ?? switch (path) {
 			'screenMyProfile.validationAboutMeMaxLength' => 'Must contain no more than 140 characters',
 			'screenMyProfile.cancel' => _root.common.cancel,
 			'screenMyProfile.done' => _root.common.done,
-			_ => null,
-		} ?? switch (path) {
 			'screenMyProfile.edit' => _root.common.edit,
 			'screenMyProfile.close' => _root.common.close,
 			'screenMyProfile.error' => _root.common.error,

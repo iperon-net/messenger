@@ -672,6 +672,9 @@
   "logout": "Logout"
   "addAccount": "Add account"
   "accountsLimit": "You can add up to {count} accounts"
+  "launchAtLogin": "Launch at login"
+  "launchAtLoginApproval": "Allow Iperon in System Settings → General → Login Items"
+  "launchAtLoginFailed": "Couldn't change launch at login: {error}"
   "accountSwitchCallActive": "Can't switch accounts during a call"
 
 "screenSettingsNotifications":
