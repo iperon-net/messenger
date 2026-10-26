@@ -39,6 +39,7 @@ part "secret_chats.dart";
 part "spoiler_reveals.dart";
 part "device.dart";
 part "account_files.dart";
+part "data_usage.dart";
 
 base class _AppSqliteOpenFactory extends NativeSqliteOpenFactory {
   final String? password;
@@ -85,6 +86,7 @@ class Repositories {
   late ChatsRepository chats;
   late SecretChatsRepository secretChats;
   late SpoilerRevealsRepository spoilerReveals;
+  late DataUsageRepository dataUsage;
 
   /// База и файлы аккаунта [accountID]; общая часть — [device].
   static Future<Repositories> initialization({required DeviceRepositories device, required String accountID}) async {
@@ -131,6 +133,7 @@ class Repositories {
     chats = ChatsRepository(logger: logger, db: db);
     secretChats = SecretChatsRepository(logger: logger, db: db);
     spoilerReveals = SpoilerRevealsRepository(logger: logger, db: db);
+    dataUsage = DataUsageRepository(logger: logger, db: db);
   }
 
   /// Закрыть базу аккаунта (переключение аккаунта); `device.db` общая и
@@ -1029,6 +1032,20 @@ class Repositories {
         if (!columns.any((c) => c['name'] == 'read')) {
           await tx.execute('ALTER TABLE chatReplies ADD COLUMN read INTEGER NOT NULL DEFAULT 0;');
         }
+      }),
+    );
+
+    migrations.add(
+      SqliteMigration(51, (tx) async {
+        // «Данные и память»: у файла кэша — чат, из которого он скачан
+        // (разбивка по чатам; '' — ещё не знаем, '~' — не из сообщений), и
+        // когда его открывали последний раз (автоочистка «Хранить медиа» и
+        // предел размера кэша). Счётчики трафика — по сети и категории.
+        await tx.execute("ALTER TABLE downloads ADD COLUMN chatID TEXT NOT NULL DEFAULT '';");
+        await tx.execute('ALTER TABLE downloads ADD COLUMN accessedAt INTEGER NOT NULL DEFAULT 0;');
+        await tx.execute('UPDATE downloads SET accessedAt = createdAt;');
+        await tx.execute(DataUsageRepository.networkUsageSchema);
+        await tx.execute(DataUsageRepository.settingsSchema);
       }),
     );
 

@@ -2278,6 +2278,7 @@ class ChatsSync implements AccountService {
           file: job.file,
           folder: chatMediaFolder,
           contentType: chatMediaContentType(job.file.path),
+          chatID: chatID == null ? '' : idHex(chatID),
           isCancelled: () => _cancelledUploads.contains(randomID),
           onProgress: (sent, cipherTotal) => progress(uploadedBytes(done: done, current: sizes[j], sent: sent, total: cipherTotal)),
         );

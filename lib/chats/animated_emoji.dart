@@ -12,6 +12,8 @@ import 'package:path_provider/path_provider.dart';
 import '../device_performance.dart';
 import '../di.dart';
 import '../logger.dart';
+import '../models.dart' as models;
+import '../network_usage.dart';
 import '../settings.dart';
 import 'big_emoji.dart';
 
@@ -104,6 +106,7 @@ class AnimatedEmojiStore {
       final response = await (await client.getUrl(url)).close();
       if (response.statusCode != HttpStatus.ok) throw HttpException('animated emoji: ${response.statusCode}', uri: url);
       final bytes = await consolidateHttpClientResponseBytes(response);
+      NetworkUsage.instance.add(models.TrafficCategory.other, received: bytes.length);
       await dir.create(recursive: true);
       // Во временный и переименованием — недокачанный файл не останется.
       final tmp = File('${file.path}.part');

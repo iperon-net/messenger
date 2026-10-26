@@ -199,6 +199,9 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     return out.stream;
   }
 
+  /// Список чатов разовым чтением, без подписки («Использование памяти»).
+  Future<List<models.Chat>> loadChats() => _loadChats();
+
   /// Один чат списка по [id] (hex) — разовым чтением, без подписки (баннер о
   /// новом сообщении, `InAppNotices`); null — нет в списке.
   Future<models.Chat?> loadChat(String id) async {
@@ -2510,6 +2513,19 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   var _activeDownloads = 0;
   static const _maxDownloads = 3;
 
+  /// Файлы [keys] (hex cdnID) удалены из кэша («Использование памяти»):
+  /// забыть их пути и перечитать окна [chatIDs] — открытый чат скачает
+  /// вложения снова.
+  void forgetMedia(Set<String> keys, Set<String> chatIDs) {
+    for (final key in keys) {
+      _mediaPaths.remove(key);
+      _downloadFailed.remove(key);
+    }
+    for (final chatID in chatIDs) {
+      _windowChanged.add(chatID);
+    }
+  }
+
   /// Неудачные скачивания (нет сети, ошибка CDN): повтор не раньше чем через
   /// [_downloadRetry] — иначе каждое перечитывание ленты дёргало бы сеть.
   final _downloadFailed = <String, DateTime>{};
@@ -2563,6 +2579,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       if (!await _sync.hasNetwork()) throw const ChatsOfflineException();
       final file = await _cdn.download(
         cdn: cdn,
+        chatID: chatID,
         onProgress: (received, total) {
           _downloads[key] = (received: received, total: total);
           _notifyMedia(chatID);
@@ -3117,6 +3134,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
         file: file,
         folder: chatMediaFolder,
         contentType: chatMediaContentType(file.path),
+        chatID: chatID,
         isCancelled: isCancelled,
         onProgress: onProgress,
       )).cdnID,

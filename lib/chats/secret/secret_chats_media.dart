@@ -9,6 +9,7 @@ import '../../models.dart' as models;
 import '../../protobuf/protos/secret_payload_v1.pb.dart' as sp;
 import '../../utils.dart';
 import '../chats_sync.dart' show ChatsOfflineException;
+import 'secret_chats_list.dart' show secretChatListID;
 import 'secret_chats_sync.dart';
 import '../../account_scope.dart';
 
@@ -76,6 +77,17 @@ class SecretChatsMedia implements AccountService {
   /// Файл удалён с устройства (сообщение удалили) — забыть путь.
   void forget(List<int> fileID) => _paths.remove(_hex(fileID));
 
+  /// Файлы [keys] (hex fileID) удалены из кэша («Использование памяти»):
+  /// забыть пути, открытый чат скачает их снова.
+  void forgetAll(Set<String> keys) {
+    var changed = false;
+    for (final key in keys) {
+      changed = _paths.remove(key) != null || changed;
+      _failed.remove(key);
+    }
+    if (changed) _changedLater();
+  }
+
   void _pump() {
     while (_active < _maxDownloads && _queue.isNotEmpty) {
       final job = _queue.removeAt(0);
@@ -107,6 +119,7 @@ class SecretChatsMedia implements AccountService {
       );
       final file = await _cdn.download(
         cdn: cdn,
+        chatID: secretChatListID(chatID),
         onProgress: (received, total) {
           _downloads[key] = (received: received, total: total);
           _changedLater();

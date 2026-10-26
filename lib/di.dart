@@ -13,6 +13,7 @@ import 'logger.dart';
 import 'routers.dart';
 import 'auth.dart';
 import 'settings.dart';
+import 'storage_usage.dart';
 import 'utils.dart';
 import 'api.dart';
 import 'calls.dart';
@@ -107,6 +108,8 @@ Future<void> startAccountServices() async {
   getIt.get<CallPush>().start();
   // Имя и аватар — в слот аккаунта (список аккаунтов в «Настройках»).
   AccountProfileSync.instance.start();
+  // «Хранить медиа» и предел размера кэша.
+  StorageUsage.instance.start();
 }
 
 /// Идёт переключение аккаунта: дерево приложения на это время снято — старое

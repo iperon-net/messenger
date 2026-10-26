@@ -6,6 +6,7 @@ import 'package:grpc/grpc.dart';
 import 'package:messenger/protobuf/protos/device_info_update_v1.pb.dart';
 import 'package:talker_grpc_logger/talker_grpc_logger.dart';
 
+import 'account_scope.dart';
 import 'cdn.dart';
 import 'chats/chats_sync.dart';
 import 'chats/media_prepare.dart' show avatarThumbhash;
@@ -15,6 +16,7 @@ import 'utils.dart';
 import 'crypto.dart';
 import 'di.dart';
 import 'logger.dart';
+import 'network_usage.dart';
 import 'push.dart';
 import 'repositories.dart';
 import 'settings.dart';
@@ -56,6 +58,47 @@ class _LocaleInterceptor implements ClientInterceptor {
     ClientStreamingInvoker<Q, R> invoker,
   ) {
     return invoker(method, requests, _withLocale(options));
+  }
+}
+
+/// Считает трафик gRPC для «Использования трафика»: размер каждого
+/// сообщения запроса и ответа (protobuf + 5 байт gRPC-кадра; заголовки HTTP/2
+/// и TLS не видны — цифра чуть меньше реальной). Файлы на канале `Upload`
+/// считает [CDNManager] — этот перехватчик там не стоит.
+class _TrafficInterceptor implements ClientInterceptor {
+  _TrafficInterceptor(this._usage);
+
+  final NetworkUsage _usage;
+
+  /// Префикс gRPC-сообщения: флаг сжатия + длина.
+  static const _frame = 5;
+
+  ClientMethod<Q, R> _counted<Q, R>(ClientMethod<Q, R> method) => ClientMethod<Q, R>(
+    method.path,
+    (request) {
+      final bytes = method.requestSerializer(request);
+      _usage.add(models.TrafficCategory.messages, sent: bytes.length + _frame);
+      return bytes;
+    },
+    (bytes) {
+      _usage.add(models.TrafficCategory.messages, received: bytes.length + _frame);
+      return method.responseDeserializer(bytes);
+    },
+  );
+
+  @override
+  ResponseFuture<R> interceptUnary<Q, R>(ClientMethod<Q, R> method, Q request, CallOptions options, ClientUnaryInvoker<Q, R> invoker) {
+    return invoker(_counted(method), request, options);
+  }
+
+  @override
+  ResponseStream<R> interceptStreaming<Q, R>(
+    ClientMethod<Q, R> method,
+    Stream<Q> requests,
+    CallOptions options,
+    ClientStreamingInvoker<Q, R> invoker,
+  ) {
+    return invoker(_counted(method), requests, options);
   }
 }
 
@@ -269,6 +312,8 @@ class API {
       _buildChannel('main'),
       interceptors: [
         const _LocaleInterceptor(),
+        // Сервисы аккаунта создаются, когда его scope уже активен.
+        _TrafficInterceptor(NetworkUsage.of(AccountScope.current)),
         TalkerGrpcLogger(talker: logger.talker),
       ],
     );

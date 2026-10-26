@@ -9,10 +9,12 @@ import 'package:grpc/grpc.dart';
 import 'package:path/path.dart' as p;
 
 import 'api.dart';
+import 'chats/chats_media.dart' show chatMediaFolder;
 import 'auth.dart';
 import 'crypto.dart';
 import 'di.dart';
 import 'logger.dart';
+import 'network_usage.dart';
 import 'models.dart' as models;
 import 'protobuf.dart';
 import 'repositories.dart';
@@ -81,6 +83,8 @@ class DownloadException implements Exception {
 const secretMediaFolder = 'secret';
 
 class CDNManager {
+  /// Аккаунт этого сервиса (создаётся в его scope) — для счётчиков трафика.
+  final AccountScope _scope = AccountScope.current;
   final logger = getIt.get<Logger>();
   final api = getIt.get<API>();
   final crypto = getIt.get<Crypto>();
@@ -147,22 +151,40 @@ class CDNManager {
   ///
   /// [isCancelled] — опрашивается между чанками: `true` — бросить
   /// [UploadCancelledException] (без ретраев; серверный temp-файл истечёт по TTL).
+  ///
+  /// [chatID] — чат вложения (id списка): засеянный файл кэша сразу
+  /// привязан к нему («Использование памяти»).
   Future<models.CDN> uploadFile({
     required File file,
     required String folder,
     required String contentType,
     void Function(int sentBytes, int totalBytes)? onProgress,
     bool Function()? isCancelled,
+    String chatID = '',
   }) async {
     try {
-      return await _uploadFile(file: file, folder: folder, contentType: contentType, onProgress: onProgress, isCancelled: isCancelled);
+      return await _uploadFile(
+        file: file,
+        folder: folder,
+        contentType: contentType,
+        onProgress: onProgress,
+        isCancelled: isCancelled,
+        chatID: chatID,
+      );
     } on _UploadExpiredException {
       // Сервер потерял недокачанную/неподтверждённую загрузку — один раз
       // начинаем с нуля (новые ключ и uploadID).
       final stale = await repositories.uploads.getByFilePath(file.path);
       if (stale != null) await repositories.uploads.delete(stale.localID);
       try {
-        return await _uploadFile(file: file, folder: folder, contentType: contentType, onProgress: onProgress, isCancelled: isCancelled);
+        return await _uploadFile(
+          file: file,
+          folder: folder,
+          contentType: contentType,
+          onProgress: onProgress,
+          isCancelled: isCancelled,
+          chatID: chatID,
+        );
       } on _UploadExpiredException {
         throw const UploadException('upload: server lost the upload twice');
       }
@@ -179,6 +201,7 @@ class CDNManager {
     required String contentType,
     void Function(int sentBytes, int totalBytes)? onProgress,
     bool Function()? isCancelled,
+    String chatID = '',
   }) async {
     var state = await _resolveUploadState(file: file, folder: folder, contentType: contentType);
 
@@ -240,7 +263,7 @@ class CDNManager {
     // Plaintext уже лежит на устройстве — засеиваем им media-кэш, чтобы
     // последующий download(cdn) для только что залитого файла (аватарка и т.п.)
     // был cache-hit без сети и без расшифровки.
-    await _seedDownloadCache(file: file, cdn: cdn);
+    await _seedDownloadCache(file: file, cdn: cdn, chatID: chatID);
 
     return cdn;
   }
@@ -249,7 +272,7 @@ class CDNManager {
   /// результат скачивания [cdn] (строка `downloads` со статусом `ready`).
   /// Best-effort: ошибка кэширования не должна валить успешный аплоад, поэтому
   /// глотается в лог.
-  Future<void> _seedDownloadCache({required File file, required models.CDN cdn}) async {
+  Future<void> _seedDownloadCache({required File file, required models.CDN cdn, String chatID = ''}) async {
     try {
       if (await _downloadState(cdn.cdnID) != null) {
         return;
@@ -281,6 +304,7 @@ class CDNManager {
           status: models.DownloadStatus.ready,
           createdAt: DateTime.now(),
         ),
+        chatID: chatID,
       );
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
@@ -356,6 +380,13 @@ class CDNManager {
       var sentBytes = initAck.receivedBytes.toInt();
       onProgress?.call(sentBytes, uploadState.fileSize);
 
+      // Трафик: вложения чатов — по типу файла, аватары и прочее — «Прочее».
+      final traffic = trafficCategoryFor(
+        uploadState.contentType,
+        fromChat: uploadState.folder == chatMediaFolder || uploadState.folder == secretMediaFolder,
+      );
+      final usage = NetworkUsage.of(_scope);
+
       final startChunkIndex = crypto.fileEncryptor.chunkIndexForReceivedBytes(uploadState.fileSize, sentBytes);
 
       final chunks = crypto.fileEncryptor.encryptFile(
@@ -370,6 +401,7 @@ class CDNManager {
       await for (final cipherChunk in chunks) {
         if (isCancelled?.call() ?? false) throw const UploadCancelledException();
         outgoing.add(Upload_Request(chunk: Upload_Chunk(data: cipherChunk)));
+        usage.add(traffic, sent: cipherChunk.length);
 
         if (!await responses.moveNext()) {
           throw const UploadException('upload: stream closed mid-chunk');
@@ -492,16 +524,20 @@ class CDNManager {
   /// раз за скачивание; `null` — файла больше нет (или нет доступа), тогда
   /// [DownloadException]. Объект в хранилище тот же (тот же `cdnID` и хеш),
   /// поэтому докачка продолжается с того же места.
+  ///
+  /// [chatID] — чат вложения (id списка; пусто — не из сообщения: аватар и
+  /// т.п.): для разбивки «Использования памяти» по чатам и категории трафика.
   Future<File> download({
     required models.CDN cdn,
     void Function(int receivedBytes, int totalBytes)? onProgress,
     Future<models.CDN?> Function()? refresh,
+    String chatID = '',
   }) async {
     final key = utils.bytesToHex(cdn.cdnID);
     final existing = _inFlightDownloads[key];
     if (existing != null) return existing;
 
-    final future = _download(cdn: cdn, onProgress: onProgress, refresh: refresh);
+    final future = _download(cdn: cdn, onProgress: onProgress, refresh: refresh, chatID: chatID);
     _inFlightDownloads[key] = future;
     try {
       return await future;
@@ -518,28 +554,31 @@ class CDNManager {
     required models.CDN cdn,
     void Function(int receivedBytes, int totalBytes)? onProgress,
     Future<models.CDN?> Function()? refresh,
+    String chatID = '',
   }) async {
-    var state = await _resolveDownloadState(cdn);
+    var state = await _resolveDownloadState(cdn, chatID: chatID);
 
     // Cache-hit: файл уже скачан и расшифрован.
     if (state.status == models.DownloadStatus.ready && state.targetPath != null) {
       final ready = File(state.targetPath!);
       if (await ready.exists()) {
+        await repositories.downloads.touch(cdn.cdnID);
         final size = state.cipherSize ?? 0;
         onProgress?.call(size, size);
         return ready;
       }
       // Расшифрованный файл кто-то удалил — качаем заново с нуля.
       await repositories.downloads.delete(cdn.cdnID);
-      state = await _resolveDownloadState(cdn);
+      state = await _resolveDownloadState(cdn, chatID: chatID);
     }
+    final traffic = trafficCategoryFor(cdn.contentType, fromChat: chatID.isNotEmpty);
 
     // 1. Закачка ciphertext с докачкой; сетевые обрывы — ретраим, устаревшую
     //    ссылку — один раз меняем на свежую.
     var refreshed = false;
     for (var attempt = 1; ; attempt++) {
       try {
-        await _runDownloadPass(state, onProgress: onProgress);
+        await _runDownloadPass(state, traffic: traffic, onProgress: onProgress);
         break;
       } catch (error, stackTrace) {
         if (error is DownloadException) {
@@ -610,7 +649,9 @@ class CDNManager {
       return null;
     }
     final file = File(state.targetPath!);
-    return await file.exists() ? file : null;
+    if (!await file.exists()) return null;
+    await repositories.downloads.touch(cdnID);
+    return file;
   }
 
   /// Удаляет файл из кэша скачиваний (строку `downloads`, расшифрованный файл
@@ -635,9 +676,10 @@ class CDNManager {
     return true;
   }
 
-  Future<models.DownloadState> _resolveDownloadState(models.CDN cdn) async {
+  Future<models.DownloadState> _resolveDownloadState(models.CDN cdn, {String chatID = ''}) async {
     final existing = await _downloadState(cdn.cdnID);
     if (existing != null) {
+      await repositories.downloads.setChatID(cdnID: cdn.cdnID, chatID: chatID);
       return existing;
     }
 
@@ -661,7 +703,7 @@ class CDNManager {
       createdAt: DateTime.now(),
     );
 
-    await repositories.downloads.create(state);
+    await repositories.downloads.create(state, chatID: chatID);
     return state;
   }
 
@@ -670,7 +712,12 @@ class CDNManager {
   /// обрыва), докачиваем через `Range`. Сетевые обрывы пробрасывает как обычные
   /// исключения (не [DownloadException]) — их ретраит [download]; осмысленный
   /// отказ сервера (4xx) — как [DownloadException] (ретрай бесполезен).
-  Future<void> _runDownloadPass(models.DownloadState state, {void Function(int receivedBytes, int totalBytes)? onProgress}) async {
+  Future<void> _runDownloadPass(
+    models.DownloadState state, {
+    required models.TrafficCategory traffic,
+    void Function(int receivedBytes, int totalBytes)? onProgress,
+  }) async {
+    final usage = NetworkUsage.of(_scope);
     final tmp = File(state.tmpPath);
     var received = await tmp.exists() ? await tmp.length() : 0;
 
@@ -710,6 +757,7 @@ class CDNManager {
       try {
         await for (final chunk in response) {
           sink.add(chunk);
+          usage.add(traffic, received: chunk.length);
           received += chunk.length;
           sincePersist += chunk.length;
           if (sincePersist >= _downloadPersistInterval) {

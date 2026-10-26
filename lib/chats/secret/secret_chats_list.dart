@@ -87,57 +87,60 @@ Future<({String path, String thumbhash})> _secretPeerAvatar(List<int> peerUserID
   }
 }
 
+/// Секретные чаты этого устройства как строки общего списка чатов — разовым
+/// чтением.
+Future<List<models.Chat>> loadSecretChats() async {
+  final repositories = AccountScope.current.repositories;
+  final utils = getIt.get<Utils>();
+  final sessionID = AccountScope.current.auth.session.sessionID;
+  if (sessionID.isEmpty) return const [];
+  final records = await repositories.secretChats.chats(sessionID: sessionID);
+  final names = <String, String>{};
+  final t = LocaleSettings.instance.currentTranslations;
+  final chats = <models.Chat>[];
+  for (final record in records) {
+    final avatar = await _secretPeerAvatar(record.peerUserID);
+    chats.add(
+      models.Chat(
+        id: secretChatListID(record.secretChatID),
+        type: models.ChatType.private,
+        title: names[utils.bytesToHex(record.peerUserID)] ??= await peerDisplayName(record.peerUserID),
+        avatarPath: avatar.path,
+        avatarThumbhash: avatar.thumbhash,
+        ttlPeriod: record.ttl,
+        peerUserID: utils.bytesToHex(record.peerUserID),
+        secretStatus: secretChatStatus(record.state),
+        unreadCount: record.unreadCount,
+        createdAt: record.createdAt,
+        lastMessage: record.lastMessage == null
+            ? null
+            : models.ChatLastMessage(
+                kind: secretMessageKind(record.lastMessage!.kind),
+                text: record.lastMessage!.kind.isService
+                    ? secretServiceText(t, record.lastMessage!, names[utils.bytesToHex(record.peerUserID)] ?? '')
+                    : record.lastMessage!.text,
+                outgoing: record.lastMessage!.outgoing,
+                status: secretMessageStatus(record.lastMessage!.status),
+                date: record.lastMessage!.date,
+              ),
+      ),
+    );
+  }
+  return chats;
+}
+
 /// Секретные чаты этого устройства как строки общего списка чатов;
 /// перечитываются при изменении таблиц.
 Stream<List<models.Chat>> watchSecretChats() {
   final repositories = AccountScope.current.repositories;
-  final utils = getIt.get<Utils>();
   late final StreamController<List<models.Chat>> out;
   StreamSubscription<void>? changes;
   var pending = Future<void>.value();
 
-  Future<List<models.Chat>> load() async {
-    final sessionID = AccountScope.current.auth.session.sessionID;
-    if (sessionID.isEmpty) return const [];
-    final records = await repositories.secretChats.chats(sessionID: sessionID);
-    final names = <String, String>{};
-    final t = LocaleSettings.instance.currentTranslations;
-    final chats = <models.Chat>[];
-    for (final record in records) {
-      final avatar = await _secretPeerAvatar(record.peerUserID);
-      chats.add(
-        models.Chat(
-          id: secretChatListID(record.secretChatID),
-          type: models.ChatType.private,
-          title: names[utils.bytesToHex(record.peerUserID)] ??= await peerDisplayName(record.peerUserID),
-          avatarPath: avatar.path,
-          avatarThumbhash: avatar.thumbhash,
-          ttlPeriod: record.ttl,
-          peerUserID: utils.bytesToHex(record.peerUserID),
-          secretStatus: secretChatStatus(record.state),
-          unreadCount: record.unreadCount,
-          createdAt: record.createdAt,
-          lastMessage: record.lastMessage == null
-              ? null
-              : models.ChatLastMessage(
-                  kind: secretMessageKind(record.lastMessage!.kind),
-                  text: record.lastMessage!.kind.isService
-                      ? secretServiceText(t, record.lastMessage!, names[utils.bytesToHex(record.peerUserID)] ?? '')
-                      : record.lastMessage!.text,
-                  outgoing: record.lastMessage!.outgoing,
-                  status: secretMessageStatus(record.lastMessage!.status),
-                  date: record.lastMessage!.date,
-                ),
-        ),
-      );
-    }
-    return chats;
-  }
-
   void reload() {
     pending = pending
         .then((_) async {
-          final chats = await load();
+          final chats = await loadSecretChats();
           if (!out.isClosed) out.add(chats);
         })
         .catchError((Object error, StackTrace stackTrace) => getIt.get<Logger>().handle(error, stackTrace));

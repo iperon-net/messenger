@@ -29,6 +29,7 @@ import 'crypto.dart';
 import 'di.dart';
 import 'logger.dart';
 import 'models.dart' as models;
+import 'network_usage.dart';
 import 'peer_names.dart';
 import 'protobuf.dart';
 import 'repositories/repositories.dart';
@@ -345,6 +346,9 @@ class Calls {
 
   Room? _room;
   EventsListener<RoomEvent>? _roomListener;
+
+  /// Трафик звонка для «Использования трафика» — живёт вместе с [_room].
+  CallTraffic? _traffic;
 
   // Сквозное шифрование (E2EE) звонка. Медиа-кадры шифрует FrameCryptor LiveKit
   // симметричным ключом комнаты, которого SFU не знает. Ключ — ECDH эфемерных пар
@@ -1292,6 +1296,8 @@ class Calls {
         ),
       );
       _room = room;
+      _traffic?.stop();
+      _traffic = CallTraffic(room)..start();
       _diag2('Room CREATED seq=$seq attempt=$attempt room#=${identityHashCode(room)} url=${response.url}');
       _roomListener = room.createListener();
       _wireRoomEvents(_roomListener!);
@@ -1314,6 +1320,8 @@ class Calls {
         _roomListener = null;
         final failed = _room;
         _room = null;
+        _traffic?.stop();
+        _traffic = null;
         _remoteVideoTrack = null;
         // iOS PiP: отцепляем нативный рендерер от дорожки умирающей комнаты до её
         // разбора (см. [CallPipIos]).
@@ -2062,6 +2070,9 @@ class Calls {
       // Забираем комнату синхронно (до await), чтобы повторный вход видел null.
       final room = _room;
       _room = null;
+      // Статистику больше не читаем: дальше разбор peer connection.
+      _traffic?.stop();
+      _traffic = null;
 
       if (room != null) {
         // `disconnect()` — ПЕРВЫМ действием разбора, до диспоза слушателя и всего
