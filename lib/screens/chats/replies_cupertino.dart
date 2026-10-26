@@ -5,6 +5,7 @@ import '../../components.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
+import 'chat_common.dart' show ChatWallpaperLayer;
 import 'chat_cupertino.dart';
 import 'replies_common.dart';
 
@@ -23,9 +24,11 @@ class _RepliesCupertinoState extends State<RepliesCupertino> with UnreadBackCoun
 
   @override
   Widget build(BuildContext context) {
-    final background = ThemesCupertino.groupedBackground;
+    final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
+    final background = ThemesCupertino.appBackground.resolveFrom(context).withValues(alpha: 0.92);
+    // Фон — обои чатов, как в окне чата и «Закреплённых».
     return CupertinoPageScaffold(
-      backgroundColor: background,
+      backgroundColor: dark ? const Color(0xFF000000) : CupertinoColors.systemGroupedBackground.resolveFrom(context),
       navigationBar: AppCupertinoNavigationBar(
         child: CupertinoNavigationBar(
           automaticallyImplyLeading: !context.isSplitPaneRoot,
@@ -36,12 +39,17 @@ class _RepliesCupertinoState extends State<RepliesCupertino> with UnreadBackCoun
           middle: Text(context.t.screenChats.replies),
         ),
       ),
-      child: SafeArea(
-        child: RepliesFeed(
-          style: ChatCupertino.bubbleStyle(context),
-          secondary: CupertinoColors.secondaryLabel.resolveFrom(context),
-          progress: const CupertinoActivityIndicator(),
-        ),
+      child: Stack(
+        children: [
+          Positioned.fill(child: ChatWallpaperLayer(dark: dark)),
+          SafeArea(
+            child: RepliesFeed(
+              style: ChatCupertino.bubbleStyle(context),
+              secondary: CupertinoColors.secondaryLabel.resolveFrom(context),
+              progress: const CupertinoActivityIndicator(),
+            ),
+          ),
+        ],
       ),
     );
   }

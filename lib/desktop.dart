@@ -5,13 +5,14 @@ import 'package:flutter/widgets.dart';
 
 import 'api.dart';
 import 'di.dart';
+import 'i18n/translations.g.dart';
 import 'logger.dart';
 import 'platform.dart';
 
 /// Связь с окном и системой на десктопе (docs/plans/desktop-client.md, этап 3)
 /// через канал `net.iperon.messenger/desktop` (macOS — `MainFlutterWindow.swift`):
-/// счётчик на значке, системные уведомления, бездействие пользователя, запуск
-/// при входе в систему. На мобильных вызовы ничего не делают.
+/// счётчик на значке, значок в строке меню, системные уведомления, бездействие
+/// пользователя, запуск при входе в систему. На мобильных вызовы ничего не делают.
 abstract final class Desktop {
   static const _channel = MethodChannel('net.iperon.messenger/desktop');
 
@@ -46,11 +47,19 @@ abstract final class Desktop {
         handler(route);
       }
     });
+    // Значок в строке меню: подписи пунктов — на языке приложения.
+    unawaited(_setTrayMenu());
+    LocaleSettings.getLocaleStream().listen((_) => unawaited(_setTrayMenu()));
     await _invoke<bool>('requestNotifications');
     DesktopPresence.instance.start();
   }
 
-  /// Число непрочитанных чатов на значке (Dock); 0 — убрать.
+  static Future<void> _setTrayMenu() {
+    final t = LocaleSettings.instance.currentTranslations.screenSettings;
+    return _invoke<void>('setTrayMenu', {'open': t.trayOpen, 'quit': t.trayQuit});
+  }
+
+  /// Число непрочитанных чатов на значке в Dock и в строке меню; 0 — убрать.
   static Future<void> setBadge(int count) => _invoke<void>('setBadge', {'count': count});
 
   /// Системное уведомление о сообщении; тап открывает [route]. [thread] —

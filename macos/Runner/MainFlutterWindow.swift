@@ -28,17 +28,60 @@ class MainFlutterWindow: NSWindow {
   }
 }
 
+/// Значок в строке меню (как у Telegram Desktop): шаблонная картинка (система
+/// красит её под светлую / тёмную строку), рядом — число непрочитанных чатов.
+/// Меню: открыть окно, завершить приложение. Подписи приходят из Dart
+/// (`setTrayMenu`) на языке приложения.
+final class TrayIcon: NSObject {
+  private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+  private let openItem = NSMenuItem(title: "Open Iperon", action: #selector(open), keyEquivalent: "")
+  private let quitItem = NSMenuItem(title: "Quit Iperon", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+  private weak var window: NSWindow?
+
+  init(window: NSWindow) {
+    self.window = window
+    super.init()
+    let image = NSImage(named: "TrayIcon")
+    image?.isTemplate = true
+    item.button?.image = image
+    item.button?.imagePosition = .imageLeading
+    item.button?.toolTip = "Iperon"
+    openItem.target = self
+    let menu = NSMenu()
+    menu.addItem(openItem)
+    menu.addItem(.separator())
+    menu.addItem(quitItem)
+    item.menu = menu
+  }
+
+  func setTitles(open: String, quit: String) {
+    openItem.title = open
+    quitItem.title = quit
+  }
+
+  func setCount(_ count: Int) {
+    item.button?.title = count > 0 ? String(count) : ""
+  }
+
+  @objc private func open() {
+    NSApp.activate(ignoringOtherApps: true)
+    window?.makeKeyAndOrderFront(nil)
+  }
+}
+
 /// Канал `net.iperon.messenger/desktop` (lib/desktop.dart): счётчик на значке в
-/// Dock, системные уведомления о сообщениях (UNUserNotificationCenter, тап →
+/// Dock и в строке меню ([TrayIcon]), системные уведомления о сообщениях (UNUserNotificationCenter, тап →
 /// `notificationTap` с маршрутом), время бездействия пользователя (presence) и
 /// запуск при входе в систему (SMAppService).
 final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
   private let channel: FlutterMethodChannel
   private weak var window: NSWindow?
+  private let tray: TrayIcon
 
   init(messenger: FlutterBinaryMessenger, window: NSWindow) {
     channel = FlutterMethodChannel(name: "net.iperon.messenger/desktop", binaryMessenger: messenger)
     self.window = window
+    tray = TrayIcon(window: window)
     super.init()
     UNUserNotificationCenter.current().delegate = self
     channel.setMethodCallHandler { [weak self] call, result in
@@ -52,6 +95,10 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
     case "setBadge":
       let count = args["count"] as? Int ?? 0
       NSApp.dockTile.badgeLabel = count > 0 ? String(count) : nil
+      tray.setCount(count)
+      result(nil)
+    case "setTrayMenu":
+      tray.setTitles(open: args["open"] as? String ?? "", quit: args["quit"] as? String ?? "")
       result(nil)
     case "requestAttention":
       NSApp.requestUserAttention(.informationalRequest)

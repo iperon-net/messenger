@@ -896,6 +896,8 @@ class _Translations$screenSettings$ru extends Translations$screenSettings$en {
 	@override String get launchAtLogin => 'Запускать при входе в систему';
 	@override String get launchAtLoginApproval => 'Разрешите Iperon в Системных настройках → Основные → Объекты входа';
 	@override String launchAtLoginFailed({required Object error}) => 'Не удалось изменить автозапуск: ${error}';
+	@override String get trayOpen => 'Открыть Iperon';
+	@override String get trayQuit => 'Завершить Iperon';
 	@override String get accountSwitchCallActive => 'Во время звонка аккаунт не переключить';
 }
 
@@ -2723,6 +2725,8 @@ extension on TranslationsRu {
 			'screenSettings.launchAtLogin' => 'Запускать при входе в систему',
 			'screenSettings.launchAtLoginApproval' => 'Разрешите Iperon в Системных настройках → Основные → Объекты входа',
 			'screenSettings.launchAtLoginFailed' => ({required Object error}) => 'Не удалось изменить автозапуск: ${error}',
+			'screenSettings.trayOpen' => 'Открыть Iperon',
+			'screenSettings.trayQuit' => 'Завершить Iperon',
 			'screenSettings.accountSwitchCallActive' => 'Во время звонка аккаунт не переключить',
 			'screenSettingsNotifications.notifications' => 'Уведомления и звуки',
 			'screenSettingsNotifications.messageNotifications' => 'Уведомления о сообщениях',
@@ -3121,10 +3125,10 @@ extension on TranslationsRu {
 			'screenMyProfile.add' => 'Указать',
 			'screenMyProfile.birthDate' => 'Дата рождения',
 			'screenMyProfile.username' => 'Имя пользователя',
-			'screenMyProfile.validationFirstNameMaxLength' => 'Должно содержать не более 25 символов',
-			'screenMyProfile.validationLastNameMaxLength' => 'Должно содержать не более 25 символов',
 			_ => null,
 		} ?? switch (path) {
+			'screenMyProfile.validationFirstNameMaxLength' => 'Должно содержать не более 25 символов',
+			'screenMyProfile.validationLastNameMaxLength' => 'Должно содержать не более 25 символов',
 			'screenMyProfile.validationAboutMeMaxLength' => 'Должно содержать не более 140 символов',
 			'screenMyProfile.cancel' => _root.common.cancel,
 			'screenMyProfile.done' => _root.common.done,

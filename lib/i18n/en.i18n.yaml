@@ -675,6 +675,8 @@
   "launchAtLogin": "Launch at login"
   "launchAtLoginApproval": "Allow Iperon in System Settings → General → Login Items"
   "launchAtLoginFailed": "Couldn't change launch at login: {error}"
+  "trayOpen": "Open Iperon"
+  "trayQuit": "Quit Iperon"
   "accountSwitchCallActive": "Can't switch accounts during a call"
 
 "screenSettingsNotifications":

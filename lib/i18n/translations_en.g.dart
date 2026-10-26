@@ -2121,6 +2121,12 @@ class Translations$screenSettings$en {
 	/// en: 'Couldn't change launch at login: {error}'
 	String launchAtLoginFailed({required Object error}) => 'Couldn\'t change launch at login: ${error}';
 
+	/// en: 'Open Iperon'
+	String get trayOpen => 'Open Iperon';
+
+	/// en: 'Quit Iperon'
+	String get trayQuit => 'Quit Iperon';
+
 	/// en: 'Can't switch accounts during a call'
 	String get accountSwitchCallActive => 'Can\'t switch accounts during a call';
 }
@@ -5546,6 +5552,8 @@ extension on Translations {
 			'screenSettings.launchAtLogin' => 'Launch at login',
 			'screenSettings.launchAtLoginApproval' => 'Allow Iperon in System Settings → General → Login Items',
 			'screenSettings.launchAtLoginFailed' => ({required Object error}) => 'Couldn\'t change launch at login: ${error}',
+			'screenSettings.trayOpen' => 'Open Iperon',
+			'screenSettings.trayQuit' => 'Quit Iperon',
 			'screenSettings.accountSwitchCallActive' => 'Can\'t switch accounts during a call',
 			'screenSettingsNotifications.notifications' => 'Notifications and sounds',
 			'screenSettingsNotifications.messageNotifications' => 'Message notifications',
@@ -5944,10 +5952,10 @@ extension on Translations {
 			'screenMyProfile.add' => 'Add',
 			'screenMyProfile.birthDate' => 'Birth date',
 			'screenMyProfile.username' => 'Username',
-			'screenMyProfile.validationFirstNameMaxLength' => 'Must contain no more than 25 characters',
-			'screenMyProfile.validationLastNameMaxLength' => 'Must contain no more than 25 characters',
 			_ => null,
 		} ?? switch (path) {
+			'screenMyProfile.validationFirstNameMaxLength' => 'Must contain no more than 25 characters',
+			'screenMyProfile.validationLastNameMaxLength' => 'Must contain no more than 25 characters',
 			'screenMyProfile.validationAboutMeMaxLength' => 'Must contain no more than 140 characters',
 			'screenMyProfile.cancel' => _root.common.cancel,
 			'screenMyProfile.done' => _root.common.done,
