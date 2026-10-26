@@ -717,6 +717,7 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get saveFailed => 'Не удалось сохранить';
 	@override String get copyFailed => 'Не удалось скопировать';
 	@override String get pasteFailed => 'Не удалось вставить фото или видео';
+	@override String get dropFiles => 'Отпустите файлы, чтобы отправить';
 	@override String get edit => 'Изменить';
 	@override String get editing => 'Редактирование';
 	@override String get editMediaReplace => 'Вложение будет заменено';
@@ -2529,6 +2530,7 @@ extension on TranslationsRu {
 			'screenChat.saveFailed' => 'Не удалось сохранить',
 			'screenChat.copyFailed' => 'Не удалось скопировать',
 			'screenChat.pasteFailed' => 'Не удалось вставить фото или видео',
+			'screenChat.dropFiles' => 'Отпустите файлы, чтобы отправить',
 			'screenChat.edit' => 'Изменить',
 			'screenChat.editing' => 'Редактирование',
 			'screenChat.editMediaReplace' => 'Вложение будет заменено',
@@ -2558,9 +2560,9 @@ extension on TranslationsRu {
 			'screenChat.unreadMessages' => 'Непрочитанные сообщения',
 			'screenChat.select' => 'Выбрать',
 			'screenChat.videoCompressing' => 'Сжатие видео',
-			'screenChat.pin' => 'Закрепить',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.pin' => 'Закрепить',
 			'screenChat.unpin' => 'Открепить',
 			'screenChat.pinnedTitle' => 'Закреплённое сообщение',
 			'screenChat.pinnedNumber' => ({required Object n}) => 'Закреплённое сообщение #${n}',
@@ -3072,9 +3074,9 @@ extension on TranslationsRu {
 			'screenMyProfile.validationAboutMeMaxLength' => 'Должно содержать не более 140 символов',
 			'screenMyProfile.cancel' => _root.common.cancel,
 			'screenMyProfile.done' => _root.common.done,
-			'screenMyProfile.edit' => _root.common.edit,
 			_ => null,
 		} ?? switch (path) {
+			'screenMyProfile.edit' => _root.common.edit,
 			'screenMyProfile.close' => _root.common.close,
 			'screenMyProfile.error' => _root.common.error,
 			'screenMyProfile.errorSavingProfile' => 'Сохранение профиля',

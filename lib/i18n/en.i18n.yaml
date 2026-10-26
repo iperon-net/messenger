@@ -521,6 +521,7 @@
   "saveFailed": "Couldn't save"
   "copyFailed": "Couldn't copy"
   "pasteFailed": "Couldn't paste the photo or video"
+  "dropFiles": "Drop files here to send them"
   "edit": "Edit"
   "editing": "Editing"
   "editMediaReplace": "The attachment will be replaced"

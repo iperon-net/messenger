@@ -29,6 +29,7 @@ import '../../cubit.dart';
 import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import '../../platform.dart';
 import 'chat_create_common.dart';
 import 'chat_info_common.dart';
 import 'comments_limit.dart';
@@ -803,6 +804,21 @@ Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController
       chat != null &&
       chat.type != models.ChatType.private &&
       (chat.type == models.ChatType.channel ? features.channelExtras && chat.canPost : features.groupExtras);
+  // Десктоп: галереи нет — сразу системный выбор файлов (фото и видео из них
+  // уходят как медиа, остальное — файлами); с опросом — сначала выбор.
+  if (AppPlatform.isDesktop) {
+    final poll = polls && await _desktopAttachPoll(context);
+    if (!context.mounted) return;
+    if (poll) {
+      final created = await showPollCreateMaterial(context, channel: chat.type == models.ChatType.channel);
+      if (created != null) await cubit.sendPoll(created);
+      return;
+    }
+    final files = await pickAttachmentDocuments();
+    if (!context.mounted) return;
+    await sendAttachmentDrafts(context, [for (final file in files) attachmentDraft(file.path)], input: input);
+    return;
+  }
   final result = await showToolbarAttachments(
     context,
     tabs: [ToolbarAttachmentTabKind.gallery, ToolbarAttachmentTabKind.file, if (polls) ToolbarAttachmentTabKind.poll],
@@ -829,6 +845,32 @@ Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController
   };
   if (!context.mounted) return;
   await sendAttachmentDrafts(context, items, input: input);
+}
+
+/// Скрепка на десктопе в чате с опросами: `true` — «Опрос», `false` — «Файл»
+/// (или закрыли — тогда выбор файла тоже не открываем: см. вызов).
+Future<bool> _desktopAttachPoll(BuildContext context) async {
+  final poll = await m.showModalBottomSheet<bool>(
+    context: context,
+    builder: (context) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          m.ListTile(
+            leading: const m.Icon(m.Icons.attach_file),
+            title: Text(context.t.screenMyProfile.chooseFile),
+            onTap: () => Navigator.of(context).pop(false),
+          ),
+          m.ListTile(
+            leading: const m.Icon(m.Icons.poll_outlined),
+            title: Text(context.t.screenChat.poll),
+            onTap: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    ),
+  );
+  return poll ?? false;
 }
 
 /// Вставка из буфера обмена (меню «Вставить» в поле ввода, картинка с

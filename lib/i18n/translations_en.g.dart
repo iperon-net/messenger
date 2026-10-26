@@ -1668,6 +1668,9 @@ class Translations$screenChat$en {
 	/// en: 'Couldn't paste the photo or video'
 	String get pasteFailed => 'Couldn\'t paste the photo or video';
 
+	/// en: 'Drop files here to send them'
+	String get dropFiles => 'Drop files here to send them';
+
 	/// en: 'Edit'
 	String get edit => 'Edit';
 
@@ -5312,6 +5315,7 @@ extension on Translations {
 			'screenChat.saveFailed' => 'Couldn\'t save',
 			'screenChat.copyFailed' => 'Couldn\'t copy',
 			'screenChat.pasteFailed' => 'Couldn\'t paste the photo or video',
+			'screenChat.dropFiles' => 'Drop files here to send them',
 			'screenChat.edit' => 'Edit',
 			'screenChat.editing' => 'Editing',
 			'screenChat.editMediaReplace' => 'The attachment will be replaced',
@@ -5341,9 +5345,9 @@ extension on Translations {
 			'screenChat.unreadMessages' => 'Unread messages',
 			'screenChat.select' => 'Select',
 			'screenChat.videoCompressing' => 'Compressing video',
-			'screenChat.pin' => 'Pin',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.pin' => 'Pin',
 			'screenChat.unpin' => 'Unpin',
 			'screenChat.pinnedTitle' => 'Pinned message',
 			'screenChat.pinnedNumber' => ({required Object n}) => 'Pinned message #${n}',
@@ -5855,9 +5859,9 @@ extension on Translations {
 			'screenMyProfile.validationAboutMeMaxLength' => 'Must contain no more than 140 characters',
 			'screenMyProfile.cancel' => _root.common.cancel,
 			'screenMyProfile.done' => _root.common.done,
-			'screenMyProfile.edit' => _root.common.edit,
 			_ => null,
 		} ?? switch (path) {
+			'screenMyProfile.edit' => _root.common.edit,
 			'screenMyProfile.close' => _root.common.close,
 			'screenMyProfile.error' => _root.common.error,
 			'screenMyProfile.errorSavingProfile' => 'Saving profile',

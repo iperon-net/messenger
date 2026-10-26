@@ -9,6 +9,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../split_layout.dart';
 import '../../chats/edit_media.dart';
+import '../../chats/media_files.dart';
 import '../../chats/message_formatting.dart';
 import '../../components/chats/emoji_panel.dart';
 import '../../chats/reactions.dart';
@@ -28,6 +29,8 @@ import 'reactions_list_common.dart';
 import 'chat_no_forwards.dart';
 import 'chat_info_common.dart';
 import 'comments_limit.dart';
+import 'chat_drop_target.dart';
+import 'compose_desktop_keys.dart';
 import 'compose_format_menu.dart';
 import 'forward_picker.dart';
 import 'chat_info_material.dart';
@@ -487,6 +490,32 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
     _cubit.send(text, silent: silent, scheduleDate: scheduleDate, mentions: _mentions.take());
   }
 
+  /// ↑ в пустом поле (десктоп): изменить последнее своё сообщение, как в
+  /// Telegram Desktop.
+  bool _editLast() {
+    final state = _cubit.state;
+    if (state.editing != null) return false;
+    final last = state.messages.reversed.where((m) => m.outgoing && _cubit.canEditMessage(m)).firstOrNull;
+    if (last == null) return false;
+    _cubit.startEdit(last);
+    return true;
+  }
+
+  /// Esc (десктоп): отменить ответ / правку / пересылку.
+  bool _cancelComposeByKey() {
+    final state = _cubit.state;
+    if (state.reply == null && state.editing == null && state.forwarding.isEmpty) return false;
+    _cubit.cancelCompose();
+    return true;
+  }
+
+  /// ⌘/Ctrl+V (десктоп): файлы или картинка из буфера — превью с подписью.
+  Future<bool> _pasteByKey(BuildContext context) async {
+    if (!await MediaFiles.clipboardHasMedia() || !context.mounted) return false;
+    await pasteClipboardMedia(context, input: _input);
+    return true;
+  }
+
   /// «Отправить позже»: время → текст уходит в отложенные.
   Future<void> _sendLater(BuildContext context) async {
     // Выбор даты убирает клавиатуру; передумали — возвращаем её.
@@ -605,234 +634,249 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
                     _cubit.closeSearch();
                   }
                 },
-                child: Scaffold(
-                  backgroundColor: dark ? const Color(0xFF000000) : Theme.of(context).colorScheme.surfaceContainerLow,
-                  appBar: state.selecting
-                      ? _selectionAppBar(context, state, barColor)
-                      : state.searching
-                      ? AppBar(
-                          backgroundColor: barColor,
-                          titleSpacing: 0,
-                          leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: _cubit.closeSearch),
-                          title: TextField(
-                            controller: _searchInput,
-                            autofocus: true,
-                            textInputAction: TextInputAction.search,
-                            onChanged: _cubit.setSearchQuery,
-                            decoration: InputDecoration(hintText: t.screenChat.search, border: InputBorder.none),
+                // Десктоп: файлы, перетащенные в окно чата, — как вставка.
+                child: ChatDropTarget(
+                  enabled: chat != null && chat.canPost && !state.commentsBlocked && !state.selecting,
+                  onFiles: (paths) => sendPastedMedia(context, paths, input: _input),
+                  child: Scaffold(
+                    backgroundColor: dark ? const Color(0xFF000000) : Theme.of(context).colorScheme.surfaceContainerLow,
+                    appBar: state.selecting
+                        ? _selectionAppBar(context, state, barColor)
+                        : state.searching
+                        ? AppBar(
+                            backgroundColor: barColor,
+                            titleSpacing: 0,
+                            leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: _cubit.closeSearch),
+                            title: TextField(
+                              controller: _searchInput,
+                              autofocus: true,
+                              textInputAction: TextInputAction.search,
+                              onChanged: _cubit.setSearchQuery,
+                              decoration: InputDecoration(hintText: t.screenChat.search, border: InputBorder.none),
+                            ),
+                          )
+                        : AppBar(
+                            backgroundColor: barColor,
+                            titleSpacing: 0,
+                            // Непрочитанные в других чатах — на стрелке (как в Telegram).
+                            // Планшет: корень правой панели — без «назад», список слева.
+                            automaticallyImplyLeading: !context.isSplitPaneRoot,
+                            leading: context.isSplitPaneRoot ? null : unreadBackButtonMaterial(unreadBack),
+                            // Удержание шапки — поиск по чату (как в Telegram).
+                            title: chat == null
+                                ? null
+                                : GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () => _openInfo(context),
+                                    onLongPress: _startSearch,
+                                    child: _Header(chat: chat),
+                                  ),
                           ),
-                        )
-                      : AppBar(
-                          backgroundColor: barColor,
-                          titleSpacing: 0,
-                          // Непрочитанные в других чатах — на стрелке (как в Telegram).
-                          // Планшет: корень правой панели — без «назад», список слева.
-                          automaticallyImplyLeading: !context.isSplitPaneRoot,
-                          leading: context.isSplitPaneRoot ? null : unreadBackButtonMaterial(unreadBack),
-                          // Удержание шапки — поиск по чату (как в Telegram).
-                          title: chat == null
-                              ? null
-                              : GestureDetector(
-                                  behavior: HitTestBehavior.opaque,
-                                  onTap: () => _openInfo(context),
-                                  onLongPress: _startSearch,
-                                  child: _Header(chat: chat),
-                                ),
-                        ),
-                  // «Чат не найден» — на тех же обоях (иначе в тёмной теме чёрный фон).
-                  body: chat == null
-                      ? Stack(
-                          children: [
-                            Positioned.fill(
-                              child: BlocBuilder<CommonCubit, CommonState>(
-                                builder: (context, common) => ChatWallpaper(
-                                  pattern: common.settingsDevice.chatWallpaper,
-                                  colorIndex: common.settingsDevice.chatWallpaperColor,
-                                  intensity: common.settingsDevice.chatWallpaperIntensity,
-                                  dark: Theme.of(context).brightness == Brightness.dark,
+                    // «Чат не найден» — на тех же обоях (иначе в тёмной теме чёрный фон).
+                    body: chat == null
+                        ? Stack(
+                            children: [
+                              Positioned.fill(
+                                child: BlocBuilder<CommonCubit, CommonState>(
+                                  builder: (context, common) => ChatWallpaper(
+                                    pattern: common.settingsDevice.chatWallpaper,
+                                    colorIndex: common.settingsDevice.chatWallpaperColor,
+                                    intensity: common.settingsDevice.chatWallpaperIntensity,
+                                    dark: Theme.of(context).brightness == Brightness.dark,
+                                  ),
                                 ),
                               ),
-                            ),
-                            Center(child: Text(state.status == Status.success ? t.screenChat.notFound : '')),
-                          ],
-                        )
-                      : Column(
-                          children: [
-                            Expanded(
-                              // Обои из «Тем для чатов» (Настройки → Оформление) — под лентой.
-                              child: Stack(
-                                children: [
-                                  Positioned.fill(
-                                    child: BlocBuilder<CommonCubit, CommonState>(
-                                      buildWhen: (previous, current) =>
-                                          previous.settingsDevice.chatWallpaper != current.settingsDevice.chatWallpaper ||
-                                          previous.settingsDevice.chatWallpaperColor != current.settingsDevice.chatWallpaperColor ||
-                                          previous.settingsDevice.chatWallpaperIntensity != current.settingsDevice.chatWallpaperIntensity,
-                                      builder: (context, common) => ChatWallpaper(
-                                        pattern: common.settingsDevice.chatWallpaper,
-                                        colorIndex: common.settingsDevice.chatWallpaperColor,
-                                        intensity: common.settingsDevice.chatWallpaperIntensity,
-                                        dark: Theme.of(context).brightness == Brightness.dark,
+                              Center(child: Text(state.status == Status.success ? t.screenChat.notFound : '')),
+                            ],
+                          )
+                        : Column(
+                            children: [
+                              Expanded(
+                                // Обои из «Тем для чатов» (Настройки → Оформление) — под лентой.
+                                child: Stack(
+                                  children: [
+                                    Positioned.fill(
+                                      child: BlocBuilder<CommonCubit, CommonState>(
+                                        buildWhen: (previous, current) =>
+                                            previous.settingsDevice.chatWallpaper != current.settingsDevice.chatWallpaper ||
+                                            previous.settingsDevice.chatWallpaperColor != current.settingsDevice.chatWallpaperColor ||
+                                            previous.settingsDevice.chatWallpaperIntensity != current.settingsDevice.chatWallpaperIntensity,
+                                        builder: (context, common) => ChatWallpaper(
+                                          pattern: common.settingsDevice.chatWallpaper,
+                                          colorIndex: common.settingsDevice.chatWallpaperColor,
+                                          intensity: common.settingsDevice.chatWallpaperIntensity,
+                                          dark: Theme.of(context).brightness == Brightness.dark,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  state.messages.isEmpty
-                                      ? Center(child: Text(t.screenChat.empty))
-                                      : ChatMessagesView(
-                                          messages: state.messages,
-                                          chatType: chat.type,
-                                          // Комментарии к постам — только в канале, где они включены.
-                                          onCommentsTap:
-                                              chat.type == models.ChatType.channel &&
-                                                  chat.commentsEnabled &&
-                                                  _cubit.features.channelComments
-                                              ? _openComments
-                                              : null,
-                                          commentsClosedIDs: state.commentsClosedIDs,
-                                          // Опрос: голосовать — участникам (не подписавшимся — нет).
-                                          onPollVote: chat.isMember ? (message, options) => _cubit.votePoll(message, options) : null,
-                                          onPollVoters: chat.type == models.ChatType.channel ? null : _pollVoters,
-                                          onReactionLongPress: (message, emoji) {
-                                            if (_cubit.canListReactions(message)) showReactionsList(context, _cubit, message, emoji: emoji);
-                                          },
-                                          senderBadges: chatSenderBadges(t, chat, state.members),
-                                          // Звонок в ленте — перезвонить тем же видом.
-                                          onCallTap: chat.type == models.ChatType.private && !chat.isSelf && AppPlatform.hasCalls
-                                              ? (message) => chatInfoCall(chat, video: message.phoneCall?.video ?? false)
-                                              : null,
-                                          // Уведомление «Iperon» — «Устройства» / «Это не я».
-                                          actionsFor: chat.isSystem ? (message) => systemNoticeActions(context, message) : null,
-                                          style: ChatMaterial.bubbleStyle(context),
-                                          padding: EdgeInsets.only(
-                                            top: 8 + (state.pinnedMessages.isEmpty ? 0 : PinnedMessageBar.height),
-                                            bottom: 8,
+                                    state.messages.isEmpty
+                                        ? Center(child: Text(t.screenChat.empty))
+                                        : ChatMessagesView(
+                                            messages: state.messages,
+                                            chatType: chat.type,
+                                            // Комментарии к постам — только в канале, где они включены.
+                                            onCommentsTap:
+                                                chat.type == models.ChatType.channel &&
+                                                    chat.commentsEnabled &&
+                                                    _cubit.features.channelComments
+                                                ? _openComments
+                                                : null,
+                                            commentsClosedIDs: state.commentsClosedIDs,
+                                            // Опрос: голосовать — участникам (не подписавшимся — нет).
+                                            onPollVote: chat.isMember ? (message, options) => _cubit.votePoll(message, options) : null,
+                                            onPollVoters: chat.type == models.ChatType.channel ? null : _pollVoters,
+                                            onReactionLongPress: (message, emoji) {
+                                              if (_cubit.canListReactions(message)) {
+                                                showReactionsList(context, _cubit, message, emoji: emoji);
+                                              }
+                                            },
+                                            senderBadges: chatSenderBadges(t, chat, state.members),
+                                            // Звонок в ленте — перезвонить тем же видом.
+                                            onCallTap: chat.type == models.ChatType.private && !chat.isSelf && AppPlatform.hasCalls
+                                                ? (message) => chatInfoCall(chat, video: message.phoneCall?.video ?? false)
+                                                : null,
+                                            // Уведомление «Iperon» — «Устройства» / «Это не я».
+                                            actionsFor: chat.isSystem ? (message) => systemNoticeActions(context, message) : null,
+                                            style: ChatMaterial.bubbleStyle(context),
+                                            padding: EdgeInsets.only(
+                                              top: 8 + (state.pinnedMessages.isEmpty ? 0 : PinnedMessageBar.height),
+                                              bottom: 8,
+                                            ),
+                                            onLongPress: (message) => _actions(context, chat, message),
+                                            controller: _scroll,
+                                            keyFor: _keyFor,
+                                            onCancelUpload: _cubit.cancelUpload,
+                                            onReaction: _cubit.features.reactions ? _cubit.toggleReaction : null,
+                                            onDoubleTap: _cubit.features.reactions
+                                                ? (message) => _cubit.quickReact(
+                                                    message,
+                                                    preferred: context.read<CommonCubit>().state.settingsDevice.quickReaction,
+                                                  )
+                                                : null,
+                                            onReplyTap: _tracker.jumpToReply,
+                                            onForwardTap: (message) => openForwardAuthor(context, message),
+                                            onPinnedServiceTap: _jumpTo,
+                                            onReactionsShown: _cubit.unreadShown,
+                                            pinned: state.pinnedMessages,
+                                            unreadFromID: state.unreadFromID,
+                                            flashID: _flashID,
+                                            flashRange: _tracker.flashRange,
+                                            onReply:
+                                                chat.type == models.ChatType.channel ||
+                                                    chat.isSystem ||
+                                                    state.commentsBlocked ||
+                                                    state.searching ||
+                                                    state.selecting
+                                                ? null
+                                                : _swipeReply,
+                                            selecting: state.selecting,
+                                            selectedIDs: state.selectedIDs,
+                                            vanishingIDs: state.vanishingIDs,
+                                            onSelect: _cubit.toggleSelected,
+                                            selectionColor: Theme.of(context).colorScheme.primary,
+                                            selectionCheckColor: Theme.of(context).colorScheme.onPrimary,
+                                            highlight: state.searching ? state.searchQuery : '',
+                                            focusedID: state.searchCurrentID,
+                                            // Защита содержимого: файл не открыть в другом приложении,
+                                            // в просмотре — без сохранения.
+                                            onMediaTap: (message, index) => message.kind == models.MessageKind.file
+                                                ? (chat.noForwards ? showChatNoForwardsRestricted(context) : openChatFile(context, message))
+                                                : showChatMediaViewer(
+                                                    context,
+                                                    messages: state.messages,
+                                                    message: message,
+                                                    index: index,
+                                                    chatTitle: chat.title,
+                                                    noForwards: chat.noForwards,
+                                                  ),
+                                            onNoForwardsAnswer: (request, accept) =>
+                                                setChatNoForwards(context, _cubit, !accept, requestID: request.id),
                                           ),
-                                          onLongPress: (message) => _actions(context, chat, message),
-                                          controller: _scroll,
-                                          keyFor: _keyFor,
-                                          onCancelUpload: _cubit.cancelUpload,
-                                          onReaction: _cubit.features.reactions ? _cubit.toggleReaction : null,
-                                          onDoubleTap: _cubit.features.reactions
-                                              ? (message) => _cubit.quickReact(
-                                                  message,
-                                                  preferred: context.read<CommonCubit>().state.settingsDevice.quickReaction,
-                                                )
-                                              : null,
-                                          onReplyTap: _tracker.jumpToReply,
-                                          onForwardTap: (message) => openForwardAuthor(context, message),
-                                          onPinnedServiceTap: _jumpTo,
-                                          onReactionsShown: _cubit.unreadShown,
-                                          pinned: state.pinnedMessages,
-                                          unreadFromID: state.unreadFromID,
-                                          flashID: _flashID,
-                                          flashRange: _tracker.flashRange,
-                                          onReply:
-                                              chat.type == models.ChatType.channel ||
-                                                  chat.isSystem ||
-                                                  state.commentsBlocked ||
-                                                  state.searching ||
-                                                  state.selecting
-                                              ? null
-                                              : _swipeReply,
-                                          selecting: state.selecting,
-                                          selectedIDs: state.selectedIDs,
-                                          vanishingIDs: state.vanishingIDs,
-                                          onSelect: _cubit.toggleSelected,
-                                          selectionColor: Theme.of(context).colorScheme.primary,
-                                          selectionCheckColor: Theme.of(context).colorScheme.onPrimary,
-                                          highlight: state.searching ? state.searchQuery : '',
-                                          focusedID: state.searchCurrentID,
-                                          // Защита содержимого: файл не открыть в другом приложении,
-                                          // в просмотре — без сохранения.
-                                          onMediaTap: (message, index) => message.kind == models.MessageKind.file
-                                              ? (chat.noForwards ? showChatNoForwardsRestricted(context) : openChatFile(context, message))
-                                              : showChatMediaViewer(
-                                                  context,
-                                                  messages: state.messages,
-                                                  message: message,
-                                                  index: index,
-                                                  chatTitle: chat.title,
-                                                  noForwards: chat.noForwards,
-                                                ),
-                                          onNoForwardsAnswer: (request, accept) =>
-                                              setChatNoForwards(context, _cubit, !accept, requestID: request.id),
-                                        ),
-                                  Positioned(top: 0, left: 0, right: 0, child: _pinnedBar(context, chat, state)),
-                                  ChatReactionsButton(
-                                    tracker: _tracker,
-                                    count: chat.unreadReactions,
-                                    onTap: _nextReaction,
-                                    background: barColor,
-                                    iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
-                                    badgeColor: Theme.of(context).colorScheme.primary,
-                                    badgeTextColor: Theme.of(context).colorScheme.onPrimary,
-                                  ),
-                                  // «@» — над ❤️ (как в Telegram).
-                                  ChatReactionsButton(
-                                    tracker: _tracker,
-                                    icon: FontAwesomeIcons.at,
-                                    above: chat.unreadReactions > 0 ? 1 : 0,
-                                    count: chat.unreadMentions,
-                                    onTap: _nextMention,
-                                    background: barColor,
-                                    iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
-                                    badgeColor: Theme.of(context).colorScheme.primary,
-                                    badgeTextColor: Theme.of(context).colorScheme.onPrimary,
-                                  ),
-                                  Positioned(
-                                    right: 10,
-                                    bottom: 10,
-                                    child: ChatScrollDownButton(
+                                    Positioned(top: 0, left: 0, right: 0, child: _pinnedBar(context, chat, state)),
+                                    ChatReactionsButton(
                                       tracker: _tracker,
+                                      count: chat.unreadReactions,
+                                      onTap: _nextReaction,
                                       background: barColor,
                                       iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
                                       badgeColor: Theme.of(context).colorScheme.primary,
                                       badgeTextColor: Theme.of(context).colorScheme.onPrimary,
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // Режим выделения — действия в шапке, поля ввода нет.
-                            if (state.selecting)
-                              const SizedBox.shrink()
-                            else if (state.searching)
-                              _SearchBar(state: state, color: barColor)
-                            // Не подписаны — «Подписаться»; подписчик канала — «Звук»;
-                            // админ канала публикует посты обычным полем ввода.
-                            else if (!chat.canPost)
-                              _ChannelBar(chat: chat, color: barColor)
-                            // Комментарии закрыты / только подписчикам / мало подписаны.
-                            else if (state.commentsBlocked)
-                              _CommentsBlockedBar(state: state, color: barColor)
-                            else ...[
-                              // Подсказка «@» — над полем ввода.
-                              MentionSuggestions(
-                                mentions: _mentions,
-                                background: barColor,
-                                text: Theme.of(context).colorScheme.onSurface,
-                                secondary: Theme.of(context).colorScheme.onSurfaceVariant,
-                                separator: Theme.of(context).colorScheme.outlineVariant,
-                              ),
-                              // Ctrl+B / I / U / K — форматирование с клавиатуры.
-                              _formatMenu.shortcuts(
-                                context,
-                                child: _ComposeBar(
-                                  input: _input,
-                                  formatMenu: _formatMenu,
-                                  recorder: _recorder,
-                                  focus: _focus,
-                                  emoji: _emoji,
-                                  state: state,
-                                  onSend: _send,
-                                  onSendOptions: () => _sendOptions(context),
-                                  onScheduled: () => showScheduledMessagesMaterial(context, _cubit),
-                                  color: barColor,
+                                    // «@» — над ❤️ (как в Telegram).
+                                    ChatReactionsButton(
+                                      tracker: _tracker,
+                                      icon: FontAwesomeIcons.at,
+                                      above: chat.unreadReactions > 0 ? 1 : 0,
+                                      count: chat.unreadMentions,
+                                      onTap: _nextMention,
+                                      background: barColor,
+                                      iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                                      badgeColor: Theme.of(context).colorScheme.primary,
+                                      badgeTextColor: Theme.of(context).colorScheme.onPrimary,
+                                    ),
+                                    Positioned(
+                                      right: 10,
+                                      bottom: 10,
+                                      child: ChatScrollDownButton(
+                                        tracker: _tracker,
+                                        background: barColor,
+                                        iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                                        badgeColor: Theme.of(context).colorScheme.primary,
+                                        badgeTextColor: Theme.of(context).colorScheme.onPrimary,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
+                              // Режим выделения — действия в шапке, поля ввода нет.
+                              if (state.selecting)
+                                const SizedBox.shrink()
+                              else if (state.searching)
+                                _SearchBar(state: state, color: barColor)
+                              // Не подписаны — «Подписаться»; подписчик канала — «Звук»;
+                              // админ канала публикует посты обычным полем ввода.
+                              else if (!chat.canPost)
+                                _ChannelBar(chat: chat, color: barColor)
+                              // Комментарии закрыты / только подписчикам / мало подписаны.
+                              else if (state.commentsBlocked)
+                                _CommentsBlockedBar(state: state, color: barColor)
+                              else ...[
+                                // Подсказка «@» — над полем ввода.
+                                MentionSuggestions(
+                                  mentions: _mentions,
+                                  background: barColor,
+                                  text: Theme.of(context).colorScheme.onSurface,
+                                  secondary: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  separator: Theme.of(context).colorScheme.outlineVariant,
+                                ),
+                                // Ctrl+B / I / U / K — форматирование с клавиатуры;
+                                // десктоп — Enter, ↑, Esc, вставка картинок.
+                                _formatMenu.shortcuts(
+                                  context,
+                                  child: ComposeDesktopKeys(
+                                    input: _input,
+                                    onSend: _send,
+                                    onEditLast: _editLast,
+                                    onEscape: _cancelComposeByKey,
+                                    onPaste: () => _pasteByKey(context),
+                                    child: _ComposeBar(
+                                      input: _input,
+                                      formatMenu: _formatMenu,
+                                      recorder: _recorder,
+                                      focus: _focus,
+                                      emoji: _emoji,
+                                      state: state,
+                                      onSend: _send,
+                                      onSendOptions: () => _sendOptions(context),
+                                      onScheduled: () => showScheduledMessagesMaterial(context, _cubit),
+                                      color: barColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ],
-                          ],
-                        ),
+                          ),
+                  ),
                 ),
               );
             },
