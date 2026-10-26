@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../split_layout.dart';
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -67,7 +68,11 @@ class ChatFoldersMaterial extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: scheme.surfaceContainerLow,
-          appBar: AppBar(backgroundColor: scheme.surfaceContainerLow, title: Text(s.folders)),
+          appBar: AppBar(
+            automaticallyImplyLeading: !context.isSplitPaneRoot,
+            backgroundColor: scheme.surfaceContainerLow,
+            title: Text(s.folders),
+          ),
           body: SafeArea(
             child: ListView(
               padding: const EdgeInsets.only(bottom: 24),

@@ -15,6 +15,7 @@ import 'repositories.dart';
 import 'screens.dart';
 import 'split_layout.dart';
 import 'screens/chats/chat_folders_cupertino.dart' show ChatFoldersCupertino;
+import 'screens/chats/chat_folders_material.dart' show ChatFoldersMaterial;
 import 'themes.dart' show ThemesCupertino;
 import 'auth.dart';
 import 'deep_links.dart';
@@ -74,14 +75,27 @@ class Routers {
   // MaterialApp из material_ui (не из package:flutter/material). Переход и
   // свайп — как на iOS (так выглядит и Telegram на Android), только короче.
   // [fullSwipe] = false — штатная MaterialPage (системный Android-переход).
-  Page<void> _pageMaterial(GoRouterState state, Widget child, {bool fullSwipe = true}) => fullSwipe
-      ? FullSwipeBackPage<void>(
-          key: state.pageKey,
-          name: state.name ?? state.path,
-          transitionDuration: const Duration(milliseconds: 300),
-          child: child,
-        )
-      : MaterialPage<void>(key: state.pageKey, name: state.name ?? state.path, child: child);
+  // [pane] — как у _page: экран правой панели планшета.
+  Page<void> _pageMaterial(GoRouterState state, Widget child, {bool fullSwipe = true, bool pane = false, BuildContext? context}) {
+    final declarative = state.pageKey.value.startsWith('/');
+    final key = pane && declarative ? ValueKey<String>('${state.pageKey.value}|${state.uri}') : state.pageKey;
+    if (pane && declarative && context != null && SplitLayout.isWide(context)) {
+      return NoTransitionPage<void>(key: key, name: state.name ?? state.path, child: child);
+    }
+    return fullSwipe
+        ? FullSwipeBackPage<void>(
+            key: key,
+            name: state.name ?? state.path,
+            transitionDuration: const Duration(milliseconds: 300),
+            child: child,
+          )
+        : MaterialPage<void>(key: key, name: state.name ?? state.path, child: child);
+  }
+
+  // «Новое» на планшете — лист по центру, как _sheetOrPage.
+  Page<void> _sheetOrPageMaterial(GoRouterState state, Widget child, {required bool split, bool first = false}) => split
+      ? FormSheetPage<void>(key: state.pageKey, name: state.name ?? state.path, dim: first, material: true, child: child)
+      : _pageMaterial(state, child);
 
   /// Тип чатов из пути `/settings/notifications/:scope` (имя [NotifyScope]);
   /// неизвестное — личные чаты.
@@ -1143,7 +1157,907 @@ class Routers {
 
   // Material-аналог _common: тот же StatefulShellRoute с нижней навигацией, но
   // рендерит Material-экраны. Портированы все вкладки и вся ветка /auth.
-  List<RouteBase> _commonMaterial(GlobalKey<NavigatorState> rootNavigatorKey) => <RouteBase>[
+  // Профиль человека (Android), как _profileCupertino.
+  GoRoute _profileMaterial(String path, GlobalKey<NavigatorState>? parent, {bool pane = false}) => GoRoute(
+    path: path,
+    parentNavigatorKey: parent,
+    pageBuilder: (context, state) => _pageMaterial(
+      state,
+      BlocProvider<ProfileCubit>(
+        create: (_) => ProfileCubit()
+          ..initialization(
+            userID: getIt.get<Utils>().hexToBytes(state.pathParameters['userID'] ?? ''),
+            locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en,
+            demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+          ),
+        child: const ProfileMaterial(),
+      ),
+      pane: pane,
+      context: context,
+    ),
+    routes: [
+      GoRoute(
+        path: "hide",
+        parentNavigatorKey: parent,
+        pageBuilder: (context, state) => _pageMaterial(
+          state,
+          BlocProvider<ProfileHideCubit>(
+            create: (_) => ProfileHideCubit(userID: getIt.get<Utils>().hexToBytes(state.pathParameters['userID'] ?? ''))..initialization(),
+            child: const ProfileHideMaterial(),
+          ),
+        ),
+      ),
+    ],
+  );
+
+  // Вкладка «Контакты» (Android), как _contactsCupertino.
+  RouteBase _contactsMaterial(GlobalKey<NavigatorState> rootNavigatorKey, {required bool split}) {
+    final contacts = GoRoute(
+      path: "/contacts",
+      builder: (context, _) =>
+          split && SplitLayout.isWide(context) ? SplitEmptyMaterial(text: context.t.split.selectContact) : const ContactsMaterial(),
+      routes: [
+        GoRoute(
+          path: "add",
+          parentNavigatorKey: split ? null : rootNavigatorKey,
+          pageBuilder: (context, state) => _pageMaterial(state, const ContactsAddMaterial(), pane: split, context: context),
+        ),
+        if (split) _profileMaterial("user/:userID", null, pane: true),
+      ],
+    );
+    if (!split) return contacts;
+    return ShellRoute(
+      builder: (context, state, child) =>
+          SplitViewMaterial(list: const ContactsMaterial(), selected: _splitSelected(state.uri.path, 'contacts'), child: child),
+      routes: [contacts],
+    );
+  }
+
+  // Вкладка «Звонки» (Android), как _callsCupertino.
+  RouteBase _callsMaterial({required bool split}) {
+    final calls = GoRoute(
+      path: "/calls",
+      builder: (context, _) => split
+          ? (SplitLayout.isWide(context) ? SplitEmptyMaterial(text: context.t.split.selectCall) : const CallsMaterial())
+          : BlocProvider<CallsCubit>(create: (_) => CallsCubit()..initialization(), child: const CallsMaterial()),
+      routes: [if (split) _profileMaterial("user/:userID", null, pane: true)],
+    );
+    if (!split) return calls;
+    return ShellRoute(
+      builder: (context, state, child) => BlocProvider<CallsCubit>(
+        create: (_) => CallsCubit()..initialization(),
+        child: SplitViewMaterial(list: const CallsMaterial(), selected: _splitSelected(state.uri.path, 'calls'), child: child),
+      ),
+      routes: [calls],
+    );
+  }
+
+  // Вкладка «Чаты» (Android). [split] (планшет, см. SplitLayout) — как у
+  // _chatsCupertino: список слева, экраны чата в правой панели.
+  RouteBase _chatsMaterial(GlobalKey<NavigatorState> rootNavigatorKey, {required bool split}) {
+    final pane = split ? null : rootNavigatorKey;
+    final chats = GoRoute(
+      path: "/chats",
+      // Сплит: ChatsCubit выше, у ChatsSplitMaterial; на широком окне корень
+      // правой панели — заглушка «Выберите чат».
+      builder: (context, _) => split
+          ? (SplitLayout.isWide(context) ? SplitEmptyMaterial(text: context.t.split.selectChat) : const ChatsMaterial())
+          : BlocProvider<ChatsCubit>(
+              create: (context) => ChatsCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo),
+              child: const ChatsMaterial(),
+            ),
+      routes: [
+        // Планшет: профиль человека (участник, упоминание) — в правой панели.
+        if (split) _profileMaterial("user/:userID", null),
+        // «Архив» — полноэкранно поверх таб-бара. Свой ChatsCubit: данные
+        // общие через источник (демо / ChatsRemoteDataSource — один на приложение).
+        GoRoute(
+          path: "archive",
+          parentNavigatorKey: pane,
+          pageBuilder: (context, state) => _pageMaterial(
+            state,
+            BlocProvider<ChatsCubit>(
+              create: (context) =>
+                  ChatsCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo, archive: true),
+              child: const ChatsArchiveMaterial(),
+            ),
+            pane: split,
+            context: context,
+          ),
+        ),
+        // Окно чата — полноэкранно поверх таб-бара (и из списка, и из «Архива»).
+        GoRoute(
+          path: "chat/:id",
+          parentNavigatorKey: pane,
+          pageBuilder: (context, state) => _pageMaterial(
+            state,
+            BlocProvider<ChatCubit>(
+              create: (context) => ChatCubit()
+                ..initialization(
+                  chatID: state.pathParameters['id']!,
+                  demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                  // ?message=<id> — прокрутить к сообщению (пост из «Переслано из»).
+                  focusMessageID: state.uri.queryParameters['message'] ?? '',
+                ),
+              child: const ChatScreenMaterial(),
+            ),
+            pane: split,
+            context: context,
+          ),
+        ),
+        // Комментарии к посту канала по ссылке (тап по пушу ответа в ветке):
+        // открывает ветку и заменяется её окном чата.
+        GoRoute(
+          path: "comments/:channelID/:postID",
+          parentNavigatorKey: pane,
+          pageBuilder: (context, state) => _pageMaterial(
+            state,
+            ChatCommentsOpenMaterial(
+              channelID: state.pathParameters['channelID']!,
+              postID: state.pathParameters['postID']!,
+              // ?message=<id> — прокрутить к комментарию (из «Ответов»).
+              messageID: state.uri.queryParameters['message'] ?? '',
+            ),
+            pane: split,
+            context: context,
+          ),
+        ),
+        // «Ответы» (4.6): ответы на мои комментарии и упоминания меня
+        // в ветках комментариев — только чтение.
+        GoRoute(
+          path: "replies",
+          parentNavigatorKey: pane,
+          pageBuilder: (context, state) => _pageMaterial(
+            state,
+            BlocProvider<RepliesCubit>(create: (context) => RepliesCubit()..initialization(), child: const RepliesMaterial()),
+            pane: split,
+            context: context,
+          ),
+        ),
+        // Секретный чат (E2EE, только на этом устройстве) и его «Ключ
+        // шифрования» — у каждого экрана свой SecretChatCubit.
+        GoRoute(
+          path: "secret/:id",
+          parentNavigatorKey: pane,
+          pageBuilder: (context, state) => _pageMaterial(
+            state,
+            BlocProvider<SecretChatCubit>(
+              create: (context) => SecretChatCubit()..initialization(chatID: state.pathParameters['id']!),
+              child: const SecretChatMaterial(),
+            ),
+            pane: split,
+            context: context,
+          ),
+          routes: [
+            GoRoute(
+              path: "info",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(
+                state,
+                BlocProvider<SecretChatCubit>(
+                  create: (context) => SecretChatCubit()..initialization(chatID: state.pathParameters['id']!, markRead: false),
+                  child: const SecretChatInfoMaterial(),
+                ),
+              ),
+            ),
+          ],
+        ),
+        // «Новое»: «Новое сообщение» (контакты) → личный чат, или
+        // группа (участники → название), канал, сообщество. Свой
+        // ChatCreateCubit на каждом экране: участники группы
+        // передаются на шаг названия через `extra`.
+        GoRoute(
+          path: "new",
+          parentNavigatorKey: rootNavigatorKey,
+          pageBuilder: (context, state) => _sheetOrPageMaterial(
+            state,
+            BlocProvider<ChatCreateCubit>(
+              create: (context) => ChatCreateCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo),
+              child: const ChatsNewMaterial(),
+            ),
+            split: split,
+            first: true,
+          ),
+          routes: [
+            GoRoute(
+              path: "group",
+              parentNavigatorKey: rootNavigatorKey,
+              pageBuilder: (context, state) => _sheetOrPageMaterial(
+                state,
+                BlocProvider<ChatCreateCubit>(
+                  create: (context) =>
+                      ChatCreateCubit()
+                        ..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo, type: models.ChatType.group),
+                  child: const ChatCreateMembersMaterial(),
+                ),
+                split: split,
+              ),
+              routes: [
+                GoRoute(
+                  path: "info",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _sheetOrPageMaterial(
+                    state,
+                    BlocProvider<ChatCreateCubit>(
+                      create: (context) => ChatCreateCubit()
+                        ..initialization(
+                          demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                          type: models.ChatType.group,
+                          selected: state.extra is List<models.ChatMember> ? state.extra! as List<models.ChatMember> : const [],
+                          // Группа внутри сообщества — сразу сюда, без выбора участников.
+                          communityID: state.uri.queryParameters['community'] ?? '',
+                        ),
+                      child: const ChatCreateFormMaterial(),
+                    ),
+                    split: split,
+                  ),
+                ),
+              ],
+            ),
+            // Канал (срез 4.1): «Добавить подписчиков» → форма
+            // (`info`); канал внутри сообщества — сразу форма.
+            GoRoute(
+              path: "channel",
+              parentNavigatorKey: rootNavigatorKey,
+              pageBuilder: (context, state) {
+                final communityID = state.uri.queryParameters['community'] ?? '';
+                return _sheetOrPageMaterial(
+                  state,
+                  BlocProvider<ChatCreateCubit>(
+                    create: (context) => ChatCreateCubit()
+                      ..initialization(
+                        demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                        type: models.ChatType.channel,
+                        communityID: communityID,
+                      ),
+                    child: communityID.isEmpty ? const ChatCreateMembersMaterial() : const ChatCreateFormMaterial(),
+                  ),
+                  split: split,
+                );
+              },
+              routes: [
+                GoRoute(
+                  path: "info",
+                  parentNavigatorKey: rootNavigatorKey,
+                  pageBuilder: (context, state) => _sheetOrPageMaterial(
+                    state,
+                    BlocProvider<ChatCreateCubit>(
+                      create: (context) => ChatCreateCubit()
+                        ..initialization(
+                          demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
+                          type: models.ChatType.channel,
+                          selected: state.extra is List<models.ChatMember> ? state.extra! as List<models.ChatMember> : const [],
+                        ),
+                      child: const ChatCreateFormMaterial(),
+                    ),
+                    split: split,
+                  ),
+                ),
+              ],
+            ),
+            GoRoute(
+              path: "community",
+              parentNavigatorKey: rootNavigatorKey,
+              pageBuilder: (context, state) => _sheetOrPageMaterial(
+                state,
+                BlocProvider<ChatCreateCubit>(
+                  create: (context) =>
+                      ChatCreateCubit()
+                        ..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo, type: models.ChatType.community),
+                  child: const ChatCreateFormMaterial(),
+                ),
+                split: split,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+    if (!split) return chats;
+    return ShellRoute(
+      builder: (context, state, child) => BlocProvider<ChatsCubit>(
+        create: (context) => ChatsCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo),
+        child: ChatsSplitMaterial(location: state.uri.path, child: child),
+      ),
+      routes: [chats],
+    );
+  }
+
+  // Вкладка «Настройки» (Android). [split] (планшет): разделы слева, раздел —
+  // в правой панели, как _settingsCupertino.
+  RouteBase _settingsMaterial(GlobalKey<NavigatorState> rootNavigatorKey, {required bool split}) {
+    final pane = split ? null : rootNavigatorKey;
+    final settings = GoRoute(
+      path: "/settings",
+      // Сплит: SettingsCubit выше, у списка слева; корень панели — заглушка.
+      builder: (context, _) => split
+          ? (SplitLayout.isWide(context) ? SplitEmptyMaterial(text: context.t.split.selectSection) : const SettingsMaterial())
+          : BlocProvider<SettingsCubit>(create: (_) => SettingsCubit()..initialization(), child: const SettingsMaterial()),
+      routes: [
+        // Планшет: профиль из «Заблокированных» и «Папки» — в правой панели.
+        if (split) _profileMaterial("user/:userID", null),
+        if (split)
+          GoRoute(
+            path: "folders",
+            pageBuilder: (context, state) => _pageMaterial(
+              state,
+              BlocProvider(
+                create: (_) => ChatFoldersCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo),
+                child: const ChatFoldersMaterial(),
+              ),
+              pane: split,
+              context: context,
+            ),
+          ),
+        GoRoute(
+          path: "profile",
+          parentNavigatorKey: pane,
+          pageBuilder: (context, state) => _pageMaterial(
+            state,
+            BlocProvider<SettingsMyProfileCubit>(
+              create: (_) =>
+                  SettingsMyProfileCubit()..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
+              child: const SettingsMyProfileMaterial(),
+            ),
+            pane: split,
+            context: context,
+          ),
+          routes: [
+            GoRoute(
+              path: "edit",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(
+                state,
+                BlocProvider<SettingsMyProfileEditCubit>(
+                  create: (_) =>
+                      SettingsMyProfileEditCubit()
+                        ..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
+                  child: const SettingsMyProfileEditMaterial(),
+                ),
+              ),
+            ),
+            GoRoute(
+              path: "username",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(
+                state,
+                BlocProvider<SettingsMyProfileUsernameCubit>(
+                  create: (_) =>
+                      SettingsMyProfileUsernameCubit()
+                        ..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
+                  child: const SettingsMyProfileUsernameMaterial(),
+                ),
+              ),
+            ),
+          ],
+        ),
+        GoRoute(
+          path: "notifications",
+          parentNavigatorKey: pane,
+          pageBuilder: (context, state) => _pageMaterial(
+            state,
+            BlocProvider<SettingsNotificationsCubit>(
+              create: (_) => SettingsNotificationsCubit()..initialization(),
+              child: const SettingsNotificationsMaterial(),
+            ),
+            pane: split,
+            context: context,
+          ),
+          routes: [
+            GoRoute(
+              path: ":scope",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(
+                state,
+                BlocProvider<SettingsNotificationsCubit>(
+                  create: (_) => SettingsNotificationsCubit()..initialization(),
+                  child: SettingsNotificationsScopeMaterial(scope: _notifyScope(state.pathParameters["scope"])),
+                ),
+              ),
+            ),
+          ],
+        ),
+        GoRoute(
+          path: "privacy_and_security",
+          parentNavigatorKey: pane,
+          pageBuilder: (context, state) => _pageMaterial(
+            state,
+            BlocProvider<SettingsPrivacyAndSecurityCubit>(
+              create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
+              child: const SettingsPrivacyAndSecurityMaterial(),
+            ),
+            pane: split,
+            context: context,
+          ),
+          routes: [
+            // «Заблокированные»: блокируют из профиля, здесь — список и «Разблокировать».
+            GoRoute(
+              path: "blocked",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(
+                state,
+                BlocProvider<SettingsBlockedCubit>(
+                  create: (_) => SettingsBlockedCubit()..initialization(),
+                  child: const SettingsBlockedMaterial(),
+                ),
+              ),
+            ),
+            GoRoute(
+              path: "calls",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(
+                state,
+                BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                  create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
+                  child: const SettingsPrivacyCallsMaterial(),
+                ),
+              ),
+              routes: [
+                GoRoute(
+                  path: "allow",
+                  parentNavigatorKey: pane,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                      create: (_) => SettingsPrivacyAndSecurityCubit(),
+                      child: SettingsPrivacyCallsAllowMaterial(
+                        kind: CallsListKind.allow,
+                        initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                      ),
+                    ),
+                  ),
+                ),
+                GoRoute(
+                  path: "deny",
+                  parentNavigatorKey: pane,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                      create: (_) => SettingsPrivacyAndSecurityCubit(),
+                      child: SettingsPrivacyCallsAllowMaterial(
+                        kind: CallsListKind.deny,
+                        initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            GoRoute(
+              path: "birthday",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(
+                state,
+                BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                  create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
+                  child: const SettingsPrivacyBirthdayMaterial(),
+                ),
+              ),
+              routes: [
+                GoRoute(
+                  path: "allow",
+                  parentNavigatorKey: pane,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                      create: (_) => SettingsPrivacyAndSecurityCubit(),
+                      child: SettingsPrivacyCallsAllowMaterial(
+                        kind: CallsListKind.allow,
+                        channel: PrivacyChannel.birthday,
+                        initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                      ),
+                    ),
+                  ),
+                ),
+                GoRoute(
+                  path: "deny",
+                  parentNavigatorKey: pane,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                      create: (_) => SettingsPrivacyAndSecurityCubit(),
+                      child: SettingsPrivacyCallsAllowMaterial(
+                        kind: CallsListKind.deny,
+                        channel: PrivacyChannel.birthday,
+                        initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            GoRoute(
+              path: "about_me",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(
+                state,
+                BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                  create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
+                  child: const SettingsPrivacyAboutMeMaterial(),
+                ),
+              ),
+              routes: [
+                GoRoute(
+                  path: "allow",
+                  parentNavigatorKey: pane,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                      create: (_) => SettingsPrivacyAndSecurityCubit(),
+                      child: SettingsPrivacyCallsAllowMaterial(
+                        kind: CallsListKind.allow,
+                        channel: PrivacyChannel.aboutMe,
+                        initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                      ),
+                    ),
+                  ),
+                ),
+                GoRoute(
+                  path: "deny",
+                  parentNavigatorKey: pane,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                      create: (_) => SettingsPrivacyAndSecurityCubit(),
+                      child: SettingsPrivacyCallsAllowMaterial(
+                        kind: CallsListKind.deny,
+                        channel: PrivacyChannel.aboutMe,
+                        initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            GoRoute(
+              path: "last_seen",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(
+                state,
+                BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                  create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
+                  child: const SettingsPrivacyLastSeenMaterial(),
+                ),
+              ),
+              routes: [
+                GoRoute(
+                  path: "allow",
+                  parentNavigatorKey: pane,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                      create: (_) => SettingsPrivacyAndSecurityCubit(),
+                      child: SettingsPrivacyCallsAllowMaterial(
+                        kind: CallsListKind.allow,
+                        channel: PrivacyChannel.lastSeen,
+                        initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                      ),
+                    ),
+                  ),
+                ),
+                GoRoute(
+                  path: "deny",
+                  parentNavigatorKey: pane,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                      create: (_) => SettingsPrivacyAndSecurityCubit(),
+                      child: SettingsPrivacyCallsAllowMaterial(
+                        kind: CallsListKind.deny,
+                        channel: PrivacyChannel.lastSeen,
+                        initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            GoRoute(
+              path: "messages",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(
+                state,
+                BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                  create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
+                  child: const SettingsPrivacyMessagesMaterial(),
+                ),
+              ),
+              routes: [
+                GoRoute(
+                  path: "allow",
+                  parentNavigatorKey: pane,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                      create: (_) => SettingsPrivacyAndSecurityCubit(),
+                      child: SettingsPrivacyCallsAllowMaterial(
+                        kind: CallsListKind.allow,
+                        channel: PrivacyChannel.messages,
+                        initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                      ),
+                    ),
+                  ),
+                ),
+                GoRoute(
+                  path: "deny",
+                  parentNavigatorKey: pane,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                      create: (_) => SettingsPrivacyAndSecurityCubit(),
+                      child: SettingsPrivacyCallsAllowMaterial(
+                        kind: CallsListKind.deny,
+                        channel: PrivacyChannel.messages,
+                        initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            GoRoute(
+              path: "forwards",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(
+                state,
+                BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                  create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
+                  child: const SettingsPrivacyForwardsMaterial(),
+                ),
+              ),
+              routes: [
+                GoRoute(
+                  path: "allow",
+                  parentNavigatorKey: pane,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                      create: (_) => SettingsPrivacyAndSecurityCubit(),
+                      child: SettingsPrivacyCallsAllowMaterial(
+                        kind: CallsListKind.allow,
+                        channel: PrivacyChannel.forwards,
+                        initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                      ),
+                    ),
+                  ),
+                ),
+                GoRoute(
+                  path: "deny",
+                  parentNavigatorKey: pane,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                      create: (_) => SettingsPrivacyAndSecurityCubit(),
+                      child: SettingsPrivacyCallsAllowMaterial(
+                        kind: CallsListKind.deny,
+                        channel: PrivacyChannel.forwards,
+                        initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            GoRoute(
+              path: "group_invites",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(
+                state,
+                BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                  create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
+                  child: const SettingsPrivacyGroupInvitesMaterial(),
+                ),
+              ),
+              routes: [
+                GoRoute(
+                  path: "allow",
+                  parentNavigatorKey: pane,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                      create: (_) => SettingsPrivacyAndSecurityCubit(),
+                      child: SettingsPrivacyCallsAllowMaterial(
+                        kind: CallsListKind.allow,
+                        channel: PrivacyChannel.groupInvites,
+                        initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                      ),
+                    ),
+                  ),
+                ),
+                GoRoute(
+                  path: "deny",
+                  parentNavigatorKey: pane,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                      create: (_) => SettingsPrivacyAndSecurityCubit(),
+                      child: SettingsPrivacyCallsAllowMaterial(
+                        kind: CallsListKind.deny,
+                        channel: PrivacyChannel.groupInvites,
+                        initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            GoRoute(
+              path: "phone_number",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(
+                state,
+                BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                  create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
+                  child: const SettingsPrivacyPhoneNumberMaterial(),
+                ),
+              ),
+              routes: [
+                GoRoute(
+                  path: "allow",
+                  parentNavigatorKey: pane,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                      create: (_) => SettingsPrivacyAndSecurityCubit(),
+                      child: SettingsPrivacyCallsAllowMaterial(
+                        kind: CallsListKind.allow,
+                        channel: PrivacyChannel.phoneNumber,
+                        initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                      ),
+                    ),
+                  ),
+                ),
+                GoRoute(
+                  path: "deny",
+                  parentNavigatorKey: pane,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsPrivacyAndSecurityCubit>(
+                      create: (_) => SettingsPrivacyAndSecurityCubit(),
+                      child: SettingsPrivacyCallsAllowMaterial(
+                        kind: CallsListKind.deny,
+                        channel: PrivacyChannel.phoneNumber,
+                        initialSelected: (state.extra as List<Uint8List>?) ?? const [],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            GoRoute(
+              path: "passcode",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(
+                state,
+                BlocProvider<SettingsPasscodeCubit>(
+                  create: (_) => SettingsPasscodeCubit()..initialization(),
+                  child: const SettingsPasscodeMaterial(),
+                ),
+              ),
+              routes: [
+                GoRoute(
+                  path: "create",
+                  parentNavigatorKey: pane,
+                  pageBuilder: (context, state) => _pageMaterial(
+                    state,
+                    BlocProvider<SettingsPasscodeCreateCubit>(
+                      create: (_) => SettingsPasscodeCreateCubit()..initialization(),
+                      child: const SettingsPasscodeCreateMaterial(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            GoRoute(
+              path: "cloud_password",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(
+                state,
+                BlocProvider<SettingsCloudPasswordCubit>(
+                  create: (_) => SettingsCloudPasswordCubit()..initialization(),
+                  child: const SettingsCloudPasswordMaterial(),
+                ),
+              ),
+            ),
+            GoRoute(
+              path: "passkeys",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(
+                state,
+                BlocProvider<SettingsPasskeysCubit>(
+                  create: (_) => SettingsPasskeysCubit()..initialization(),
+                  child: const SettingsPasskeysMaterial(),
+                ),
+              ),
+            ),
+          ],
+        ),
+        GoRoute(
+          // Скрытый раздел «Разработчик» (открывается 5 тапами по вкладке
+          // «Настройки», см. HomeMaterial). Логи теперь живут здесь.
+          path: "developer",
+          parentNavigatorKey: pane,
+          pageBuilder: (context, state) => _pageMaterial(state, const SettingsDeveloperMaterial(), pane: split, context: context),
+          routes: [
+            GoRoute(
+              path: "logs",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(state, TalkerScreen(talker: logger.talker)),
+            ),
+            // DEBUG-only превью экрана звонка без реального звонка.
+            if (kDebugMode)
+              GoRoute(
+                path: "call_preview",
+                parentNavigatorKey: pane,
+                pageBuilder: (context, state) => _pageMaterial(state, const CallPreview()),
+              ),
+          ],
+        ),
+        GoRoute(
+          path: "language",
+          parentNavigatorKey: pane,
+          pageBuilder: (context, state) => _pageMaterial(
+            state,
+            BlocProvider<SettingsLanguageCubit>(
+              create: (_) => SettingsLanguageCubit()..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale),
+              child: const SettingsLanguageMaterialScreen(),
+            ),
+            pane: split,
+            context: context,
+          ),
+        ),
+        GoRoute(
+          path: "appearance",
+          parentNavigatorKey: pane,
+          pageBuilder: (context, state) => _pageMaterial(
+            state,
+            BlocProvider<SettingsAppearanceCubit>(
+              create: (_) => SettingsAppearanceCubit()
+                ..initialization(
+                  colorTheme: context.read<CommonCubit>().state.settingsDevice.colorTheme,
+                  darkMode: context.read<CommonCubit>().state.settingsDevice.darkMode,
+                  isBlurOnInactive: context.read<CommonCubit>().state.settingsDevice.isBlurOnInactive,
+                ),
+              child: const SettingsAppearanceMaterial(),
+            ),
+            pane: split,
+            context: context,
+          ),
+          routes: [
+            // Темы для чатов — обои окна чата.
+            GoRoute(
+              path: "chat_themes",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(state, const SettingsChatThemesMaterial()),
+            ),
+          ],
+        ),
+        GoRoute(
+          path: "device_sessions",
+          parentNavigatorKey: pane,
+          pageBuilder: (context, state) => _pageMaterial(
+            state,
+            BlocProvider<SettingsDeviceSessionsCubit>(
+              create: (_) => SettingsDeviceSessionsCubit()..initialization(),
+              child: const SettingsDeviceSessionsMaterial(),
+            ),
+            pane: split,
+            context: context,
+          ),
+        ),
+      ],
+    );
+    if (!split) return settings;
+    return ShellRoute(
+      builder: (context, state, child) => BlocProvider<SettingsCubit>(
+        create: (_) => SettingsCubit()..initialization(),
+        child: SplitViewMaterial(list: const SettingsMaterial(), selected: _splitSelected(state.uri.path, 'settings'), child: child),
+      ),
+      routes: [settings],
+    );
+  }
+
+  List<RouteBase> _commonMaterial(GlobalKey<NavigatorState> rootNavigatorKey, {bool split = false}) => <RouteBase>[
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) => MultiBlocProvider(
         providers: [
@@ -1158,786 +2072,10 @@ class Routers {
         ),
       ),
       branches: [
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: "/contacts",
-              builder: (_, _) => const ContactsMaterial(),
-              routes: [
-                GoRoute(
-                  path: "add",
-                  parentNavigatorKey: rootNavigatorKey,
-                  pageBuilder: (context, state) => _pageMaterial(state, const ContactsAddMaterial()),
-                ),
-              ],
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: "/calls",
-              builder: (_, _) => BlocProvider<CallsCubit>(create: (_) => CallsCubit()..initialization(), child: const CallsMaterial()),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: "/chats",
-              builder: (_, _) => BlocProvider<ChatsCubit>(
-                create: (context) => ChatsCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo),
-                child: const ChatsMaterial(),
-              ),
-              routes: [
-                // «Архив» — полноэкранно поверх таб-бара. Свой ChatsCubit: данные
-                // общие через источник (демо / ChatsRemoteDataSource — один на приложение).
-                GoRoute(
-                  path: "archive",
-                  parentNavigatorKey: rootNavigatorKey,
-                  pageBuilder: (context, state) => _pageMaterial(
-                    state,
-                    BlocProvider<ChatsCubit>(
-                      create: (context) =>
-                          ChatsCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo, archive: true),
-                      child: const ChatsArchiveMaterial(),
-                    ),
-                  ),
-                ),
-                // Окно чата — полноэкранно поверх таб-бара (и из списка, и из «Архива»).
-                GoRoute(
-                  path: "chat/:id",
-                  parentNavigatorKey: rootNavigatorKey,
-                  pageBuilder: (context, state) => _pageMaterial(
-                    state,
-                    BlocProvider<ChatCubit>(
-                      create: (context) => ChatCubit()
-                        ..initialization(
-                          chatID: state.pathParameters['id']!,
-                          demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
-                          // ?message=<id> — прокрутить к сообщению (пост из «Переслано из»).
-                          focusMessageID: state.uri.queryParameters['message'] ?? '',
-                        ),
-                      child: const ChatScreenMaterial(),
-                    ),
-                  ),
-                ),
-                // Комментарии к посту канала по ссылке (тап по пушу ответа в ветке):
-                // открывает ветку и заменяется её окном чата.
-                GoRoute(
-                  path: "comments/:channelID/:postID",
-                  parentNavigatorKey: rootNavigatorKey,
-                  pageBuilder: (context, state) => _pageMaterial(
-                    state,
-                    ChatCommentsOpenMaterial(
-                      channelID: state.pathParameters['channelID']!,
-                      postID: state.pathParameters['postID']!,
-                      // ?message=<id> — прокрутить к комментарию (из «Ответов»).
-                      messageID: state.uri.queryParameters['message'] ?? '',
-                    ),
-                  ),
-                ),
-                // «Ответы» (4.6): ответы на мои комментарии и упоминания меня
-                // в ветках комментариев — только чтение.
-                GoRoute(
-                  path: "replies",
-                  parentNavigatorKey: rootNavigatorKey,
-                  pageBuilder: (context, state) => _pageMaterial(
-                    state,
-                    BlocProvider<RepliesCubit>(create: (context) => RepliesCubit()..initialization(), child: const RepliesMaterial()),
-                  ),
-                ),
-                // Секретный чат (E2EE, только на этом устройстве) и его «Ключ
-                // шифрования» — у каждого экрана свой SecretChatCubit.
-                GoRoute(
-                  path: "secret/:id",
-                  parentNavigatorKey: rootNavigatorKey,
-                  pageBuilder: (context, state) => _pageMaterial(
-                    state,
-                    BlocProvider<SecretChatCubit>(
-                      create: (context) => SecretChatCubit()..initialization(chatID: state.pathParameters['id']!),
-                      child: const SecretChatMaterial(),
-                    ),
-                  ),
-                  routes: [
-                    GoRoute(
-                      path: "info",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) => _pageMaterial(
-                        state,
-                        BlocProvider<SecretChatCubit>(
-                          create: (context) => SecretChatCubit()..initialization(chatID: state.pathParameters['id']!, markRead: false),
-                          child: const SecretChatInfoMaterial(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                // «Новое»: «Новое сообщение» (контакты) → личный чат, или
-                // группа (участники → название), канал, сообщество. Свой
-                // ChatCreateCubit на каждом экране: участники группы
-                // передаются на шаг названия через `extra`.
-                GoRoute(
-                  path: "new",
-                  parentNavigatorKey: rootNavigatorKey,
-                  pageBuilder: (context, state) => _pageMaterial(
-                    state,
-                    BlocProvider<ChatCreateCubit>(
-                      create: (context) =>
-                          ChatCreateCubit()..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo),
-                      child: const ChatsNewMaterial(),
-                    ),
-                  ),
-                  routes: [
-                    GoRoute(
-                      path: "group",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) => _pageMaterial(
-                        state,
-                        BlocProvider<ChatCreateCubit>(
-                          create: (context) => ChatCreateCubit()
-                            ..initialization(demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo, type: models.ChatType.group),
-                          child: const ChatCreateMembersMaterial(),
-                        ),
-                      ),
-                      routes: [
-                        GoRoute(
-                          path: "info",
-                          parentNavigatorKey: rootNavigatorKey,
-                          pageBuilder: (context, state) => _pageMaterial(
-                            state,
-                            BlocProvider<ChatCreateCubit>(
-                              create: (context) => ChatCreateCubit()
-                                ..initialization(
-                                  demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
-                                  type: models.ChatType.group,
-                                  selected: state.extra is List<models.ChatMember> ? state.extra! as List<models.ChatMember> : const [],
-                                  // Группа внутри сообщества — сразу сюда, без выбора участников.
-                                  communityID: state.uri.queryParameters['community'] ?? '',
-                                ),
-                              child: const ChatCreateFormMaterial(),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    // Канал (срез 4.1): «Добавить подписчиков» → форма
-                    // (`info`); канал внутри сообщества — сразу форма.
-                    GoRoute(
-                      path: "channel",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) {
-                        final communityID = state.uri.queryParameters['community'] ?? '';
-                        return _pageMaterial(
-                          state,
-                          BlocProvider<ChatCreateCubit>(
-                            create: (context) => ChatCreateCubit()
-                              ..initialization(
-                                demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
-                                type: models.ChatType.channel,
-                                communityID: communityID,
-                              ),
-                            child: communityID.isEmpty ? const ChatCreateMembersMaterial() : const ChatCreateFormMaterial(),
-                          ),
-                        );
-                      },
-                      routes: [
-                        GoRoute(
-                          path: "info",
-                          parentNavigatorKey: rootNavigatorKey,
-                          pageBuilder: (context, state) => _pageMaterial(
-                            state,
-                            BlocProvider<ChatCreateCubit>(
-                              create: (context) => ChatCreateCubit()
-                                ..initialization(
-                                  demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
-                                  type: models.ChatType.channel,
-                                  selected: state.extra is List<models.ChatMember> ? state.extra! as List<models.ChatMember> : const [],
-                                ),
-                              child: const ChatCreateFormMaterial(),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    GoRoute(
-                      path: "community",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) => _pageMaterial(
-                        state,
-                        BlocProvider<ChatCreateCubit>(
-                          create: (context) => ChatCreateCubit()
-                            ..initialization(
-                              demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
-                              type: models.ChatType.community,
-                            ),
-                          child: const ChatCreateFormMaterial(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: "/settings",
-              builder: (_, _) =>
-                  BlocProvider<SettingsCubit>(create: (_) => SettingsCubit()..initialization(), child: const SettingsMaterial()),
-              routes: [
-                GoRoute(
-                  path: "profile",
-                  parentNavigatorKey: rootNavigatorKey,
-                  pageBuilder: (context, state) => _pageMaterial(
-                    state,
-                    BlocProvider<SettingsMyProfileCubit>(
-                      create: (_) =>
-                          SettingsMyProfileCubit()
-                            ..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
-                      child: const SettingsMyProfileMaterial(),
-                    ),
-                  ),
-                  routes: [
-                    GoRoute(
-                      path: "edit",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) => _pageMaterial(
-                        state,
-                        BlocProvider<SettingsMyProfileEditCubit>(
-                          create: (_) =>
-                              SettingsMyProfileEditCubit()
-                                ..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
-                          child: const SettingsMyProfileEditMaterial(),
-                        ),
-                      ),
-                    ),
-                    GoRoute(
-                      path: "username",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) => _pageMaterial(
-                        state,
-                        BlocProvider<SettingsMyProfileUsernameCubit>(
-                          create: (_) =>
-                              SettingsMyProfileUsernameCubit()
-                                ..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
-                          child: const SettingsMyProfileUsernameMaterial(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                GoRoute(
-                  path: "notifications",
-                  parentNavigatorKey: rootNavigatorKey,
-                  pageBuilder: (context, state) => _pageMaterial(
-                    state,
-                    BlocProvider<SettingsNotificationsCubit>(
-                      create: (_) => SettingsNotificationsCubit()..initialization(),
-                      child: const SettingsNotificationsMaterial(),
-                    ),
-                  ),
-                  routes: [
-                    GoRoute(
-                      path: ":scope",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) => _pageMaterial(
-                        state,
-                        BlocProvider<SettingsNotificationsCubit>(
-                          create: (_) => SettingsNotificationsCubit()..initialization(),
-                          child: SettingsNotificationsScopeMaterial(scope: _notifyScope(state.pathParameters["scope"])),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                GoRoute(
-                  path: "privacy_and_security",
-                  parentNavigatorKey: rootNavigatorKey,
-                  pageBuilder: (context, state) => _pageMaterial(
-                    state,
-                    BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                      create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
-                      child: const SettingsPrivacyAndSecurityMaterial(),
-                    ),
-                  ),
-                  routes: [
-                    // «Заблокированные»: блокируют из профиля, здесь — список и «Разблокировать».
-                    GoRoute(
-                      path: "blocked",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) => _pageMaterial(
-                        state,
-                        BlocProvider<SettingsBlockedCubit>(
-                          create: (_) => SettingsBlockedCubit()..initialization(),
-                          child: const SettingsBlockedMaterial(),
-                        ),
-                      ),
-                    ),
-                    GoRoute(
-                      path: "calls",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) => _pageMaterial(
-                        state,
-                        BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                          create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
-                          child: const SettingsPrivacyCallsMaterial(),
-                        ),
-                      ),
-                      routes: [
-                        GoRoute(
-                          path: "allow",
-                          parentNavigatorKey: rootNavigatorKey,
-                          pageBuilder: (context, state) => _pageMaterial(
-                            state,
-                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                              create: (_) => SettingsPrivacyAndSecurityCubit(),
-                              child: SettingsPrivacyCallsAllowMaterial(
-                                kind: CallsListKind.allow,
-                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
-                              ),
-                            ),
-                          ),
-                        ),
-                        GoRoute(
-                          path: "deny",
-                          parentNavigatorKey: rootNavigatorKey,
-                          pageBuilder: (context, state) => _pageMaterial(
-                            state,
-                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                              create: (_) => SettingsPrivacyAndSecurityCubit(),
-                              child: SettingsPrivacyCallsAllowMaterial(
-                                kind: CallsListKind.deny,
-                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    GoRoute(
-                      path: "birthday",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) => _pageMaterial(
-                        state,
-                        BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                          create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
-                          child: const SettingsPrivacyBirthdayMaterial(),
-                        ),
-                      ),
-                      routes: [
-                        GoRoute(
-                          path: "allow",
-                          parentNavigatorKey: rootNavigatorKey,
-                          pageBuilder: (context, state) => _pageMaterial(
-                            state,
-                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                              create: (_) => SettingsPrivacyAndSecurityCubit(),
-                              child: SettingsPrivacyCallsAllowMaterial(
-                                kind: CallsListKind.allow,
-                                channel: PrivacyChannel.birthday,
-                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
-                              ),
-                            ),
-                          ),
-                        ),
-                        GoRoute(
-                          path: "deny",
-                          parentNavigatorKey: rootNavigatorKey,
-                          pageBuilder: (context, state) => _pageMaterial(
-                            state,
-                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                              create: (_) => SettingsPrivacyAndSecurityCubit(),
-                              child: SettingsPrivacyCallsAllowMaterial(
-                                kind: CallsListKind.deny,
-                                channel: PrivacyChannel.birthday,
-                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    GoRoute(
-                      path: "about_me",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) => _pageMaterial(
-                        state,
-                        BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                          create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
-                          child: const SettingsPrivacyAboutMeMaterial(),
-                        ),
-                      ),
-                      routes: [
-                        GoRoute(
-                          path: "allow",
-                          parentNavigatorKey: rootNavigatorKey,
-                          pageBuilder: (context, state) => _pageMaterial(
-                            state,
-                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                              create: (_) => SettingsPrivacyAndSecurityCubit(),
-                              child: SettingsPrivacyCallsAllowMaterial(
-                                kind: CallsListKind.allow,
-                                channel: PrivacyChannel.aboutMe,
-                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
-                              ),
-                            ),
-                          ),
-                        ),
-                        GoRoute(
-                          path: "deny",
-                          parentNavigatorKey: rootNavigatorKey,
-                          pageBuilder: (context, state) => _pageMaterial(
-                            state,
-                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                              create: (_) => SettingsPrivacyAndSecurityCubit(),
-                              child: SettingsPrivacyCallsAllowMaterial(
-                                kind: CallsListKind.deny,
-                                channel: PrivacyChannel.aboutMe,
-                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    GoRoute(
-                      path: "last_seen",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) => _pageMaterial(
-                        state,
-                        BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                          create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
-                          child: const SettingsPrivacyLastSeenMaterial(),
-                        ),
-                      ),
-                      routes: [
-                        GoRoute(
-                          path: "allow",
-                          parentNavigatorKey: rootNavigatorKey,
-                          pageBuilder: (context, state) => _pageMaterial(
-                            state,
-                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                              create: (_) => SettingsPrivacyAndSecurityCubit(),
-                              child: SettingsPrivacyCallsAllowMaterial(
-                                kind: CallsListKind.allow,
-                                channel: PrivacyChannel.lastSeen,
-                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
-                              ),
-                            ),
-                          ),
-                        ),
-                        GoRoute(
-                          path: "deny",
-                          parentNavigatorKey: rootNavigatorKey,
-                          pageBuilder: (context, state) => _pageMaterial(
-                            state,
-                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                              create: (_) => SettingsPrivacyAndSecurityCubit(),
-                              child: SettingsPrivacyCallsAllowMaterial(
-                                kind: CallsListKind.deny,
-                                channel: PrivacyChannel.lastSeen,
-                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    GoRoute(
-                      path: "messages",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) => _pageMaterial(
-                        state,
-                        BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                          create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
-                          child: const SettingsPrivacyMessagesMaterial(),
-                        ),
-                      ),
-                      routes: [
-                        GoRoute(
-                          path: "allow",
-                          parentNavigatorKey: rootNavigatorKey,
-                          pageBuilder: (context, state) => _pageMaterial(
-                            state,
-                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                              create: (_) => SettingsPrivacyAndSecurityCubit(),
-                              child: SettingsPrivacyCallsAllowMaterial(
-                                kind: CallsListKind.allow,
-                                channel: PrivacyChannel.messages,
-                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
-                              ),
-                            ),
-                          ),
-                        ),
-                        GoRoute(
-                          path: "deny",
-                          parentNavigatorKey: rootNavigatorKey,
-                          pageBuilder: (context, state) => _pageMaterial(
-                            state,
-                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                              create: (_) => SettingsPrivacyAndSecurityCubit(),
-                              child: SettingsPrivacyCallsAllowMaterial(
-                                kind: CallsListKind.deny,
-                                channel: PrivacyChannel.messages,
-                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    GoRoute(
-                      path: "forwards",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) => _pageMaterial(
-                        state,
-                        BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                          create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
-                          child: const SettingsPrivacyForwardsMaterial(),
-                        ),
-                      ),
-                      routes: [
-                        GoRoute(
-                          path: "allow",
-                          parentNavigatorKey: rootNavigatorKey,
-                          pageBuilder: (context, state) => _pageMaterial(
-                            state,
-                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                              create: (_) => SettingsPrivacyAndSecurityCubit(),
-                              child: SettingsPrivacyCallsAllowMaterial(
-                                kind: CallsListKind.allow,
-                                channel: PrivacyChannel.forwards,
-                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
-                              ),
-                            ),
-                          ),
-                        ),
-                        GoRoute(
-                          path: "deny",
-                          parentNavigatorKey: rootNavigatorKey,
-                          pageBuilder: (context, state) => _pageMaterial(
-                            state,
-                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                              create: (_) => SettingsPrivacyAndSecurityCubit(),
-                              child: SettingsPrivacyCallsAllowMaterial(
-                                kind: CallsListKind.deny,
-                                channel: PrivacyChannel.forwards,
-                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    GoRoute(
-                      path: "group_invites",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) => _pageMaterial(
-                        state,
-                        BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                          create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
-                          child: const SettingsPrivacyGroupInvitesMaterial(),
-                        ),
-                      ),
-                      routes: [
-                        GoRoute(
-                          path: "allow",
-                          parentNavigatorKey: rootNavigatorKey,
-                          pageBuilder: (context, state) => _pageMaterial(
-                            state,
-                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                              create: (_) => SettingsPrivacyAndSecurityCubit(),
-                              child: SettingsPrivacyCallsAllowMaterial(
-                                kind: CallsListKind.allow,
-                                channel: PrivacyChannel.groupInvites,
-                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
-                              ),
-                            ),
-                          ),
-                        ),
-                        GoRoute(
-                          path: "deny",
-                          parentNavigatorKey: rootNavigatorKey,
-                          pageBuilder: (context, state) => _pageMaterial(
-                            state,
-                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                              create: (_) => SettingsPrivacyAndSecurityCubit(),
-                              child: SettingsPrivacyCallsAllowMaterial(
-                                kind: CallsListKind.deny,
-                                channel: PrivacyChannel.groupInvites,
-                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    GoRoute(
-                      path: "phone_number",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) => _pageMaterial(
-                        state,
-                        BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                          create: (_) => SettingsPrivacyAndSecurityCubit()..initialization(),
-                          child: const SettingsPrivacyPhoneNumberMaterial(),
-                        ),
-                      ),
-                      routes: [
-                        GoRoute(
-                          path: "allow",
-                          parentNavigatorKey: rootNavigatorKey,
-                          pageBuilder: (context, state) => _pageMaterial(
-                            state,
-                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                              create: (_) => SettingsPrivacyAndSecurityCubit(),
-                              child: SettingsPrivacyCallsAllowMaterial(
-                                kind: CallsListKind.allow,
-                                channel: PrivacyChannel.phoneNumber,
-                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
-                              ),
-                            ),
-                          ),
-                        ),
-                        GoRoute(
-                          path: "deny",
-                          parentNavigatorKey: rootNavigatorKey,
-                          pageBuilder: (context, state) => _pageMaterial(
-                            state,
-                            BlocProvider<SettingsPrivacyAndSecurityCubit>(
-                              create: (_) => SettingsPrivacyAndSecurityCubit(),
-                              child: SettingsPrivacyCallsAllowMaterial(
-                                kind: CallsListKind.deny,
-                                channel: PrivacyChannel.phoneNumber,
-                                initialSelected: (state.extra as List<Uint8List>?) ?? const [],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    GoRoute(
-                      path: "passcode",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) => _pageMaterial(
-                        state,
-                        BlocProvider<SettingsPasscodeCubit>(
-                          create: (_) => SettingsPasscodeCubit()..initialization(),
-                          child: const SettingsPasscodeMaterial(),
-                        ),
-                      ),
-                      routes: [
-                        GoRoute(
-                          path: "create",
-                          parentNavigatorKey: rootNavigatorKey,
-                          pageBuilder: (context, state) => _pageMaterial(
-                            state,
-                            BlocProvider<SettingsPasscodeCreateCubit>(
-                              create: (_) => SettingsPasscodeCreateCubit()..initialization(),
-                              child: const SettingsPasscodeCreateMaterial(),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    GoRoute(
-                      path: "cloud_password",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) => _pageMaterial(
-                        state,
-                        BlocProvider<SettingsCloudPasswordCubit>(
-                          create: (_) => SettingsCloudPasswordCubit()..initialization(),
-                          child: const SettingsCloudPasswordMaterial(),
-                        ),
-                      ),
-                    ),
-                    GoRoute(
-                      path: "passkeys",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) => _pageMaterial(
-                        state,
-                        BlocProvider<SettingsPasskeysCubit>(
-                          create: (_) => SettingsPasskeysCubit()..initialization(),
-                          child: const SettingsPasskeysMaterial(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                GoRoute(
-                  // Скрытый раздел «Разработчик» (открывается 5 тапами по вкладке
-                  // «Настройки», см. HomeMaterial). Логи теперь живут здесь.
-                  path: "developer",
-                  parentNavigatorKey: rootNavigatorKey,
-                  pageBuilder: (context, state) => _pageMaterial(state, const SettingsDeveloperMaterial()),
-                  routes: [
-                    GoRoute(
-                      path: "logs",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) => _pageMaterial(state, TalkerScreen(talker: logger.talker)),
-                    ),
-                    // DEBUG-only превью экрана звонка без реального звонка.
-                    if (kDebugMode)
-                      GoRoute(
-                        path: "call_preview",
-                        parentNavigatorKey: rootNavigatorKey,
-                        pageBuilder: (context, state) => _pageMaterial(state, const CallPreview()),
-                      ),
-                  ],
-                ),
-                GoRoute(
-                  path: "language",
-                  parentNavigatorKey: rootNavigatorKey,
-                  pageBuilder: (context, state) => _pageMaterial(
-                    state,
-                    BlocProvider<SettingsLanguageCubit>(
-                      create: (_) =>
-                          SettingsLanguageCubit()..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale),
-                      child: const SettingsLanguageMaterialScreen(),
-                    ),
-                  ),
-                ),
-                GoRoute(
-                  path: "appearance",
-                  parentNavigatorKey: rootNavigatorKey,
-                  pageBuilder: (context, state) => _pageMaterial(
-                    state,
-                    BlocProvider<SettingsAppearanceCubit>(
-                      create: (_) => SettingsAppearanceCubit()
-                        ..initialization(
-                          colorTheme: context.read<CommonCubit>().state.settingsDevice.colorTheme,
-                          darkMode: context.read<CommonCubit>().state.settingsDevice.darkMode,
-                          isBlurOnInactive: context.read<CommonCubit>().state.settingsDevice.isBlurOnInactive,
-                        ),
-                      child: const SettingsAppearanceMaterial(),
-                    ),
-                  ),
-                  routes: [
-                    // Темы для чатов — обои окна чата.
-                    GoRoute(
-                      path: "chat_themes",
-                      parentNavigatorKey: rootNavigatorKey,
-                      pageBuilder: (context, state) => _pageMaterial(state, const SettingsChatThemesMaterial()),
-                    ),
-                  ],
-                ),
-                GoRoute(
-                  path: "device_sessions",
-                  parentNavigatorKey: rootNavigatorKey,
-                  pageBuilder: (context, state) => _pageMaterial(
-                    state,
-                    BlocProvider<SettingsDeviceSessionsCubit>(
-                      create: (_) => SettingsDeviceSessionsCubit()..initialization(),
-                      child: const SettingsDeviceSessionsMaterial(),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+        StatefulShellBranch(routes: [_contactsMaterial(rootNavigatorKey, split: split)]),
+        StatefulShellBranch(routes: [_callsMaterial(split: split)]),
+        StatefulShellBranch(routes: [_chatsMaterial(rootNavigatorKey, split: split)]),
+        StatefulShellBranch(routes: [_settingsMaterial(rootNavigatorKey, split: split)]),
       ],
     ),
     GoRoute(
@@ -1949,36 +2087,7 @@ class Routers {
         fullSwipe: false,
       ),
     ),
-    GoRoute(
-      path: "/profile/:userID",
-      parentNavigatorKey: rootNavigatorKey,
-      pageBuilder: (context, state) => _pageMaterial(
-        state,
-        BlocProvider<ProfileCubit>(
-          create: (_) => ProfileCubit()
-            ..initialization(
-              userID: getIt.get<Utils>().hexToBytes(state.pathParameters['userID'] ?? ''),
-              locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en,
-              demo: context.read<CommonCubit>().state.settingsDevice.chatsDemo,
-            ),
-          child: const ProfileMaterial(),
-        ),
-      ),
-      routes: [
-        GoRoute(
-          path: "hide",
-          parentNavigatorKey: rootNavigatorKey,
-          pageBuilder: (context, state) => _pageMaterial(
-            state,
-            BlocProvider<ProfileHideCubit>(
-              create: (_) =>
-                  ProfileHideCubit(userID: getIt.get<Utils>().hexToBytes(state.pathParameters['userID'] ?? ''))..initialization(),
-              child: const ProfileHideMaterial(),
-            ),
-          ),
-        ),
-      ],
-    ),
+    _profileMaterial("/profile/:userID", rootNavigatorKey),
     GoRoute(
       path: "/auth",
       builder: (_, _) => BlocProvider<AuthCubit>(create: (_) => AuthCubit()..initialization(), child: const AuthMaterialScreen()),
@@ -2082,7 +2191,7 @@ class Routers {
       initialLocation: initialLocation,
       redirect: _redirect,
       refreshListenable: auth,
-      routes: [..._commonMaterial(navigatorGoRouterKey)],
+      routes: [..._commonMaterial(navigatorGoRouterKey, split: SplitLayout.enabled)],
     );
   }
 }

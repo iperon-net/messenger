@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../split_layout.dart';
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../di.dart';
@@ -38,7 +39,10 @@ class _SettingsPrivacyAndSecurityMaterial extends State<SettingsPrivacyAndSecuri
       listener: (context, state) {},
       builder: (context, state) {
         return Scaffold(
-          appBar: AppBar(title: Text(context.t.sessionsPrivacyAndSecurity.privacyAndSecurity)),
+          appBar: AppBar(
+            automaticallyImplyLeading: !context.isSplitPaneRoot,
+            title: Text(context.t.sessionsPrivacyAndSecurity.privacyAndSecurity),
+          ),
           body: SafeArea(
             child: ListView(
               children: [

@@ -21,6 +21,8 @@ class MaterialListTileIcon extends StatelessWidget {
   final String? iconAsset;
   final bool isTrailing;
   final Future<void> Function()? onTab;
+  // Планшет: раздел открыт в правой панели — строка подсвечена.
+  final bool selected;
 
   const MaterialListTileIcon({
     required this.title,
@@ -33,6 +35,7 @@ class MaterialListTileIcon extends StatelessWidget {
     this.hugeIcon,
     this.iconAsset,
     required this.onTab,
+    this.selected = false,
     super.key,
   }) : assert(
          (icon != null ? 1 : 0) + (hugeIcon != null ? 1 : 0) + (iconAsset != null ? 1 : 0) == 1,
@@ -70,6 +73,8 @@ class MaterialListTileIcon extends StatelessWidget {
               ),
             ),
       onTap: onTab == null ? null : () => onTab!(),
+      selected: selected,
+      selectedTileColor: Theme.of(context).colorScheme.secondaryContainer,
       title: title,
       subtitle: subtitle,
       trailing: this.trailing ?? (trailing.isEmpty ? null : Row(mainAxisSize: MainAxisSize.min, spacing: 6, children: trailing)),

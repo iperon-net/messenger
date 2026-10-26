@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../split_layout.dart';
 import '../../chats/reactions.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -107,7 +108,7 @@ class _SettingsAppearanceMaterial extends State<SettingsAppearanceMaterial> {
         );
 
         return Scaffold(
-          appBar: AppBar(title: Text(context.t.screenSettingsAppearance.appearance)),
+          appBar: AppBar(automaticallyImplyLeading: !context.isSplitPaneRoot, title: Text(context.t.screenSettingsAppearance.appearance)),
           body: SafeArea(
             child: ListView(
               children: [

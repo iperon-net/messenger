@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../split_layout.dart';
 import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
@@ -100,7 +101,7 @@ class _SettingsBlockedMaterialState extends State<SettingsBlockedMaterial> {
                                     },
                                     icon: HugeIcon(icon: HugeIcons.strokeRoundedDelete02, color: Theme.of(context).colorScheme.primary),
                                   ),
-                                  onTap: () => context.push('/profile/${utils.bytesToHex(user.userID)}'),
+                                  onTap: () => context.push(profileRoute(context, utils.bytesToHex(user.userID))),
                                 ),
                               ),
                         ],

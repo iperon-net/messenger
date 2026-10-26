@@ -14,7 +14,7 @@ class ChatsSplitCupertino extends StatelessWidget {
   const ChatsSplitCupertino({super.key, required this.location, required this.child});
 
   /// id открытого чата по пути панели (`/chats/chat/<id>`, `/chats/secret/<hex>`).
-  static String _openChatID(String location) {
+  static String openChatID(String location) {
     final segments = Uri.parse(location).pathSegments;
     if (segments.length < 3 || segments[0] != 'chats') return '';
     return switch (segments[1]) {
@@ -25,5 +25,5 @@ class ChatsSplitCupertino extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => SplitViewCupertino(list: const ChatsCupertino(), selected: _openChatID(location), child: child);
+  Widget build(BuildContext context) => SplitViewCupertino(list: const ChatsCupertino(), selected: openChatID(location), child: child);
 }

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../split_layout.dart';
 import '../../chats/secret/secret_chats_list.dart' show secretChatIDPrefix;
 import '../../components.dart';
 import '../../cubit.dart';
@@ -126,7 +127,9 @@ class _SecretChatMaterialState extends State<SecretChatMaterial> with UnreadBack
             backgroundColor: dark ? const Color(0xFF000000) : scheme.surfaceContainerLow,
             appBar: AppBar(
               titleSpacing: 0,
-              leading: unreadBackButtonMaterial(unreadBack),
+              // Планшет: корень правой панели — без «назад», список слева.
+              automaticallyImplyLeading: !context.isSplitPaneRoot,
+              leading: context.isSplitPaneRoot ? null : unreadBackButtonMaterial(unreadBack),
               title: InkWell(
                 onTap: () => _openInfo(context),
                 child: Row(

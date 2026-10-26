@@ -368,6 +368,7 @@ class _ProfileViewState extends State<_ProfileView> {
     return Scaffold(
       backgroundColor: scheme.surfaceContainerLow,
       appBar: AppBar(
+        automaticallyImplyLeading: !context.isSplitPaneRoot,
         backgroundColor: scheme.surfaceContainerLow,
         scrolledUnderElevation: 0,
         actions: [

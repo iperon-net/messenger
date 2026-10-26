@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../split_layout.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 
@@ -21,7 +22,7 @@ class _SettingsLanguageMaterialScreen extends State<SettingsLanguageMaterialScre
       listener: (context, state) => context.read<CommonCubit>().setLocale(locale: state.locale),
       builder: (context, state) {
         return Scaffold(
-          appBar: AppBar(title: Text(context.t.screenSettingsLanguage.language)),
+          appBar: AppBar(automaticallyImplyLeading: !context.isSplitPaneRoot, title: Text(context.t.screenSettingsLanguage.language)),
           backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
           body: SafeArea(
             child: ListView(

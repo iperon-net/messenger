@@ -4,6 +4,7 @@ import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:messenger/constants.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart' show XFile;
+import '../../split_layout.dart';
 import '../../cubit.dart';
 import '../../di.dart';
 import '../../logger.dart';
@@ -126,6 +127,7 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
 
         return Scaffold(
           appBar: AppBar(
+            automaticallyImplyLeading: !context.isSplitPaneRoot,
             title: Text(context.t.screenMyProfile.myprofile),
             actions: [
               // push (а не go): дожидаемся закрытия экрана правки и перечитываем

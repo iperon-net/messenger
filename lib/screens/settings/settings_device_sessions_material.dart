@@ -4,6 +4,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:messenger/constants.dart';
 
+import '../../split_layout.dart';
 import '../../cubit.dart';
 import '../../extensions/date_time_extensions.dart';
 import '../../i18n/translations.g.dart';
@@ -44,6 +45,7 @@ class _SettingsDeviceSessionsMaterial extends State<SettingsDeviceSessionsMateri
 
         return Scaffold(
           appBar: AppBar(
+            automaticallyImplyLeading: !context.isSplitPaneRoot,
             title: Text(context.t.screenSettingsDevices.devices),
             actions: [
               if (state.requestStatus == Status.loading)

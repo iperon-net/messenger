@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../split_layout.dart';
 import '../../i18n/translations.g.dart';
 import '../../components.dart';
 import '../../cubit.dart';
@@ -63,7 +64,11 @@ class SettingsDeveloperMaterial extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-      appBar: AppBar(centerTitle: true, title: Text(context.t.screenDeveloper.developer)),
+      appBar: AppBar(
+        automaticallyImplyLeading: !context.isSplitPaneRoot,
+        centerTitle: true,
+        title: Text(context.t.screenDeveloper.developer),
+      ),
       body: SafeArea(
         child: ListView(
           children: [

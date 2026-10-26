@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../split_layout.dart';
 import '../../i18n/translations.g.dart';
 import '../../cubit.dart';
 import '../../components.dart';
@@ -49,6 +50,7 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                     color: const Color(0xFFF80202),
                     icon: FontAwesomeIcons.solidUser,
                     onTab: () async => context.go("/settings/profile"),
+                    selected: SplitSelection.of(context) == 'profile',
                     isTrailing: true,
                   ),
                 ]),
@@ -61,6 +63,7 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                     color: const Color(0xFFE5214D),
                     icon: FontAwesomeIcons.solidBell,
                     onTab: () async => context.go("/settings/notifications"),
+                    selected: SplitSelection.of(context) == 'notifications',
                     isTrailing: true,
                   ),
                   MaterialListTileIcon(
@@ -68,6 +71,7 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                     color: const Color(0xFF049A40),
                     icon: FontAwesomeIcons.key,
                     onTab: () async => context.go("/settings/privacy_and_security"),
+                    selected: SplitSelection.of(context) == 'privacy_and_security',
                     isTrailing: true,
                   ),
                   MaterialListTileIcon(
@@ -75,6 +79,7 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                     color: const Color(0xFF1368E6),
                     icon: FontAwesomeIcons.circleHalfStroke,
                     onTab: () async => context.go("/settings/appearance"),
+                    selected: SplitSelection.of(context) == 'appearance',
                     isTrailing: true,
                   ),
                   // Папки чатов.
@@ -82,7 +87,9 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                     title: Text(context.t.screenSettings.folders),
                     color: const Color(0xFF00A3D9),
                     icon: FontAwesomeIcons.solidFolder,
-                    onTab: () async => showChatFoldersMaterial(context),
+                    // Планшет — в правой панели «Настроек», иначе поверх всего.
+                    onTab: () async => SplitLayout.enabled ? context.go('/settings/folders') : showChatFoldersMaterial(context),
+                    selected: SplitSelection.of(context) == 'folders',
                     isTrailing: true,
                   ),
                   MaterialListTileIcon(
@@ -90,6 +97,7 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                     color: const Color(0xFFFF6B00),
                     icon: FontAwesomeIcons.mobileScreen,
                     onTab: () async => context.go("/settings/device_sessions"),
+                    selected: SplitSelection.of(context) == 'device_sessions',
                     additionalInfo: state.countDeviceSessions > 0 ? Text(state.countDeviceSessions.toString()) : null,
                     isTrailing: true,
                   ),
@@ -98,6 +106,7 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                     color: const Color(0xFFB818DC),
                     icon: FontAwesomeIcons.language,
                     onTab: () async => context.go("/settings/language"),
+                    selected: SplitSelection.of(context) == 'language',
                     additionalInfo: Text(_languageName(LocaleSettings.currentLocale)),
                     isTrailing: true,
                   ),

@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../../split_layout.dart';
 import '../../components.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
@@ -26,7 +27,9 @@ class _RepliesMaterialState extends State<RepliesMaterial> with UnreadBackCount 
     return Scaffold(
       appBar: AppBar(
         // Непрочитанные в других чатах — счётчик у «назад» (как в окне чата).
-        leading: unreadBackButtonMaterial(unreadBack),
+        // Планшет: корень правой панели — без «назад», список слева.
+        automaticallyImplyLeading: !context.isSplitPaneRoot,
+        leading: context.isSplitPaneRoot ? null : unreadBackButtonMaterial(unreadBack),
         title: Text(context.t.screenChats.replies),
       ),
       body: SafeArea(

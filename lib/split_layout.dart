@@ -5,13 +5,13 @@ import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoDynamicColor;
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
-/// Двухпанельный режим (iPad), как в Telegram: в каждой вкладке слева список
+/// Двухпанельный режим (iPad, Android-планшет), как в Telegram: в каждой вкладке слева список
 /// (чаты, контакты, звонки, разделы настроек) с таб-баром под ним, справа —
 /// открытый экран. Включается по типу устройства один раз при старте — от него
 /// зависит дерево маршрутов (см. `Routers._common`), — а сколько панелей
 /// показать, решает ширина окна: в Slide Over / узком Split View панель одна.
 abstract final class SplitLayout {
-  /// Устройство поддерживает сплит (iPad). Выставляет [detect].
+  /// Устройство поддерживает сплит (iPad, Android-планшет). Выставляет [detect].
   static bool enabled = false;
 
   /// С какой ширины окна показывать обе панели: iPad mini в портрете (744) —
@@ -19,9 +19,20 @@ abstract final class SplitLayout {
   static const minWidth = 700.0;
 
   static Future<void> detect() async {
-    if (!Platform.isIOS) return;
     try {
-      enabled = (await DeviceInfoPlugin().iosInfo).model.toLowerCase().contains('ipad');
+      if (Platform.isIOS) {
+        enabled = (await DeviceInfoPlugin().iosInfo).model.toLowerCase().contains('ipad');
+      } else if (Platform.isAndroid) {
+        // Планшет — меньшая сторона экрана от 600dp (как sw600dp в Android).
+        final view = WidgetsBinding.instance.platformDispatcher.views.first;
+        final display = view.display;
+        // Размер экрана Android отдаёт не всегда (-1 до первого кадра) — тогда
+        // размер окна: при старте приложение на весь экран.
+        final size = display.devicePixelRatio > 0 && display.size.shortestSide > 0
+            ? display.size / display.devicePixelRatio
+            : view.physicalSize / view.devicePixelRatio;
+        enabled = size.shortestSide >= 600;
+      }
     } catch (_) {
       enabled = false;
     }
@@ -35,6 +46,9 @@ abstract final class SplitLayout {
 
   /// Высота таб-бара (`HomeCupertino`); на широком окне он только под списком.
   static const tabBarHeight = 58.0;
+
+  /// Высота панели вкладок `HomeMaterial` (NavigationBar по умолчанию).
+  static const navigationBarHeightMaterial = 80.0;
 }
 
 /// Что открыто в правой панели — чтобы список подсветил свою строку: id чата

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../split_layout.dart';
 import '../../chats/edit_media.dart';
 import '../../chats/message_formatting.dart';
 import '../../components/chats/emoji_panel.dart';
@@ -624,7 +625,9 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
                           backgroundColor: barColor,
                           titleSpacing: 0,
                           // Непрочитанные в других чатах — на стрелке (как в Telegram).
-                          leading: unreadBackButtonMaterial(unreadBack),
+                          // Планшет: корень правой панели — без «назад», список слева.
+                          automaticallyImplyLeading: !context.isSplitPaneRoot,
+                          leading: context.isSplitPaneRoot ? null : unreadBackButtonMaterial(unreadBack),
                           // Удержание шапки — поиск по чату (как в Telegram).
                           title: chat == null
                               ? null

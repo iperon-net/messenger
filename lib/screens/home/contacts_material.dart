@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../split_layout.dart';
 import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
@@ -148,7 +149,7 @@ class _ContactsMaterialState extends State<ContactsMaterial> with SearchHideOnSc
                   context,
                   status: state.query.trim().isEmpty ? UsersSearchStatus.idle : state.globalStatus,
                   results: state.globalResults,
-                  onTap: (member) => context.push('/profile/${member.id}'),
+                  onTap: (member) => openProfileFromList(context, member.id),
                 ),
                 if (registered.isEmpty && invitable.isEmpty && cloud.isEmpty && state.globalStatus == UsersSearchStatus.idle)
                   Padding(
@@ -213,7 +214,9 @@ class _ContactsMaterialState extends State<ContactsMaterial> with SearchHideOnSc
       title: Text(item.displayName),
       subtitle: _status(context, online: item.online, lastSeen: item.lastSeen),
       trailing: const Icon(Icons.chevron_right),
-      onTap: () => context.push('/profile/$hex'),
+      selected: SplitSelection.of(context) == hex,
+      selectedTileColor: Theme.of(context).colorScheme.secondaryContainer,
+      onTap: () => openProfileFromList(context, hex),
     );
     return removable ? _dismissible(context, item, tile) : tile;
   }

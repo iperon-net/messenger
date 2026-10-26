@@ -3,8 +3,8 @@ import 'dart:typed_data';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../split_layout.dart';
 import '../../calls.dart';
 import '../../components.dart';
 import '../../cubit.dart';
@@ -245,7 +245,9 @@ class _CallsMaterialState extends State<CallsMaterial> with WidgetsBindingObserv
           ),
         ],
       ),
-      onTap: () => context.push('/profile/$hex'),
+      selected: SplitSelection.of(context) == hex,
+      selectedTileColor: Theme.of(context).colorScheme.secondaryContainer,
+      onTap: () => openProfileFromList(context, hex),
     );
 
     return Dismissible(

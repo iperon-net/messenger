@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../split_layout.dart';
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -119,7 +120,10 @@ class _SettingsNotificationsMaterial extends State<SettingsNotificationsMaterial
       builder: (context, state) {
         final muted = Theme.of(context).colorScheme.onSurfaceVariant;
         return Scaffold(
-          appBar: AppBar(title: Text(context.t.screenSettingsNotifications.notifications)),
+          appBar: AppBar(
+            automaticallyImplyLeading: !context.isSplitPaneRoot,
+            title: Text(context.t.screenSettingsNotifications.notifications),
+          ),
           backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
           body: SafeArea(
             child: ListView(

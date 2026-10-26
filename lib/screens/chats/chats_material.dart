@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../split_layout.dart';
 import '../../themes.dart';
 import '../../cubit.dart';
 import 'chats_search_shortcut.dart';
@@ -207,14 +208,14 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll, Chats
       itemCount: chats.length + offset + (global.isEmpty ? 0 : 1),
       itemBuilder: (context, index) {
         if (index == chats.length + offset) return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: global);
-        if (index < offset) return _ArchiveTileMaterial(archived: archived, onTap: () => context.push('/chats/archive'));
+        if (index < offset) return _ArchiveTileMaterial(archived: archived, onTap: () => openFromList(context, '/chats/archive'));
         final chat = chats[index - offset];
         // «Ответы» (4.6): без свайпов, по удержанию — только «Прочитать все».
         if (chat.isReplies) {
           return ChatTileMaterial(
             key: ValueKey(chat.id),
             chat: chat,
-            onTap: () => context.push(chatRoute(chat)),
+            onTap: () => openFromList(context, chatRoute(chat)),
             onLongPress: chat.hasUnread ? () => showChatActionsMaterial(context, chat) : null,
           );
         }
@@ -227,7 +228,7 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll, Chats
           confirmDelete: () => askDeleteChatMaterial(context, chat),
           child: ChatTileMaterial(
             chat: chat,
-            onTap: () => context.push(chatRoute(chat)),
+            onTap: () => openFromList(context, chatRoute(chat)),
             onLongPress: () => showChatActionsMaterial(context, chat),
           ),
         );
@@ -237,12 +238,12 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll, Chats
 
   Future<void> _openFoundChat(BuildContext context, models.Chat chat) async {
     final chatID = await context.read<ChatsCubit>().openFoundChat(chat);
-    if (chatID.isNotEmpty && context.mounted) await context.push('/chats/chat/$chatID');
+    if (chatID.isNotEmpty && context.mounted) await openFromList(context, '/chats/chat/$chatID');
   }
 
   Future<void> _openGlobal(BuildContext context, models.ChatMember member) async {
     final chatID = await context.read<ChatsCubit>().openPrivateChat(member);
-    if (chatID.isNotEmpty && context.mounted) await context.push('/chats/chat/$chatID');
+    if (chatID.isNotEmpty && context.mounted) await openFromList(context, '/chats/chat/$chatID');
   }
 
   /// Пусто — тоже прокручиваемый список папки (см. searchListView): иначе

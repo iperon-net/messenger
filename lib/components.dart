@@ -42,3 +42,4 @@ export './components/chats/unread_back_material.dart';
 export './components/nav_bar_button_cupertino.dart';
 export './components/split_view_cupertino.dart';
 export './components/form_sheet_page.dart';
+export './components/split_view_material.dart';

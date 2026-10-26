@@ -1,6 +1,7 @@
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../split_layout.dart';
 import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
@@ -31,85 +32,90 @@ class ChatTileMaterial extends StatelessWidget {
     final date = chat.lastMessage?.date;
     final body = theme.textTheme.bodyMedium ?? const TextStyle(fontSize: 14);
 
-    return InkWell(
-      onTap: onTap,
-      onLongPress: onLongPress,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Row(
-          children: [
-            ChatAvatar(
-              chat: chat,
-              accentColor: scheme.primary,
-              accentForeground: scheme.onPrimary,
-              size: 46,
-              onlineRingColor: theme.brightness == Brightness.dark
-                  ? ThemesCupertino.groupedCard.darkColor
-                  : ThemesCupertino.groupedCard.color,
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                // min: в превью контекстного меню высота ограничена — без этого строка
-                // растягивается на весь экран.
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      // Название + иконки — во всю свободную ширину, дата прижата к правому
-                      // краю (Flexible + Spacer делят место поровну, и недобранная заголовком
-                      // доля оставалась пустой справа от даты).
-                      Expanded(
-                        child: Row(
-                          children: [
-                            if (typeIcon != null) ...[
-                              FaIcon(typeIcon, size: 12, color: chat.isSecret ? ChatTileContent.secretColor : scheme.onSurface),
-                              const SizedBox(width: 6),
-                            ],
-                            Flexible(
-                              child: Text(
-                                ChatTileContent.title(t, chat),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: chat.isSecret ? ChatTileContent.secretColor : null,
+    // Планшет: открытый в правой панели чат подсвечен, как в Telegram.
+    final selected = SplitSelection.of(context) == chat.id;
+    return Material(
+      color: selected ? scheme.secondaryContainer : Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        onLongPress: onLongPress,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Row(
+            children: [
+              ChatAvatar(
+                chat: chat,
+                accentColor: scheme.primary,
+                accentForeground: scheme.onPrimary,
+                size: 46,
+                onlineRingColor: theme.brightness == Brightness.dark
+                    ? ThemesCupertino.groupedCard.darkColor
+                    : ThemesCupertino.groupedCard.color,
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  // min: в превью контекстного меню высота ограничена — без этого строка
+                  // растягивается на весь экран.
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        // Название + иконки — во всю свободную ширину, дата прижата к правому
+                        // краю (Flexible + Spacer делят место поровну, и недобранная заголовком
+                        // доля оставалась пустой справа от даты).
+                        Expanded(
+                          child: Row(
+                            children: [
+                              if (typeIcon != null) ...[
+                                FaIcon(typeIcon, size: 12, color: chat.isSecret ? ChatTileContent.secretColor : scheme.onSurface),
+                                const SizedBox(width: 6),
+                              ],
+                              Flexible(
+                                child: Text(
+                                  ChatTileContent.title(t, chat),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: chat.isSecret ? ChatTileContent.secretColor : null,
+                                  ),
                                 ),
                               ),
-                            ),
-                            if (chat.muted) ...[const SizedBox(width: 4), FaIcon(FontAwesomeIcons.bellSlash, size: 11, color: secondary)],
-                          ],
+                              if (chat.muted) ...[const SizedBox(width: 4), FaIcon(FontAwesomeIcons.bellSlash, size: 11, color: secondary)],
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 6),
-                      if (statusIcon != null) ...[
-                        FaIcon(
-                          statusIcon,
-                          size: 12,
-                          color: statusIcon == FontAwesomeIcons.circleExclamation ? failedStatusColor : scheme.primary,
-                        ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 6),
+                        if (statusIcon != null) ...[
+                          FaIcon(
+                            statusIcon,
+                            size: 12,
+                            color: statusIcon == FontAwesomeIcons.circleExclamation ? failedStatusColor : scheme.primary,
+                          ),
+                          const SizedBox(width: 4),
+                        ],
+                        if (date != null) Text(date.chatListFormat(), style: theme.textTheme.bodySmall?.copyWith(color: secondary)),
                       ],
-                      if (date != null) Text(date.chatListFormat(), style: theme.textTheme.bodySmall?.copyWith(color: secondary)),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: preview.kind == ChatPreviewKind.typing
-                            ? TypingText(preview.text, style: body.copyWith(color: scheme.primary))
-                            : Text.rich(_span(preview, body, scheme), maxLines: 1, overflow: TextOverflow.ellipsis),
-                      ),
-                      const SizedBox(width: 6),
-                      _badges(scheme),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: preview.kind == ChatPreviewKind.typing
+                              ? TypingText(preview.text, style: body.copyWith(color: scheme.primary))
+                              : Text.rich(_span(preview, body, scheme), maxLines: 1, overflow: TextOverflow.ellipsis),
+                        ),
+                        const SizedBox(width: 6),
+                        _badges(scheme),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

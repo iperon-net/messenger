@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart' show MaterialPageRoute;
 
 import '../split_layout.dart';
 
@@ -10,8 +11,10 @@ import '../split_layout.dart';
 class FormSheetPage<T> extends Page<T> {
   final Widget child;
   final bool dim;
+  // Android: на узком окне — переход MaterialPageRoute вместо iOS-шторки.
+  final bool material;
 
-  const FormSheetPage({super.key, super.name, this.dim = true, required this.child});
+  const FormSheetPage({super.key, super.name, this.dim = true, this.material = false, required this.child});
 
   /// Размер карточки: как у системного form sheet.
   static const _size = Size(540, 720);
@@ -19,7 +22,9 @@ class FormSheetPage<T> extends Page<T> {
   @override
   Route<T> createRoute(BuildContext context) {
     if (!SplitLayout.isWide(context)) {
-      return CupertinoPageRoute<T>(settings: this, fullscreenDialog: dim, builder: (_) => child);
+      return material
+          ? MaterialPageRoute<T>(settings: this, fullscreenDialog: dim, builder: (_) => child)
+          : CupertinoPageRoute<T>(settings: this, fullscreenDialog: dim, builder: (_) => child);
     }
     return PageRouteBuilder<T>(
       settings: this,

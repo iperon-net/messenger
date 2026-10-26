@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../split_layout.dart';
 import '../../themes.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -25,7 +26,11 @@ class ChatsArchiveMaterial extends StatelessWidget {
       notice: (state) => state.offlineNotice,
       child: Scaffold(
         backgroundColor: background,
-        appBar: AppBar(backgroundColor: background, title: Text(context.t.screenChats.archive)),
+        appBar: AppBar(
+          automaticallyImplyLeading: !context.isSplitPaneRoot,
+          backgroundColor: background,
+          title: Text(context.t.screenChats.archive),
+        ),
         body: BlocBuilder<ChatsCubit, ChatsState>(
           builder: (context, state) {
             final chats = state.archived;
