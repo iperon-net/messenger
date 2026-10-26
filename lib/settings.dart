@@ -4,10 +4,36 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'di.dart';
 import 'logger.dart';
+import 'platform.dart';
 
 class Settings {
-  final remoteConfig = FirebaseRemoteConfig.instance;
+  /// Remote Config — только где есть Firebase ([AppPlatform.hasFirebase]); на
+  /// десктопе значения берутся из [_defaults] (и `.env`).
+  FirebaseRemoteConfig get remoteConfig => FirebaseRemoteConfig.instance;
   final logger = getIt.get<Logger>();
+
+  static const _defaults = <String, Object>{
+    "PUBLIC_KEY_EDDSA_FINGERPRINT": "7abfc2a7e8ea09ae384bdeb855cfeae24d60bfac3646046e754fddc8d5ab604d",
+    "YANDEX_OAUTH_CLIENT_ID": "c3ae9f778e734f70ad8b5bc96b419169",
+    "API_HOST": "staging.iperon.net",
+    "API_PORT": 443,
+    "API_SECURE": true,
+    "PHONE_NUMBER_MODERATION_APPLICATION_STORE_ENABLE": false,
+    "CALL_CONNECT_MAX_ATTEMPTS": 3,
+    "CALL_PEER_CONNECTION_TIMEOUT_SECONDS": 7,
+    "CALL_RING_TIMEOUT_SECONDS": 45,
+    // Анимированные эмодзи (Noto, Lottie JSON): `<url><имя>.json`.
+    "ANIMATED_EMOJI_URL": "https://staging-cdn.iperon.net/emoji/noto/",
+    // Секретные чаты (E2EE): показывать «Начать секретный чат»; создавать —
+    // только Premium. Принимать запросы клиент умеет всегда, флаги — только
+    // о создании (то же правило дублирует сервер, secretChats.*).
+    "SECRET_CHATS_ENABLED": false,
+    "SECRET_CHATS_PREMIUM_ONLY": false,
+  };
+
+  String _getString(String key) => AppPlatform.hasFirebase ? remoteConfig.getString(key) : (_defaults[key] as String? ?? '');
+  int _getInt(String key) => AppPlatform.hasFirebase ? remoteConfig.getInt(key) : (_defaults[key] as int? ?? 0);
+  bool _getBool(String key) => AppPlatform.hasFirebase ? remoteConfig.getBool(key) : (_defaults[key] as bool? ?? false);
 
   static Future<Settings> initialization() async {
     final settings = Settings._();
@@ -26,29 +52,14 @@ class Settings {
     // а геттеры откатятся к Remote Config.
     await dotenv.load(isOptional: true);
 
+    if (!AppPlatform.hasFirebase) return;
+
     await remoteConfig.setConfigSettings(
       RemoteConfigSettings(fetchTimeout: const Duration(seconds: 30), minimumFetchInterval: const Duration(hours: 24)),
     );
 
     // Default config
-    await remoteConfig.setDefaults(const {
-      "PUBLIC_KEY_EDDSA_FINGERPRINT": "7abfc2a7e8ea09ae384bdeb855cfeae24d60bfac3646046e754fddc8d5ab604d",
-      "YANDEX_OAUTH_CLIENT_ID": "c3ae9f778e734f70ad8b5bc96b419169",
-      "API_HOST": "staging.iperon.net",
-      "API_PORT": 443,
-      "API_SECURE": true,
-      "PHONE_NUMBER_MODERATION_APPLICATION_STORE_ENABLE": false,
-      "CALL_CONNECT_MAX_ATTEMPTS": 3,
-      "CALL_PEER_CONNECTION_TIMEOUT_SECONDS": 7,
-      "CALL_RING_TIMEOUT_SECONDS": 45,
-      // Анимированные эмодзи (Noto, Lottie JSON): `<url><имя>.json`.
-      "ANIMATED_EMOJI_URL": "https://staging-cdn.iperon.net/emoji/noto/",
-      // Секретные чаты (E2EE): показывать «Начать секретный чат»; создавать —
-      // только Premium. Принимать запросы клиент умеет всегда, флаги — только
-      // о создании (то же правило дублирует сервер, secretChats.*).
-      "SECRET_CHATS_ENABLED": false,
-      "SECRET_CHATS_PREMIUM_ONLY": false,
-    });
+    await remoteConfig.setDefaults(_defaults);
 
     try {
       await remoteConfig.fetchAndActivate();
@@ -74,32 +85,32 @@ class Settings {
   String get databaseName => dotenv.get('DATABASE_NAME', fallback: "iperon.db");
   bool get isDeleteDatabase => dotenv.getBool('IS_DELETE_DATABASE', fallback: false);
   int get databaseVersion => dotenv.getInt('DATABASE_VERSION', fallback: 1);
-  String get publicKeyEDDSAFingerprint => remoteConfig.getString("PUBLIC_KEY_EDDSA_FINGERPRINT");
-  String get yandexOauthClientID => remoteConfig.getString("YANDEX_OAUTH_CLIENT_ID");
+  String get publicKeyEDDSAFingerprint => _getString("PUBLIC_KEY_EDDSA_FINGERPRINT");
+  String get yandexOauthClientID => _getString("YANDEX_OAUTH_CLIENT_ID");
 
   /// Откуда докачивать анимированные эмодзи, которых нет в приложении
   /// (`<url><имя>.json`, имена — как в пакете animated_emoji).
   String get animatedEmojiUrl {
     final res = dotenv.get('ANIMATED_EMOJI_URL', fallback: "");
     if (res.isNotEmpty) return res;
-    return remoteConfig.getString("ANIMATED_EMOJI_URL");
+    return _getString("ANIMATED_EMOJI_URL");
   }
 
   String get apiHost {
     final res = dotenv.get('API_HOST', fallback: "");
     if (res.isNotEmpty) return res;
-    return remoteConfig.getString("API_HOST");
+    return _getString("API_HOST");
   }
 
   int get apiPort {
     final res = dotenv.getInt('API_PORT', fallback: 0);
     if (res > 0) return res;
-    return remoteConfig.getInt("API_PORT");
+    return _getInt("API_PORT");
   }
 
   bool get apiSecure {
     if (kDebugMode) return dotenv.getBool('API_SECURE', fallback: true);
-    return remoteConfig.getBool("API_SECURE");
+    return _getBool("API_SECURE");
   }
 
   /// Номера с постоянным кодом (ревьюер стора и тестовые аккаунты стенда,
@@ -107,7 +118,7 @@ class Settings {
   /// ревьюера (кнопка «вставить номер» в debug).
   List<String> get phoneNumbersModerationApplicationStore {
     var res = dotenv.get('PHONE_NUMBER_MODERATION_APPLICATION_STORE', fallback: "");
-    if (res.isEmpty) res = remoteConfig.getString("PHONE_NUMBER_MODERATION_APPLICATION_STORE");
+    if (res.isEmpty) res = _getString("PHONE_NUMBER_MODERATION_APPLICATION_STORE");
     return [
       for (final number in res.split(','))
         if (number.trim().isNotEmpty) number.trim(),
@@ -120,19 +131,19 @@ class Settings {
     if (kDebugMode) {
       return dotenv.getBool('PHONE_NUMBER_MODERATION_APPLICATION_STORE_ENABLE', fallback: false);
     }
-    return remoteConfig.getBool("PHONE_NUMBER_MODERATION_APPLICATION_STORE_ENABLE");
+    return _getBool("PHONE_NUMBER_MODERATION_APPLICATION_STORE_ENABLE");
   }
 
   /// Показывать «Начать секретный чат» (Remote Config; в debug — `.env.development`).
   bool get secretChatsEnabled {
     if (kDebugMode) return dotenv.getBool('SECRET_CHATS_ENABLED', fallback: false);
-    return remoteConfig.getBool("SECRET_CHATS_ENABLED");
+    return _getBool("SECRET_CHATS_ENABLED");
   }
 
   /// Создавать секретные чаты может только Premium (принять — любой).
   bool get secretChatsPremiumOnly {
     if (kDebugMode) return dotenv.getBool('SECRET_CHATS_PREMIUM_ONLY', fallback: false);
-    return remoteConfig.getBool("SECRET_CHATS_PREMIUM_ONLY");
+    return _getBool("SECRET_CHATS_PREMIUM_ONLY");
   }
 
   /// Сколько раз пробовать начальный connect к комнате LiveKit перед провалом
@@ -141,7 +152,7 @@ class Settings {
   int get callConnectMaxAttempts {
     final res = dotenv.getInt('CALL_CONNECT_MAX_ATTEMPTS', fallback: 0);
     if (res > 0) return res;
-    final rc = remoteConfig.getInt("CALL_CONNECT_MAX_ATTEMPTS");
+    final rc = _getInt("CALL_CONNECT_MAX_ATTEMPTS");
     return rc > 0 ? rc : 3;
   }
 
@@ -151,7 +162,7 @@ class Settings {
   int get callPeerConnectionTimeoutSeconds {
     final res = dotenv.getInt('CALL_PEER_CONNECTION_TIMEOUT_SECONDS', fallback: 0);
     if (res > 0) return res;
-    final rc = remoteConfig.getInt("CALL_PEER_CONNECTION_TIMEOUT_SECONDS");
+    final rc = _getInt("CALL_PEER_CONNECTION_TIMEOUT_SECONDS");
     return rc > 0 ? rc : 7;
   }
 
@@ -163,7 +174,7 @@ class Settings {
   int get callRingTimeoutSeconds {
     final res = dotenv.getInt('CALL_RING_TIMEOUT_SECONDS', fallback: 0);
     if (res > 0) return res;
-    final rc = remoteConfig.getInt("CALL_RING_TIMEOUT_SECONDS");
+    final rc = _getInt("CALL_RING_TIMEOUT_SECONDS");
     return rc > 0 ? rc : 45;
   }
 }

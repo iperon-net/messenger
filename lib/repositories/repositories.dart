@@ -14,6 +14,7 @@ import '../account_scope.dart';
 import '../di.dart';
 import '../i18n/translations.g.dart';
 import '../logger.dart';
+import '../platform.dart';
 import '../settings.dart';
 import '../models.dart' as models;
 import '../protobuf/protos/chats_v1.pb.dart' as pb;

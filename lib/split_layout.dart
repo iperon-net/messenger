@@ -5,15 +5,16 @@ import 'package:cupertino_ui/cupertino_ui.dart' show Brightness, CupertinoTheme;
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
+import 'platform.dart';
 import 'themes.dart';
 
-/// Двухпанельный режим (iPad, Android-планшет), как в Telegram: в каждой вкладке слева список
+/// Двухпанельный режим (iPad, Android-планшет, десктоп), как в Telegram: в каждой вкладке слева список
 /// (чаты, контакты, звонки, разделы настроек) с таб-баром под ним, справа —
 /// открытый экран. Включается по типу устройства один раз при старте — от него
 /// зависит дерево маршрутов (см. `Routers._common`), — а сколько панелей
 /// показать, решает ширина окна: в Slide Over / узком Split View панель одна.
 abstract final class SplitLayout {
-  /// Устройство поддерживает сплит (iPad, Android-планшет). Выставляет [detect].
+  /// Устройство поддерживает сплит (iPad, Android-планшет, десктоп). Выставляет [detect].
   static bool enabled = false;
 
   /// С какой ширины окна показывать обе панели: iPad mini в портрете (744) —
@@ -34,6 +35,9 @@ abstract final class SplitLayout {
             ? display.size / display.devicePixelRatio
             : view.physicalSize / view.devicePixelRatio;
         enabled = size.shortestSide >= 600;
+      } else if (AppPlatform.isDesktop) {
+        // Окно десктопа — как планшет: две панели, когда шире [minWidth].
+        enabled = true;
       }
     } catch (_) {
       enabled = false;

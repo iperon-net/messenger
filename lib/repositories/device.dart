@@ -26,10 +26,11 @@ class DeviceRepositories {
   // доступ в фоне после первой разблокировки с момента загрузки — стандарт для
   // VoIP/фоновых приложений. Вариант ThisDeviceOnly: пароль локальной БД не
   // переносится в бэкап/на другое устройство (ему это и не нужно) — чуть строже
-  // по безопасности.
+  // по безопасности. macOS — см. [macOSKeychainOptions].
   final _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(),
     iOptions: const IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device),
+    mOptions: macOSKeychainOptions,
   );
 
   /// Пароль `device.db` (null — debug, без шифрования).

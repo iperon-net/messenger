@@ -17,6 +17,7 @@ import 'logger_livekit.dart';
 import 'firebase_options.dart';
 import 'i18n/translations.g.dart';
 import 'models.dart';
+import 'platform.dart';
 import 'repositories.dart';
 import 'split_layout.dart';
 import 'utils.dart';
@@ -52,37 +53,9 @@ Future<void> main() async {
   // Явный FlutterCryptography.enable() больше не нужен (deprecated) — плагин
   // включается сам.
 
-  FlutterError.onError = (errorDetails) {
-    if (kDebugMode) {
-      FlutterError.presentError(errorDetails);
-      return;
-    }
-    // MissingPluginException на listen/cancel platform-stream — безобидная гонка
-    // teardown, а не краш. Так, flutter_webrtc заводит EventChannel на каждый
-    // PeerConnection (FlutterWebRTC/peerConnectionEvent<id>); при room.dispose()
-    // натив снимает обработчик раньше, чем Dart успевает отменить подписку, и
-    // `cancel` прилетает на уже несуществующий канал. Flutter SDK репортит это
-    // через FlutterError.reportError — не даём ему стать ложным fatal.
-    if (errorDetails.exception is MissingPluginException) {
-      FirebaseCrashlytics.instance.recordError(
-        errorDetails.exception,
-        errorDetails.stack,
-        reason: errorDetails.context?.toString(),
-        fatal: false,
-      );
-      return;
-    }
-    FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
-  };
-
-  PlatformDispatcher.instance.onError = (error, stack) {
-    if (kDebugMode) return false;
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: false);
-    return true;
-  };
-
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(!kDebugMode);
+  // Firebase (Crashlytics, Remote Config, пуши) — только на мобильных; десктоп
+  // пока без сбора крэшей (свой сбор — этап 1 docs/plans/desktop-client.md).
+  if (AppPlatform.hasFirebase) await _initFirebase();
 
   // Registration tasks
   // await NativeWorkManager.initialize(debugMode: true);
@@ -181,4 +154,38 @@ Future<void> main() async {
       ),
     ),
   );
+}
+
+Future<void> _initFirebase() async {
+  FlutterError.onError = (errorDetails) {
+    if (kDebugMode) {
+      FlutterError.presentError(errorDetails);
+      return;
+    }
+    // MissingPluginException на listen/cancel platform-stream — безобидная гонка
+    // teardown, а не краш. Так, flutter_webrtc заводит EventChannel на каждый
+    // PeerConnection (FlutterWebRTC/peerConnectionEvent<id>); при room.dispose()
+    // натив снимает обработчик раньше, чем Dart успевает отменить подписку, и
+    // `cancel` прилетает на уже несуществующий канал. Flutter SDK репортит это
+    // через FlutterError.reportError — не даём ему стать ложным fatal.
+    if (errorDetails.exception is MissingPluginException) {
+      FirebaseCrashlytics.instance.recordError(
+        errorDetails.exception,
+        errorDetails.stack,
+        reason: errorDetails.context?.toString(),
+        fatal: false,
+      );
+      return;
+    }
+    FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+  };
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    if (kDebugMode) return false;
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: false);
+    return true;
+  };
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(!kDebugMode);
 }

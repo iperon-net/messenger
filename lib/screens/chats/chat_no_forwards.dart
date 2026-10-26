@@ -9,6 +9,7 @@ import '../../chats/chats_sync.dart';
 import '../../components/chats/message_text.dart' show ChatContentProtection;
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
+import '../../platform.dart';
 import 'chat_common.dart';
 
 /// Защита содержимого чата (как «Disable Sharing» в Telegram): пункт «Ещё» в
@@ -97,6 +98,9 @@ class _ChatScreenProtectorState extends State<ChatScreenProtector> {
     if (on == _on) return;
     _on = on;
     _active += on ? 1 : -1;
+    // screen_protector — только android/ios; на десктопе защита окна от
+    // захвата (sharingType / SetWindowDisplayAffinity) — позже.
+    if (!AppPlatform.isMobile) return;
     if (on && _active == 1) {
       ScreenProtector.preventScreenshotOn();
     } else if (!on && _active == 0) {

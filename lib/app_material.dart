@@ -31,6 +31,7 @@ import 'push.dart';
 import 'i18n/translations.g.dart';
 import 'logger.dart';
 import 'models.dart';
+import 'platform.dart';
 import 'repositories.dart';
 import 'routers.dart';
 import 'screens/call/call_material.dart';
@@ -157,7 +158,9 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
         setState(() => isBlur = true);
         // Досбрасываем файловый лог перед возможным убийством процесса из фона.
         unawaited(logger.fileLogger.flush());
-        api.setForeground(false);
+        // Десктоп: окно свёрнуто или закрыто другим, но приложение работает —
+        // стрим держим (пушей нет, новые сообщения приходят только по нему).
+        if (!AppPlatform.isDesktop) api.setForeground(false);
         context.read<CommonCubit>().onAppBackgrounded();
       case AppLifecycleState.detached:
         // На Android движок кэшируется на весь процесс, а Activity пересоздаётся
@@ -169,6 +172,9 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
         unawaited(logger.fileLogger.flush());
         api.setForeground(false);
       case AppLifecycleState.inactive:
+        // Десктоп: inactive — окно просто потеряло фокус (переключились в
+        // другое приложение), это не уход в фон.
+        if (AppPlatform.isDesktop) break;
         setState(() => isBlur = true);
         context.read<CommonCubit>().onAppBackgrounded();
     }

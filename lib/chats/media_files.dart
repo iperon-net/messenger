@@ -12,6 +12,7 @@ import 'package:share_plus/share_plus.dart';
 import '../components/share_origin.dart';
 import '../di.dart';
 import '../logger.dart';
+import '../platform.dart';
 
 /// Файл вложения для системы: [path] — где лежит (кэш скачанного / outbox),
 /// [name] — как его назвать снаружи (имя файла из сообщения; пусто — как
@@ -84,6 +85,9 @@ class MediaFiles {
 
   /// Есть ли в буфере обмена фото / видео (без чтения содержимого).
   static Future<bool> clipboardHasMedia() async {
+    // Канал `files` — только на мобильных; вставка картинок на десктопе — этап 2
+    // docs/plans/desktop-client.md.
+    if (!AppPlatform.isMobile) return false;
     try {
       return await _channel.invokeMethod<bool>('clipboardHasMedia') ?? false;
     } on PlatformException {
@@ -94,6 +98,7 @@ class MediaFiles {
   /// Фото / видео из буфера обмена — файлами во временном каталоге (пусто —
   /// там их нет).
   static Future<List<String>> pasteMedia() async {
+    if (!AppPlatform.isMobile) return const [];
     try {
       final pasted = await _channel.invokeListMethod<Map<Object?, Object?>>('pasteMedia', {'dir': await _pasteDir()});
       final paths = [for (final item in pasted ?? const <Map<Object?, Object?>>[]) item['path'] as String];

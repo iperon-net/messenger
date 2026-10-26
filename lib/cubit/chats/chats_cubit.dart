@@ -6,6 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../constants.dart';
 import '../../di.dart';
 import '../../logger.dart';
+import '../../platform.dart';
 import '../../chats/chats_data_source.dart';
 import '../../chats/chats_remote_data_source.dart';
 import '../../chats/chats_replies.dart';
@@ -288,6 +289,9 @@ class ChatsCubit extends Cubit<ChatsState> {
   /// ([requestNotificationPermission]): не на старте и не сразу после логина,
   /// а там, где пользователь ждёт уведомлений (как с микрофоном на «Звонках»).
   Future<void> checkNotificationPermission() async {
+    // Десктоп: пушей нет, локальные уведомления — этап 3 docs/plans/desktop-client.md
+    // (permission_handler на macOS не реализован).
+    if (AppPlatform.isDesktop) return;
     try {
       final status = await Permission.notification.status;
       if (isClosed) return;
