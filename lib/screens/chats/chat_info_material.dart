@@ -13,6 +13,7 @@ import '../../cubit.dart';
 import '../../utils.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
+import '../../platform.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_common.dart';
@@ -474,8 +475,9 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                           child: Row(
                             children: [
                               // Звонок — только собеседнику личного чата (в демо
-                              // peerUserID пуст: звонить некому).
-                              if (chat.peerUserID.isNotEmpty) ...[
+                              // peerUserID пуст: звонить некому); на десктопе
+                              // звонков пока нет.
+                              if (chat.peerUserID.isNotEmpty && AppPlatform.hasCalls) ...[
                                 ChatInfoActionButton(
                                   icon: HugeIcons.strokeRoundedCall02,
                                   label: t.screenChatInfo.call,

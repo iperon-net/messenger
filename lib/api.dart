@@ -16,10 +16,12 @@ import 'utils.dart';
 import 'crypto.dart';
 import 'di.dart';
 import 'logger.dart';
+import 'platform.dart';
 import 'network_usage.dart';
 import 'push.dart';
 import 'repositories.dart';
 import 'settings.dart';
+import 'crash_reports.dart';
 import 'protobuf.dart';
 import 'i18n/translations.g.dart';
 
@@ -268,7 +270,9 @@ class API {
     if (status == ApiConnectionStatus.connected && !_chatsCaughtUp) {
       _chatsCaughtUp = true;
       unawaited(ChatsSync.instance.onConnected());
-      unawaited(SecretChatsSync.instance.onConnected());
+      if (AppPlatform.hasSecretChats) unawaited(SecretChatsSync.instance.onConnected());
+      // Сбои без Crashlytics (десктоп), накопленные офлайн или до входа.
+      if (!AppPlatform.hasFirebase) unawaited(CrashReports.instance.flush());
     }
     final controller = _connectionStatusController;
     if (controller != null && !controller.isClosed) {
@@ -636,7 +640,14 @@ class API {
           session: session,
           message: Subscribe_Request(
             background: background,
-            capabilities: [secretChatsCapability, callPushEncryptedCapability, groupsCapability, channelsCapability],
+            // Десктоп секретные чаты не умеет (docs/plans/desktop-client.md §3.7) —
+            // без capability сервер не выберет его устройством секретного чата.
+            capabilities: [
+              if (AppPlatform.hasSecretChats) secretChatsCapability,
+              callPushEncryptedCapability,
+              groupsCapability,
+              channelsCapability,
+            ],
           ).writeToBuffer(),
         );
 

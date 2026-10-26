@@ -11,6 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'account_scope.dart';
 import 'app_cupertino.dart';
 import 'app_material.dart';
+import 'crash_reports.dart';
 import 'cubit.dart';
 import 'di.dart';
 import 'logger_livekit.dart';
@@ -53,9 +54,13 @@ Future<void> main() async {
   // Явный FlutterCryptography.enable() больше не нужен (deprecated) — плагин
   // включается сам.
 
-  // Firebase (Crashlytics, Remote Config, пуши) — только на мобильных; десктоп
-  // пока без сбора крэшей (свой сбор — этап 1 docs/plans/desktop-client.md).
-  if (AppPlatform.hasFirebase) await _initFirebase();
+  // Firebase (Crashlytics, Remote Config, пуши) — только на мобильных; на
+  // десктопе сбои собираем сами (CrashReports, docs/plans/desktop-client.md §3.1).
+  if (AppPlatform.hasFirebase) {
+    await _initFirebase();
+  } else {
+    _initCrashReports();
+  }
 
   // Registration tasks
   // await NativeWorkManager.initialize(debugMode: true);
@@ -71,6 +76,7 @@ Future<void> main() async {
 
   // Dependencies
   await registerCommonDependencies();
+  if (!AppPlatform.hasFirebase) await CrashReports.instance.attach(getIt.get<DeviceRepositories>().db);
   // iPad — двухпанельные «Чаты» (до роутера: от этого зависят маршруты).
   await SplitLayout.detect();
 
@@ -188,4 +194,28 @@ Future<void> _initFirebase() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(!kDebugMode);
+}
+
+/// Сбор сбоев без Crashlytics (десктоп): то же разделение, что в [_initFirebase]
+/// — в debug только в консоль, в release в [CrashReports].
+void _initCrashReports() {
+  FlutterError.onError = (errorDetails) {
+    if (kDebugMode) {
+      FlutterError.presentError(errorDetails);
+      return;
+    }
+    CrashReports.instance.record(
+      errorDetails.exception,
+      errorDetails.stack,
+      reason: errorDetails.context?.toString(),
+      // Гонка teardown platform-stream — не краш (см. _initFirebase).
+      fatal: errorDetails.exception is! MissingPluginException,
+    );
+  };
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    if (kDebugMode) return false;
+    CrashReports.instance.record(error, stack);
+    return true;
+  };
 }

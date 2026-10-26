@@ -14,6 +14,7 @@ import '../../models.dart' as models;
 import '../../themes.dart';
 import '../../utils.dart';
 import '../../i18n/translations.g.dart';
+import '../../platform.dart';
 
 /// Вкладка «Звонки» (Android): журнал недавних с аватаром, направлением (иконка),
 /// длительностью и датой; пропущенные выделены красным. Сверху — поиск и быстрый
@@ -230,19 +231,22 @@ class _CallsMaterialState extends State<CallsMaterial> with WidgetsBindingObserv
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(log.createdAt.relativeFormat(context.t), style: TextStyle(fontSize: 12, color: secondary)),
-          const SizedBox(width: 4),
-          IconButton(
-            icon: HugeIcon(
-              icon: log.video ? HugeIcons.strokeRoundedVideo01 : HugeIcons.strokeRoundedCall02,
-              color: Theme.of(context).colorScheme.primary,
-              size: 18.0,
-              strokeWidth: 2,
+          // Перезвонить — на десктопе звонков пока нет, журнал только для чтения.
+          if (AppPlatform.hasCalls) ...[
+            const SizedBox(width: 4),
+            IconButton(
+              icon: HugeIcon(
+                icon: log.video ? HugeIcons.strokeRoundedVideo01 : HugeIcons.strokeRoundedCall02,
+                color: Theme.of(context).colorScheme.primary,
+                size: 18.0,
+                strokeWidth: 2,
+              ),
+              onPressed: () async {
+                await ensureCallMicPermission();
+                await getIt.get<Calls>().startCall(toUserID: log.userID, video: log.video);
+              },
             ),
-            onPressed: () async {
-              await ensureCallMicPermission();
-              await getIt.get<Calls>().startCall(toUserID: log.userID, video: log.video);
-            },
-          ),
+          ],
         ],
       ),
       selected: SplitSelection.of(context) == hex,

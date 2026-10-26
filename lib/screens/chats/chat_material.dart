@@ -18,6 +18,7 @@ import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
+import '../../platform.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import 'chat_actions_material.dart';
@@ -696,7 +697,7 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
                                           },
                                           senderBadges: chatSenderBadges(t, chat, state.members),
                                           // Звонок в ленте — перезвонить тем же видом.
-                                          onCallTap: chat.type == models.ChatType.private && !chat.isSelf
+                                          onCallTap: chat.type == models.ChatType.private && !chat.isSelf && AppPlatform.hasCalls
                                               ? (message) => chatInfoCall(chat, video: message.phoneCall?.video ?? false)
                                               : null,
                                           // Уведомление «Iperon» — «Устройства» / «Это не я».

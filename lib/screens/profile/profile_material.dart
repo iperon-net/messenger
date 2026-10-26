@@ -9,6 +9,7 @@ import '../../chats/media_prepare.dart' show thumbhashImage;
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
+import '../../platform.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
 import '../chats/chat_actions_material.dart';
@@ -415,8 +416,9 @@ class _ProfileViewState extends State<_ProfileView> {
                       background: card,
                       onTap: () => _message(context, profile),
                     ),
-                  // Заблокированному и «Iperon» не звоним (сервер и так не пропустит).
-                  if (!self && !system && !profile.blocked) ...[
+                  // Заблокированному и «Iperon» не звоним (сервер и так не пропустит);
+                  // на десктопе звонков пока нет.
+                  if (!self && !system && !profile.blocked && AppPlatform.hasCalls) ...[
                     ChatInfoActionButton(
                       icon: HugeIcons.strokeRoundedCall02,
                       label: t.screenChatInfo.call,

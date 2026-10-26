@@ -16,6 +16,7 @@ import '../../cubit.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
+import '../../platform.dart';
 import '../../models.dart' as models;
 import '../../repositories.dart';
 import '../../settings.dart';
@@ -35,6 +36,8 @@ String chatRoute(models.Chat chat) => chat.isSecret
 Future<bool> secretChatAvailable(List<int> peerUserID) async {
   final settings = getIt.get<Settings>();
   final me = getIt.get<Auth>().session.userID;
+  // Десктоп секретные чаты не умеет (docs/plans/desktop-client.md §3.7).
+  if (!AppPlatform.hasSecretChats) return false;
   if (peerUserID.isEmpty || listEquals(me, peerUserID) || !settings.secretChatsEnabled) return false;
   if (!settings.secretChatsPremiumOnly) return true;
   return getIt.get<Repositories>().myProfile.isPremium(userID: me);

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:messenger/crash_reports.dart';
 import 'package:messenger/logger.dart';
 import 'package:messenger/repositories/repositories.dart';
 import 'package:sqlite_async/sqlite_async.dart';
@@ -127,5 +128,32 @@ void main() {
     expect((await accounts.all()).last.active, isFalse);
     await accounts.remove(other);
     expect((await accounts.all()).map((a) => a.accountID), [slot]);
+  });
+
+  // Сбои до device.db копятся в памяти и переезжают в неё при attach; хранится
+  // не больше CrashReports.maxStored — старые вытесняются.
+  test('crashReports: сбои до базы и предел хранения', () async {
+    await migrate();
+    final reports = CrashReports.instance;
+    addTearDown(reports.detach);
+
+    reports.detach();
+    reports.record(StateError('early'), StackTrace.fromString('#0 main'), reason: 'startup');
+    await reports.attach(device);
+    final row = await device.get('SELECT * FROM crashReports;');
+    expect(row['error'], 'Bad state: early');
+    expect(row['stack'], '#0 main');
+    expect(row['reason'], 'startup');
+    expect(row['fatal'], 0);
+
+    reports.detach();
+    for (var i = 0; i < CrashReports.maxStored + 5; i++) {
+      reports.record(StateError('crash $i'), null, fatal: true);
+    }
+    await reports.attach(device);
+    final count = await device.get('SELECT count(*) AS n FROM crashReports;');
+    expect(count['n'], CrashReports.maxStored);
+    // Из 105 в памяти держится 100 первых, вместе с ранним — 101 → ранний вытеснен.
+    expect((await device.getOptional("SELECT id FROM crashReports WHERE error = 'Bad state: early';")), isNull);
   });
 }

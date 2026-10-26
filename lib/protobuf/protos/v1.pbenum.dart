@@ -203,6 +203,9 @@ class MessageType extends $pb.ProtobufEnum {
       MessageType._(92, _omitEnumNames ? '' : 'PRIVACY_GROUP_INVITES_ALLOW_UPDATE');
   static const MessageType PRIVACY_GROUP_INVITES_DENY_UPDATE = MessageType._(93, _omitEnumNames ? '' : 'PRIVACY_GROUP_INVITES_DENY_UPDATE');
 
+  /// Отчёты о сбоях клиента без Crashlytics (десктоп). См. crash_report_v1.proto.
+  static const MessageType CRASH_REPORT = MessageType._(94, _omitEnumNames ? '' : 'CRASH_REPORT');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -294,9 +297,10 @@ class MessageType extends $pb.ProtobufEnum {
     PRIVACY_GROUP_INVITES_UPDATE,
     PRIVACY_GROUP_INVITES_ALLOW_UPDATE,
     PRIVACY_GROUP_INVITES_DENY_UPDATE,
+    CRASH_REPORT,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 93);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 94);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

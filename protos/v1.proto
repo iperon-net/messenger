@@ -169,6 +169,8 @@ enum MessageType {
   PRIVACY_GROUP_INVITES_UPDATE = 91;
   PRIVACY_GROUP_INVITES_ALLOW_UPDATE = 92;
   PRIVACY_GROUP_INVITES_DENY_UPDATE = 93;
+  // Отчёты о сбоях клиента без Crashlytics (десктоп). См. crash_report_v1.proto.
+  CRASH_REPORT = 94;
 }
 
 service Iperon {

@@ -11,6 +11,7 @@ import '../../calls.dart';
 import '../../components/call_permissions.dart';
 import '../../constants.dart';
 import '../../di.dart';
+import '../../platform.dart';
 import '../../logger.dart';
 import '../../models.dart' as models;
 import '../../peer_names.dart';
@@ -169,6 +170,9 @@ class CallsCubit extends Cubit<CallsState> {
   /// только статусы (микрофон + уведомления на Android). Управляет показом
   /// баннера-объяснения на вкладке; вызывается при первом показе и после запроса.
   Future<void> checkCallPermissions() async {
+    // Десктоп: звонков пока нет (docs/plans/desktop-client.md §7), а у
+    // permission_handler нет реализации для macOS.
+    if (!AppPlatform.hasCalls) return;
     final mic = await Permission.microphone.status;
     if (isClosed) return;
     var notifMissing = false;

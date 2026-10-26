@@ -257,6 +257,23 @@ class DeviceDatabase {
           await tx.execute("ALTER TABLE accounts ADD COLUMN name TEXT NOT NULL DEFAULT '';");
           await tx.execute("ALTER TABLE accounts ADD COLUMN avatarPath TEXT NOT NULL DEFAULT '';");
         }),
+      )
+      ..add(
+        SqliteMigration(3, (tx) async {
+          // Отчёты о сбоях до отправки на сервер (десктоп без Crashlytics,
+          // lib/crash_reports.dart): общие для устройства — сбой бывает и до
+          // входа, отправит любой вошедший аккаунт.
+          await tx.execute('''
+          CREATE TABLE crashReports (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            error TEXT NOT NULL,
+            stack TEXT NOT NULL DEFAULT '',
+            reason TEXT NOT NULL DEFAULT '',
+            fatal INTEGER NOT NULL DEFAULT 0,
+            date INTEGER NOT NULL
+          );
+        ''');
+        }),
       );
   }
 
