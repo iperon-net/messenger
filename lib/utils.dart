@@ -22,6 +22,7 @@ import 'di.dart';
 import 'i18n/translations.g.dart';
 import 'logger.dart';
 import 'models.dart';
+import 'platform.dart';
 import 'extensions.dart';
 
 class Utils {
@@ -189,7 +190,7 @@ class Utils {
   /// приложения — тогда id новый (это ок: старую сессию добьёт очистка мёртвого
   /// FCM-токена на сервере).
   Future<String> deviceID() async {
-    const storage = FlutterSecureStorage(aOptions: AndroidOptions(), iOptions: IOSOptions());
+    const storage = FlutterSecureStorage(aOptions: AndroidOptions(), iOptions: IOSOptions(), mOptions: macOSKeychainOptions);
 
     String? id = await storage.read(key: "deviceID");
     if (id == null || id.isEmpty) {
@@ -213,6 +214,28 @@ class Utils {
         osCode: 1,
         osVersion: info.systemVersion,
         isPhysicalDevice: kDebugMode ? true : info.isPhysicalDevice,
+      );
+    } else if (Platform.isMacOS) {
+      final info = await deviceInfo.macOsInfo;
+
+      return DeviceInfoModel(
+        // modelName — маркетинговое имя («MacBook Pro»); для новых моделей,
+        // которых плагин ещё не знает, — «Unknown Model», тогда идентификатор.
+        deviceModel: info.modelName.isNotEmpty && !info.modelName.startsWith('Unknown') ? info.modelName : info.model,
+        os: OS.macOS,
+        osCode: 3,
+        osVersion: '${info.majorVersion}.${info.minorVersion}${info.patchVersion > 0 ? '.${info.patchVersion}' : ''}',
+        isPhysicalDevice: true,
+      );
+    } else if (Platform.isWindows) {
+      final info = await deviceInfo.windowsInfo;
+
+      return DeviceInfoModel(
+        deviceModel: info.computerName,
+        os: OS.windows,
+        osCode: 4,
+        osVersion: info.displayVersion.isNotEmpty ? info.displayVersion : '${info.majorVersion}.${info.minorVersion}.${info.buildNumber}',
+        isPhysicalDevice: true,
       );
     } else {
       final info = await deviceInfo.androidInfo;

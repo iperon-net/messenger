@@ -31,6 +31,10 @@ class OSMapper extends EnumMapper<OS> {
         return OS.iOS;
       case r'android':
         return OS.android;
+      case r'macOS':
+        return OS.macOS;
+      case r'windows':
+        return OS.windows;
       default:
         throw MapperException.unknownEnumValue(value);
     }
@@ -43,6 +47,10 @@ class OSMapper extends EnumMapper<OS> {
         return r'iOS';
       case OS.android:
         return r'android';
+      case OS.macOS:
+        return r'macOS';
+      case OS.windows:
+        return r'windows';
     }
   }
 }

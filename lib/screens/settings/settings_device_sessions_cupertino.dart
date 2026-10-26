@@ -9,8 +9,10 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:messenger/constants.dart';
 
 import '../../cubit.dart';
+import '../../models.dart' show osWithVersion;
 import '../../extensions/date_time_extensions.dart';
 import '../../i18n/translations.g.dart';
+import 'device_os.dart';
 
 class SettingsDeviceSessionsCupertino extends StatefulWidget {
   const SettingsDeviceSessionsCupertino({super.key});
@@ -72,17 +74,8 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
                             leading: Container(
                               width: 50,
                               height: 50,
-                              decoration: BoxDecoration(
-                                color: currentSession.os == 1 ? const Color(0xFF1755DC) : const Color(0xFF78C257),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Center(
-                                child: FaIcon(
-                                  currentSession.os == 1 ? FontAwesomeIcons.apple : FontAwesomeIcons.android,
-                                  size: 18,
-                                  color: Color(0xFFFFFFFF),
-                                ),
-                              ),
+                              decoration: BoxDecoration(color: deviceOsColor(currentSession.os), borderRadius: BorderRadius.circular(8)),
+                              child: Center(child: FaIcon(deviceOsIcon(currentSession.os), size: 18, color: Color(0xFFFFFFFF))),
                             ),
                             title: Column(
                               spacing: 4,
@@ -90,7 +83,7 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
                               children: [
                                 Text(currentSession.deviceModel),
                                 Text(
-                                  currentSession.os == 1 ? "iOS ${currentSession.osVersion}" : "Android ${currentSession.osVersion}",
+                                  osWithVersion(currentSession.os, currentSession.osVersion),
                                   style: TextStyle(fontSize: AppFontSizes.body),
                                 ),
                               ],
@@ -193,16 +186,10 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
                                     width: 50,
                                     height: 50,
                                     decoration: BoxDecoration(
-                                      color: deviceSession.os == 1 ? const Color(0xFF1755DC) : const Color(0xFF78C257),
+                                      color: deviceOsColor(deviceSession.os),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: Center(
-                                      child: FaIcon(
-                                        deviceSession.os == 1 ? FontAwesomeIcons.apple : FontAwesomeIcons.android,
-                                        size: 18,
-                                        color: Color(0xFFFFFFFF),
-                                      ),
-                                    ),
+                                    child: Center(child: FaIcon(deviceOsIcon(deviceSession.os), size: 18, color: Color(0xFFFFFFFF))),
                                   ),
                                   title: Column(
                                     spacing: 4,
@@ -210,7 +197,7 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
                                     children: [
                                       Text(deviceSession.deviceModel),
                                       Text(
-                                        deviceSession.os == 1 ? "iOS ${deviceSession.osVersion}" : "Android ${deviceSession.osVersion}",
+                                        osWithVersion(deviceSession.os, deviceSession.osVersion),
                                         style: TextStyle(fontSize: AppFontSizes.body),
                                       ),
                                     ],

@@ -233,7 +233,7 @@ String systemNoticeTitle(Translations t, pb.MessageSystemNotice notice) {
 
   final device = [
     notice.deviceModel,
-    if (notice.osVersion.isNotEmpty) '${notice.os == 1 ? 'iOS' : 'Android'} ${notice.osVersion}',
+    if (notice.osVersion.isNotEmpty) models.osWithVersion(notice.os, notice.osVersion),
   ].where((part) => part.isNotEmpty).join(', ');
   final location = russian
       ? (notice.locationRussian.isNotEmpty ? notice.locationRussian : notice.locationEnglish)

@@ -6,8 +6,10 @@ import 'package:messenger/constants.dart';
 
 import '../../split_layout.dart';
 import '../../cubit.dart';
+import '../../models.dart' show osWithVersion;
 import '../../extensions/date_time_extensions.dart';
 import '../../i18n/translations.g.dart';
+import 'device_os.dart';
 import '../../themes.dart';
 
 class SettingsDeviceSessionsMaterial extends StatefulWidget {
@@ -29,8 +31,8 @@ class _SettingsDeviceSessionsMaterial extends State<SettingsDeviceSessionsMateri
   Widget _deviceLeading(int os) => Container(
     width: 32,
     height: 32,
-    decoration: BoxDecoration(color: os == 1 ? const Color(0xFF1755DC) : const Color(0xFF78C257), borderRadius: BorderRadius.circular(8)),
-    child: Center(child: FaIcon(os == 1 ? FontAwesomeIcons.apple : FontAwesomeIcons.android, size: 18, color: const Color(0xFFFFFFFF))),
+    decoration: BoxDecoration(color: deviceOsColor(os), borderRadius: BorderRadius.circular(8)),
+    child: Center(child: FaIcon(deviceOsIcon(os), size: 18, color: const Color(0xFFFFFFFF))),
   );
 
   @override
@@ -73,7 +75,7 @@ class _SettingsDeviceSessionsMaterial extends State<SettingsDeviceSessionsMateri
                                 children: [
                                   Text(currentSession.deviceModel),
                                   Text(
-                                    currentSession.os == 1 ? "iOS ${currentSession.osVersion}" : "Android ${currentSession.osVersion}",
+                                    osWithVersion(currentSession.os, currentSession.osVersion),
                                     style: const TextStyle(fontSize: AppFontSizes.body),
                                   ),
                                 ],
@@ -159,7 +161,7 @@ class _SettingsDeviceSessionsMaterial extends State<SettingsDeviceSessionsMateri
                                       children: [
                                         Text(deviceSession.deviceModel),
                                         Text(
-                                          deviceSession.os == 1 ? "iOS ${deviceSession.osVersion}" : "Android ${deviceSession.osVersion}",
+                                          osWithVersion(deviceSession.os, deviceSession.osVersion),
                                           style: const TextStyle(fontSize: AppFontSizes.body),
                                         ),
                                       ],
