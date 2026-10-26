@@ -34,8 +34,12 @@
   "chats": "@:screenChats.chats"
   "settings": "@:screenSettings.settings"
 
-"screenChats":
+"split":
   "selectChat": "Выберите чат, чтобы начать общение"
+  "selectContact": "Выберите контакт"
+  "selectCall": "Выберите звонок"
+  "selectSection": "Выберите раздел настроек"
+"screenChats":
   "chats": "Чаты"
   "notificationPermissionTitle": "Включите уведомления"
   "notificationPermissionMessage": "Разрешите уведомления, чтобы узнавать о новых сообщениях и контактах, даже когда Iperon свёрнут."

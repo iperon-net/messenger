@@ -2,9 +2,9 @@ import 'dart:typed_data';
 
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../split_layout.dart';
 import '../../calls.dart';
 import '../../components.dart';
 import '../../cubit.dart';
@@ -208,7 +208,8 @@ class _CallsCupertinoState extends State<CallsCupertino> with SearchHideOnScroll
           ),
         ],
       ),
-      onTap: () => context.push('/profile/$hex'),
+      backgroundColor: splitSelectedBackground(context, hex),
+      onTap: () => openProfileFromList(context, hex),
     );
 
     return Dismissible(

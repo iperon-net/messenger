@@ -43,6 +43,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$componentsConnectionTitle$ru componentsConnectionTitle = _Translations$componentsConnectionTitle$ru._(_root);
 	@override late final _Translations$componentsCamera$ru componentsCamera = _Translations$componentsCamera$ru._(_root);
 	@override late final _Translations$screenHome$ru screenHome = _Translations$screenHome$ru._(_root);
+	@override late final _Translations$split$ru split = _Translations$split$ru._(_root);
 	@override late final _Translations$screenChats$ru screenChats = _Translations$screenChats$ru._(_root);
 	@override late final _Translations$screenChatFolders$ru screenChatFolders = _Translations$screenChatFolders$ru._(_root);
 	@override late final _Translations$screenNewChat$ru screenNewChat = _Translations$screenNewChat$ru._(_root);
@@ -148,6 +149,19 @@ class _Translations$screenHome$ru extends Translations$screenHome$en {
 	@override String get settings => _root.screenSettings.settings;
 }
 
+// Path: split
+class _Translations$split$ru extends Translations$split$en {
+	_Translations$split$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get selectChat => 'Выберите чат, чтобы начать общение';
+	@override String get selectContact => 'Выберите контакт';
+	@override String get selectCall => 'Выберите звонок';
+	@override String get selectSection => 'Выберите раздел настроек';
+}
+
 // Path: screenChats
 class _Translations$screenChats$ru extends Translations$screenChats$en {
 	_Translations$screenChats$ru._(TranslationsRu root) : this._root = root, super.internal(root);
@@ -155,7 +169,6 @@ class _Translations$screenChats$ru extends Translations$screenChats$en {
 	final TranslationsRu _root; // ignore: unused_field
 
 	// Translations
-	@override String get selectChat => 'Выберите чат, чтобы начать общение';
 	@override String get chats => 'Чаты';
 	@override String get notificationPermissionTitle => 'Включите уведомления';
 	@override String get notificationPermissionMessage => 'Разрешите уведомления, чтобы узнавать о новых сообщениях и контактах, даже когда Iperon свёрнут.';
@@ -2001,7 +2014,10 @@ extension on TranslationsRu {
 			'screenHome.calls' => 'Звонки',
 			'screenHome.chats' => _root.screenChats.chats,
 			'screenHome.settings' => _root.screenSettings.settings,
-			'screenChats.selectChat' => 'Выберите чат, чтобы начать общение',
+			'split.selectChat' => 'Выберите чат, чтобы начать общение',
+			'split.selectContact' => 'Выберите контакт',
+			'split.selectCall' => 'Выберите звонок',
+			'split.selectSection' => 'Выберите раздел настроек',
 			'screenChats.chats' => 'Чаты',
 			'screenChats.notificationPermissionTitle' => 'Включите уведомления',
 			'screenChats.notificationPermissionMessage' => 'Разрешите уведомления, чтобы узнавать о новых сообщениях и контактах, даже когда Iperon свёрнут.',
@@ -2482,11 +2498,11 @@ extension on TranslationsRu {
 			'screenChat.select' => 'Выбрать',
 			'screenChat.videoCompressing' => 'Сжатие видео',
 			'screenChat.pin' => 'Закрепить',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.unpin' => 'Открепить',
 			'screenChat.pinnedTitle' => 'Закреплённое сообщение',
 			'screenChat.pinnedNumber' => ({required Object n}) => 'Закреплённое сообщение #${n}',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.unpinTitle' => 'Открепить сообщение?',
 			'screenChat.pinTitle' => 'Закрепить сообщение?',
 			'screenChat.scopeForBoth' => 'У меня и у собеседника',
@@ -2996,11 +3012,11 @@ extension on TranslationsRu {
 			'screenHideProfile.resetAction' => 'Сбросить код-фразу',
 			'screenHideProfile.errorEmptyPhrase' => 'Введите код-фразу, чтобы скрыть профиль.',
 			'screenContacts.title' => 'Контакты',
+			_ => null,
+		} ?? switch (path) {
 			'screenContacts.onIperon' => 'В Iperon',
 			'screenContacts.onContacts' => 'В контактах',
 			'screenContacts.cloudContacts' => 'Облачные контакты',
-			_ => null,
-		} ?? switch (path) {
 			'screenContacts.invite' => 'Пригласить',
 			'screenContacts.inviteAction' => 'Пригласить',
 			'screenContacts.search' => 'Поиск',

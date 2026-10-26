@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../i18n/translations.g.dart';
 import '../../components.dart';
 import '../../cubit.dart';
+import '../../split_layout.dart';
 import '../../themes.dart';
 import '../settings/settings_accounts_cupertino.dart';
 
@@ -57,8 +58,13 @@ class _HomeCupertinoState extends State<HomeCupertino> {
         // TODO: implement listener
       },
       builder: (context, state) {
-        const double tabBarHeight = 58;
+        const double tabBarHeight = SplitLayout.tabBarHeight;
         final double bottomInset = MediaQuery.of(context).padding.bottom;
+        // iPad, широкое окно: таб-бар только под левой колонкой (списком), как в
+        // Telegram, — правая панель идёт до низа экрана. Отступ под бар списку
+        // добавляет SplitViewCupertino, здесь его не даём.
+        final wide = SplitLayout.isWide(context);
+        final barWidth = wide ? SplitLayout.listWidth(MediaQuery.sizeOf(context).width) : MediaQuery.sizeOf(context).width;
 
         final tabBar = CupertinoTabBar(
           backgroundColor: ThemesCupertino.tabBarBackground.resolveFrom(context),
@@ -123,20 +129,22 @@ class _HomeCupertinoState extends State<HomeCupertino> {
               // элемент списка доступен, а сам список уходит под полупрозрачный
               // таб-бар вместо зазора над ним.
               Positioned.fill(
-                child: MediaQuery(
-                  data: MediaQuery.of(
-                    context,
-                  ).copyWith(padding: MediaQuery.of(context).padding.copyWith(bottom: tabBarHeight + bottomInset)),
-                  child: widget.navigationShell,
-                ),
+                child: wide
+                    ? widget.navigationShell
+                    : MediaQuery(
+                        data: MediaQuery.of(
+                          context,
+                        ).copyWith(padding: MediaQuery.of(context).padding.copyWith(bottom: tabBarHeight + bottomInset)),
+                        child: widget.navigationShell,
+                      ),
               ),
-              Positioned(left: 0, right: 0, bottom: 0, child: tabBar),
+              Positioned(left: 0, width: barWidth, bottom: 0, child: tabBar),
               // Долгий тап по «Настройкам» — быстрый выбор аккаунта (как в
               // Telegram); обычный тап проходит к таб-бару.
               Positioned(
-                right: 0,
+                left: barWidth * 3 / 4,
                 bottom: bottomInset,
-                width: MediaQuery.sizeOf(context).width / 4,
+                width: barWidth / 4,
                 height: tabBarHeight,
                 child: const AccountSwitcherCupertino(),
               ),

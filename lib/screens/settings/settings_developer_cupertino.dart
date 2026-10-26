@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../split_layout.dart';
 import '../../themes.dart';
 import '../../i18n/translations.g.dart';
 import '../../components.dart';
@@ -68,6 +69,8 @@ class SettingsDeveloperCupertino extends StatelessWidget {
       backgroundColor: ThemesCupertino.groupedBackground,
       navigationBar: AppCupertinoNavigationBar(
         child: CupertinoNavigationBar(
+          // iPad: корень правой панели — без «назад», список слева.
+          automaticallyImplyLeading: !context.isSplitPaneRoot,
           previousPageTitle: '',
           automaticBackgroundVisibility: false,
           backgroundColor: ThemesCupertino.groupedBackground,

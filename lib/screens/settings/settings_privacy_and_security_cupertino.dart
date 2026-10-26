@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import '../../split_layout.dart';
 import '../../themes.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -73,6 +74,8 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
           backgroundColor: ThemesCupertino.groupedBackground,
           navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
+              // iPad: корень правой панели — без «назад», список слева.
+              automaticallyImplyLeading: !context.isSplitPaneRoot,
               previousPageTitle: '',
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,

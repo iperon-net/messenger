@@ -45,6 +45,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$componentsConnectionTitle$en componentsConnectionTitle = Translations$componentsConnectionTitle$en.internal(_root);
 	late final Translations$componentsCamera$en componentsCamera = Translations$componentsCamera$en.internal(_root);
 	late final Translations$screenHome$en screenHome = Translations$screenHome$en.internal(_root);
+	late final Translations$split$en split = Translations$split$en.internal(_root);
 	late final Translations$screenChats$en screenChats = Translations$screenChats$en.internal(_root);
 	late final Translations$screenChatFolders$en screenChatFolders = Translations$screenChatFolders$en.internal(_root);
 	late final Translations$screenNewChat$en screenNewChat = Translations$screenNewChat$en.internal(_root);
@@ -206,9 +207,9 @@ class Translations$screenHome$en {
 	String get settings => _root.screenSettings.settings;
 }
 
-// Path: screenChats
-class Translations$screenChats$en {
-	Translations$screenChats$en.internal(this._root);
+// Path: split
+class Translations$split$en {
+	Translations$split$en.internal(this._root);
 
 	final Translations _root; // ignore: unused_field
 
@@ -216,6 +217,24 @@ class Translations$screenChats$en {
 
 	/// en: 'Select a chat to start messaging'
 	String get selectChat => 'Select a chat to start messaging';
+
+	/// en: 'Select a contact'
+	String get selectContact => 'Select a contact';
+
+	/// en: 'Select a call'
+	String get selectCall => 'Select a call';
+
+	/// en: 'Select a settings section'
+	String get selectSection => 'Select a settings section';
+}
+
+// Path: screenChats
+class Translations$screenChats$en {
+	Translations$screenChats$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
 
 	/// en: 'Chats'
 	String get chats => 'Chats';
@@ -4676,7 +4695,10 @@ extension on Translations {
 			'screenHome.calls' => 'Calls',
 			'screenHome.chats' => _root.screenChats.chats,
 			'screenHome.settings' => _root.screenSettings.settings,
-			'screenChats.selectChat' => 'Select a chat to start messaging',
+			'split.selectChat' => 'Select a chat to start messaging',
+			'split.selectContact' => 'Select a contact',
+			'split.selectCall' => 'Select a call',
+			'split.selectSection' => 'Select a settings section',
 			'screenChats.chats' => 'Chats',
 			'screenChats.notificationPermissionTitle' => 'Turn on notifications',
 			'screenChats.notificationPermissionMessage' => 'Allow notifications to hear about new messages and contacts even when Iperon is in the background.',
@@ -5157,11 +5179,11 @@ extension on Translations {
 			'screenChat.select' => 'Select',
 			'screenChat.videoCompressing' => 'Compressing video',
 			'screenChat.pin' => 'Pin',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.unpin' => 'Unpin',
 			'screenChat.pinnedTitle' => 'Pinned message',
 			'screenChat.pinnedNumber' => ({required Object n}) => 'Pinned message #${n}',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.unpinTitle' => 'Unpin message?',
 			'screenChat.pinTitle' => 'Pin message?',
 			'screenChat.scopeForBoth' => 'For me and the other person',
@@ -5671,11 +5693,11 @@ extension on Translations {
 			'screenHideProfile.resetAction' => 'Reset passphrase',
 			'screenHideProfile.errorEmptyPhrase' => 'Enter a passphrase to hide the profile.',
 			'screenContacts.title' => 'Contacts',
+			_ => null,
+		} ?? switch (path) {
 			'screenContacts.onIperon' => 'On Iperon',
 			'screenContacts.onContacts' => 'On Contacts',
 			'screenContacts.cloudContacts' => 'Cloud contacts',
-			_ => null,
-		} ?? switch (path) {
 			'screenContacts.invite' => 'Invite',
 			'screenContacts.inviteAction' => 'Invite',
 			'screenContacts.search' => 'Search',

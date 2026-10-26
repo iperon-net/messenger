@@ -1,12 +1,14 @@
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoDynamicColor;
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
-/// Двухпанельный режим (iPad): список чатов слева, открытый чат справа, как в
-/// Telegram. Включается по типу устройства один раз при старте — от него
-/// зависит дерево маршрутов (см. `Routers._chatsCupertino`), — а сколько панелей
+/// Двухпанельный режим (iPad), как в Telegram: в каждой вкладке слева список
+/// (чаты, контакты, звонки, разделы настроек) с таб-баром под ним, справа —
+/// открытый экран. Включается по типу устройства один раз при старте — от него
+/// зависит дерево маршрутов (см. `Routers._common`), — а сколько панелей
 /// показать, решает ширина окна: в Slide Over / узком Split View панель одна.
 abstract final class SplitLayout {
   /// Устройство поддерживает сплит (iPad). Выставляет [detect].
@@ -30,23 +32,26 @@ abstract final class SplitLayout {
 
   /// Ширина левой панели (список) при ширине окна [width].
   static double listWidth(double width) => (width * 0.38).clamp(320.0, 400.0);
+
+  /// Высота таб-бара (`HomeCupertino`); на широком окне он только под списком.
+  static const tabBarHeight = 58.0;
 }
 
-/// Какой чат открыт в правой панели — чтобы список подсветил его строку.
-/// Ставит `ChatsSplitCupertino` только на широком окне.
+/// Что открыто в правой панели — чтобы список подсветил свою строку: id чата
+/// (как `models.Chat.id`), userID контакта / звонка (hex), раздел настроек.
+/// Ставит `SplitViewCupertino` только на широком окне; пусто — ничего.
 class SplitSelection extends InheritedWidget {
-  /// id чата (как `models.Chat.id`); пусто — ничего не открыто.
-  final String chatID;
+  final String id;
 
-  const SplitSelection({super.key, required this.chatID, required super.child});
+  const SplitSelection({super.key, required this.id, required super.child});
 
-  static String of(BuildContext context) => context.dependOnInheritedWidgetOfExactType<SplitSelection>()?.chatID ?? '';
+  static String of(BuildContext context) => context.dependOnInheritedWidgetOfExactType<SplitSelection>()?.id ?? '';
 
   @override
-  bool updateShouldNotify(SplitSelection oldWidget) => chatID != oldWidget.chatID;
+  bool updateShouldNotify(SplitSelection oldWidget) => id != oldWidget.id;
 }
 
-/// Открыть экран из списка чатов: на широком окне — в правой панели ВМЕСТО
+/// Открыть экран из списка (чатов, контактов, звонков): на широком окне — в правой панели ВМЕСТО
 /// открытого (`go`, как выбор строки в Telegram на iPad: стопка панели не
 /// копится), иначе — поверх списка, как раньше.
 Future<void> openFromList(BuildContext context, String route) async {
@@ -55,10 +60,12 @@ Future<void> openFromList(BuildContext context, String route) async {
 }
 
 extension SplitLayoutPane on BuildContext {
-  /// Экран — корень правой панели (сразу над «Выберите чат»): кнопка «назад»
+  /// Экран — корень правой панели (сразу над заглушкой «Выберите …»): кнопка «назад»
   /// ему не нужна, список и так слева. На узком окне — false (панель одна).
   bool get isSplitPaneRoot {
-    if (!SplitLayout.isWide(this)) return false;
+    // Только навигатор правой панели: у корневого (полноэкранный `/profile`)
+    // страницы тоже идут [вкладки, экран], но это не панель.
+    if (!SplitLayout.isWide(this) || getInheritedWidgetOfExactType<SplitPaneScope>() == null) return false;
     final settings = ModalRoute.of(this)?.settings;
     final pages = Navigator.maybeOf(this)?.widget.pages;
     return settings is Page && pages != null && pages.indexOf(settings) == 1;
@@ -78,3 +85,35 @@ Future<void> openChat(BuildContext context, String route) async {
   }
   await context.push(route);
 }
+
+/// Метка правой панели (её навигатора) для [SplitLayoutPane.isSplitPaneRoot].
+class SplitPaneScope extends InheritedWidget {
+  const SplitPaneScope({super.key, required super.child});
+
+  @override
+  bool updateShouldNotify(SplitPaneScope oldWidget) => false;
+}
+
+/// Путь профиля человека: на iPad — `/<вкладка>/user/<hex>` в правой панели
+/// текущей вкладки (полноэкранный `/profile` закрыл бы обе панели), иначе —
+/// `/profile/<hex>`.
+String profileRoute(BuildContext context, String userIDHex) {
+  if (SplitLayout.enabled) {
+    final segments = GoRouter.of(context).routerDelegate.currentConfiguration.uri.pathSegments;
+    final tab = segments.isEmpty ? '' : segments.first;
+    if (const {'chats', 'contacts', 'calls', 'settings'}.contains(tab)) return '/$tab/user/$userIDHex';
+  }
+  return '/profile/$userIDHex';
+}
+
+/// Открыть профиль человека из списка вкладки (контакты, звонки): на iPad — в
+/// правой панели вместо открытого (см. [openFromList]).
+Future<void> openProfileFromList(BuildContext context, String userIDHex) async {
+  if (SplitLayout.enabled) return openFromList(context, profileRoute(context, userIDHex));
+  await context.push('/profile/$userIDHex');
+}
+
+/// Фон строки списка, открытой в правой панели (iPad), — как у нажатой.
+Color? splitSelectedBackground(BuildContext context, String id) => id.isNotEmpty && SplitSelection.of(context) == id
+    ? const CupertinoDynamicColor.withBrightness(color: Color(0xFFE5E5EA), darkColor: Color(0xFF2C2C2E)).resolveFrom(context)
+    : null;

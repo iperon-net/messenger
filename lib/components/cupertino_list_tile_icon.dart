@@ -20,6 +20,8 @@ class CupertinoListTileIcon extends StatelessWidget {
   final String? iconAsset;
   final bool isTrailing;
   final Future<void> Function()? onTab;
+  // Фон строки (iPad: раздел открыт в правой панели, см. splitSelectedBackground).
+  final Color? backgroundColor;
 
   const CupertinoListTileIcon({
     required this.title,
@@ -32,6 +34,7 @@ class CupertinoListTileIcon extends StatelessWidget {
     this.hugeIcon,
     this.iconAsset,
     required this.onTab,
+    this.backgroundColor,
     super.key,
   }) : assert(
          (icon != null ? 1 : 0) + (hugeIcon != null ? 1 : 0) + (iconAsset != null ? 1 : 0) == 1,
@@ -62,6 +65,7 @@ class CupertinoListTileIcon extends StatelessWidget {
               ),
             ),
       onTap: onTab,
+      backgroundColor: backgroundColor,
       title: title,
       subtitle: subtitle,
       trailing: trailing ?? (isTrailing ? CupertinoListTileChevron() : null),

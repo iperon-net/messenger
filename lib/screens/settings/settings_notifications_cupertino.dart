@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../split_layout.dart';
 import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -147,6 +148,8 @@ class _SettingsNotificationsCupertino extends State<SettingsNotificationsCuperti
           backgroundColor: ThemesCupertino.groupedBackground,
           navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
+              // iPad: корень правой панели — без «назад», список слева.
+              automaticallyImplyLeading: !context.isSplitPaneRoot,
               previousPageTitle: '',
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,

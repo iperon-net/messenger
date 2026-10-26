@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import '../../split_layout.dart';
 import '../../themes.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -65,6 +66,7 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                       color: Color(0xFFF80202),
                       icon: FontAwesomeIcons.solidUser,
                       onTab: () async => context.go("/settings/profile"),
+                      backgroundColor: splitSelectedBackground(context, 'profile'),
                       isTrailing: true,
                     ),
                   ],
@@ -82,6 +84,7 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                       color: Color(0xFFE5214D),
                       icon: FontAwesomeIcons.solidBell,
                       onTab: () async => context.go("/settings/notifications"),
+                      backgroundColor: splitSelectedBackground(context, 'notifications'),
                       isTrailing: true,
                     ),
                     CupertinoListTileIcon(
@@ -89,6 +92,7 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                       color: Color(0xFF049A40),
                       icon: FontAwesomeIcons.key,
                       onTab: () async => context.go("/settings/privacy_and_security"),
+                      backgroundColor: splitSelectedBackground(context, 'privacy_and_security'),
                       isTrailing: true,
                     ),
                     CupertinoListTileIcon(
@@ -96,6 +100,7 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                       color: Color(0xFF1368E6),
                       icon: FontAwesomeIcons.circleHalfStroke,
                       onTab: () async => context.go("/settings/appearance"),
+                      backgroundColor: splitSelectedBackground(context, 'appearance'),
                       isTrailing: true,
                     ),
                     // Папки чатов.
@@ -103,7 +108,9 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                       title: Text(context.t.screenSettings.folders),
                       color: Color(0xFF00A3D9),
                       icon: FontAwesomeIcons.solidFolder,
-                      onTab: () async => showChatFoldersCupertino(context),
+                      // iPad — в правой панели «Настроек», иначе поверх всего.
+                      onTab: () async => SplitLayout.enabled ? context.go('/settings/folders') : showChatFoldersCupertino(context),
+                      backgroundColor: splitSelectedBackground(context, 'folders'),
                       isTrailing: true,
                     ),
                     CupertinoListTileIcon(
@@ -111,6 +118,7 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                       color: Color(0xFFFF6B00),
                       icon: FontAwesomeIcons.mobileScreen,
                       onTab: () async => context.go("/settings/device_sessions"),
+                      backgroundColor: splitSelectedBackground(context, 'device_sessions'),
                       additionalInfo: state.countDeviceSessions > 0 ? Text(state.countDeviceSessions.toString()) : null,
                       isTrailing: true,
                     ),
@@ -119,6 +127,7 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                       color: Color(0xFFB818DC),
                       icon: FontAwesomeIcons.language,
                       onTab: () async => context.go("/settings/language"),
+                      backgroundColor: splitSelectedBackground(context, 'language'),
                       additionalInfo: Text(_languageName(LocaleSettings.currentLocale)),
                       isTrailing: true,
                     ),

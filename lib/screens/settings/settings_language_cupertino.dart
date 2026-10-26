@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import '../../split_layout.dart';
 import '../../themes.dart';
 
 import '../../components.dart';
@@ -48,6 +49,8 @@ class _SettingsLanguageCupertinoScreen extends State<SettingsLanguageCupertinoSc
           backgroundColor: ThemesCupertino.groupedBackground,
           navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
+              // iPad: корень правой панели — без «назад», список слева.
+              automaticallyImplyLeading: !context.isSplitPaneRoot,
               previousPageTitle: '',
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,

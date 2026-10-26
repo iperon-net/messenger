@@ -4,6 +4,7 @@ import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:messenger/constants.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart' show XFile;
+import '../../split_layout.dart';
 import '../../cubit.dart';
 import '../../di.dart';
 import '../../logger.dart';
@@ -170,6 +171,8 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
           backgroundColor: ThemesCupertino.groupedBackground,
           navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
+              // iPad: корень правой панели — без «назад», список слева.
+              automaticallyImplyLeading: !context.isSplitPaneRoot,
               automaticBackgroundVisibility: false,
               backgroundColor: ThemesCupertino.groupedBackground,
               // start:0 — прижимаем стрелку «назад» к левому краю (по умолчанию
@@ -177,7 +180,9 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
               // справа не сместилась.
               padding: const EdgeInsetsDirectional.only(start: 0, end: 16),
               middle: Text(context.t.screenMyProfile.myprofile),
-              leading: CupertinoNavigationBarBackButton(previousPageTitle: '', onPressed: () => context.pop()),
+              leading: context.isSplitPaneRoot
+                  ? null
+                  : CupertinoNavigationBarBackButton(previousPageTitle: '', onPressed: () => context.pop()),
               trailing: NavBarButtonCupertino(
                 NavBarAction.edit,
                 label: context.t.screenMyProfile.edit,
