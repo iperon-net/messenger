@@ -82,6 +82,7 @@ Future<void> main() async {
   unawaited(Desktop.start());
   // iPad — двухпанельные «Чаты» (до роутера: от этого зависят маршруты).
   await SplitLayout.detect();
+  await SplitLayout.loadListWidth();
 
   // Подробные логи LiveKit (FINE) → talker: диагностика ICE/TURN звонков видна в
   // экране «Логи» и в экспорте логов (экран «Разработчик»).

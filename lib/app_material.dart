@@ -271,7 +271,13 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  child ?? const SizedBox.shrink(),
+                  // Десктоп: где нажали мышью — там откроется контекстное меню
+                  // (showActionsMaterial).
+                  Listener(
+                    behavior: HitTestBehavior.translucent,
+                    onPointerDown: AppPlatform.isDesktop ? (event) => DesktopPointer.last = event.position : null,
+                    child: child ?? const SizedBox.shrink(),
+                  ),
                   InAppNoticeHost(
                     router: goRouter,
                     card: (context, notice) => InAppNoticeMaterial(notice: notice),

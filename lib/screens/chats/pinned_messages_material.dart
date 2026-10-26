@@ -31,9 +31,8 @@ class PinnedMessagesMaterial extends StatelessWidget {
   Future<void> _actions(BuildContext context, models.Chat chat, models.Message message, bool canUnpin) async {
     final t = context.t.screenChat;
     final cubit = context.read<ChatCubit>();
-    final action = await showModalBottomSheet<String>(
+    final action = await showActionsMaterial<String>(
       context: context,
-      showDragHandle: true,
       builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,

@@ -535,9 +535,8 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
     final t = context.t.screenChat;
     final canSchedule = _input.text.trim().isNotEmpty && _cubit.state.forwarding.isEmpty && _cubit.features.scheduled;
     HapticFeedback.mediumImpact();
-    final action = await showModalBottomSheet<String>(
+    final action = await showActionsMaterial<String>(
       context: context,
-      showDragHandle: true,
       builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -657,7 +656,8 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
                           )
                         : AppBar(
                             backgroundColor: barColor,
-                            titleSpacing: 0,
+                            // Корень правой панели — без «назад»: аватар не вплотную к списку.
+                            titleSpacing: context.isSplitPaneRoot ? 16 : 0,
                             // Непрочитанные в других чатах — на стрелке (как в Telegram).
                             // Планшет: корень правой панели — без «назад», список слева.
                             automaticallyImplyLeading: !context.isSplitPaneRoot,
@@ -898,14 +898,14 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
     // (ответ на фрагмент, как в Telegram).
     // Защита содержимого — ни выделения текста, ни копирования, сохранения и пересылки.
     final protected = chat.noForwards;
-    final quotable = canWrite && message.text.isNotEmpty && message.kind != models.MessageKind.poll && !protected;
+    // Десктоп: в контекстном меню у курсора текста сообщения нет — без цитаты.
+    final quotable = canWrite && message.text.isNotEmpty && message.kind != models.MessageKind.poll && !protected && !AppPlatform.isDesktop;
     final mediaCopyable = chatMediaActionable(message) && message.kind != models.MessageKind.file && !protected;
     final quoteText = GlobalKey<QuotableTextState>();
     models.MessageQuote? quote;
     var readers = const <MessageReader>[];
-    final action = await showModalBottomSheet<String>(
+    final action = await showActionsMaterial<String>(
       context: context,
-      showDragHandle: true,
       isScrollControlled: true,
       builder: (sheetContext) => SafeArea(
         child: SingleChildScrollView(

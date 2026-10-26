@@ -79,6 +79,12 @@ abstract final class Desktop {
   /// Секунд без ввода (клавиатура, мышь) во всей системе; `null` — неизвестно.
   static Future<double?> idleSeconds() => _invoke<double>('idleSeconds');
 
+  /// Ширина списка чатов (левой панели), выбранная перетаскиванием; `null` —
+  /// по умолчанию.
+  static Future<double?> listWidth() => _invoke<double>('listWidth');
+
+  static Future<void> setListWidth(double? width) => _invoke<void>('setListWidth', {'width': width});
+
   static Future<bool> launchAtLogin() async => await _invoke<bool>('launchAtLogin') ?? false;
 
   /// Включить / выключить запуск при входе в систему: `enabled` / `disabled`

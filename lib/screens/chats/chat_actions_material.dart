@@ -29,9 +29,8 @@ Future<void> showChatActionsMaterial(BuildContext context, models.Chat chat) asy
     );
   }
 
-  final delete = await showModalBottomSheet<bool>(
+  final delete = await showActionsMaterial<bool>(
     context: context,
-    showDragHandle: true,
     builder: (sheetContext) => SafeArea(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -114,9 +113,8 @@ Future<bool?> askDeleteChatMaterial(BuildContext context, models.Chat chat) asyn
 /// «и у собеседника?», `null` — отмена.
 Future<bool?> pickScopeMaterial(BuildContext context, {required String title, bool destructive = true}) {
   final t = context.t.screenChats;
-  return showModalBottomSheet<bool>(
+  return showActionsMaterial<bool>(
     context: context,
-    showDragHandle: true,
     builder: (sheetContext) {
       final color = destructive ? Theme.of(sheetContext).colorScheme.error : null;
       Widget option(IconData icon, String label, bool forEveryone) => ListTile(
@@ -149,9 +147,8 @@ Future<void> showFolderActionsMaterial(BuildContext context, models.ChatFolder f
   final cubit = context.read<ChatsCubit>();
   final t = context.t.screenChats;
 
-  final delete = await showModalBottomSheet<bool>(
+  final delete = await showActionsMaterial<bool>(
     context: context,
-    showDragHandle: true,
     builder: (sheetContext) => SafeArea(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -211,9 +208,8 @@ Future<void> showFolderActionsMaterial(BuildContext context, models.ChatFolder f
 /// обычных чатов на сервере, секретный живёт только на устройстве).
 Future<void> _secretChatActionsMaterial(BuildContext context, models.Chat chat, ChatsCubit cubit) async {
   final t = context.t.secretChat;
-  final delete = await showModalBottomSheet<bool>(
+  final delete = await showActionsMaterial<bool>(
     context: context,
-    showDragHandle: true,
     builder: (sheetContext) => SafeArea(
       child: ListTile(
         leading: Icon(Icons.delete_outline, color: Theme.of(sheetContext).colorScheme.error),
@@ -239,9 +235,8 @@ Future<void> _secretChatActionsMaterial(BuildContext context, models.Chat chat, 
 
 /// «Ответы» (4.6): только «Прочитать все».
 Future<void> _repliesActionsMaterial(BuildContext context, ChatsCubit cubit) async {
-  final read = await showModalBottomSheet<bool>(
+  final read = await showActionsMaterial<bool>(
     context: context,
-    showDragHandle: true,
     builder: (sheetContext) => SafeArea(
       child: Column(
         mainAxisSize: MainAxisSize.min,

@@ -1,10 +1,12 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:cupertino_ui/cupertino_ui.dart' show Brightness, CupertinoTheme;
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
+import 'desktop.dart';
 import 'platform.dart';
 import 'themes.dart';
 
@@ -47,8 +49,37 @@ abstract final class SplitLayout {
   /// Обе панели сейчас на экране.
   static bool isWide(BuildContext context) => enabled && MediaQuery.sizeOf(context).width >= minWidth;
 
-  /// Ширина левой панели (список) при ширине окна [width].
-  static double listWidth(double width) => (width * 0.38).clamp(320.0, 400.0);
+  /// Ширина левой панели (список) при ширине окна [width]: на десктопе — от
+  /// [minListWidth] (по умолчанию) до выставленной перетаскиванием разделителя
+  /// ([listWidthOverride]), но так, чтобы правой панели осталось не меньше
+  /// [minPaneWidth].
+  static double listWidth(double width) {
+    // Десктоп: по умолчанию — самый узкий список, шире — перетаскиванием.
+    if (AppPlatform.isDesktop) {
+      final custom = listWidthOverride.value ?? minListWidth;
+      return custom.clamp(minListWidth, math.max(minListWidth, math.min(maxListWidth, width - minPaneWidth)));
+    }
+    return (width * 0.38).clamp(320.0, 400.0);
+  }
+
+  /// Ширина списка, выбранная на десктопе; `null` — по умолчанию
+  /// ([minListWidth]). Хранится в настройках окна (`Desktop.listWidth`).
+  static final listWidthOverride = ValueNotifier<double?>(null);
+
+  static const minListWidth = 344.0;
+  static const maxListWidth = 560.0;
+  static const minPaneWidth = 380.0;
+
+  /// Сохранённая ширина списка (main.dart, до первого кадра).
+  static Future<void> loadListWidth() async {
+    if (AppPlatform.isDesktop) listWidthOverride.value = await Desktop.listWidth();
+  }
+
+  /// Перетащили разделитель: [width] — новая ширина, `null` — сброс.
+  static void setListWidth(double? width) => listWidthOverride.value = width;
+
+  /// Отпустили разделитель — запомнить.
+  static void saveListWidth() => Desktop.setListWidth(listWidthOverride.value);
 
   /// Высота таб-бара (`HomeCupertino`); на широком окне он только под списком.
   static const tabBarHeight = 58.0;

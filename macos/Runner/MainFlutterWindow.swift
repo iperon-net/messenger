@@ -113,6 +113,15 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
       }
     case "showNotification":
       showNotification(args, result: result)
+    case "listWidth":
+      result(UserDefaults.standard.object(forKey: "splitListWidth") as? Double)
+    case "setListWidth":
+      if let width = args["width"] as? Double {
+        UserDefaults.standard.set(width, forKey: "splitListWidth")
+      } else {
+        UserDefaults.standard.removeObject(forKey: "splitListWidth")
+      }
+      result(nil)
     case "launchAtLogin":
       result(SMAppService.mainApp.status == .enabled)
     case "setLaunchAtLogin":

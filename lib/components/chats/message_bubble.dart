@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart' as mi show Icons;
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../platform.dart';
 import '../../chats/chats_mapping.dart' show idBytes;
 import '../../chats/voice_player.dart';
 import '../../extensions.dart';
@@ -1886,12 +1887,13 @@ class ReactionPicker extends StatelessWidget {
                 onSelected(emoji);
               },
               child: Container(
-                width: 44,
-                height: 44,
+                // Десктоп: полоса в компактном меню у курсора.
+                width: AppPlatform.isDesktop ? 34 : 44,
+                height: AppPlatform.isDesktop ? 34 : 44,
                 margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(color: selected.contains(emoji) ? selectedBackground : null, shape: BoxShape.circle),
-                child: Text(emoji, style: const TextStyle(fontSize: 28)),
+                child: Text(emoji, style: TextStyle(fontSize: AppPlatform.isDesktop ? 22 : 28)),
               ),
             ),
         ],

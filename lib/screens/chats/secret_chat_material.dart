@@ -83,9 +83,8 @@ class _SecretChatMaterialState extends State<SecretChatMaterial> with UnreadBack
 
   Future<void> _messageActions(BuildContext context, models.Message message) async {
     final t = context.t.secretChat;
-    final action = await showModalBottomSheet<String>(
+    final action = await showActionsMaterial<String>(
       context: context,
-      showDragHandle: true,
       builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -126,7 +125,8 @@ class _SecretChatMaterialState extends State<SecretChatMaterial> with UnreadBack
           child: Scaffold(
             backgroundColor: dark ? const Color(0xFF000000) : scheme.surfaceContainerLow,
             appBar: AppBar(
-              titleSpacing: 0,
+              // Корень правой панели — без «назад»: аватар не вплотную к списку.
+              titleSpacing: context.isSplitPaneRoot ? 16 : 0,
               // Планшет: корень правой панели — без «назад», список слева.
               automaticallyImplyLeading: !context.isSplitPaneRoot,
               leading: context.isSplitPaneRoot ? null : unreadBackButtonMaterial(unreadBack),

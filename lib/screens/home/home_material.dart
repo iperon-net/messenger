@@ -52,6 +52,11 @@ class _HomeMaterialState extends State<HomeMaterial> {
 
   @override
   Widget build(BuildContext context) {
+    // Ширина панели вкладок = ширина списка, а её на десктопе тянут мышью.
+    return ValueListenableBuilder(valueListenable: SplitLayout.listWidthOverride, builder: (context, _, _) => _build(context));
+  }
+
+  Widget _build(BuildContext context) {
     return BlocConsumer<HomeCubit, HomeState>(
       listener: (context, state) {},
       builder: (context, state) {
