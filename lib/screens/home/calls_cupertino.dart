@@ -208,7 +208,7 @@ class _CallsCupertinoState extends State<CallsCupertino> with SearchHideOnScroll
           ),
         ],
       ),
-      backgroundColor: splitSelectedBackground(context, hex),
+      backgroundColor: splitSelectedBackground(context, hex, base: ThemesCupertino.appBackground.resolveFrom(context)),
       onTap: () => openProfileFromList(context, hex),
     );
 

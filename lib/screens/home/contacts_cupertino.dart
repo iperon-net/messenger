@@ -230,7 +230,7 @@ class _ContactsCupertinoState extends State<ContactsCupertino> with SearchHideOn
       title: Text(item.displayName),
       subtitle: _status(context, online: item.online, lastSeen: item.lastSeen),
       trailing: const CupertinoListTileChevron(),
-      backgroundColor: splitSelectedBackground(context, hex),
+      backgroundColor: splitSelectedBackground(context, hex, base: ThemesCupertino.appBackground.resolveFrom(context)),
       onTap: () => openProfileFromList(context, hex),
     );
     return removable ? _dismissible(context, item, tile) : tile;

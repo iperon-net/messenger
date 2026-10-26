@@ -1,9 +1,11 @@
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoDynamicColor;
+import 'package:cupertino_ui/cupertino_ui.dart' show Brightness, CupertinoTheme;
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
+
+import 'themes.dart';
 
 /// Двухпанельный режим (iPad, Android-планшет), как в Telegram: в каждой вкладке слева список
 /// (чаты, контакты, звонки, разделы настроек) с таб-баром под ним, справа —
@@ -127,7 +129,15 @@ Future<void> openProfileFromList(BuildContext context, String userIDHex) async {
   await context.push('/profile/$userIDHex');
 }
 
-/// Фон строки списка, открытой в правой панели (iPad), — как у нажатой.
-Color? splitSelectedBackground(BuildContext context, String id) => id.isNotEmpty && SplitSelection.of(context) == id
-    ? const CupertinoDynamicColor.withBrightness(color: Color(0xFFE5E5EA), darkColor: Color(0xFF2C2C2E)).resolveFrom(context)
-    : null;
+/// Фон строки, открытой в правой панели (iPad): не серый, как у нажатой, а
+/// цвета темы, как в Telegram. В светлой — акцент, приглушённый поверх [base]
+/// (фона списка); в тёмной — насыщенный тон исходящих пузырей
+/// (`primaryContainer`), на нём белый текст читается.
+Color splitSelectedColor(BuildContext context, Color base) {
+  if (CupertinoTheme.brightnessOf(context) == Brightness.dark) return ThemesCupertino.chatOutgoing(context);
+  return Color.alphaBlend(CupertinoTheme.of(context).primaryColor.withValues(alpha: 0.14), base);
+}
+
+/// Фон строки списка [id], если она открыта в правой панели (iPad), иначе null.
+Color? splitSelectedBackground(BuildContext context, String id, {required Color base}) =>
+    id.isNotEmpty && SplitSelection.of(context) == id ? splitSelectedColor(context, base) : null;

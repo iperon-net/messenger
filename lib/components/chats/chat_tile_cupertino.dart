@@ -45,7 +45,11 @@ class _ChatTileCupertinoState extends State<ChatTileCupertino> {
     final statusIcon = ChatTileContent.statusIcon(chat);
     final preview = ChatTileContent.preview(t, chat);
     // iPad: открытый в правой панели чат подсвечен, как в Telegram.
-    final highlighted = _pressed || SplitSelection.of(context) == chat.id;
+    final selected = SplitSelection.of(context) == chat.id;
+    final background = ThemesCupertino.appBackground.resolveFrom(context);
+    final highlight = _pressed
+        ? CupertinoColors.systemGrey5.resolveFrom(context)
+        : (selected ? splitSelectedColor(context, background) : null);
     final date = chat.lastMessage?.date;
 
     return GestureDetector(
@@ -63,7 +67,7 @@ class _ChatTileCupertinoState extends State<ChatTileCupertino> {
               widget.onLongPress!.call();
             },
       child: ColoredBox(
-        color: highlighted ? CupertinoColors.systemGrey5.resolveFrom(context) : const Color(0x00000000),
+        color: highlight ?? const Color(0x00000000),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(10, 8, 12, 8),
           child: Row(
@@ -74,9 +78,7 @@ class _ChatTileCupertinoState extends State<ChatTileCupertino> {
                 accentColor: primary,
                 accentForeground: ThemesCupertino.onAccent(context),
                 size: 49,
-                onlineRingColor: highlighted
-                    ? CupertinoColors.systemGrey5.resolveFrom(context)
-                    : ThemesCupertino.appBackground.resolveFrom(context),
+                onlineRingColor: highlight ?? background,
               ),
               const SizedBox(width: 10),
               Expanded(
