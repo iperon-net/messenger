@@ -252,7 +252,7 @@ class _ProfileViewState extends State<_ProfileView> {
       case 'noForwards':
         await setChatNoForwards(context, context.read<ChatCubit>(), !chat!.noForwards);
       case 'hide':
-        await context.push('/profile/${profileHex(profile.userID)}/hide');
+        await context.push('${profileRoute(context, profileHex(profile.userID))}/hide');
       case 'block':
         await _setBlocked(context, profile, !profile.blocked);
       case 'delete':

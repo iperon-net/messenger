@@ -593,7 +593,7 @@ Map<String, String> chatSenderBadges(Translations t, models.Chat chat, List<mode
 Future<void> openUserProfile(BuildContext context, String userID) async {
   if (userID.isEmpty) return;
   if (context.read<CommonCubit>().state.settingsDevice.chatsDemo) return openPrivateChatWith(context, userID);
-  await context.push('/profile/$userID');
+  await context.push(profileRoute(context, userID));
 }
 
 /// Личный чат с [userID] («Сообщение» в профиле): существующий — сразу (и

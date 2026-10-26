@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../split_layout.dart';
 import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
@@ -133,7 +134,7 @@ class _SettingsBlockedCupertinoState extends State<SettingsBlockedCupertino> {
                                     ),
                                   ),
                                 ),
-                                onTap: () => context.push('/profile/${utils.bytesToHex(user.userID)}'),
+                                onTap: () => context.push(profileRoute(context, utils.bytesToHex(user.userID))),
                               ),
                             ),
                       ],

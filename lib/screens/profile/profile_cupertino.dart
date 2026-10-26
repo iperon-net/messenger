@@ -246,7 +246,7 @@ class _ProfileViewState extends State<_ProfileView> {
       ChatInfoMoreItem(
         title: t.screenProfile.hideProfile,
         icon: CupertinoIcons.eye_slash,
-        onTap: () => context.push('/profile/${profileHex(profile.userID)}/hide'),
+        onTap: () => context.push('${profileRoute(context, profileHex(profile.userID))}/hide'),
       ),
       ChatInfoMoreItem(
         title: profile.blocked ? t.screenProfile.unblock : t.screenProfile.block,
@@ -385,6 +385,8 @@ class _ProfileViewState extends State<_ProfileView> {
       backgroundColor: background,
       navigationBar: AppCupertinoNavigationBar(
         child: CupertinoNavigationBar(
+          // iPad: корень правой панели — без «назад», список слева.
+          automaticallyImplyLeading: !context.isSplitPaneRoot,
           previousPageTitle: '',
           automaticBackgroundVisibility: false,
           backgroundColor: background,
