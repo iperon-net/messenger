@@ -854,6 +854,36 @@ class Routers {
               GoRoute(path: "call_preview", parentNavigatorKey: pane, pageBuilder: (context, state) => _page(state, const CallPreview())),
           ],
         ),
+        // «Данные и память»: использование памяти и трафика.
+        GoRoute(
+          path: "data",
+          parentNavigatorKey: pane,
+          pageBuilder: (context, state) => _page(state, const SettingsDataCupertino(), pane: split, context: context),
+          routes: [
+            GoRoute(
+              path: "storage",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _page(
+                state,
+                BlocProvider<SettingsStorageCubit>(
+                  create: (_) => SettingsStorageCubit()..initialization(),
+                  child: const SettingsStorageCupertino(),
+                ),
+              ),
+            ),
+            GoRoute(
+              path: "network",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _page(
+                state,
+                BlocProvider<SettingsNetworkCubit>(
+                  create: (_) => SettingsNetworkCubit()..initialization(),
+                  child: const SettingsNetworkCupertino(),
+                ),
+              ),
+            ),
+          ],
+        ),
         GoRoute(
           path: "language",
           parentNavigatorKey: pane,
@@ -1991,6 +2021,36 @@ class Routers {
                 parentNavigatorKey: pane,
                 pageBuilder: (context, state) => _pageMaterial(state, const CallPreview()),
               ),
+          ],
+        ),
+        // «Данные и память»: использование памяти и трафика.
+        GoRoute(
+          path: "data",
+          parentNavigatorKey: pane,
+          pageBuilder: (context, state) => _pageMaterial(state, const SettingsDataMaterial(), pane: split, context: context),
+          routes: [
+            GoRoute(
+              path: "storage",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(
+                state,
+                BlocProvider<SettingsStorageCubit>(
+                  create: (_) => SettingsStorageCubit()..initialization(),
+                  child: const SettingsStorageMaterial(),
+                ),
+              ),
+            ),
+            GoRoute(
+              path: "network",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(
+                state,
+                BlocProvider<SettingsNetworkCubit>(
+                  create: (_) => SettingsNetworkCubit()..initialization(),
+                  child: const SettingsNetworkMaterial(),
+                ),
+              ),
+            ),
           ],
         ),
         GoRoute(

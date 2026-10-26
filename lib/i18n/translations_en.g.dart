@@ -55,6 +55,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$screenChat$en screenChat = Translations$screenChat$en.internal(_root);
 	late final Translations$screenSettings$en screenSettings = Translations$screenSettings$en.internal(_root);
 	late final Translations$screenSettingsNotifications$en screenSettingsNotifications = Translations$screenSettingsNotifications$en.internal(_root);
+	late final Translations$screenSettingsData$en screenSettingsData = Translations$screenSettingsData$en.internal(_root);
 	late final Translations$screenDeveloper$en screenDeveloper = Translations$screenDeveloper$en.internal(_root);
 	late final Translations$screenSettingsAppearance$en screenSettingsAppearance = Translations$screenSettingsAppearance$en.internal(_root);
 	late final Translations$screenChatInfo$en screenChatInfo = Translations$screenChatInfo$en.internal(_root);
@@ -2084,6 +2085,9 @@ class Translations$screenSettings$en {
 	/// en: 'Notifications and sounds'
 	String get notifications => _root.screenSettingsNotifications.notifications;
 
+	/// en: 'Data and storage'
+	String get dataAndStorage => _root.screenSettingsData.dataAndStorage;
+
 	/// en: 'Privacy and security'
 	String get privacyAndSecurity => 'Privacy and security';
 
@@ -2200,6 +2204,165 @@ class Translations$screenSettingsNotifications$en {
 
 	/// en: 'Retry'
 	String get retry => 'Retry';
+}
+
+// Path: screenSettingsData
+class Translations$screenSettingsData$en {
+	Translations$screenSettingsData$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Data and storage'
+	String get dataAndStorage => 'Data and storage';
+
+	/// en: 'Usage'
+	String get usage => 'Usage';
+
+	/// en: 'Storage usage'
+	String get storageUsage => 'Storage usage';
+
+	/// en: 'Network usage'
+	String get networkUsage => 'Network usage';
+
+	/// en: 'How much space chat files take on this device and how much data Iperon has used.'
+	String get storageNote => 'How much space chat files take on this device and how much data Iperon has used.';
+
+	/// en: 'Calculating…'
+	String get calculating => 'Calculating…';
+
+	/// en: 'on this device'
+	String get onDevice => 'on this device';
+
+	/// en: 'Photos'
+	String get photos => 'Photos';
+
+	/// en: 'Videos'
+	String get videos => 'Videos';
+
+	/// en: 'Files'
+	String get files => 'Files';
+
+	/// en: 'Music and voice'
+	String get audio => 'Music and voice';
+
+	/// en: 'Avatars and other'
+	String get other => 'Avatars and other';
+
+	/// en: 'Clear cache'
+	String get clearCache => 'Clear cache';
+
+	/// en: 'Clear cache · {size}'
+	String clearCacheSize({required Object size}) => 'Clear cache · ${size}';
+
+	/// en: 'Clear cache?'
+	String get clearCacheTitle => 'Clear cache?';
+
+	/// en: 'Files will be removed from this device only. They stay in the Iperon cloud and can be downloaded again.'
+	String get clearCacheMessage => 'Files will be removed from this device only. They stay in the Iperon cloud and can be downloaded again.';
+
+	/// en: 'Clear'
+	String get clear => 'Clear';
+
+	/// en: 'Contact and group profile photos are kept.'
+	String get cacheNote => 'Contact and group profile photos are kept.';
+
+	/// en: 'Keep media'
+	String get keepMedia => 'Keep media';
+
+	/// en: 'Files you haven't opened for longer than this will be removed from the device but stay in the cloud.'
+	String get keepMediaNote => 'Files you haven\'t opened for longer than this will be removed from the device but stay in the cloud.';
+
+	/// en: '3 days'
+	String get days3 => '3 days';
+
+	/// en: '1 week'
+	String get week => '1 week';
+
+	/// en: '1 month'
+	String get month => '1 month';
+
+	/// en: 'Forever'
+	String get forever => 'Forever';
+
+	/// en: 'Maximum cache size'
+	String get maxCache => 'Maximum cache size';
+
+	/// en: 'When the cache grows larger, the files you haven't opened the longest will be removed.'
+	String get maxCacheNote => 'When the cache grows larger, the files you haven\'t opened the longest will be removed.';
+
+	/// en: 'No limit'
+	String get unlimited => 'No limit';
+
+	/// en: 'Chats'
+	String get chats => 'Chats';
+
+	/// en: 'Other chats'
+	String get otherChats => 'Other chats';
+
+	/// en: 'Clear files of “{title}”?'
+	String clearChatTitle({required Object title}) => 'Clear files of “${title}”?';
+
+	/// en: 'Other'
+	String get service => 'Other';
+
+	/// en: 'Database'
+	String get database => 'Database';
+
+	/// en: 'The database holds messages, settings and unsent files and is never cleared. Animated emoji and temporary files will be downloaded or created again.'
+	String get databaseNote => 'The database holds messages, settings and unsent files and is never cleared. Animated emoji and temporary files will be downloaded or created again.';
+
+	/// en: 'Animated emoji'
+	String get emoji => 'Animated emoji';
+
+	/// en: 'Temporary files'
+	String get temp => 'Temporary files';
+
+	/// en: 'No downloaded files'
+	String get empty => 'No downloaded files';
+
+	/// en: 'Mobile'
+	String get mobile => 'Mobile';
+
+	/// en: 'Wi-Fi'
+	String get wifi => 'Wi-Fi';
+
+	/// en: 'Messages'
+	String get messages => 'Messages';
+
+	/// en: 'Calls'
+	String get calls => 'Calls';
+
+	/// en: 'Total'
+	String get total => 'Total';
+
+	/// en: 'Sent'
+	String get sent => 'Sent';
+
+	/// en: 'Received'
+	String get received => 'Received';
+
+	/// en: 'Reset statistics'
+	String get resetStatistics => 'Reset statistics';
+
+	/// en: 'Reset statistics?'
+	String get resetTitle => 'Reset statistics?';
+
+	/// en: 'Mobile and Wi-Fi data counters will be set to zero.'
+	String get resetMessage => 'Mobile and Wi-Fi data counters will be set to zero.';
+
+	/// en: 'Reset'
+	String get reset => 'Reset';
+
+	/// en: 'Statistics since {date}'
+	String since({required Object date}) => 'Statistics since ${date}';
+
+	/// en: 'No data used yet'
+	String get noTraffic => 'No data used yet';
+
+	/// en: 'Iperon counts data itself, without connection headers, so your carrier may count slightly more.'
+	String get networkNote => 'Iperon counts data itself, without connection headers, so your carrier may count slightly more.';
 }
 
 // Path: screenDeveloper
@@ -5282,6 +5445,7 @@ extension on Translations {
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
 			'screenSettings.folders' => _root.screenChatFolders.folders,
 			'screenSettings.notifications' => _root.screenSettingsNotifications.notifications,
+			'screenSettings.dataAndStorage' => _root.screenSettingsData.dataAndStorage,
 			'screenSettings.privacyAndSecurity' => 'Privacy and security',
 			'screenSettings.aboutApplication' => 'About the application',
 			'screenSettings.logs' => 'Logs',
@@ -5318,6 +5482,56 @@ extension on Translations {
 			'screenSettingsNotifications.loadError' => 'Couldn\'t load the settings',
 			'screenSettingsNotifications.offlineNote' => 'No connection. You can change this once you\'re back online.',
 			'screenSettingsNotifications.retry' => 'Retry',
+			'screenSettingsData.dataAndStorage' => 'Data and storage',
+			'screenSettingsData.usage' => 'Usage',
+			'screenSettingsData.storageUsage' => 'Storage usage',
+			'screenSettingsData.networkUsage' => 'Network usage',
+			'screenSettingsData.storageNote' => 'How much space chat files take on this device and how much data Iperon has used.',
+			'screenSettingsData.calculating' => 'Calculating…',
+			'screenSettingsData.onDevice' => 'on this device',
+			'screenSettingsData.photos' => 'Photos',
+			'screenSettingsData.videos' => 'Videos',
+			'screenSettingsData.files' => 'Files',
+			'screenSettingsData.audio' => 'Music and voice',
+			'screenSettingsData.other' => 'Avatars and other',
+			'screenSettingsData.clearCache' => 'Clear cache',
+			'screenSettingsData.clearCacheSize' => ({required Object size}) => 'Clear cache · ${size}',
+			'screenSettingsData.clearCacheTitle' => 'Clear cache?',
+			'screenSettingsData.clearCacheMessage' => 'Files will be removed from this device only. They stay in the Iperon cloud and can be downloaded again.',
+			'screenSettingsData.clear' => 'Clear',
+			'screenSettingsData.cacheNote' => 'Contact and group profile photos are kept.',
+			'screenSettingsData.keepMedia' => 'Keep media',
+			'screenSettingsData.keepMediaNote' => 'Files you haven\'t opened for longer than this will be removed from the device but stay in the cloud.',
+			'screenSettingsData.days3' => '3 days',
+			'screenSettingsData.week' => '1 week',
+			'screenSettingsData.month' => '1 month',
+			'screenSettingsData.forever' => 'Forever',
+			'screenSettingsData.maxCache' => 'Maximum cache size',
+			'screenSettingsData.maxCacheNote' => 'When the cache grows larger, the files you haven\'t opened the longest will be removed.',
+			'screenSettingsData.unlimited' => 'No limit',
+			'screenSettingsData.chats' => 'Chats',
+			'screenSettingsData.otherChats' => 'Other chats',
+			'screenSettingsData.clearChatTitle' => ({required Object title}) => 'Clear files of “${title}”?',
+			'screenSettingsData.service' => 'Other',
+			'screenSettingsData.database' => 'Database',
+			'screenSettingsData.databaseNote' => 'The database holds messages, settings and unsent files and is never cleared. Animated emoji and temporary files will be downloaded or created again.',
+			'screenSettingsData.emoji' => 'Animated emoji',
+			'screenSettingsData.temp' => 'Temporary files',
+			'screenSettingsData.empty' => 'No downloaded files',
+			'screenSettingsData.mobile' => 'Mobile',
+			'screenSettingsData.wifi' => 'Wi-Fi',
+			'screenSettingsData.messages' => 'Messages',
+			'screenSettingsData.calls' => 'Calls',
+			'screenSettingsData.total' => 'Total',
+			'screenSettingsData.sent' => 'Sent',
+			'screenSettingsData.received' => 'Received',
+			'screenSettingsData.resetStatistics' => 'Reset statistics',
+			'screenSettingsData.resetTitle' => 'Reset statistics?',
+			'screenSettingsData.resetMessage' => 'Mobile and Wi-Fi data counters will be set to zero.',
+			'screenSettingsData.reset' => 'Reset',
+			'screenSettingsData.since' => ({required Object date}) => 'Statistics since ${date}',
+			'screenSettingsData.noTraffic' => 'No data used yet',
+			'screenSettingsData.networkNote' => 'Iperon counts data itself, without connection headers, so your carrier may count slightly more.',
 			'screenDeveloper.developer' => 'Developer',
 			'screenDeveloper.logs' => _root.screenSettings.logs,
 			'screenDeveloper.exportLogs' => 'Export logs',
@@ -5642,6 +5856,8 @@ extension on Translations {
 			'screenMyProfile.cancel' => _root.common.cancel,
 			'screenMyProfile.done' => _root.common.done,
 			'screenMyProfile.edit' => _root.common.edit,
+			_ => null,
+		} ?? switch (path) {
 			'screenMyProfile.close' => _root.common.close,
 			'screenMyProfile.error' => _root.common.error,
 			'screenMyProfile.errorSavingProfile' => 'Saving profile',
@@ -5693,8 +5909,6 @@ extension on Translations {
 			'screenHideProfile.resetAction' => 'Reset passphrase',
 			'screenHideProfile.errorEmptyPhrase' => 'Enter a passphrase to hide the profile.',
 			'screenContacts.title' => 'Contacts',
-			_ => null,
-		} ?? switch (path) {
 			'screenContacts.onIperon' => 'On Iperon',
 			'screenContacts.onContacts' => 'On Contacts',
 			'screenContacts.cloudContacts' => 'Cloud contacts',

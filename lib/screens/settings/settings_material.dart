@@ -75,6 +75,14 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                     isTrailing: true,
                   ),
                   MaterialListTileIcon(
+                    title: Text(context.t.screenSettings.dataAndStorage),
+                    color: const Color(0xFF34C759),
+                    icon: FontAwesomeIcons.database,
+                    onTab: () async => context.go("/settings/data"),
+                    selected: SplitSelection.of(context) == 'data',
+                    isTrailing: true,
+                  ),
+                  MaterialListTileIcon(
                     title: Text(context.t.screenSettings.appearance),
                     color: const Color(0xFF1368E6),
                     icon: FontAwesomeIcons.circleHalfStroke,

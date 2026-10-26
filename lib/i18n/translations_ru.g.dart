@@ -53,6 +53,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$screenChat$ru screenChat = _Translations$screenChat$ru._(_root);
 	@override late final _Translations$screenSettings$ru screenSettings = _Translations$screenSettings$ru._(_root);
 	@override late final _Translations$screenSettingsNotifications$ru screenSettingsNotifications = _Translations$screenSettingsNotifications$ru._(_root);
+	@override late final _Translations$screenSettingsData$ru screenSettingsData = _Translations$screenSettingsData$ru._(_root);
 	@override late final _Translations$screenDeveloper$ru screenDeveloper = _Translations$screenDeveloper$ru._(_root);
 	@override late final _Translations$screenSettingsAppearance$ru screenSettingsAppearance = _Translations$screenSettingsAppearance$ru._(_root);
 	@override late final _Translations$screenChatInfo$ru screenChatInfo = _Translations$screenChatInfo$ru._(_root);
@@ -881,6 +882,7 @@ class _Translations$screenSettings$ru extends Translations$screenSettings$en {
 	@override String get appearance => _root.screenSettingsAppearance.appearance;
 	@override String get folders => _root.screenChatFolders.folders;
 	@override String get notifications => _root.screenSettingsNotifications.notifications;
+	@override String get dataAndStorage => _root.screenSettingsData.dataAndStorage;
 	@override String get privacyAndSecurity => 'Конфиденциальность';
 	@override String get aboutApplication => 'О приложении';
 	@override String get logs => 'Логи';
@@ -926,6 +928,65 @@ class _Translations$screenSettingsNotifications$ru extends Translations$screenSe
 	@override String get loadError => 'Не удалось загрузить настройки';
 	@override String get offlineNote => 'Нет соединения. Изменение станет доступно, когда появится сеть.';
 	@override String get retry => 'Повторить';
+}
+
+// Path: screenSettingsData
+class _Translations$screenSettingsData$ru extends Translations$screenSettingsData$en {
+	_Translations$screenSettingsData$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get dataAndStorage => 'Данные и память';
+	@override String get usage => 'Использование';
+	@override String get storageUsage => 'Использование памяти';
+	@override String get networkUsage => 'Использование трафика';
+	@override String get storageNote => 'Сколько места занимают файлы чатов на этом устройстве и сколько трафика потратил Iperon.';
+	@override String get calculating => 'Подсчёт…';
+	@override String get onDevice => 'на этом устройстве';
+	@override String get photos => 'Фото';
+	@override String get videos => 'Видео';
+	@override String get files => 'Файлы';
+	@override String get audio => 'Музыка и голосовые';
+	@override String get other => 'Аватарки и прочее';
+	@override String get clearCache => 'Очистить кэш';
+	@override String clearCacheSize({required Object size}) => 'Очистить кэш · ${size}';
+	@override String get clearCacheTitle => 'Очистить кэш?';
+	@override String get clearCacheMessage => 'Файлы удалятся только с этого устройства. Они останутся в облаке Iperon — их можно будет скачать снова.';
+	@override String get clear => 'Очистить';
+	@override String get cacheNote => 'Аватарки контактов и групп не удаляются.';
+	@override String get keepMedia => 'Хранить медиа';
+	@override String get keepMediaNote => 'Файлы, которые вы не открывали дольше этого срока, удалятся с устройства, но останутся в облаке.';
+	@override String get days3 => '3 дня';
+	@override String get week => '1 неделя';
+	@override String get month => '1 месяц';
+	@override String get forever => 'Всегда';
+	@override String get maxCache => 'Максимальный размер кэша';
+	@override String get maxCacheNote => 'Когда кэш станет больше, удалятся файлы, которые дольше всего не открывали.';
+	@override String get unlimited => 'Без ограничений';
+	@override String get chats => 'Чаты';
+	@override String get otherChats => 'Другие чаты';
+	@override String clearChatTitle({required Object title}) => 'Очистить файлы «${title}»?';
+	@override String get service => 'Прочее';
+	@override String get database => 'База данных';
+	@override String get databaseNote => 'База — это сообщения, настройки и неотправленные файлы, она не очищается. Анимированные эмодзи и временные файлы скачаются или создадутся снова.';
+	@override String get emoji => 'Анимированные эмодзи';
+	@override String get temp => 'Временные файлы';
+	@override String get empty => 'Нет скачанных файлов';
+	@override String get mobile => 'Мобильная сеть';
+	@override String get wifi => 'Wi-Fi';
+	@override String get messages => 'Сообщения';
+	@override String get calls => 'Звонки';
+	@override String get total => 'Всего';
+	@override String get sent => 'Отправлено';
+	@override String get received => 'Получено';
+	@override String get resetStatistics => 'Сбросить статистику';
+	@override String get resetTitle => 'Сбросить статистику?';
+	@override String get resetMessage => 'Счётчики трафика по мобильной сети и Wi-Fi обнулятся.';
+	@override String get reset => 'Сбросить';
+	@override String since({required Object date}) => 'Статистика с ${date}';
+	@override String get noTraffic => 'Трафика пока не было';
+	@override String get networkNote => 'Iperon считает трафик сам, без служебных заголовков соединения, поэтому оператор может насчитать немного больше.';
 }
 
 // Path: screenDeveloper
@@ -2601,6 +2662,7 @@ extension on TranslationsRu {
 			'screenSettings.appearance' => _root.screenSettingsAppearance.appearance,
 			'screenSettings.folders' => _root.screenChatFolders.folders,
 			'screenSettings.notifications' => _root.screenSettingsNotifications.notifications,
+			'screenSettings.dataAndStorage' => _root.screenSettingsData.dataAndStorage,
 			'screenSettings.privacyAndSecurity' => 'Конфиденциальность',
 			'screenSettings.aboutApplication' => 'О приложении',
 			'screenSettings.logs' => 'Логи',
@@ -2637,6 +2699,56 @@ extension on TranslationsRu {
 			'screenSettingsNotifications.loadError' => 'Не удалось загрузить настройки',
 			'screenSettingsNotifications.offlineNote' => 'Нет соединения. Изменение станет доступно, когда появится сеть.',
 			'screenSettingsNotifications.retry' => 'Повторить',
+			'screenSettingsData.dataAndStorage' => 'Данные и память',
+			'screenSettingsData.usage' => 'Использование',
+			'screenSettingsData.storageUsage' => 'Использование памяти',
+			'screenSettingsData.networkUsage' => 'Использование трафика',
+			'screenSettingsData.storageNote' => 'Сколько места занимают файлы чатов на этом устройстве и сколько трафика потратил Iperon.',
+			'screenSettingsData.calculating' => 'Подсчёт…',
+			'screenSettingsData.onDevice' => 'на этом устройстве',
+			'screenSettingsData.photos' => 'Фото',
+			'screenSettingsData.videos' => 'Видео',
+			'screenSettingsData.files' => 'Файлы',
+			'screenSettingsData.audio' => 'Музыка и голосовые',
+			'screenSettingsData.other' => 'Аватарки и прочее',
+			'screenSettingsData.clearCache' => 'Очистить кэш',
+			'screenSettingsData.clearCacheSize' => ({required Object size}) => 'Очистить кэш · ${size}',
+			'screenSettingsData.clearCacheTitle' => 'Очистить кэш?',
+			'screenSettingsData.clearCacheMessage' => 'Файлы удалятся только с этого устройства. Они останутся в облаке Iperon — их можно будет скачать снова.',
+			'screenSettingsData.clear' => 'Очистить',
+			'screenSettingsData.cacheNote' => 'Аватарки контактов и групп не удаляются.',
+			'screenSettingsData.keepMedia' => 'Хранить медиа',
+			'screenSettingsData.keepMediaNote' => 'Файлы, которые вы не открывали дольше этого срока, удалятся с устройства, но останутся в облаке.',
+			'screenSettingsData.days3' => '3 дня',
+			'screenSettingsData.week' => '1 неделя',
+			'screenSettingsData.month' => '1 месяц',
+			'screenSettingsData.forever' => 'Всегда',
+			'screenSettingsData.maxCache' => 'Максимальный размер кэша',
+			'screenSettingsData.maxCacheNote' => 'Когда кэш станет больше, удалятся файлы, которые дольше всего не открывали.',
+			'screenSettingsData.unlimited' => 'Без ограничений',
+			'screenSettingsData.chats' => 'Чаты',
+			'screenSettingsData.otherChats' => 'Другие чаты',
+			'screenSettingsData.clearChatTitle' => ({required Object title}) => 'Очистить файлы «${title}»?',
+			'screenSettingsData.service' => 'Прочее',
+			'screenSettingsData.database' => 'База данных',
+			'screenSettingsData.databaseNote' => 'База — это сообщения, настройки и неотправленные файлы, она не очищается. Анимированные эмодзи и временные файлы скачаются или создадутся снова.',
+			'screenSettingsData.emoji' => 'Анимированные эмодзи',
+			'screenSettingsData.temp' => 'Временные файлы',
+			'screenSettingsData.empty' => 'Нет скачанных файлов',
+			'screenSettingsData.mobile' => 'Мобильная сеть',
+			'screenSettingsData.wifi' => 'Wi-Fi',
+			'screenSettingsData.messages' => 'Сообщения',
+			'screenSettingsData.calls' => 'Звонки',
+			'screenSettingsData.total' => 'Всего',
+			'screenSettingsData.sent' => 'Отправлено',
+			'screenSettingsData.received' => 'Получено',
+			'screenSettingsData.resetStatistics' => 'Сбросить статистику',
+			'screenSettingsData.resetTitle' => 'Сбросить статистику?',
+			'screenSettingsData.resetMessage' => 'Счётчики трафика по мобильной сети и Wi-Fi обнулятся.',
+			'screenSettingsData.reset' => 'Сбросить',
+			'screenSettingsData.since' => ({required Object date}) => 'Статистика с ${date}',
+			'screenSettingsData.noTraffic' => 'Трафика пока не было',
+			'screenSettingsData.networkNote' => 'Iperon считает трафик сам, без служебных заголовков соединения, поэтому оператор может насчитать немного больше.',
 			'screenDeveloper.developer' => 'Разработчик',
 			'screenDeveloper.logs' => _root.screenSettings.logs,
 			'screenDeveloper.exportLogs' => 'Экспорт логов',
@@ -2961,6 +3073,8 @@ extension on TranslationsRu {
 			'screenMyProfile.cancel' => _root.common.cancel,
 			'screenMyProfile.done' => _root.common.done,
 			'screenMyProfile.edit' => _root.common.edit,
+			_ => null,
+		} ?? switch (path) {
 			'screenMyProfile.close' => _root.common.close,
 			'screenMyProfile.error' => _root.common.error,
 			'screenMyProfile.errorSavingProfile' => 'Сохранение профиля',
@@ -3012,8 +3126,6 @@ extension on TranslationsRu {
 			'screenHideProfile.resetAction' => 'Сбросить код-фразу',
 			'screenHideProfile.errorEmptyPhrase' => 'Введите код-фразу, чтобы скрыть профиль.',
 			'screenContacts.title' => 'Контакты',
-			_ => null,
-		} ?? switch (path) {
 			'screenContacts.onIperon' => 'В Iperon',
 			'screenContacts.onContacts' => 'В контактах',
 			'screenContacts.cloudContacts' => 'Облачные контакты',

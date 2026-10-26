@@ -104,6 +104,14 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                       isTrailing: true,
                     ),
                     CupertinoListTileIcon(
+                      title: Text(context.t.screenSettings.dataAndStorage),
+                      color: Color(0xFF34C759),
+                      icon: FontAwesomeIcons.database,
+                      onTab: () async => context.go("/settings/data"),
+                      backgroundColor: splitSelectedBackground(context, 'data', base: ThemesCupertino.groupedCard.resolveFrom(context)),
+                      isTrailing: true,
+                    ),
+                    CupertinoListTileIcon(
                       title: Text(context.t.screenSettings.appearance),
                       color: Color(0xFF1368E6),
                       icon: FontAwesomeIcons.circleHalfStroke,
