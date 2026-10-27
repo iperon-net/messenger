@@ -18,4 +18,4 @@ PRODUCT_COPYRIGHT = Copyright © 2026 Iperon. All rights reserved.
 // (`macos/Pods/Sparkle/bin/generate_keys -p`); приватная подписывает DMG в CI.
 // Пустой ключ — обновления выключены (AppUpdater).
 SPARKLE_FEED_URL = https:/$()/download.iperon.net/macos/appcast.xml
-SPARKLE_PUBLIC_ED_KEY =
+SPARKLE_PUBLIC_ED_KEY = LDPv4Hv4/vPxRcZVowWOupVdHkz+te3SeUyOiAfzLWc=
