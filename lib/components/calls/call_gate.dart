@@ -209,10 +209,11 @@ class _CallGateState extends State<CallGate> {
       return;
     }
     final status = _calls.snapshot.status;
-    // idle/ended — звонка нет. `incoming` ведёт системная звонилка (CallKit/
-    // ConnectionService) на обеих платформах — свой экран поднимаем лишь с
-    // принятия (connecting/active). См. [_isActive].
-    if (status == CallStatus.idle || status == CallStatus.ended || status == CallStatus.incoming) {
+    // idle/ended — звонка нет. `incoming` на мобильных ведёт системная звонилка
+    // (CallKit/ConnectionService) — свой экран поднимаем лишь с принятия
+    // (connecting/active); на десктопе входящий — сразу свой экран (принять /
+    // отклонить). См. [_isActive].
+    if (!_isActive(status)) {
       _logger.info('call_gate: openCall skipped (status=$status)');
       return;
     }
