@@ -16,8 +16,12 @@ abstract final class AppPlatform {
   /// Пуши (APNs / FCM) и нативный показ уведомлений.
   static bool get hasPush => isMobile;
 
-  /// Звонки (LiveKit + CallKit / ConnectionService) — на десктопе позже (§7 плана).
-  static bool get hasCalls => isMobile;
+  /// Звонки (LiveKit): мобильные и macOS (§7 плана, шаг 1); Windows — позже.
+  static bool get hasCalls => isMobile || Platform.isMacOS;
+
+  /// Системный экран звонка (CallKit / ConnectionService) и call-пуши. На
+  /// десктопе входящий — свой экран `/call` + рингтон, пока приложение запущено.
+  static bool get hasSystemCallUi => isMobile;
 
   /// Секретные чаты — на десктопе не делаем (§3.7 плана).
   static bool get hasSecretChats => isMobile;

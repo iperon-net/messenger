@@ -5,9 +5,12 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../calls.dart';
+import '../../desktop.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
+import '../../peer_names.dart';
+import '../../platform.dart';
 import '../no_connection_alert.dart';
 import 'call_alerts.dart';
 
@@ -90,6 +93,7 @@ class _CallGateState extends State<CallGate> {
     // было ДВУХ входящих UI (свой экран + системный баннер). Исходящий открываем
     // всегда. См. Calls.incomingRings / CallPush._onIncomingRing.
     final active = _isActive(snapshot.status);
+    if (AppPlatform.isDesktop) _syncDesktopIncoming(snapshot);
 
     // Авто-открытие только на переходе не-активный → активный (старт звонка).
     if (active && !_wasActive) {
@@ -155,13 +159,44 @@ class _CallGateState extends State<CallGate> {
   }
 
   // Активен ли звонок в смысле «ведём свой экран» (исходящий/соединение/разговор).
-  // `idle`/`ended` — звонка нет. `incoming` НЕ активен ни на одной платформе:
-  // входящий ведёт системная звонилка (iOS CallKit из VoIP-push, Android
-  // ConnectionService), свой экран поднимаем только с принятия.
+  // `idle`/`ended` — звонка нет. `incoming` на мобильных НЕ активен: входящий
+  // ведёт системная звонилка (iOS CallKit из VoIP-push, Android
+  // ConnectionService), свой экран поднимаем только с принятия. На десктопе
+  // системной звонилки нет — входящий тоже свой экран (принять / отклонить).
   static bool _isActive(CallStatus status) => switch (status) {
-    CallStatus.idle || CallStatus.ended || CallStatus.incoming => false,
+    CallStatus.idle || CallStatus.ended => false,
+    CallStatus.incoming => !AppPlatform.hasSystemCallUi,
     _ => true,
   };
+
+  /// Десктоп: callId входящего, о котором сейчас сообщаем (окно, значок,
+  /// уведомление).
+  String? _ringingCallId;
+
+  /// Десктоп, входящий: окно вперёд, значок в Dock прыгает, пока не откроют, и
+  /// системное уведомление (окно могло быть свёрнуто или за другими окнами;
+  /// отнять фокус у другого приложения система может и не дать). Ушли из
+  /// `incoming` (приняли, отклонили, звонящий снял) — всё убираем.
+  void _syncDesktopIncoming(CallSnapshot snapshot) {
+    final ringing = snapshot.status == CallStatus.incoming ? snapshot.callId : null;
+    if (ringing == _ringingCallId) return;
+    final previous = _ringingCallId;
+    _ringingCallId = ringing;
+    if (previous != null) {
+      unawaited(Desktop.cancelAttention());
+      unawaited(Desktop.removeNotification('call:$previous'));
+    }
+    if (ringing == null) return;
+    unawaited(Desktop.showWindow(attention: true));
+    final t = context.t.screenCall;
+    final body = snapshot.video ? t.incomingVideo : t.incomingAudio;
+    unawaited(
+      peerDisplayName(snapshot.remoteUserID).then((name) async {
+        // Пока узнавали имя, звонок мог закончиться.
+        if (_ringingCallId == ringing) await Desktop.showNotification(id: 'call:$ringing', title: name, body: body);
+      }),
+    );
+  }
 
   // Показывать ли полоску возврата: звонок активен, но экран `/call` свёрнут.
   bool get _shouldShowBanner => !_routeOpen && _isActive(_snapshot.status);

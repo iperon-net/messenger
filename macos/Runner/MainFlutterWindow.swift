@@ -136,6 +136,8 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
   private weak var window: NSWindow?
   private let tray: TrayIcon
   private let updater = AppUpdater()
+  /// Запрос «прыгать значком» входящего звонка (`showWindow` attention).
+  private var attentionRequest = 0
 
   init(messenger: FlutterBinaryMessenger, window: NSWindow) {
     channel = FlutterMethodChannel(name: "net.iperon.messenger/desktop", binaryMessenger: messenger)
@@ -164,6 +166,25 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
       result(nil)
     case "requestAttention":
       NSApp.requestUserAttention(.informationalRequest)
+      result(nil)
+    case "showWindow":
+      // Входящий звонок: окно вперёд; значок в Dock прыгает, пока не откроют
+      // (`critical`) — система может не дать отнять фокус у другого приложения.
+      NSApp.activate(ignoringOtherApps: true)
+      window?.makeKeyAndOrderFront(nil)
+      if args["attention"] as? Bool ?? false {
+        attentionRequest = NSApp.requestUserAttention(.criticalRequest)
+      }
+      result(nil)
+    case "cancelAttention":
+      if attentionRequest != 0 { NSApp.cancelUserAttentionRequest(attentionRequest) }
+      attentionRequest = 0
+      result(nil)
+    case "removeNotification":
+      if let id = args["id"] as? String {
+        UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [id])
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
+      }
       result(nil)
     case "idleSeconds":
       // Любой ввод в системе (клавиатура, мышь), не только в нашем окне.

@@ -106,8 +106,8 @@ Future<void> startAccountServices() async {
   // Раскрытые спойлеры — в память до первого открытого чата.
   unawaited(SpoilerReveals.preload());
   // Мост call-пуш → нативный входящий (CallKit/ConnectionService) → Calls.
-  // На десктопе звонков пока нет (docs/plans/desktop-client.md, §7).
-  if (AppPlatform.hasCalls) getIt.get<CallPush>().start();
+  // Десктоп — без системной звонилки и пушей (docs/plans/desktop-client.md, §7).
+  if (AppPlatform.hasSystemCallUi) getIt.get<CallPush>().start();
   // Имя и аватар — в слот аккаунта (список аккаунтов в «Настройках»).
   AccountProfileSync.instance.start();
   // «Хранить медиа» и предел размера кэша.

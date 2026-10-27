@@ -62,19 +62,29 @@ abstract final class Desktop {
   /// Число непрочитанных чатов на значке в Dock и в строке меню; 0 — убрать.
   static Future<void> setBadge(int count) => _invoke<void>('setBadge', {'count': count});
 
-  /// Системное уведомление о сообщении; тап открывает [route]. [thread] —
-  /// группировка в Центре уведомлений (чат), [id] — повтор с тем же заменяет.
+  /// Системное уведомление о сообщении; тап открывает [route] (без него — просто
+  /// окно вперёд). [thread] — группировка в Центре уведомлений (чат), [id] —
+  /// повтор с тем же заменяет.
   static Future<void> showNotification({
     required String id,
     required String title,
     required String body,
-    required String route,
+    String? route,
     String? thread,
   }) async {
-    await _invoke<bool>('showNotification', {'id': id, 'title': title, 'body': body, 'route': route, 'thread': ?thread});
+    await _invoke<bool>('showNotification', {'id': id, 'title': title, 'body': body, 'route': ?route, 'thread': ?thread});
     // Значок в Dock подпрыгнет один раз (как у Telegram).
     await _invoke<void>('requestAttention');
   }
+
+  /// Убрать уведомление [id] из Центра уведомлений.
+  static Future<void> removeNotification(String id) => _invoke<void>('removeNotification', {'id': id});
+
+  /// Окно вперёд; [attention] — значок в Dock прыгает, пока приложение не
+  /// откроют ([cancelAttention]).
+  static Future<void> showWindow({bool attention = false}) => _invoke<void>('showWindow', {'attention': attention});
+
+  static Future<void> cancelAttention() => _invoke<void>('cancelAttention');
 
   /// Секунд без ввода (клавиатура, мышь) во всей системе; `null` — неизвестно.
   static Future<double?> idleSeconds() => _invoke<double>('idleSeconds');

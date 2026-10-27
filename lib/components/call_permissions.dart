@@ -1,6 +1,9 @@
 import 'package:flutter/services.dart' show MethodChannel;
 import 'package:permission_handler/permission_handler.dart';
 
+import '../desktop.dart';
+import '../platform.dart';
+
 /// Гарантирует доступ к микрофону перед стартом звонка: если решение ещё не
 /// принято — системный запрос. Permanently denied пропускаем (система диалог уже
 /// не покажет). Идемпотентно и не блокирует старт звонка.
@@ -9,6 +12,13 @@ import 'package:permission_handler/permission_handler.dart';
 /// [PermissionBanner] (см. `CallsCubit.checkCallPermissions`/`requestCallPermissions`);
 /// эта функция нужна только на кнопках «Позвонить», где микрофон обязателен.
 Future<void> ensureCallMicPermission() async {
+  // macOS: permission_handler там нет — канал desktop.
+  if (AppPlatform.isDesktop) {
+    if (await Desktop.mediaAccess(MediaKind.microphone) == MediaAccess.notDetermined) {
+      await Desktop.requestMediaAccess(MediaKind.microphone);
+    }
+    return;
+  }
   final mic = await Permission.microphone.status;
   if (!mic.isGranted && !mic.isPermanentlyDenied) await Permission.microphone.request();
 }
@@ -21,6 +31,13 @@ Future<void> ensureCallMicPermission() async {
 /// denied пропускаем (система диалог уже не покажет). Возвращает, выдано ли
 /// разрешение в итоге.
 Future<bool> ensureCallCameraPermission() async {
+  if (AppPlatform.isDesktop) {
+    return switch (await Desktop.mediaAccess(MediaKind.camera)) {
+      MediaAccess.granted => true,
+      MediaAccess.notDetermined => Desktop.requestMediaAccess(MediaKind.camera),
+      MediaAccess.denied => false,
+    };
+  }
   final status = await Permission.camera.status;
   if (status.isGranted) return true;
   if (status.isPermanentlyDenied) return false;

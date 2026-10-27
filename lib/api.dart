@@ -8,6 +8,7 @@ import 'package:talker_grpc_logger/talker_grpc_logger.dart';
 
 import 'account_scope.dart';
 import 'cdn.dart';
+import 'calls.dart';
 import 'chats/chats_sync.dart';
 import 'chats/media_prepare.dart' show avatarThumbhash;
 import 'chats/secret/secret_chats_sync.dart';
@@ -656,6 +657,9 @@ class API {
               callPushEncryptedCapability,
               groupsCapability,
               channelsCapability,
+              // Десктоп получает звонки только с этой capability
+              // (сервер, Session.ReceivesCalls); мобильные — всегда.
+              if (AppPlatform.isDesktop && AppPlatform.hasCalls) callsCapability,
             ],
           ).writeToBuffer(),
         );

@@ -28,13 +28,19 @@ import 'components/call_permissions.dart';
 import 'crypto.dart';
 import 'di.dart';
 import 'logger.dart';
+import 'media_devices.dart';
 import 'models.dart' as models;
 import 'network_usage.dart';
 import 'peer_names.dart';
+import 'platform.dart';
 import 'protobuf.dart';
 import 'repositories/repositories.dart';
 import 'settings.dart';
 import 'utils.dart';
+
+/// Capability `Subscribe` «эта десктоп-сессия принимает звонки» (сервер,
+/// `Session.ReceivesCalls`; мобильные получают звонки всегда).
+const callsCapability = 'calls';
 
 /// Стадия звонка 1-на-1.
 ///
@@ -1301,9 +1307,12 @@ class Calls {
       // довыставляем в [_configureIosAudioForCall] — он тоже держит движок/сессию.
       // `e2eeOptions` — общий провайдер ключей на все попытки (от Room не
       // зависит); E2EE-менеджер LiveKit поднимается сам в room.connect.
+      // Десктоп: микрофон и камера из «Общие → Звонки» (null — системные).
+      final devices = AppPlatform.isDesktop ? await MediaDevices.callDevices() : null;
       final room = Room(
         roomOptions: RoomOptions(
-          defaultAudioCaptureOptions: const AudioCaptureOptions(stopAudioCaptureOnMute: false),
+          defaultAudioCaptureOptions: AudioCaptureOptions(deviceId: devices?.microphone, stopAudioCaptureOnMute: false),
+          defaultCameraCaptureOptions: CameraCaptureOptions(deviceId: devices?.camera),
           e2eeOptions: e2eeOptions,
         ),
       );

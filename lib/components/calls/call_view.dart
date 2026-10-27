@@ -16,6 +16,7 @@ import '../../calls.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models/constants.dart';
+import '../../platform.dart';
 import '../../themes/cupertino.dart';
 import '../../themes/material.dart';
 import 'audio_routes_sheet.dart';
@@ -357,10 +358,12 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
   }
 
   Future<void> _startRingtone() async {
-    if (!Platform.isIOS || _ringtone != null) return;
+    // Рингтон своего экрана входящего: iOS на переднем плане и десктоп (там
+    // системной звонилки нет вовсе).
+    if (!(Platform.isIOS || AppPlatform.isDesktop) || _ringtone != null) return;
     try {
       final player = _ringtone = AudioPlayer();
-      await player.setAudioContext(_ringtoneAudioContext);
+      if (Platform.isIOS) await player.setAudioContext(_ringtoneAudioContext);
       await player.setReleaseMode(ReleaseMode.loop);
       await player.setVolume(0.9);
       await player.play(AssetSource('audio/ringtone.wav'));
@@ -893,7 +896,8 @@ class _Overlay extends StatelessWidget {
             // Выбор аудио-выхода. iOS — системный пикер (AVRoutePickerView:
             // iPhone/Speaker/BT/CarPlay/AirPlay); Android — свой лист устройств
             // (setCommunicationDevice). См. route_picker_button.dart /
-            // audio_routes_sheet.dart.
+            // audio_routes_sheet.dart. Десктоп — пока без выбора (динамики — вместе
+            // с выбором устройств в звонке, docs/plans/desktop-client.md §7).
             if (Platform.isIOS)
               RoutePickerButton(
                 backgroundColor: palette.controlBg,
@@ -903,7 +907,7 @@ class _Overlay extends StatelessWidget {
                 iconSize: iconSize,
                 showLabel: _showLabels,
               )
-            else
+            else if (!AppPlatform.isDesktop)
               AudioOutputButton(
                 backgroundColor: palette.controlBg,
                 iconColor: palette.fg,
@@ -942,7 +946,8 @@ class _Overlay extends StatelessWidget {
             // Смена камеры (фронт/тыл) — справа, после кнопки камеры. Только когда
             // наша камера включена (видеозвонок и камера не выключена); при
             // выключенной камере кнопка пропадает (менять нечего).
-            if (state.video && !state.cameraOff)
+            // Десктоп: фронт/тыла нет, камера — в «Общие → Звонки».
+            if (state.video && !state.cameraOff && !AppPlatform.isDesktop)
               _CircleButton(
                 label: t.switchCamera,
                 icon: HugeIcons.strokeRoundedSwitchCamera,

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 
 import 'di.dart';
 import 'logger.dart';
+import 'platform.dart';
 
 /// Датчик приближения на звонке: поднёс телефон к уху — экран гаснет и не
 /// нажимается щекой. Система сама этого для нашего экрана звонка не делает.
@@ -17,7 +18,7 @@ abstract final class CallProximity {
   static bool _enabled = false;
 
   static void sync({required bool enabled}) {
-    if (_enabled == enabled) return;
+    if (_enabled == enabled || !AppPlatform.isMobile) return;
     _enabled = enabled;
     unawaited(
       _channel.invokeMethod<void>('set', {'enabled': enabled}).catchError((Object error, StackTrace stackTrace) {

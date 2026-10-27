@@ -170,9 +170,9 @@ class CallsCubit extends Cubit<CallsState> {
   /// только статусы (микрофон + уведомления на Android). Управляет показом
   /// баннера-объяснения на вкладке; вызывается при первом показе и после запроса.
   Future<void> checkCallPermissions() async {
-    // Десктоп: звонков пока нет (docs/plans/desktop-client.md §7), а у
-    // permission_handler нет реализации для macOS.
-    if (!AppPlatform.hasCalls) return;
+    // Десктоп: у permission_handler нет реализации для macOS — доступ к
+    // микрофону спрашиваем на самом звонке (ensureCallMicPermission).
+    if (!AppPlatform.isMobile) return;
     final mic = await Permission.microphone.status;
     if (isClosed) return;
     var notifMissing = false;

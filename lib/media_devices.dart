@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:record/record.dart';
 
+import 'di.dart';
 import 'models.dart' as models;
+import 'repositories.dart';
 
 /// Микрофон и камера, выбранные на десктопе («Настройки → Общие»). Выбор хранится
 /// в `settingsDevice` как id + имя: id устройства после перезагрузки бывает
@@ -36,6 +38,27 @@ abstract final class MediaDevices {
       return microphone(await microphones(recorder), settings);
     } catch (_) {
       return null;
+    }
+  }
+
+  /// WebRTC-id микрофона и камеры для звонка (`RoomOptions`): выбранные, если
+  /// подключены; иначе `null` — системные. Микрофон ищем по имени: в
+  /// настройках — id `record`, у WebRTC свои.
+  static Future<({String? microphone, String? camera})> callDevices() async {
+    try {
+      final settings = await getIt.get<DeviceRepositories>().settingsDevice.getAll();
+      if (settings.microphoneName.isEmpty && settings.cameraId.isEmpty && settings.cameraName.isEmpty) {
+        return (microphone: null, camera: null);
+      }
+      final all = await Hardware.instance.enumerateDevices();
+      final microphones = all.where((device) => device.kind == 'audioinput').toList();
+      final cameras = all.where((device) => device.kind == 'videoinput').toList();
+      return (
+        microphone: _match(microphones, '', settings.microphoneName, (d) => d.deviceId, (d) => d.label)?.deviceId,
+        camera: camera(cameras, settings)?.deviceId,
+      );
+    } catch (_) {
+      return (microphone: null, camera: null);
     }
   }
 
