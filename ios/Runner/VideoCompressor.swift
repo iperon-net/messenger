@@ -53,9 +53,13 @@ final class VideoCompressor {
       let thumb = args["thumb"] as? String
       let thumbSide = args["thumbSide"] as? Int ?? 320
       let thumbAtMs = args["thumbAtMs"] as? Int ?? 0
-      queue.async {
-        let info = Self.info(path: path, thumb: thumb, thumbSide: thumbSide, thumbAtMs: thumbAtMs)
-        DispatchQueue.main.async { result(info) }
+      Task {
+        let video = try? await Video.load(URL(fileURLWithPath: path))
+        // Кадр-превью — синхронно, на своей очереди (не в пуле Swift Concurrency).
+        queue.async {
+          let info = video.map { Self.info($0, thumb: thumb, thumbSide: thumbSide, thumbAtMs: thumbAtMs) }
+          DispatchQueue.main.async { result(info) }
+        }
       }
     case "frames":
       guard let path = args["path"] as? String, let prefix = args["prefix"] as? String else {
@@ -63,9 +67,12 @@ final class VideoCompressor {
       }
       let count = args["count"] as? Int ?? 10
       let side = args["side"] as? Int ?? 160
-      queue.async {
-        let frames = Self.frames(path: path, count: count, side: side, prefix: prefix)
-        DispatchQueue.main.async { result(frames) }
+      Task {
+        let video = try? await Video.load(URL(fileURLWithPath: path))
+        queue.async {
+          let frames = video.map { Self.frames($0, count: count, side: side, prefix: prefix) } ?? []
+          DispatchQueue.main.async { result(frames) }
+        }
       }
     case "compress":
       guard let id = args["id"] as? String, let path = args["path"] as? String, let out = args["out"] as? String else {
@@ -112,20 +119,51 @@ final class VideoCompressor {
     }
   }
 
+  /// Свойства видео, загруженные заранее асинхронно: синхронные
+  /// `AVAsset.tracks` / `duration` и `AVAssetTrack.naturalSize` /
+  /// `preferredTransform` / … устарели (macOS 13, iOS 16) — они блокируют поток
+  /// до загрузки. `load` — с iOS 15 / macOS 12.
+  struct Video {
+    let asset: AVURLAsset
+    let track: AVAssetTrack
+    /// Первая звуковая дорожка (только если просили).
+    let audio: AVAssetTrack?
+    let duration: CMTime
+    let naturalSize: CGSize
+    let preferredTransform: CGAffineTransform
+    let nominalFrameRate: Float
+    let estimatedDataRate: Float
+    let segments: [AVAssetTrackSegment]
+
+    /// Нет видеодорожки — [Job.Failure.noVideo].
+    static func load(_ url: URL, audio: Bool = false) async throws -> Video {
+      let asset = AVURLAsset(url: url)
+      guard let track = try await asset.loadTracks(withMediaType: .video).first else { throw Job.Failure.noVideo }
+      let duration = try await asset.load(.duration)
+      let (size, transform, fps, rate, segments) = try await track.load(
+        .naturalSize, .preferredTransform, .nominalFrameRate, .estimatedDataRate, .segments)
+      var audioTrack: AVAssetTrack?
+      if audio {
+        audioTrack = try await asset.loadTracks(withMediaType: .audio).first
+      }
+      return Video(
+        asset: asset, track: track, audio: audioTrack, duration: duration, naturalSize: size,
+        preferredTransform: transform, nominalFrameRate: fps, estimatedDataRate: rate, segments: segments)
+    }
+  }
+
   /// Размеры (с поворотом), длительность, битрейт и кадр-превью.
-  private static func info(path: String, thumb: String?, thumbSide: Int, thumbAtMs: Int) -> [String: Any]? {
-    let asset = AVURLAsset(url: URL(fileURLWithPath: path))
-    guard let track = asset.tracks(withMediaType: .video).first else { return nil }
-    let size = displaySize(track.naturalSize, track.preferredTransform)
+  private static func info(_ video: Video, thumb: String?, thumbSide: Int, thumbAtMs: Int) -> [String: Any] {
+    let size = displaySize(video.naturalSize, video.preferredTransform)
     var info: [String: Any] = [
       "width": Int(size.width.rounded()),
       "height": Int(size.height.rounded()),
-      "durationMs": Int((CMTimeGetSeconds(asset.duration) * 1000).rounded()),
-      "bitrate": Int(track.estimatedDataRate),
-      "fps": Double(track.nominalFrameRate),
+      "durationMs": Int((CMTimeGetSeconds(video.duration) * 1000).rounded()),
+      "bitrate": Int(video.estimatedDataRate),
+      "fps": Double(video.nominalFrameRate),
     ]
     if let thumb {
-      let generator = AVAssetImageGenerator(asset: asset)
+      let generator = AVAssetImageGenerator(asset: video.asset)
       generator.appliesPreferredTrackTransform = true
       generator.maximumSize = CGSize(width: thumbSide, height: thumbSide)
       if thumbAtMs > 0 {
@@ -144,11 +182,10 @@ final class VideoCompressor {
   }
 
   /// Кадры для ленты редактора: `count` штук по центрам равных отрезков.
-  private static func frames(path: String, count: Int, side: Int, prefix: String) -> [String] {
-    let asset = AVURLAsset(url: URL(fileURLWithPath: path))
-    let duration = CMTimeGetSeconds(asset.duration)
+  private static func frames(_ video: Video, count: Int, side: Int, prefix: String) -> [String] {
+    let duration = CMTimeGetSeconds(video.duration)
     guard count > 0, duration > 0 else { return [] }
-    let generator = AVAssetImageGenerator(asset: asset)
+    let generator = AVAssetImageGenerator(asset: video.asset)
     generator.appliesPreferredTrackTransform = true
     generator.maximumSize = CGSize(width: side, height: side)
     // Для ленты точность не нужна — допуск ускоряет (берётся ближний кадр).
@@ -236,16 +273,15 @@ final class VideoCompressor {
     /// [rotation] по часовой; короткая сторона результата — не больше
     /// [shortSide] (0 — без уменьшения). Возвращает и размер кадра.
     static func reframe(
-      track: AVAssetTrack,
-      duration: CMTime,
+      _ video: Video,
       crop: [CGFloat]?,
       rotation: Int,
       shortSide: Int,
       maxFps: Int
     ) -> (AVVideoComposition, (width: Int, height: Int)) {
       // Показываемый кадр: исходный с поворотом из метаданных, от (0, 0).
-      let preferred = track.preferredTransform
-      let shown = CGRect(origin: .zero, size: track.naturalSize).applying(preferred)
+      let preferred = video.preferredTransform
+      let shown = CGRect(origin: .zero, size: video.naturalSize).applying(preferred)
       let c = crop ?? [0, 0, 1, 1]
       let cropRect = CGRect(
         x: c[0] * abs(shown.width),
@@ -270,10 +306,10 @@ final class VideoCompressor {
         .concatenating(rotate)
         .concatenating(CGAffineTransform(translationX: -rotated.minX, y: -rotated.minY))
 
-      let layer = AVMutableVideoCompositionLayerInstruction(assetTrack: track)
+      let layer = AVMutableVideoCompositionLayerInstruction(assetTrack: video.track)
       layer.setTransform(transform, at: .zero)
       let instruction = AVMutableVideoCompositionInstruction()
-      instruction.timeRange = CMTimeRange(start: .zero, duration: duration)
+      instruction.timeRange = CMTimeRange(start: .zero, duration: video.duration)
       instruction.layerInstructions = [layer]
 
       let composition = AVMutableVideoComposition()
@@ -281,24 +317,27 @@ final class VideoCompressor {
       let size = (width: quarter ? cropH : cropW, height: quarter ? cropW : cropH)
       composition.renderSize = CGSize(width: size.width, height: size.height)
       // Композиция выдаёт кадры с этой частотой — сразу не выше maxFps.
-      let nominal = track.nominalFrameRate > 0 ? Double(track.nominalFrameRate) : 30
+      let nominal = video.nominalFrameRate > 0 ? Double(video.nominalFrameRate) : 30
       let fps = maxFps > 0 ? min(nominal, Double(maxFps)) : nominal
       composition.frameDuration = CMTime(value: 1, timescale: CMTimeScale(max(1, fps.rounded())))
       return (composition, size)
     }
 
     func run(completion: @escaping (Error?) -> Void) {
-      do {
-        try start(completion: completion)
-      } catch {
-        completion(error)
+      Task {
+        do {
+          let video = try await Video.load(source, audio: !mute)
+          try start(video, completion: completion)
+        } catch {
+          completion(error)
+        }
       }
     }
 
-    private func start(completion: @escaping (Error?) -> Void) throws {
-      let asset = AVURLAsset(url: source)
-      guard let videoTrack = asset.tracks(withMediaType: .video).first else { throw Failure.noVideo }
-      let audioTrack = mute ? nil : asset.tracks(withMediaType: .audio).first
+    private func start(_ video: Video, completion: @escaping (Error?) -> Void) throws {
+      let asset = video.asset
+      let videoTrack = video.track
+      let audioTrack = video.audio
       // Обрезка: читаем только [start, end); запись начинается со start —
       // в файле видео идёт с нуля.
       let reframe = crop != nil || rotation != 0
@@ -307,10 +346,10 @@ final class VideoCompressor {
       // начале — у видео из галереи бывает). AVVideoComposition рисует там
       // чёрные кадры — первый кадр и обложка выходили чёрными; начинаем с
       // первого настоящего кадра.
-      if reframe, let first = videoTrack.segments.first(where: { !$0.isEmpty })?.timeMapping.target.start {
+      if reframe, let first = video.segments.first(where: { !$0.isEmpty })?.timeMapping.target.start {
         start = CMTimeMaximum(start, first)
       }
-      let end = endMs > 0 ? min(CMTime(value: CMTimeValue(endMs), timescale: 1000), asset.duration) : asset.duration
+      let end = endMs > 0 ? min(CMTime(value: CMTimeValue(endMs), timescale: 1000), video.duration) : video.duration
       let range = CMTimeRange(start: start, end: end)
       let duration = max(CMTimeGetSeconds(range.duration), 0.001)
       let startSeconds = CMTimeGetSeconds(start)
@@ -322,7 +361,7 @@ final class VideoCompressor {
       if reframe {
         // Кадрирование и поворот — через AVVideoComposition: кадр
         // «запекается» уже повёрнутым, transform у дорожки не нужен.
-        let (composition, size) = Self.reframe(track: videoTrack, duration: asset.duration, crop: crop, rotation: rotation, shortSide: shortSide, maxFps: maxFps)
+        let (composition, size) = Self.reframe(video, crop: crop, rotation: rotation, shortSide: shortSide, maxFps: maxFps)
         width = size.width
         height = size.height
         let output = AVAssetReaderVideoCompositionOutput(videoTracks: [videoTrack], videoSettings: pixelFormat)
@@ -331,7 +370,7 @@ final class VideoCompressor {
       } else {
         // Размер в исходной (до поворота) ориентации: короткая сторона →
         // shortSide, не увеличиваем; кодеку нужны чётные стороны.
-        let natural = videoTrack.naturalSize
+        let natural = video.naturalSize
         let shortest = min(natural.width, natural.height)
         let scale = shortSide > 0 && shortest > 0 ? min(1, CGFloat(shortSide) / shortest) : 1
         width = Self.even(natural.width * scale)
@@ -365,7 +404,7 @@ final class VideoCompressor {
       let videoIn = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
       // Без правок кадра поворот не «запекаем» — пишем как в исходнике,
       // плееры его учитывают.
-      if !reframe { videoIn.transform = videoTrack.preferredTransform }
+      if !reframe { videoIn.transform = video.preferredTransform }
       videoIn.expectsMediaDataInRealTime = false
       writer.add(videoIn)
 
