@@ -66,7 +66,7 @@ abstract final class SplitLayout {
   /// ([minListWidth]). Хранится в настройках окна (`Desktop.listWidth`).
   static final listWidthOverride = ValueNotifier<double?>(null);
 
-  static const minListWidth = 344.0;
+  static const minListWidth = 396.0;
   static const maxListWidth = 560.0;
   static const minPaneWidth = 380.0;
 
