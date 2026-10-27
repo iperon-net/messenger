@@ -2075,6 +2075,14 @@ class Routers {
           path: "general",
           parentNavigatorKey: pane,
           pageBuilder: (context, state) => _pageMaterial(state, const SettingsGeneralMaterial(), pane: split, context: context),
+          routes: [
+            // Микрофон и камера по умолчанию.
+            GoRoute(
+              path: "calls",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(state, const SettingsCallsMaterial()),
+            ),
+          ],
         ),
         GoRoute(
           path: "appearance",

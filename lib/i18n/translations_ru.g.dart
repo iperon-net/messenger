@@ -911,6 +911,8 @@ class _Translations$screenSettingsGeneral$ru extends Translations$screenSettings
 	final TranslationsRu _root; // ignore: unused_field
 
 	// Translations
+	@override String get calls => 'Звонки';
+	@override String get noCamera => 'Камера не найдена';
 	@override String get general => 'Общие';
 	@override String get sendMessage => 'Отправка сообщения';
 	@override String get newLineShiftEnter => 'Shift + Enter — новая строка';
@@ -918,16 +920,12 @@ class _Translations$screenSettingsGeneral$ru extends Translations$screenSettings
 	@override String get microphone => 'Микрофон';
 	@override String get camera => 'Камера';
 	@override String get systemDefault => 'Как в системе';
-	@override String get testMicrophone => 'Проверить микрофон';
-	@override String get stopTest => 'Остановить проверку';
-	@override String get showPreview => 'Показать превью';
-	@override String get hidePreview => 'Скрыть превью';
 	@override String get microphoneNoAccess => 'Нет доступа к микрофону';
 	@override String get cameraNoAccess => 'Нет доступа к камере';
 	@override String get allow => 'Разрешить';
 	@override String get openSettings => 'Открыть настройки';
 	@override String get microphoneHint => 'Для голосовых сообщений и звонков.';
-	@override String get cameraHint => 'Для видеозвонков. Камера включается только во время звонка или превью.';
+	@override String get cameraHint => 'Для видеозвонков. Камера включена, только пока открыт этот экран или идёт звонок.';
 }
 
 // Path: screenSettingsNotifications
@@ -2759,6 +2757,8 @@ extension on TranslationsRu {
 			'screenSettings.trayQuit' => 'Завершить Iperon',
 			'screenSettings.trayUpdates' => 'Проверить обновления…',
 			'screenSettings.accountSwitchCallActive' => 'Во время звонка аккаунт не переключить',
+			'screenSettingsGeneral.calls' => 'Звонки',
+			'screenSettingsGeneral.noCamera' => 'Камера не найдена',
 			'screenSettingsGeneral.general' => 'Общие',
 			'screenSettingsGeneral.sendMessage' => 'Отправка сообщения',
 			'screenSettingsGeneral.newLineShiftEnter' => 'Shift + Enter — новая строка',
@@ -2766,16 +2766,12 @@ extension on TranslationsRu {
 			'screenSettingsGeneral.microphone' => 'Микрофон',
 			'screenSettingsGeneral.camera' => 'Камера',
 			'screenSettingsGeneral.systemDefault' => 'Как в системе',
-			'screenSettingsGeneral.testMicrophone' => 'Проверить микрофон',
-			'screenSettingsGeneral.stopTest' => 'Остановить проверку',
-			'screenSettingsGeneral.showPreview' => 'Показать превью',
-			'screenSettingsGeneral.hidePreview' => 'Скрыть превью',
 			'screenSettingsGeneral.microphoneNoAccess' => 'Нет доступа к микрофону',
 			'screenSettingsGeneral.cameraNoAccess' => 'Нет доступа к камере',
 			'screenSettingsGeneral.allow' => 'Разрешить',
 			'screenSettingsGeneral.openSettings' => 'Открыть настройки',
 			'screenSettingsGeneral.microphoneHint' => 'Для голосовых сообщений и звонков.',
-			'screenSettingsGeneral.cameraHint' => 'Для видеозвонков. Камера включается только во время звонка или превью.',
+			'screenSettingsGeneral.cameraHint' => 'Для видеозвонков. Камера включена, только пока открыт этот экран или идёт звонок.',
 			'screenSettingsNotifications.notifications' => 'Уведомления и звуки',
 			'screenSettingsNotifications.messageNotifications' => 'Уведомления о сообщениях',
 			'screenSettingsNotifications.privateChats' => 'Личные чаты',
@@ -3154,10 +3150,10 @@ extension on TranslationsRu {
 			'cloudPassword.disable' => 'Отключить пароль',
 			'cloudPassword.loadError' => 'Не удалось загрузить настройки облачного пароля',
 			'cloudPassword.retry' => 'Повторить',
-			_ => null,
-		} ?? switch (path) {
 			'cloudPassword.emailRequired' => 'Введите email',
 			'cloudPassword.passwordRequired' => 'Введите пароль',
+			_ => null,
+		} ?? switch (path) {
 			'cloudPassword.passwordTooShort' => 'Пароль должен быть не короче 5 символов',
 			'cloudPassword.codeRequired' => 'Введите код',
 			'cloudPassword.passwordsDoNotMatch' => 'Пароли не совпадают',

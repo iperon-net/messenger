@@ -2146,6 +2146,12 @@ class Translations$screenSettingsGeneral$en {
 
 	// Translations
 
+	/// en: 'Calls'
+	String get calls => 'Calls';
+
+	/// en: 'No camera found'
+	String get noCamera => 'No camera found';
+
 	/// en: 'General'
 	String get general => 'General';
 
@@ -2167,18 +2173,6 @@ class Translations$screenSettingsGeneral$en {
 	/// en: 'System default'
 	String get systemDefault => 'System default';
 
-	/// en: 'Test microphone'
-	String get testMicrophone => 'Test microphone';
-
-	/// en: 'Stop test'
-	String get stopTest => 'Stop test';
-
-	/// en: 'Show preview'
-	String get showPreview => 'Show preview';
-
-	/// en: 'Hide preview'
-	String get hidePreview => 'Hide preview';
-
 	/// en: 'No access to the microphone'
 	String get microphoneNoAccess => 'No access to the microphone';
 
@@ -2194,8 +2188,8 @@ class Translations$screenSettingsGeneral$en {
 	/// en: 'Used for voice messages and calls.'
 	String get microphoneHint => 'Used for voice messages and calls.';
 
-	/// en: 'Used for video calls. The camera is on only during a call or preview.'
-	String get cameraHint => 'Used for video calls. The camera is on only during a call or preview.';
+	/// en: 'Used for video calls. The camera is on only while this screen is open or during a call.'
+	String get cameraHint => 'Used for video calls. The camera is on only while this screen is open or during a call.';
 }
 
 // Path: screenSettingsNotifications
@@ -5624,6 +5618,8 @@ extension on Translations {
 			'screenSettings.trayQuit' => 'Quit Iperon',
 			'screenSettings.trayUpdates' => 'Check for Updates…',
 			'screenSettings.accountSwitchCallActive' => 'Can\'t switch accounts during a call',
+			'screenSettingsGeneral.calls' => 'Calls',
+			'screenSettingsGeneral.noCamera' => 'No camera found',
 			'screenSettingsGeneral.general' => 'General',
 			'screenSettingsGeneral.sendMessage' => 'Send message',
 			'screenSettingsGeneral.newLineShiftEnter' => 'Shift + Enter — new line',
@@ -5631,16 +5627,12 @@ extension on Translations {
 			'screenSettingsGeneral.microphone' => 'Microphone',
 			'screenSettingsGeneral.camera' => 'Camera',
 			'screenSettingsGeneral.systemDefault' => 'System default',
-			'screenSettingsGeneral.testMicrophone' => 'Test microphone',
-			'screenSettingsGeneral.stopTest' => 'Stop test',
-			'screenSettingsGeneral.showPreview' => 'Show preview',
-			'screenSettingsGeneral.hidePreview' => 'Hide preview',
 			'screenSettingsGeneral.microphoneNoAccess' => 'No access to the microphone',
 			'screenSettingsGeneral.cameraNoAccess' => 'No access to the camera',
 			'screenSettingsGeneral.allow' => 'Allow',
 			'screenSettingsGeneral.openSettings' => 'Open settings',
 			'screenSettingsGeneral.microphoneHint' => 'Used for voice messages and calls.',
-			'screenSettingsGeneral.cameraHint' => 'Used for video calls. The camera is on only during a call or preview.',
+			'screenSettingsGeneral.cameraHint' => 'Used for video calls. The camera is on only while this screen is open or during a call.',
 			'screenSettingsNotifications.notifications' => 'Notifications and sounds',
 			'screenSettingsNotifications.messageNotifications' => 'Message notifications',
 			'screenSettingsNotifications.privateChats' => 'Private chats',
@@ -6019,10 +6011,10 @@ extension on Translations {
 			'cloudPassword.disable' => 'Disable password',
 			'cloudPassword.loadError' => 'Couldn\'t load cloud password settings',
 			'cloudPassword.retry' => 'Retry',
-			_ => null,
-		} ?? switch (path) {
 			'cloudPassword.emailRequired' => 'Enter an email',
 			'cloudPassword.passwordRequired' => 'Enter a password',
+			_ => null,
+		} ?? switch (path) {
 			'cloudPassword.passwordTooShort' => 'Password must be at least 5 characters',
 			'cloudPassword.codeRequired' => 'Enter the code',
 			'cloudPassword.passwordsDoNotMatch' => 'Passwords don\'t match',

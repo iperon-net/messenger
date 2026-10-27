@@ -708,6 +708,8 @@
   "accountSwitchCallActive": "Во время звонка аккаунт не переключить"
 
 "screenSettingsGeneral":
+  "calls": "Звонки"
+  "noCamera": "Камера не найдена"
   "general": "Общие"
   "sendMessage": "Отправка сообщения"
   "newLineShiftEnter": "Shift + Enter — новая строка"
@@ -715,16 +717,12 @@
   "microphone": "Микрофон"
   "camera": "Камера"
   "systemDefault": "Как в системе"
-  "testMicrophone": "Проверить микрофон"
-  "stopTest": "Остановить проверку"
-  "showPreview": "Показать превью"
-  "hidePreview": "Скрыть превью"
   "microphoneNoAccess": "Нет доступа к микрофону"
   "cameraNoAccess": "Нет доступа к камере"
   "allow": "Разрешить"
   "openSettings": "Открыть настройки"
   "microphoneHint": "Для голосовых сообщений и звонков."
-  "cameraHint": "Для видеозвонков. Камера включается только во время звонка или превью."
+  "cameraHint": "Для видеозвонков. Камера включена, только пока открыт этот экран или идёт звонок."
 
 "screenSettingsNotifications":
   "notifications": "Уведомления и звуки"
