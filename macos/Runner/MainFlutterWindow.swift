@@ -68,12 +68,14 @@ final class AppUpdater {
 
 /// Значок в строке меню (как у Telegram Desktop): шаблонная картинка (система
 /// красит её под светлую / тёмную строку), рядом — число непрочитанных чатов.
-/// Меню: открыть окно, проверить обновления ([AppUpdater]), завершить
+/// Клик — сразу окно (как у Telegram Desktop); правый клик (или ⌃-клик) —
+/// меню: открыть окно, проверить обновления ([AppUpdater]), завершить
 /// приложение. Подписи приходят из Dart (`setTrayMenu`) на языке приложения.
 final class TrayIcon: NSObject {
   private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
   private let openItem = NSMenuItem(title: "Open Iperon", action: #selector(open), keyEquivalent: "")
   private let quitItem = NSMenuItem(title: "Quit Iperon", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+  private let menu = NSMenu()
   private weak var window: NSWindow?
 
   init(window: NSWindow, updater: AppUpdater?) {
@@ -85,14 +87,28 @@ final class TrayIcon: NSObject {
     item.button?.imagePosition = .imageLeading
     item.button?.toolTip = "Iperon"
     openItem.target = self
-    let menu = NSMenu()
     menu.addItem(openItem)
     if let updater {
       menu.addItem(updater.trayItem)
     }
     menu.addItem(.separator())
     menu.addItem(quitItem)
-    item.menu = menu
+    // Меню не привязываем к значку насовсем (тогда любой клик открывал бы его):
+    // клики приходят в clicked, меню показываем только на правый.
+    item.button?.target = self
+    item.button?.action = #selector(clicked)
+    item.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
+  }
+
+  @objc private func clicked() {
+    let event = NSApp.currentEvent
+    if event?.type == .rightMouseUp || event?.modifierFlags.contains(.control) == true {
+      item.menu = menu
+      item.button?.performClick(nil)
+      item.menu = nil
+    } else {
+      open()
+    }
   }
 
   func setTitles(open: String, quit: String) {
