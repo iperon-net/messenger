@@ -6,6 +6,7 @@ import '../../split_layout.dart';
 import '../../chats/reactions.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
+import '../../platform.dart';
 import '../../models/constants.dart';
 import '../../themes.dart';
 import '../../components.dart';
@@ -199,22 +200,25 @@ class _SettingsAppearanceMaterial extends State<SettingsAppearanceMaterial> {
                     ],
                   ),
                 ),
-                Card(
-                  margin: const EdgeInsets.fromLTRB(12, 16, 12, 4),
-                  child: SwitchListTile(
-                    title: Text(context.t.screenSettingsAppearance.blurOnInactive),
-                    value: state.isBlurOnInactive,
-                    onChanged: (bool value) async =>
-                        await context.read<SettingsAppearanceCubit>().setIsBlurOnInactive(isBlurOnInactive: value),
+                // Размытие при сворачивании — только мобильные (на десктопе его нет).
+                if (!AppPlatform.isDesktop) ...[
+                  Card(
+                    margin: const EdgeInsets.fromLTRB(12, 16, 12, 4),
+                    child: SwitchListTile(
+                      title: Text(context.t.screenSettingsAppearance.blurOnInactive),
+                      value: state.isBlurOnInactive,
+                      onChanged: (bool value) async =>
+                          await context.read<SettingsAppearanceCubit>().setIsBlurOnInactive(isBlurOnInactive: value),
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
-                  child: Text(
-                    context.t.screenSettingsAppearance.blurOnInactiveDescription,
-                    style: TextStyle(fontSize: AppFontSizes.caption, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                    child: Text(
+                      context.t.screenSettingsAppearance.blurOnInactiveDescription,
+                      style: TextStyle(fontSize: AppFontSizes.caption, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),

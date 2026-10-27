@@ -286,7 +286,9 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
                   // child: иначе смена структуры дерева на `inactive` (а его даёт
                   // и всплывающее окно автозаполнения Android) пересоздаёт экран
                   // и закрывает клавиатуру в поле ввода.
-                  if (state.settingsDevice.isBlurOnInactive && isBlur)
+                  // Десктоп — без размытия: окно не уходит в «переключатель
+                  // приложений», где его надо прятать, а свёрнутое и так не видно.
+                  if (!AppPlatform.isDesktop && state.settingsDevice.isBlurOnInactive && isBlur)
                     Positioned.fill(
                       child: BlurLayer(
                         blur: 5,
