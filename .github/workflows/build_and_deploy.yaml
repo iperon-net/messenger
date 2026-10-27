@@ -37,10 +37,13 @@ jobs:
       asc_key_p8_base64: ${{ secrets.ASC_KEY_P8_BASE64 }}
 
   # Десктоп macOS (DMG + автообновление, docs/plans/desktop-client.md §10). Пока
-  # секретов нет — неподписанный DMG только артефактом, в S3 ничего не уходит.
+  # секретов нет — неподписанный DMG только артефактом, релиз не создаётся.
   macOS:
     uses: iperon-net/messenger/.github/workflows/_deploy_macos.yaml@main
     needs: Linter
+    # Публикация — GitHub Release этого репо.
+    permissions:
+      contents: write
     with:
       flutter_version: "3.47.8"
     secrets:
@@ -51,5 +54,3 @@ jobs:
       asc_issuer_id: ${{ secrets.ASC_ISSUER_ID }}
       asc_key_p8_base64: ${{ secrets.ASC_KEY_P8_BASE64 }}
       sparkle_ed_private_key: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
-      download_s3_access_key_id: ${{ secrets.DOWNLOAD_S3_ACCESS_KEY_ID }}
-      download_s3_secret_access_key: ${{ secrets.DOWNLOAD_S3_SECRET_ACCESS_KEY }}

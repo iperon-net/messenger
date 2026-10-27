@@ -2,7 +2,7 @@
 # Сборка и выпуск macOS-клиента (docs/plans/desktop-client.md §10):
 # flutter build → подпись Developer ID (hardened runtime) → нотаризация + staple
 # приложения → DMG → подпись, нотаризация + staple DMG → EdDSA-подпись Sparkle →
-# appcast.xml → заливка в S3 (раздаёт nginx на download.iperon.net).
+# appcast → GitHub Release (раздаёт nginx на download.iperon.net).
 #
 #   scripts/macos_release.sh <build-name> [build-number]
 #
@@ -16,15 +16,15 @@
 #   SPARKLE_ED_KEY_FILE   — приватный EdDSA-ключ Sparkle (CI); локально без неё
 #                           sign_update берёт ключ из связки ключей. Подпись и
 #                           appcast — только для нотаризованной сборки.
-#   S3_BUCKET + S3_ENDPOINT + AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY — заливка.
+#   GITHUB_RELEASE_REPO + GH_TOKEN — публикация (релиз v<версия>, тег уже есть).
 #
-# Выпуск для всех — только версия X.Y.0 (тег v0.1.0, v1.2.0): она становится
-# Iperon.dmg (кнопка на сайте) и попадает в appcast — установленные копии
-# обновятся. Остальные (v0.0.541 — обычные сборки вместе с TestFlight) заливаются
-# только как Iperon-<версия>.dmg — для тестеров по прямой ссылке; appcast и
-# Iperon.dmg не трогаются. RELEASE=1/0 — переопределить.
+# Выпуск для всех — только версия X.Y.0 (тег v0.1.0, v1.2.0): её релиз
+# становится последним (latest) — Iperon.dmg на сайте и appcast, установленные
+# копии обновятся. Остальные (v0.0.541 — обычные сборки вместе с TestFlight) —
+# pre-release: только Iperon-<версия>.dmg для тестеров по прямой ссылке.
+# RELEASE=1/0 — переопределить.
 #
-# Результат — build/macos/release/: Iperon-<версия>.dmg и appcast.xml.
+# Результат — build/macos/release/: Iperon-<версия>.dmg, Iperon.dmg и appcast-macos.xml.
 set -euo pipefail
 
 BUILD_NAME="${1:?usage: $0 <build-name> [build-number]}"
@@ -154,7 +154,7 @@ DMG_URL="$DOWNLOAD_HOST/macos/$(basename "$DMG")"
 PUB_DATE="$(LC_ALL=C date -u '+%a, %d %b %Y %H:%M:%S +0000')"
 
 # Только последняя версия: Sparkle ставит её поверх любой старой.
-cat >"$OUT/appcast.xml" <<EOF
+cat >"$OUT/appcast-macos.xml" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
   <channel>
@@ -171,45 +171,34 @@ cat >"$OUT/appcast.xml" <<EOF
 </rss>
 EOF
 
-if [ -z "${S3_BUCKET:-}" ]; then
-  echo "==> готово (без заливки, нет S3_BUCKET): $OUT"
+if [ -z "${GITHUB_RELEASE_REPO:-}" ]; then
+  echo "==> готово (без публикации, нет GITHUB_RELEASE_REPO): $OUT"
   exit 0
 fi
 
-echo "==> S3 $S3_BUCKET"
-# Без «гибких» контрольных сумм нового aws cli (Cloud.ru их не понимает).
-export AWS_REQUEST_CHECKSUM_CALCULATION=when_required
-export AWS_RESPONSE_CHECKSUM_VALIDATION=when_required
-s3() { aws --endpoint-url "${S3_ENDPOINT:?}" --cli-read-timeout 300 s3api "$@" >/dev/null; }
-DMG_KEY="macos/$(basename "$DMG")"
-# DMG — составной загрузкой (части по 8 МБ, параллельно, каждая повторяется
-# отдельно): одним PUT 64 МБ с раннера GitHub до Cloud.ru за 16 минут так и не
-# дошли (соединение закрылось). Сервер грузит одним PUT из-за minio-go — тот не
-# разбирает ответ Cloud.ru на CompleteMultipartUpload (сервер, internal/s3);
-# не вышло и здесь — запасной вариант одним PUT.
-if ! aws --endpoint-url "$S3_ENDPOINT" --cli-read-timeout 300 s3 cp "$DMG" "s3://$S3_BUCKET/$DMG_KEY" \
-  --content-type application/x-apple-diskimage --no-progress; then
-  echo "==> составная загрузка не вышла — одним PUT"
-  s3 put-object --bucket "$S3_BUCKET" --key "$DMG_KEY" --body "$DMG" \
-    --content-type application/x-apple-diskimage
-fi
-# Дошёл целиком: размер в бакете = размеру файла (на него ссылается appcast).
-REMOTE_LENGTH="$(aws --endpoint-url "$S3_ENDPOINT" s3api head-object --bucket "$S3_BUCKET" --key "$DMG_KEY" \
-  --query ContentLength --output text)"
-if [ "$REMOTE_LENGTH" != "$LENGTH" ]; then
-  echo "::error::$DMG_KEY: в бакете $REMOTE_LENGTH байт, ожидалось $LENGTH"
-  exit 1
-fi
+# Публикация — GitHub Release v<версия> в GITHUB_RELEASE_REPO (gh, токен в
+# GH_TOKEN): DMG и appcast из раннера GitHub в Cloud.ru S3 не доходили —
+# крупные передачи замирали на ~16 минутах. Наружу файлы раздаёт nginx
+# download.iperon.net, забирая их из релизов и кэшируя (сервер,
+# docs/nginx/download.iperon.net.conf): `/macos/appcast.xml` и `/macos/Iperon.dmg` —
+# из последнего релиза (latest), `/macos/Iperon-<версия>.dmg` — из релиза версии.
+# Не выпуск для всех — pre-release: latest на него не переключается, appcast и
+# Iperon.dmg у клиентов прежние, DMG версии доступен тестерам по ссылке.
+TAG="v$BUILD_NAME"
+cp "$DMG" "$OUT/Iperon.dmg"
+echo "==> GitHub Release $GITHUB_RELEASE_REPO $TAG"
+FLAGS=(--latest)
 if [ "$RELEASE" != 1 ]; then
-  echo "==> готово (не X.Y.0 — без appcast и Iperon.dmg): $DMG_URL"
-  exit 0
+  FLAGS=(--prerelease --latest=false)
 fi
-# Постоянная ссылка для кнопки «Скачать» на сайте.
-s3 copy-object --bucket "$S3_BUCKET" --key "macos/Iperon.dmg" \
-  --copy-source "$S3_BUCKET/$DMG_KEY" \
-  --content-type application/x-apple-diskimage --metadata-directive REPLACE
+# Релиз версии общий для платформ (позже — и Windows): кто первый, тот создаёт,
+# остальные дописывают файлы. Тег должен уже быть (--verify-tag).
+if gh release view "$TAG" --repo "$GITHUB_RELEASE_REPO" >/dev/null 2>&1 ||
+  ! gh release create "$TAG" --repo "$GITHUB_RELEASE_REPO" --verify-tag "${FLAGS[@]}" \
+    --title "Iperon $BUILD_NAME" --notes "Iperon $BUILD_NAME" "$DMG" "$OUT/Iperon.dmg"; then
+  gh release upload "$TAG" --repo "$GITHUB_RELEASE_REPO" --clobber "$DMG" "$OUT/Iperon.dmg"
+fi
 # appcast — последним: клиенты увидят версию, только когда DMG уже лежит.
-s3 put-object --bucket "$S3_BUCKET" --key "macos/appcast.xml" --body "$OUT/appcast.xml" \
-  --content-type "application/xml; charset=utf-8" --cache-control no-cache
+gh release upload "$TAG" --repo "$GITHUB_RELEASE_REPO" --clobber "$OUT/appcast-macos.xml"
 
 echo "==> готово: $DMG_URL"
