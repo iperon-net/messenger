@@ -56,6 +56,9 @@ env:
   # Бакет (S3_BUCKET=iperon) задаётся в «Prepare signing secrets» — только
   # когда заливаем.
   S3_ENDPOINT: "https://s3.cloud.ru"
+  # ВРЕМЕННО: каждая версия (v0.0.N) — выпуск для всех (appcast + Iperon.dmg).
+  # Когда перейдём на v0.X.0, убрать — заработает правило скрипта «только X.Y.0».
+  RELEASE: "1"
   AWS_DEFAULT_REGION: "ru-central-1"
 
 jobs:
