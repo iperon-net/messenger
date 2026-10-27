@@ -1197,6 +1197,11 @@ class _Header extends StatelessWidget {
   }
 }
 
+/// Нижний отступ панелей чата (ввод, «Подписаться» / звук, «Разблокировать»,
+/// поиск) на десктопе: безопасной зоны снизу там нет — иначе панель упирается
+/// в край окна. На мобильных отступ даёт сама безопасная зона.
+EdgeInsets get _bottomGap => AppPlatform.isDesktop ? const EdgeInsets.only(bottom: 5) : EdgeInsets.zero;
+
 class _ComposeBar extends StatelessWidget {
   final TextEditingController input;
   final ComposeFormatMenu formatMenu;
@@ -1248,7 +1253,8 @@ class _ComposeBar extends StatelessWidget {
       // Панель эмодзи открыта — она сама доходит до низа экрана.
       child: ListenableBuilder(
         listenable: emoji,
-        builder: (context, child) => SafeArea(top: false, bottom: emoji.reserved == 0, child: child!),
+        builder: (context, child) =>
+            SafeArea(top: false, bottom: emoji.reserved == 0, minimum: emoji.reserved == 0 ? _bottomGap : EdgeInsets.zero, child: child!),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1478,6 +1484,7 @@ class _ChannelBar extends StatelessWidget {
       color: color,
       child: SafeArea(
         top: false,
+        minimum: _bottomGap,
         child: SizedBox(
           width: double.infinity,
           height: 52,
@@ -1522,6 +1529,7 @@ class _CommentsBlockedBar extends StatelessWidget {
       color: color,
       child: SafeArea(
         top: false,
+        minimum: _bottomGap,
         child: SizedBox(
           width: double.infinity,
           height: 52,
@@ -1568,6 +1576,7 @@ class _SearchBar extends StatelessWidget {
       color: color,
       child: SafeArea(
         top: false,
+        minimum: _bottomGap,
         child: SizedBox(
           height: 52,
           child: Row(
