@@ -177,20 +177,36 @@ if [ -z "${S3_BUCKET:-}" ]; then
 fi
 
 echo "==> S3 $S3_BUCKET"
-# Cloud.ru: одним PUT (составная загрузка у них ломается на complete, см.
-# сервер, storage) и без «гибких» контрольных сумм нового aws cli.
+# Без «гибких» контрольных сумм нового aws cli (Cloud.ru их не понимает).
 export AWS_REQUEST_CHECKSUM_CALCULATION=when_required
 export AWS_RESPONSE_CHECKSUM_VALIDATION=when_required
-s3() { aws --endpoint-url "${S3_ENDPOINT:?}" s3api "$@" >/dev/null; }
-s3 put-object --bucket "$S3_BUCKET" --key "macos/$(basename "$DMG")" --body "$DMG" \
-  --content-type application/x-apple-diskimage
+s3() { aws --endpoint-url "${S3_ENDPOINT:?}" --cli-read-timeout 300 s3api "$@" >/dev/null; }
+DMG_KEY="macos/$(basename "$DMG")"
+# DMG — составной загрузкой (части по 8 МБ, параллельно, каждая повторяется
+# отдельно): одним PUT 64 МБ с раннера GitHub до Cloud.ru за 16 минут так и не
+# дошли (соединение закрылось). Сервер грузит одним PUT из-за minio-go — тот не
+# разбирает ответ Cloud.ru на CompleteMultipartUpload (сервер, internal/s3);
+# не вышло и здесь — запасной вариант одним PUT.
+if ! aws --endpoint-url "$S3_ENDPOINT" --cli-read-timeout 300 s3 cp "$DMG" "s3://$S3_BUCKET/$DMG_KEY" \
+  --content-type application/x-apple-diskimage --no-progress; then
+  echo "==> составная загрузка не вышла — одним PUT"
+  s3 put-object --bucket "$S3_BUCKET" --key "$DMG_KEY" --body "$DMG" \
+    --content-type application/x-apple-diskimage
+fi
+# Дошёл целиком: размер в бакете = размеру файла (на него ссылается appcast).
+REMOTE_LENGTH="$(aws --endpoint-url "$S3_ENDPOINT" s3api head-object --bucket "$S3_BUCKET" --key "$DMG_KEY" \
+  --query ContentLength --output text)"
+if [ "$REMOTE_LENGTH" != "$LENGTH" ]; then
+  echo "::error::$DMG_KEY: в бакете $REMOTE_LENGTH байт, ожидалось $LENGTH"
+  exit 1
+fi
 if [ "$RELEASE" != 1 ]; then
   echo "==> готово (не X.Y.0 — без appcast и Iperon.dmg): $DMG_URL"
   exit 0
 fi
 # Постоянная ссылка для кнопки «Скачать» на сайте.
 s3 copy-object --bucket "$S3_BUCKET" --key "macos/Iperon.dmg" \
-  --copy-source "$S3_BUCKET/macos/$(basename "$DMG")" \
+  --copy-source "$S3_BUCKET/$DMG_KEY" \
   --content-type application/x-apple-diskimage --metadata-directive REPLACE
 # appcast — последним: клиенты увидят версию, только когда DMG уже лежит.
 s3 put-object --bucket "$S3_BUCKET" --key "macos/appcast.xml" --body "$OUT/appcast.xml" \
