@@ -386,7 +386,9 @@ Cloud.ru (`download.iperon.net`), забирая файлы из релизов 
    WinSparkle): выпуски, подписи и минимальная ОС у них независимы.
 3. **Автообновление** — Sparkle 2 напрямую (pod `Sparkle ~> 2.9` в `macos/Podfile`;
    пакет `auto_updater` не обновлялся с 2024): `AppUpdater` в
-   `MainFlutterWindow.swift` (`SPUStandardUpdaterController`, проверка раз в сутки),
+   `MainFlutterWindow.swift` (`SPUStandardUpdaterController`; проверка раз в 4 часа —
+   `SUScheduledCheckInterval`, приложение почти не закрывают; новая версия
+   скачивается в фоне — `SUAutomaticallyUpdate`, ставится при выходе или по «Установить»),
    «Проверить обновления…» в меню приложения и в строке меню (подпись из Dart —
    `setTrayMenu.updates`, `screenSettings.trayUpdates`). `SUFeedURL` =
    `https://download.iperon.net/macos/appcast.xml`, `SUPublicEDKey` — из

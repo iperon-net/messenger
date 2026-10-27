@@ -43,5 +43,9 @@
 	<string>$(SPARKLE_PUBLIC_ED_KEY)</string>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
+	<key>SUScheduledCheckInterval</key>
+	<integer>14400</integer>
+	<key>SUAutomaticallyUpdate</key>
+	<true/>
 </dict>
 </plist>
