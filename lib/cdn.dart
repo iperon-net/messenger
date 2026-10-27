@@ -128,6 +128,7 @@ class CDNManager {
     required Uint8List bytes,
     required String folder,
     required String contentType,
+    CdnKind kind = CdnKind.CDN_KIND_UNSPECIFIED,
     String extension = 'bin',
     void Function(int sentBytes, int totalBytes)? onProgress,
   }) async {
@@ -136,7 +137,7 @@ class CDNManager {
     ).writeAsBytes(bytes, flush: true);
 
     try {
-      return await uploadFile(file: tmpFile, folder: folder, contentType: contentType, onProgress: onProgress);
+      return await uploadFile(file: tmpFile, folder: folder, contentType: contentType, kind: kind, onProgress: onProgress);
     } finally {
       // Temp-файл нужен только на время заливки (uploadFile читает его с диска
       // при докачке), поэтому чистим и после успеха, и после ошибки.
@@ -154,10 +155,15 @@ class CDNManager {
   ///
   /// [chatID] — чат вложения (id списка): засеянный файл кэша сразу
   /// привязан к нему («Использование памяти»).
+  ///
+  /// [kind] — назначение файла для записи на сервере (вложение / превью /
+  /// аватар; отчёты по месту). В состоянии загрузки не хранится: докачку
+  /// после перезапуска снова запускает тот же вызывающий код.
   Future<models.CDN> uploadFile({
     required File file,
     required String folder,
     required String contentType,
+    CdnKind kind = CdnKind.CDN_KIND_UNSPECIFIED,
     void Function(int sentBytes, int totalBytes)? onProgress,
     bool Function()? isCancelled,
     String chatID = '',
@@ -167,6 +173,7 @@ class CDNManager {
         file: file,
         folder: folder,
         contentType: contentType,
+        kind: kind,
         onProgress: onProgress,
         isCancelled: isCancelled,
         chatID: chatID,
@@ -181,6 +188,7 @@ class CDNManager {
           file: file,
           folder: folder,
           contentType: contentType,
+          kind: kind,
           onProgress: onProgress,
           isCancelled: isCancelled,
           chatID: chatID,
@@ -199,6 +207,7 @@ class CDNManager {
     required File file,
     required String folder,
     required String contentType,
+    required CdnKind kind,
     void Function(int sentBytes, int totalBytes)? onProgress,
     bool Function()? isCancelled,
     String chatID = '',
@@ -258,7 +267,7 @@ class CDNManager {
       }
     }
 
-    final cdn = await _confirm(state);
+    final cdn = await _confirm(state, kind);
 
     // Plaintext уже лежит на устройстве — засеиваем им media-кэш, чтобы
     // последующий download(cdn) для только что залитого файла (аватарка и т.п.)
@@ -437,7 +446,7 @@ class CDNManager {
     }
   }
 
-  Future<models.CDN> _confirm(models.UploadState state) async {
+  Future<models.CDN> _confirm(models.UploadState state, CdnKind kind) async {
     final uploadID = state.uploadID;
     if (uploadID == null) {
       throw const UploadException('upload: confirm called before InitAck ever succeeded');
@@ -454,6 +463,7 @@ class CDNManager {
             hkdfSalt: state.hkdfSalt,
             contentType: state.contentType,
             folder: state.folder,
+            kind: kind,
           );
     final payload = request.writeToBuffer();
 

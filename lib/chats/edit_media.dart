@@ -199,7 +199,7 @@ Future<void> editMessageMedia({
   required models.EditMedia draft,
   required Future<bool> Function() hasNetwork,
   required Future<pb.MessageContent?> Function() original,
-  required Future<List<int>> Function(File file, void Function(int sent, int total) onProgress) upload,
+  required Future<List<int>> Function(File file, bool thumb, void Function(int sent, int total) onProgress) upload,
   required Future<void> Function(pb.Messages_Edit edit) send,
   void Function(int sent, int total)? onUpload,
   bool Function()? isCancelled,
@@ -234,6 +234,7 @@ Future<void> editMessageMedia({
       if (isCancelled?.call() ?? false) throw const UploadCancelledException();
       final cdnID = await upload(
         job.file,
+        job.thumb,
         (sent, cipherTotal) => onUpload?.call(uploadedBytes(done: done, current: sizes[j], sent: sent, total: cipherTotal), total),
       );
       done += sizes[j];

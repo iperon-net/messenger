@@ -5,6 +5,16 @@ option go_package = "internal/api/v1";
 
 import "protos/models.proto";
 
+// Назначение файла — пишется в запись cdn (отчёты по месту, сборщик). Клиент
+// указывает его для папки «chats» (вложение или превью); аватары и файлы
+// секретных чатов сервер определяет сам по папке / opaque.
+enum CdnKind {
+  CDN_KIND_UNSPECIFIED = 0; // старый клиент: в «chats» — как MEDIA
+  CDN_KIND_MEDIA = 1;       // вложение сообщения
+  CDN_KIND_THUMB = 2;       // превью фото / обложка видео
+  CDN_KIND_AVATAR = 3;      // аватар профиля или группы
+}
+
 message UploadConfirm {
   message Request {
     string uploadId = 1;
@@ -21,6 +31,7 @@ message UploadConfirm {
     // нельзя прикрепить к обычному сообщению или аватару; ссылку выдаёт только
     // SecretChats.GetFiles участнику чата, к которому файл прикреплён (Send).
     bool opaque = 7;
+    CdnKind kind = 8;
   }
 
   message Response {

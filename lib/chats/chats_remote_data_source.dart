@@ -1073,7 +1073,12 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   /// фото качается (не получилось посчитать — пусто, фото всё равно ставим).
   Future<({Uint8List cdnID, String thumbhash})> _uploadChatAvatar(String path) async {
     try {
-      final file = await _scope.cdn.uploadFile(file: File(path), folder: 'avatars', contentType: 'image/jpeg');
+      final file = await _scope.cdn.uploadFile(
+        file: File(path),
+        folder: 'avatars',
+        contentType: 'image/jpeg',
+        kind: CdnKind.CDN_KIND_AVATAR,
+      );
       return (cdnID: Uint8List.fromList(file.cdnID), thumbhash: await avatarThumbhash(await File(path).readAsBytes()));
     } on FileSystemException {
       rethrow;
@@ -3130,10 +3135,11 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       draft: draft,
       hasNetwork: _sync.hasNetwork,
       original: () async => (await _store.message(userID: _sync.me, chatID: chat, messageID: id))?.content,
-      upload: (file, onProgress) async => (await _cdn.uploadFile(
+      upload: (file, thumb, onProgress) async => (await _cdn.uploadFile(
         file: file,
         folder: chatMediaFolder,
         contentType: chatMediaContentType(file.path),
+        kind: thumb ? CdnKind.CDN_KIND_THUMB : CdnKind.CDN_KIND_MEDIA,
         chatID: chatID,
         isCancelled: isCancelled,
         onProgress: onProgress,

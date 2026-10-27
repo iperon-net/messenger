@@ -15,6 +15,22 @@ import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
+@$core.Deprecated('Use cdnKindDescriptor instead')
+const CdnKind$json = {
+  '1': 'CdnKind',
+  '2': [
+    {'1': 'CDN_KIND_UNSPECIFIED', '2': 0},
+    {'1': 'CDN_KIND_MEDIA', '2': 1},
+    {'1': 'CDN_KIND_THUMB', '2': 2},
+    {'1': 'CDN_KIND_AVATAR', '2': 3},
+  ],
+};
+
+/// Descriptor for `CdnKind`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List cdnKindDescriptor =
+    $convert.base64Decode('CgdDZG5LaW5kEhgKFENETl9LSU5EX1VOU1BFQ0lGSUVEEAASEgoOQ0ROX0tJTkRfTUVESUEQAR'
+        'ISCg5DRE5fS0lORF9USFVNQhACEhMKD0NETl9LSU5EX0FWQVRBUhAD');
+
 @$core.Deprecated('Use uploadConfirmDescriptor instead')
 const UploadConfirm$json = {
   '1': 'UploadConfirm',
@@ -31,6 +47,7 @@ const UploadConfirm_Request$json = {
     {'1': 'contentType', '3': 5, '4': 1, '5': 9, '10': 'contentType'},
     {'1': 'folder', '3': 6, '4': 1, '5': 9, '10': 'folder'},
     {'1': 'opaque', '3': 7, '4': 1, '5': 8, '10': 'opaque'},
+    {'1': 'kind', '3': 8, '4': 1, '5': 14, '6': '.iperon.v1.CdnKind', '10': 'kind'},
   ],
   '9': [
     {'1': 4, '2': 5},
@@ -48,8 +65,9 @@ const UploadConfirm_Response$json = {
 
 /// Descriptor for `UploadConfirm`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List uploadConfirmDescriptor =
-    $convert.base64Decode('Cg1VcGxvYWRDb25maXJtGskBCgdSZXF1ZXN0EhoKCHVwbG9hZElkGAEgASgJUgh1cGxvYWRJZB'
+    $convert.base64Decode('Cg1VcGxvYWRDb25maXJtGvEBCgdSZXF1ZXN0EhoKCHVwbG9hZElkGAEgASgJUgh1cGxvYWRJZB'
         'IkCg1lbmNyeXB0aW9uS2V5GAIgASgMUg1lbmNyeXB0aW9uS2V5EhoKCGhrZGZTYWx0GAMgASgM'
         'Ughoa2RmU2FsdBIgCgtjb250ZW50VHlwZRgFIAEoCVILY29udGVudFR5cGUSFgoGZm9sZGVyGA'
-        'YgASgJUgZmb2xkZXISFgoGb3BhcXVlGAcgASgIUgZvcGFxdWVKBAgEEAVSCGZpbGVOYW1lGiwK'
-        'CFJlc3BvbnNlEiAKA2NkbhgBIAEoCzIOLmlwZXJvbi52MS5DRE5SA2Nkbg==');
+        'YgASgJUgZmb2xkZXISFgoGb3BhcXVlGAcgASgIUgZvcGFxdWUSJgoEa2luZBgIIAEoDjISLmlw'
+        'ZXJvbi52MS5DZG5LaW5kUgRraW5kSgQIBBAFUghmaWxlTmFtZRosCghSZXNwb25zZRIgCgNjZG'
+        '4YASABKAsyDi5pcGVyb24udjEuQ0ROUgNjZG4=');

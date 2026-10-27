@@ -148,6 +148,7 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
         bytes: bytes,
         folder: 'avatars',
         contentType: 'image/jpeg',
+        kind: CdnKind.CDN_KIND_AVATAR,
         extension: 'jpg',
         onProgress: (sent, total) {
           logger.debug('upload progress: $sent / $total');

@@ -15,8 +15,11 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 import 'models.pb.dart' as $0;
+import 'upload_confirm_v1.pbenum.dart';
 
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
+
+export 'upload_confirm_v1.pbenum.dart';
 
 class UploadConfirm_Request extends $pb.GeneratedMessage {
   factory UploadConfirm_Request({
@@ -26,6 +29,7 @@ class UploadConfirm_Request extends $pb.GeneratedMessage {
     $core.String? contentType,
     $core.String? folder,
     $core.bool? opaque,
+    CdnKind? kind,
   }) {
     final result = create();
     if (uploadId != null) result.uploadId = uploadId;
@@ -34,6 +38,7 @@ class UploadConfirm_Request extends $pb.GeneratedMessage {
     if (contentType != null) result.contentType = contentType;
     if (folder != null) result.folder = folder;
     if (opaque != null) result.opaque = opaque;
+    if (kind != null) result.kind = kind;
     return result;
   }
 
@@ -52,6 +57,7 @@ class UploadConfirm_Request extends $pb.GeneratedMessage {
     ..aOS(5, _omitFieldNames ? '' : 'contentType', protoName: 'contentType')
     ..aOS(6, _omitFieldNames ? '' : 'folder')
     ..aOB(7, _omitFieldNames ? '' : 'opaque')
+    ..aE<CdnKind>(8, _omitFieldNames ? '' : 'kind', enumValues: CdnKind.values)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -130,6 +136,15 @@ class UploadConfirm_Request extends $pb.GeneratedMessage {
   $core.bool hasOpaque() => $_has(5);
   @$pb.TagNumber(7)
   void clearOpaque() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  CdnKind get kind => $_getN(6);
+  @$pb.TagNumber(8)
+  set kind(CdnKind value) => $_setField(8, value);
+  @$pb.TagNumber(8)
+  $core.bool hasKind() => $_has(6);
+  @$pb.TagNumber(8)
+  void clearKind() => $_clearField(8);
 }
 
 class UploadConfirm_Response extends $pb.GeneratedMessage {

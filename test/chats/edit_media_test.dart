@@ -180,7 +180,7 @@ void main() {
             calls++;
             return original();
           },
-          upload: (file, onProgress) async {
+          upload: (file, thumb, onProgress) async {
             calls++;
             return const [];
           },
@@ -206,7 +206,7 @@ void main() {
         ),
         hasNetwork: () async => true,
         original: () async => original(),
-        upload: (file, onProgress) async {
+        upload: (file, thumb, onProgress) async {
           uploaded.add(file.path);
           onProgress(1, 1);
           return List<int>.filled(12, 40 + uploaded.length);
@@ -238,7 +238,7 @@ void main() {
           draft: const models.EditMedia(added: [file]),
           hasNetwork: () async => true,
           original: () async => original(),
-          upload: (file, onProgress) async {
+          upload: (file, thumb, onProgress) async {
             uploads++;
             return const [];
           },
