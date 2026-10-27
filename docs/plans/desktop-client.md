@@ -324,39 +324,71 @@ UI на обеих сторонах. Строится поверх шагов 1�
 ## 10. Сборка и выпуск macOS (этап 6)
 
 Решено 2026-10-26: собираем в CI по тому же тегу `v0.0.N`, что и TestFlight.
+Решено 2026-10-27: DMG и appcast — в бакете S3 Cloud.ru, раздаёт nginx на ВМ
+Cloud.ru (`download.iperon.net`); сайт (GitHub Pages, `iperon.org`) только ссылается
+на `download.iperon.net/macos/Iperon.dmg`. Отвергнуты: DMG в git репо сайта (лимит
+100 МБ на файл, история растёт навсегда, Pages не отдаёт LFS) и GitHub Releases
+(чужой домен, `githubusercontent.com` у части российских провайдеров медленный).
 
-1. **CI.** Новый reusable workflow `.github/workflows/_deploy_macos.yaml` на
-   macOS-раннере, вызывается из `build_and_deploy.yaml` параллельно с
-   `_deploy_testflight.yaml` (`needs: Linter`). Восстановление `firebase_options.dart`
-   / `.env`, `build_runner` + `slang` — как в TestFlight-задании; кэши — те же ключи
-   (`warm_cache.yaml`). `flutter build macos --release --build-name <тег>
-   --build-number <date -u +%y%m%d%H%M>` — universal (arm64 + x86_64).
-2. **Подпись.** Сертификат **Developer ID Application** (не iOS Distribution;
-   выпускает владелец аккаунта Apple Developer) — секрет `.p12` + пароль, импорт во
-   временный keychain раннера. Ручная подпись через дописанные ключи в
-   `macos/Runner/Configs/Release.xcconfig` (как `ios/Flutter/Release.xcconfig`, pbxproj
-   не трогаем), hardened runtime, `Release.entitlements`: сеть (клиент), микрофон /
-   камера — когда появятся звонки (§7).
-3. **Keychain.** Вместе с подписью — provisioning profile Developer ID для macOS с
-   `keychain-access-groups`, и `macOSKeychainOptions` → data protection keychain
-   (сейчас login keychain, §8). Переход ломает чтение старых записей — на
-   разработческих Mac перелогиниться (в релиз до этого ничего не уходило).
-4. **Нотаризация.** `xcrun notarytool submit --wait` с ключом App Store Connect API
-   (тот же, что у fastlane), затем `xcrun stapler staple` — иначе Gatekeeper не даст
-   открыть скачанное с сайта приложение.
-5. **DMG.** `create-dmg` (или `hdiutil`) с ярлыком «Программы», подпись + нотаризация
-   + staple самого DMG. Имя `Iperon-<версия>.dmg`.
-6. **Публикация и автообновление.** DMG и `appcast.xml` — на `iperon.net/download/`
-   (nginx или существующий S3-бакет — решить). `auto_updater` (Sparkle) в приложении,
-   appcast подписан EdDSA-ключом Sparkle (приватный — секрет CI, публичный —
-   `SUPublicEDKey` в `Info.plist`). Страница скачивания на сайте.
-7. **Иконка и имя.** Своя иконка `AppIcon` вместо стандартной Flutter; версия в «О
-   программе» — из тега.
+Написано 2026-10-27 (не проверено с настоящей подписью — ждём сертификат):
 
-Нужно от владельца аккаунта: сертификат Developer ID Application + provisioning
-profile Developer ID (macOS, `net.iperon.messenger`); решение, где лежат DMG и
-appcast. До CI можно собрать локально: `flutter build macos --release` →
-`build/macos/Build/Products/Release/Iperon.app` (без подписи — только на своём Mac).
+1. **Скрипт** `scripts/macos_release.sh <версия> [номер]` — всё по шагам, каждый
+   включается своими переменными (без них — пропуск, локально получится
+   неподписанный DMG только для своего Mac): `flutter build macos --release`
+   (universal, проверено: `x86_64 arm64`, .app 148 МБ, DMG 64 МБ) → подпись изнутри
+   наружу (`MACOS_SIGN_IDENTITY`, hardened runtime, `--timestamp`; Sparkle — по его
+   инструкции: XPC-сервисы, Autoupdate, Updater.app) → нотаризация .zip + staple
+   .app (`NOTARY_PROFILE` локально или `ASC_KEY_ID`/`ASC_ISSUER_ID`/`ASC_KEY_PATH`) →
+   DMG (`hdiutil`, ярлык «Программы») → подпись, нотаризация, staple DMG →
+   `sign_update` (EdDSA, `SPARKLE_ED_KEY_FILE` или ключ из связки) → `appcast.xml`
+   (одна, последняя версия) → S3 (`S3_BUCKET`/`S3_ENDPOINT`, одним PUT —
+   Cloud.ru ломает multipart; appcast заливается последним). Подписывать через
+   Xcode не стали: у Runner `CODE_SIGN_STYLE = Automatic` в pbxproj, а
+   `Release.xcconfig` его не перебивает (base config — `AppInfo.xcconfig`); подпись
+   после сборки не требует provisioning profile (Developer ID без ограниченных
+   entitlements).
+2. **CI** — `.github/workflows/_deploy_macos.yaml`: из `build_and_deploy.yaml` по
+   тегу параллельно с TestFlight (`needs: Linter`) и вручную — `macos.yaml`
+   (Actions → «macOS build», вход `build_name`, `publish` по умолчанию выключен).
+   Секреты необязательные: чего нет — шаг пропускается, DMG всё равно уходит
+   артефактом (14 дней; без сертификата — неподписанный); в S3 — только
+   нотаризованная и подписанная Sparkle сборка при `publish` и ключе S3. Секреты:
+   `MACOS_DEVELOPER_ID_P12_BASE64`, `MACOS_DEVELOPER_ID_PASSWORD`,
+   `SPARKLE_ED_PRIVATE_KEY`, `DOWNLOAD_S3_ACCESS_KEY_ID`,
+   `DOWNLOAD_S3_SECRET_ACCESS_KEY` (+ общие `ASC_*`, `FIREBASE_OPTIONS_DART_BASE64`).
+   Бакет `iperon` (`https://iperon.s3.cloud.ru`), эндпоинт `https://s3.cloud.ru`,
+   `ru-central-1`. **Выпуск для всех — только версия X.Y.0** (тег `v0.1.0`): она
+   становится `Iperon.dmg` и попадает в appcast (установленные копии обновятся);
+   остальные теги (`v0.0.541` — обычные сборки с TestFlight) заливаются только как
+   `Iperon-<версия>.dmg` для тестеров по прямой ссылке (правило в
+   `macos_release.sh`, `RELEASE=1/0` — переопределить). appcast у каждой платформы свой (`macos/`, позже `windows/` для
+   WinSparkle): выпуски, подписи и минимальная ОС у них независимы.
+3. **Автообновление** — Sparkle 2 напрямую (pod `Sparkle ~> 2.9` в `macos/Podfile`;
+   пакет `auto_updater` не обновлялся с 2024): `AppUpdater` в
+   `MainFlutterWindow.swift` (`SPUStandardUpdaterController`, проверка раз в сутки),
+   «Проверить обновления…» в меню приложения и в строке меню (подпись из Dart —
+   `setTrayMenu.updates`, `screenSettings.trayUpdates`). `SUFeedURL` =
+   `https://download.iperon.net/macos/appcast.xml`, `SUPublicEDKey` — из
+   `AppInfo.xcconfig` (`SPARKLE_PUBLIC_ED_KEY`); в debug и при пустом ключе
+   обновления выключены. Ключи: `macos/Pods/Sparkle/bin/generate_keys` (приватный —
+   в связку ключей), `generate_keys -p` → публичный в xcconfig, `generate_keys -x
+   <файл>` → секрет CI. **Потерять приватный ключ = выпущенные копии больше не
+   обновятся.**
+4. **Раздача** — `~/GolandProjects/iperon/docs/nginx/download.iperon.net.conf`:
+   `macos/Iperon-<версия>.dmg` (кэш 30 дней), `macos/Iperon.dmg` (последняя, кэш 5
+   мин), `macos/appcast.xml` (без кэша), остальное — 404.
+5. **Entitlements** (hardened runtime): добавлен микрофон
+   (`device.audio-input`, голосовые) и `NSMicrophoneUsageDescription` (пока только
+   по-английски); камера — когда появятся звонки (§7).
+6. **Keychain** — пока login keychain (`macOSKeychainOptions`): data protection
+   keychain требует provisioning profile с `keychain-access-groups` — отдельным
+   шагом, вместе с ним перелогин на разработческих Mac.
+
+Осталось (владелец аккаунта / инфраструктура): сертификат Developer ID
+Application; EdDSA-ключи Sparkle; ключ на запись в бакет `iperon` (`https://iperon.s3.cloud.ru`, уже есть); ВМ
+Cloud.ru: DNS `download.iperon.net`, сертификат, конфиг nginx; секреты. Потом — первый выпуск по тегу и проверка обновления
+(поставить N, выпустить N+1, «Проверить обновления…»). Версия в «О программе» —
+из тега.
 
 ## 11. Итоги этапа 2 (2026-10-26, macOS; проверено на Mac)
 
