@@ -49,8 +49,15 @@ class DeviceRepositories {
   }
 
   Future<void> _initialization() async {
-    supportDir = (await getApplicationSupportDirectory()).path;
-    cacheRoot = (await getApplicationCacheDirectory()).path;
+    final support = (await getApplicationSupportDirectory()).path;
+    final cache = (await getApplicationCacheDirectory()).path;
+    final debugDesktop = AppPlatform.isDesktop && kDebugMode;
+    if (AppPlatform.isDesktop) await _separateDebugData(support, cache);
+    supportDir = debugDesktop ? p.join(support, _debugDirName) : support;
+    cacheRoot = debugDesktop ? p.join(cache, _debugDirName) : cache;
+    if (debugDesktop) {
+      _debugRewrite[p.join(support, AccountFiles.accountsDirName)] = p.join(supportDir, AccountFiles.accountsDirName);
+    }
     final legacyDatabasePath = p.join(supportDir, settings.databaseName);
     final deviceDatabasePath = p.join(supportDir, 'device.db');
 
@@ -191,8 +198,66 @@ class DeviceRepositories {
     }
   }
 
-  /// Перенесённые каталоги аккаунта (один раз).
-  Map<String, String> takeMovedFiles(String accountID) => _movedFiles.remove(accountID) ?? const {};
+  /// Перенесённые каталоги аккаунта (один раз) + переезд данных debug в
+  /// подпапку (на каждом старте debug: правка путей идемпотентна, а переносить
+  /// мог и release — в другом процессе).
+  Map<String, String> takeMovedFiles(String accountID) => {..._debugRewrite, ...?_movedFiles.remove(accountID)};
+
+  static const _debugDirName = 'debug';
+
+  /// Корень `accounts` → он же в подпапке debug (см. [_separateDebugData]).
+  final _debugRewrite = <String, String>{};
+
+  /// Десктоп: debug-сборка и установленный release на одном Mac делят папку
+  /// приложения (`Application Support/net.iperon.messenger` — без песочницы),
+  /// а базы у них несовместимы: debug — без шифрования, release — SQLCipher с
+  /// паролем из Keychain. Release на базе debug вис на старте (чёрный экран,
+  /// 2026-10-27). Поэтому debug живёт в подпапке `debug`, а прежние данные
+  /// debug из корня (база без шифрования — заголовок «SQLite format 3»)
+  /// переезжают туда один раз — из той сборки, что запустится первой.
+  Future<void> _separateDebugData(String support, String cache) async {
+    final databases = ['device.db', settings.databaseName];
+    var plain = false;
+    for (final name in databases) {
+      if (await _isPlainSqlite(File(p.join(support, name)))) plain = true;
+    }
+    if (!plain) return;
+    final debugSupport = p.join(support, _debugDirName);
+    final debugCache = p.join(cache, _debugDirName);
+    if (await File(p.join(debugSupport, 'device.db')).exists()) {
+      logger.warning('debug data: $debugSupport already exists, root left as is');
+      return;
+    }
+    await Directory(debugSupport).create(recursive: true);
+    await Directory(debugCache).create(recursive: true);
+    final moves = <FileSystemEntity, String>{
+      for (final name in databases)
+        for (final suffix in ['', '-wal', '-shm']) File(p.join(support, '$name$suffix')): p.join(debugSupport, '$name$suffix'),
+      for (final name in [AccountFiles.accountsDirName, ...AccountFiles.dataDirs])
+        Directory(p.join(support, name)): p.join(debugSupport, name),
+      for (final name in [AccountFiles.accountsDirName, AccountFiles.mediaDirName])
+        Directory(p.join(cache, name)): p.join(debugCache, name),
+    };
+    for (final MapEntry(key: from, value: to) in moves.entries) {
+      if (!await from.exists() || await FileSystemEntity.type(to) != FileSystemEntityType.notFound) continue;
+      try {
+        await from.rename(to);
+      } on FileSystemException catch (error) {
+        logger.error('debug data: move ${from.path} failed: $error');
+      }
+    }
+    logger.info('debug data: moved to $debugSupport');
+  }
+
+  static Future<bool> _isPlainSqlite(File file) async {
+    if (!await file.exists()) return false;
+    final handle = await file.open();
+    try {
+      return utf8.decode(await handle.read(16), allowMalformed: true) == 'SQLite format 3\u0000';
+    } finally {
+      await handle.close();
+    }
+  }
 
   static String _generatePassword() {
     final random = Random.secure();
