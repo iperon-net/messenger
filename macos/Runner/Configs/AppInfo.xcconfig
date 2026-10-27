@@ -12,3 +12,10 @@ PRODUCT_BUNDLE_IDENTIFIER = net.iperon.messenger
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2026 Iperon. All rights reserved.
+
+// Автообновление (Sparkle, docs/plans/desktop-client.md §10). `//` в xcconfig —
+// комментарий, отсюда `$()` в адресе. Ключ — публичная половина EdDSA-пары
+// (`macos/Pods/Sparkle/bin/generate_keys -p`); приватная подписывает DMG в CI.
+// Пустой ключ — обновления выключены (AppUpdater).
+SPARKLE_FEED_URL = https:/$()/download.iperon.net/macos/appcast.xml
+SPARKLE_PUBLIC_ED_KEY =

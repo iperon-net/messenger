@@ -56,7 +56,7 @@ abstract final class Desktop {
 
   static Future<void> _setTrayMenu() {
     final t = LocaleSettings.instance.currentTranslations.screenSettings;
-    return _invoke<void>('setTrayMenu', {'open': t.trayOpen, 'quit': t.trayQuit});
+    return _invoke<void>('setTrayMenu', {'open': t.trayOpen, 'quit': t.trayQuit, 'updates': t.trayUpdates});
   }
 
   /// Число непрочитанных чатов на значке в Dock и в строке меню; 0 — убрать.

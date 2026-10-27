@@ -898,6 +898,7 @@ class _Translations$screenSettings$ru extends Translations$screenSettings$en {
 	@override String launchAtLoginFailed({required Object error}) => 'Не удалось изменить автозапуск: ${error}';
 	@override String get trayOpen => 'Открыть Iperon';
 	@override String get trayQuit => 'Завершить Iperon';
+	@override String get trayUpdates => 'Проверить обновления…';
 	@override String get accountSwitchCallActive => 'Во время звонка аккаунт не переключить';
 }
 
@@ -2727,6 +2728,7 @@ extension on TranslationsRu {
 			'screenSettings.launchAtLoginFailed' => ({required Object error}) => 'Не удалось изменить автозапуск: ${error}',
 			'screenSettings.trayOpen' => 'Открыть Iperon',
 			'screenSettings.trayQuit' => 'Завершить Iperon',
+			'screenSettings.trayUpdates' => 'Проверить обновления…',
 			'screenSettings.accountSwitchCallActive' => 'Во время звонка аккаунт не переключить',
 			'screenSettingsNotifications.notifications' => 'Уведомления и звуки',
 			'screenSettingsNotifications.messageNotifications' => 'Уведомления о сообщениях',
@@ -3124,9 +3126,9 @@ extension on TranslationsRu {
 			'screenMyProfile.tellUsAboutYourself' => 'Расскажите о себе',
 			'screenMyProfile.add' => 'Указать',
 			'screenMyProfile.birthDate' => 'Дата рождения',
-			'screenMyProfile.username' => 'Имя пользователя',
 			_ => null,
 		} ?? switch (path) {
+			'screenMyProfile.username' => 'Имя пользователя',
 			'screenMyProfile.validationFirstNameMaxLength' => 'Должно содержать не более 25 символов',
 			'screenMyProfile.validationLastNameMaxLength' => 'Должно содержать не более 25 символов',
 			'screenMyProfile.validationAboutMeMaxLength' => 'Должно содержать не более 140 символов',

@@ -703,6 +703,7 @@
   "launchAtLoginFailed": "Не удалось изменить автозапуск: {error}"
   "trayOpen": "Открыть Iperon"
   "trayQuit": "Завершить Iperon"
+  "trayUpdates": "Проверить обновления…"
   "accountSwitchCallActive": "Во время звонка аккаунт не переключить"
 
 "screenSettingsNotifications":

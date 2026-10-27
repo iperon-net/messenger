@@ -677,6 +677,7 @@
   "launchAtLoginFailed": "Couldn't change launch at login: {error}"
   "trayOpen": "Open Iperon"
   "trayQuit": "Quit Iperon"
+  "trayUpdates": "Check for Updates…"
   "accountSwitchCallActive": "Can't switch accounts during a call"
 
 "screenSettingsNotifications":

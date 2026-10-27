@@ -2127,6 +2127,9 @@ class Translations$screenSettings$en {
 	/// en: 'Quit Iperon'
 	String get trayQuit => 'Quit Iperon';
 
+	/// en: 'Check for Updates…'
+	String get trayUpdates => 'Check for Updates…';
+
 	/// en: 'Can't switch accounts during a call'
 	String get accountSwitchCallActive => 'Can\'t switch accounts during a call';
 }
@@ -5554,6 +5557,7 @@ extension on Translations {
 			'screenSettings.launchAtLoginFailed' => ({required Object error}) => 'Couldn\'t change launch at login: ${error}',
 			'screenSettings.trayOpen' => 'Open Iperon',
 			'screenSettings.trayQuit' => 'Quit Iperon',
+			'screenSettings.trayUpdates' => 'Check for Updates…',
 			'screenSettings.accountSwitchCallActive' => 'Can\'t switch accounts during a call',
 			'screenSettingsNotifications.notifications' => 'Notifications and sounds',
 			'screenSettingsNotifications.messageNotifications' => 'Message notifications',
@@ -5951,9 +5955,9 @@ extension on Translations {
 			'screenMyProfile.tellUsAboutYourself' => 'Tell us about yourself',
 			'screenMyProfile.add' => 'Add',
 			'screenMyProfile.birthDate' => 'Birth date',
-			'screenMyProfile.username' => 'Username',
 			_ => null,
 		} ?? switch (path) {
+			'screenMyProfile.username' => 'Username',
 			'screenMyProfile.validationFirstNameMaxLength' => 'Must contain no more than 25 characters',
 			'screenMyProfile.validationLastNameMaxLength' => 'Must contain no more than 25 characters',
 			'screenMyProfile.validationAboutMeMaxLength' => 'Must contain no more than 140 characters',

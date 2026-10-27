@@ -1,6 +1,7 @@
 import Cocoa
 import FlutterMacOS
 import ServiceManagement
+import Sparkle
 import UserNotifications
 
 class MainFlutterWindow: NSWindow {
@@ -28,17 +29,54 @@ class MainFlutterWindow: NSWindow {
   }
 }
 
+/// Автообновление (Sparkle, docs/plans/desktop-client.md §10): раз в сутки
+/// читает appcast (`SUFeedURL`), проверяет EdDSA-подпись DMG (`SUPublicEDKey`)
+/// и предлагает поставить новую версию; вручную — «Проверить обновления…» в
+/// меню приложения и в строке меню. В debug и без ключа выключено (`nil`).
+final class AppUpdater {
+  private let controller: SPUStandardUpdaterController
+  /// Пункт меню в строке меню ([TrayIcon]); пункт меню приложения — свой
+  /// (NSMenuItem живёт только в одном меню).
+  let trayItem: NSMenuItem
+  private let appMenuItem: NSMenuItem
+
+  init?() {
+    #if DEBUG
+    return nil
+    #else
+    let key = Bundle.main.object(forInfoDictionaryKey: "SUPublicEDKey") as? String ?? ""
+    if key.isEmpty { return nil }
+    controller = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+    let action = #selector(SPUStandardUpdaterController.checkForUpdates(_:))
+    trayItem = NSMenuItem(title: "Check for Updates…", action: action, keyEquivalent: "")
+    appMenuItem = NSMenuItem(title: "Check for Updates…", action: action, keyEquivalent: "")
+    trayItem.target = controller
+    appMenuItem.target = controller
+    #endif
+  }
+
+  /// Подпись на языке приложения; пункт в меню приложения (после «О программе»)
+  /// добавляется при первом вызове — к этому времени главное меню уже загружено.
+  func setTitle(_ title: String) {
+    trayItem.title = title
+    appMenuItem.title = title
+    if appMenuItem.menu == nil, let menu = NSApp.mainMenu?.items.first?.submenu {
+      menu.insertItem(appMenuItem, at: min(1, menu.numberOfItems))
+    }
+  }
+}
+
 /// Значок в строке меню (как у Telegram Desktop): шаблонная картинка (система
 /// красит её под светлую / тёмную строку), рядом — число непрочитанных чатов.
-/// Меню: открыть окно, завершить приложение. Подписи приходят из Dart
-/// (`setTrayMenu`) на языке приложения.
+/// Меню: открыть окно, проверить обновления ([AppUpdater]), завершить
+/// приложение. Подписи приходят из Dart (`setTrayMenu`) на языке приложения.
 final class TrayIcon: NSObject {
   private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
   private let openItem = NSMenuItem(title: "Open Iperon", action: #selector(open), keyEquivalent: "")
   private let quitItem = NSMenuItem(title: "Quit Iperon", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
   private weak var window: NSWindow?
 
-  init(window: NSWindow) {
+  init(window: NSWindow, updater: AppUpdater?) {
     self.window = window
     super.init()
     let image = NSImage(named: "TrayIcon")
@@ -49,6 +87,9 @@ final class TrayIcon: NSObject {
     openItem.target = self
     let menu = NSMenu()
     menu.addItem(openItem)
+    if let updater {
+      menu.addItem(updater.trayItem)
+    }
     menu.addItem(.separator())
     menu.addItem(quitItem)
     item.menu = menu
@@ -77,11 +118,12 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
   private let channel: FlutterMethodChannel
   private weak var window: NSWindow?
   private let tray: TrayIcon
+  private let updater = AppUpdater()
 
   init(messenger: FlutterBinaryMessenger, window: NSWindow) {
     channel = FlutterMethodChannel(name: "net.iperon.messenger/desktop", binaryMessenger: messenger)
     self.window = window
-    tray = TrayIcon(window: window)
+    tray = TrayIcon(window: window, updater: updater)
     super.init()
     UNUserNotificationCenter.current().delegate = self
     channel.setMethodCallHandler { [weak self] call, result in
@@ -99,6 +141,9 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
       result(nil)
     case "setTrayMenu":
       tray.setTitles(open: args["open"] as? String ?? "", quit: args["quit"] as? String ?? "")
+      if let title = args["updates"] as? String {
+        updater?.setTitle(title)
+      }
       result(nil)
     case "requestAttention":
       NSApp.requestUserAttention(.informationalRequest)
