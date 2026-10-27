@@ -110,14 +110,24 @@ class _AccessTile extends StatelessWidget {
   }
 }
 
-/// Общее у секций: список устройств, доступ, подключение на ходу, пауза при
-/// свёрнутом окне. [start] / [stop] — включить / отпустить устройство.
+/// Общее у секций: список устройств, доступ, подключение на ходу, пауза, пока
+/// экран не виден. [start] / [stop] — включить / отпустить устройство.
 abstract class _DeviceSectionState<W extends StatefulWidget, D> extends State<W> with WidgetsBindingObserver {
   MediaKind get kind;
   List<D> devices = const [];
   MediaAccess? access;
   StreamSubscription<void>? _changes;
-  bool _visible = true;
+
+  /// Окно не свёрнуто и не спрятано.
+  bool _windowShown = true;
+
+  /// Экран на виду: не перекрыт другим экраном и его вкладка открыта (ветки
+  /// вкладок и перекрытые экраны остаются в дереве, но с выключенным
+  /// [TickerMode] — по нему и узнаём). Иначе ушли в «Чаты», а камера и
+  /// микрофон продолжали работать.
+  bool _onScreen = true;
+
+  bool get _visible => _windowShown && _onScreen;
 
   Future<List<D>> list();
   Future<void> start();
@@ -136,10 +146,23 @@ abstract class _DeviceSectionState<W extends StatefulWidget, D> extends State<W>
     // Окно свернули / спрятали — отпускаем устройство; вернули — включаем
     // (заодно доступ: его могли дать в системных настройках).
     if (state == AppLifecycleState.hidden || state == AppLifecycleState.paused) {
-      _visible = false;
+      _windowShown = false;
       unawaited(stop());
-    } else if (state == AppLifecycleState.resumed && !_visible) {
-      _visible = true;
+    } else if (state == AppLifecycleState.resumed && !_windowShown) {
+      _windowShown = true;
+      if (_visible) unawaited(load());
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final onScreen = TickerMode.valuesOf(context).enabled;
+    if (onScreen == _onScreen) return;
+    _onScreen = onScreen;
+    if (!onScreen) {
+      unawaited(stop());
+    } else if (_visible) {
       unawaited(load());
     }
   }
