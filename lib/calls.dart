@@ -386,6 +386,17 @@ class Calls {
   CameraPosition _cameraPosition = CameraPosition.front;
 
   CallSnapshot _snapshot = const CallSnapshot();
+
+  /// callId последнего исходящего с этого устройства. Мультиаккаунт: если
+  /// вызываемый залогинен здесь вторым аккаунтом, его «отбой входящего» (cancel-
+  /// пуш, когда он ответил на другом устройстве) приходит сюда с тем же callId —
+  /// натив показывает и снимает баннер, CallKit / ConnectionService шлёт ENDED.
+  /// Свой исходящий мы в системный звонок не репортим, так что такой ENDED — не
+  /// про него (см. [isOwnOutgoingCall], call_push.dart).
+  String _outgoingCallId = '';
+
+  /// Звонок [callId] — наш исходящий (начат [startCall] на этом устройстве).
+  bool isOwnOutgoingCall(String callId) => callId.isNotEmpty && callId.toLowerCase() == _outgoingCallId.toLowerCase();
   final _snapshotController = StreamController<CallSnapshot>.broadcast();
 
   // Запросы «вывести экран звонка на передний план» — например, тап по
@@ -723,6 +734,7 @@ class Calls {
 
     final callId = _generateCallId();
     _handlingCallId = callId;
+    _outgoingCallId = callId;
     _logDirection = models.CallDirection.outgoing;
     _emit(CallSnapshot(status: CallStatus.outgoing, callId: callId, remoteUserID: toUserID, video: video, speakerOn: video));
     _dbg('outgoing ${video ? 'video' : 'audio'}', reset: true);

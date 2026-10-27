@@ -506,6 +506,13 @@ class CallPush {
         // third_party/flutter_callkit_incoming). Вешаем трубку, только если событие
         // про текущий звонок: иначе запоздалый ENDED прошлого звонка оборвал бы новый.
         final callId = callKitParams.id;
+        if (calls.isOwnOutgoingCall(callId)) {
+          // Мультиаккаунт: вызываемый залогинен здесь вторым аккаунтом и ответил
+          // на другом устройстве — его cancel-пуш снял «входящий» с тем же
+          // callId. Наш исходящий в CallKit не репортится, это не его отбой.
+          logger.info('call: ENDED for own outgoing $callId ignored (cancel for another account)');
+          break;
+        }
         if (callId.isEmpty || callId == _acceptedCallId) _acceptedCallId = null;
         if (calls.snapshot.status == CallStatus.incoming && callId == calls.snapshot.callId) {
           // Не ответили: баннер снят отменой звонящего мимо этого isolate'а —
