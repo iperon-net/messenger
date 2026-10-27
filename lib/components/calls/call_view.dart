@@ -357,6 +357,37 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
     }
   }
 
+  /// Десктоп: видео собеседника не на весь экран (на большом мониторе лицо
+  /// выходило огромным), а «сценой» — кадр 16:9 не шире [_stageMaxWidth] со
+  /// скруглением между шапкой (имя, статус, сеть) и кнопками, которые поэтому
+  /// всегда видны. Отступы повторяют геометрию [_Overlay]: сверху — шапка в
+  /// две строки имени, снизу — блок кнопок и его нижний отступ.
+  Widget _stage(CallState state, Widget video) {
+    const top = 32.0 + 8 + 2 * 26 + 8 + 22 + 24;
+    const bottom = 32 + _Overlay.mediaControlsHeight + 24;
+    return Positioned.fill(
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, top, 24, bottom),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: _stageMaxWidth),
+              child: AspectRatio(
+                aspectRatio: 16 / 9,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: ColoredBox(color: const Color(0xFF000000), child: video),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  static const double _stageMaxWidth = 960;
+
   Future<void> _startRingtone() async {
     // Рингтон своего экрана входящего: iOS на переднем плане и десктоп (там
     // системной звонилки нет вовсе).
@@ -443,10 +474,16 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
         // Рендерим только пока камера реально включена (иначе аватар). Свап меняет
         // не дорожку рендерера, а его слот в дереве — Flutter по [GlobalKey]
         // переносит тот же рендерер, `srcObject` не трогается (нет краша renderFrame).
+        // Десктоп — «сцена» (см. [_stage]): кадр целиком, с полями, без обрезки.
+        final desktop = AppPlatform.isDesktop;
         final Widget? remoteVideo = remoteOn
             ? KeyedSubtree(
                 key: _remoteViewKey,
-                child: VideoTrackRenderer(remoteTrack, fit: VideoViewFit.cover, mirrorMode: VideoViewMirrorMode.auto),
+                child: VideoTrackRenderer(
+                  remoteTrack,
+                  fit: desktop ? VideoViewFit.contain : VideoViewFit.cover,
+                  mirrorMode: VideoViewMirrorMode.auto,
+                ),
               )
             : null;
         final Widget? localVideo = localOn
@@ -465,11 +502,13 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
         final pipVisible = isVideoCall && !_inPip && (swapped || localOn);
 
         // Поверх видео — светлая палитра (контраст над картинкой); иначе — под тему.
-        final palette = mainOn ? _CallPalette.overMedia : _CallPalette.of(context, darkMode);
+        // Десктоп: имя и кнопки не над видео, а над и под «сценой» — под тему.
+        final palette = mainOn && !desktop ? _CallPalette.overMedia : _CallPalette.of(context, darkMode);
 
         // Task1: панель управления скрываем по тапу только на активном видеозвонке
         // с картинкой на главном экране (в дозвоне/соединении/аудио — всегда видна).
-        _syncOverlayHideable(mainOn && state.callStatus == CallStatus.active && !_inPip);
+        // Десктоп — всегда видна: видео её не перекрывает.
+        _syncOverlayHideable(!desktop && mainOn && state.callStatus == CallStatus.active && !_inPip);
 
         // Единый Stack для обоих режимов (полный экран и мини-окно PiP). Главный
         // видеорендерер — ПЕРВЫМ; при свапе/входе-выходе PiP его виджет переносится
@@ -482,7 +521,7 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  if (mainOn && mainVideo != null) mainVideo,
+                  if (mainOn && mainVideo != null) desktop ? _stage(state, mainVideo) : mainVideo,
                   // Слой перехвата тапа по экрану (Task1) — под панелью и мини-окном
                   // (они выше в Stack и получают тап первыми), поверх видео. Тап по
                   // «пустому» видео прячет/показывает панель (см. [_toggleOverlay]).
@@ -504,7 +543,7 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
                         child: AnimatedOpacity(
                           opacity: visible ? 1 : 0,
                           duration: const Duration(milliseconds: 200),
-                          child: _Overlay(state: state, showVideo: mainOn, palette: palette),
+                          child: _Overlay(state: state, showVideo: mainOn, overVideo: mainOn && !desktop, palette: palette),
                         ),
                       ),
                     ),
@@ -685,9 +724,12 @@ class _SelfViewState extends State<_SelfView> {
 class _Overlay extends StatelessWidget {
   final CallState state;
   final bool showVideo;
+
+  /// Имя и статус рисуются поверх видео (мобильные) — тогда под ними подложка.
+  final bool overVideo;
   final _CallPalette palette;
 
-  const _Overlay({required this.state, required this.showVideo, required this.palette});
+  const _Overlay({required this.state, required this.showVideo, required this.overVideo, required this.palette});
 
   // Размер кнопок ряда управления и их иконок — уменьшены относительно дефолтных
   // 68/28, чтобы 4 кнопки (смена камеры/микрофон/динамик/камера) помещались в ряд.
@@ -737,11 +779,11 @@ class _Overlay extends StatelessWidget {
                     // растягиваться на всю ширину.
                     IntrinsicWidth(
                       child: DecoratedBox(
-                        decoration: showVideo
+                        decoration: overVideo
                             ? BoxDecoration(color: const Color(0x52000000), borderRadius: BorderRadius.circular(16))
                             : const BoxDecoration(),
                         child: Padding(
-                          padding: showVideo ? const EdgeInsets.symmetric(horizontal: 16, vertical: 10) : EdgeInsets.zero,
+                          padding: overVideo ? const EdgeInsets.symmetric(horizontal: 16, vertical: 10) : EdgeInsets.zero,
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
