@@ -325,11 +325,17 @@ UI на обеих сторонах. Строится поверх шагов 1�
 ## 10. Сборка и выпуск macOS (этап 6)
 
 Решено 2026-10-26: собираем в CI по тому же тегу `v0.0.N`, что и TestFlight.
-Решено 2026-10-27: DMG и appcast — в бакете S3 Cloud.ru, раздаёт nginx на ВМ
-Cloud.ru (`download.iperon.net`); сайт (GitHub Pages, `iperon.org`) только ссылается
-на `download.iperon.net/macos/Iperon.dmg`. Отвергнуты: DMG в git репо сайта (лимит
-100 МБ на файл, история растёт навсегда, Pages не отдаёт LFS) и GitHub Releases
-(чужой домен, `githubusercontent.com` у части российских провайдеров медленный).
+Решено 2026-10-27 (пересмотрено в тот же день): DMG и appcast — в **GitHub Releases
+репо `iperon-net/messenger`** (релиз `v<версия>`), наружу раздаёт nginx на ВМ
+Cloud.ru (`download.iperon.net`), забирая файлы из релизов и кэшируя; сайт
+(GitHub Pages, `iperon.org`) только ссылается на `download.iperon.net/macos/Iperon.dmg`.
+Сначала было S3 Cloud.ru (бакет `iperon`) — из раннера GitHub туда крупные файлы не
+доходят: и одним PUT, и составной загрузкой передача 64 МБ замирала на ~16 минутах
+(мелкие запросы проходили; похоже на блокировку зарубежные ДЦ → РФ), файла в
+бакете не было. Отвергнуты также DMG в git репо сайта (лимит 100 МБ на файл,
+история растёт навсегда, Pages не отдаёт LFS) и ссылки прямо на GitHub (адрес фида
+зашит в приложение, пользователи качали бы из-за рубежа) — через nginx адрес наш,
+а при переезде релизов меняется одна строка конфига.
 
 Написано 2026-10-27 (не проверено с настоящей подписью — ждём сертификат):
 
@@ -341,9 +347,11 @@ Cloud.ru (`download.iperon.net`); сайт (GitHub Pages, `iperon.org`) толь
    инструкции: XPC-сервисы, Autoupdate, Updater.app) → нотаризация .zip + staple
    .app (`NOTARY_PROFILE` локально или `ASC_KEY_ID`/`ASC_ISSUER_ID`/`ASC_KEY_PATH`) →
    DMG (`hdiutil`, ярлык «Программы») → подпись, нотаризация, staple DMG →
-   `sign_update` (EdDSA, `SPARKLE_ED_KEY_FILE` или ключ из связки) → `appcast.xml`
-   (одна, последняя версия) → S3 (`S3_BUCKET`/`S3_ENDPOINT`, одним PUT —
-   Cloud.ru ломает multipart; appcast заливается последним). Подписывать через
+   `sign_update` (EdDSA, `SPARKLE_ED_KEY_FILE` или ключ из связки) →
+   `appcast-macos.xml` (одна, последняя версия) → GitHub Release `v<версия>`
+   (`GITHUB_RELEASE_REPO` + `GH_TOKEN`, `gh release create --verify-tag`, тег уже
+   должен быть): `Iperon-<версия>.dmg`, копия `Iperon.dmg`, appcast — последним.
+   Релиз общий для платформ: кто первый — создаёт, остальные дописывают файлы. Подписывать через
    Xcode не стали: у Runner `CODE_SIGN_STYLE = Automatic` в pbxproj, а
    `Release.xcconfig` его не перебивает (base config — `AppInfo.xcconfig`); подпись
    после сборки не требует provisioning profile (Developer ID без ограниченных
@@ -352,16 +360,16 @@ Cloud.ru (`download.iperon.net`); сайт (GitHub Pages, `iperon.org`) толь
    тегу параллельно с TestFlight (`needs: Linter`) и вручную — `macos.yaml`
    (Actions → «macOS build», вход `build_name`, `publish` по умолчанию выключен).
    Секреты необязательные: чего нет — шаг пропускается, DMG всё равно уходит
-   артефактом (14 дней; без сертификата — неподписанный); в S3 — только
-   нотаризованная и подписанная Sparkle сборка при `publish` и ключе S3. Секреты:
+   артефактом (14 дней; без сертификата — неподписанный); в релиз — только
+   нотаризованная и подписанная Sparkle сборка при `publish` (вызывающему job —
+   `permissions: contents: write`, токен — встроенный `GITHUB_TOKEN`). Секреты:
    `MACOS_DEVELOPER_ID_P12_BASE64`, `MACOS_DEVELOPER_ID_PASSWORD`,
-   `SPARKLE_ED_PRIVATE_KEY`, `DOWNLOAD_S3_ACCESS_KEY_ID`,
-   `DOWNLOAD_S3_SECRET_ACCESS_KEY` (+ общие `ASC_*`, `FIREBASE_OPTIONS_DART_BASE64`).
-   Бакет `iperon` (`https://iperon.s3.cloud.ru`), эндпоинт `https://s3.cloud.ru`,
-   `ru-central-1`. **Выпуск для всех — только версия X.Y.0** (тег `v0.1.0`): она
-   становится `Iperon.dmg` и попадает в appcast (установленные копии обновятся);
-   остальные теги (`v0.0.541` — обычные сборки с TestFlight) заливаются только как
-   `Iperon-<версия>.dmg` для тестеров по прямой ссылке (правило в
+   `SPARKLE_ED_PRIVATE_KEY` (+ общие `ASC_*`, `FIREBASE_OPTIONS_DART_BASE64`);
+   `DOWNLOAD_S3_*` больше не нужны. **Выпуск для всех — только версия X.Y.0** (тег
+   `v0.1.0`): её релиз становится последним (latest) — `Iperon.dmg` и appcast
+   (установленные копии обновятся); остальные теги (`v0.0.541` — обычные сборки с
+   TestFlight) — pre-release, latest на них не переключается, `Iperon-<версия>.dmg`
+   для тестеров по прямой ссылке (правило в
    `macos_release.sh`, `RELEASE=1/0` — переопределить). **Временно (решено 2026-10-27)** в CI
    `RELEASE: "1"` — выпуск на каждый тег `v0.0.N`, начиная с `v0.0.549`; на `v0.X.0`
    перейдём позже и тогда уберём. appcast у каждой платформы свой (`macos/`, позже `windows/` для
@@ -378,8 +386,12 @@ Cloud.ru (`download.iperon.net`); сайт (GitHub Pages, `iperon.org`) толь
    <файл>` → секрет CI. **Потерять приватный ключ = выпущенные копии больше не
    обновятся.**
 4. **Раздача** — `~/GolandProjects/iperon/docs/nginx/download.iperon.net.conf`:
-   `macos/Iperon-<версия>.dmg` (кэш 30 дней), `macos/Iperon.dmg` (последняя, кэш 5
-   мин), `macos/appcast.xml` (без кэша), остальное — 404.
+   `macos/Iperon-<версия>.dmg` → `releases/download/v<версия>/…` (кэш 30 дней),
+   `macos/Iperon.dmg` → `releases/latest/download/Iperon.dmg` (кэш 5 мин),
+   `macos/appcast.xml` → `releases/latest/download/appcast-macos.xml` (кэш 1 мин),
+   остальное — 404. Редиректы GitHub (latest → версия → `*.githubusercontent.com`)
+   nginx проходит сам (`@github_*`), кэширует итоговый файл под нашим адресом.
+   Перед применением — проверить с ВМ, что DMG с GitHub приходит целиком.
 5. **Entitlements** (hardened runtime): добавлен микрофон
    (`device.audio-input`, голосовые) и `NSMicrophoneUsageDescription` (пока только
    по-английски); камера — когда появятся звонки (§7).
@@ -388,8 +400,10 @@ Cloud.ru (`download.iperon.net`); сайт (GitHub Pages, `iperon.org`) толь
    шагом, вместе с ним перелогин на разработческих Mac.
 
 Осталось (владелец аккаунта / инфраструктура): сертификат Developer ID
-Application; EdDSA-ключи Sparkle; ключ на запись в бакет `iperon` (`https://iperon.s3.cloud.ru`, уже есть); ВМ
-Cloud.ru: DNS `download.iperon.net`, сертификат, конфиг nginx; секреты. Потом — первый выпуск по тегу и проверка обновления
+Application, EdDSA-ключи Sparkle, секреты — готовы 2026-10-27 (подпись и
+нотаризация в CI проверены на `v0.0.549`: `Accepted`, Gatekeeper `Notarized
+Developer ID`); осталась ВМ Cloud.ru: DNS `download.iperon.net`, сертификат,
+конфиг nginx. Потом — первый выпуск по тегу и проверка обновления
 (поставить N, выпустить N+1, «Проверить обновления…»). Версия в «О программе» —
 из тега.
 
@@ -494,8 +508,9 @@ Dart — `lib/desktop.dart` (`Desktop`, `DesktopPresence`).
 
 Решено 2026-10-27: Windows собираем и выпускаем **только через CI** (раннер
 `windows-latest`), своей Windows-машины для сборки нет. Схема выпуска — как у macOS
-(§10): тот же тег `v0.0.N`, отдельный независимый job, свой `windows/appcast.xml` в
-бакете `iperon`, раздача через `download.iperon.net/windows/`. Первый релиз — как
+(§10): тот же тег `v0.0.N`, отдельный независимый job, свои файлы
+(`Iperon-<версия>.exe`, `Iperon.exe`, `appcast-windows.xml`) в том же GitHub Release,
+раздача через `download.iperon.net/windows/`. Первый релиз — как
 на macOS: только сообщения, без звонков и секретных чатов; только x64 (Windows на
 ARM запускает x64 через эмуляцию; arm64-сборка — позже).
 
@@ -640,10 +655,12 @@ Dart-сторона (`lib/desktop.dart`) не меняется — повтор�
   `macos_release.sh`; шаги включаются секретами, без них — неподписанный установщик
   артефактом): `flutter build windows --release` → подпись PE → Inno Setup (`iscc`,
   через `choco install innosetup`, если нет в образе) → подпись установщика →
-  подпись WinSparkle → `appcast.xml` → S3 `windows/` (aws cli, одним PUT, appcast
-  последним).
-- Секреты: облачная подпись (зависит от УЦ, W5), `WINSPARKLE_ED_PRIVATE_KEY`, ключ
-  S3 — тот же `DOWNLOAD_S3_*` (расширить права на префикс `windows/`).
+  подпись WinSparkle → `appcast-windows.xml` → тот же GitHub Release `v<версия>`
+  (`gh release upload`, appcast последним).
+- Секреты: облачная подпись (зависит от УЦ, W5), `WINSPARKLE_ED_PRIVATE_KEY`.
+- Оговорка общего релиза: latest — один на обе платформы. Если на выпуске упала
+  только Windows, у нового latest нет `appcast-windows.xml` — Windows-клиенты до
+  перезапуска job получат 404 на фид (обновления просто не будет).
 
 ### Проверка
 
