@@ -129,7 +129,10 @@ class Routers {
           BlocProvider<ConnectionCubit>(create: (_) => ConnectionCubit()..initialization()),
           // Контакты живут на уровне shell, чтобы к моменту открытия вкладки
           // список уже был показан из кэша и (при выданном доступе) освежён.
-          BlocProvider<ContactsCubit>(create: (_) => ContactsCubit()..bootstrap()),
+          // Не лениво: облачные контакты (CONTACTS_LIST → таблица contacts) дают
+          // имена людей в чатах — иначе после входа, пока не открыли вкладку
+          // «Контакты», чат показывал @username вместо имени из контакта.
+          BlocProvider<ContactsCubit>(lazy: false, create: (_) => ContactsCubit()..bootstrap()),
         ],
         child: CallGate(
           child: DeepLinkGate(child: HomeCupertino(navigationShell: navigationShell)),
@@ -2126,7 +2129,10 @@ class Routers {
           BlocProvider<ConnectionCubit>(create: (_) => ConnectionCubit()..initialization()),
           // Контакты живут на уровне shell, чтобы к моменту открытия вкладки
           // список уже был показан из кэша и (при выданном доступе) освежён.
-          BlocProvider<ContactsCubit>(create: (_) => ContactsCubit()..bootstrap()),
+          // Не лениво: облачные контакты (CONTACTS_LIST → таблица contacts) дают
+          // имена людей в чатах — иначе после входа, пока не открыли вкладку
+          // «Контакты», чат показывал @username вместо имени из контакта.
+          BlocProvider<ContactsCubit>(lazy: false, create: (_) => ContactsCubit()..bootstrap()),
         ],
         child: CallGate(
           child: DeepLinkGate(child: HomeMaterial(navigationShell: navigationShell)),

@@ -204,6 +204,10 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   bool _discovering = false;
   bool _discoverStarted = false;
 
+  /// Вкладку «Контакты» открывали ([discoverOnFirstView]) — с этого момента
+  /// освежаем присутствие на возврате из фона.
+  bool _tabViewed = false;
+
   // Подписка на изменения телефонной книги + дебаунс: нативный слушатель при
   // массовой синхронизации сыпет событиями пачкой, гоняем discover один раз.
   StreamSubscription<void>? _bookChangeSub;
@@ -413,7 +417,10 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       discoverIfAlreadyGranted();
-      unawaited(refreshPresence());
+      // Присутствие контактов нужно только вкладке «Контакты»: кубит создаётся
+      // на старте (ради облачных имён в чатах), и без этой проверки каждый
+      // возврат из фона слал бы PRESENCE и тем, кто вкладку не открывал.
+      if (_tabViewed) unawaited(refreshPresence());
     }
   }
 
@@ -552,6 +559,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   /// (см. [ContactsState.permissionGranted]/[dismissBanner]); системный запрос
   /// отложен до явного тапа «Разрешить» в баннере ([requestAccess]).
   Future<void> discoverOnFirstView() async {
+    _tabViewed = true;
     // Открытие вкладки — надёжный момент догнать присутствие явным pull'ом:
     // одноразовый снимок при подписке мог разойтись по таймингу с подпиской
     // кубита (broadcast без буфера), тогда без pull статус ждал бы следующего push.
