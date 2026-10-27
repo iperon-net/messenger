@@ -2157,6 +2157,45 @@ class Translations$screenSettingsGeneral$en {
 
 	/// en: 'Enter — new line'
 	String get newLineEnter => 'Enter — new line';
+
+	/// en: 'Microphone'
+	String get microphone => 'Microphone';
+
+	/// en: 'Camera'
+	String get camera => 'Camera';
+
+	/// en: 'System default'
+	String get systemDefault => 'System default';
+
+	/// en: 'Test microphone'
+	String get testMicrophone => 'Test microphone';
+
+	/// en: 'Stop test'
+	String get stopTest => 'Stop test';
+
+	/// en: 'Show preview'
+	String get showPreview => 'Show preview';
+
+	/// en: 'Hide preview'
+	String get hidePreview => 'Hide preview';
+
+	/// en: 'No access to the microphone'
+	String get microphoneNoAccess => 'No access to the microphone';
+
+	/// en: 'No access to the camera'
+	String get cameraNoAccess => 'No access to the camera';
+
+	/// en: 'Allow'
+	String get allow => 'Allow';
+
+	/// en: 'Open settings'
+	String get openSettings => 'Open settings';
+
+	/// en: 'Used for voice messages and calls.'
+	String get microphoneHint => 'Used for voice messages and calls.';
+
+	/// en: 'Used for video calls. The camera is on only during a call or preview.'
+	String get cameraHint => 'Used for video calls. The camera is on only during a call or preview.';
 }
 
 // Path: screenSettingsNotifications
@@ -5589,6 +5628,19 @@ extension on Translations {
 			'screenSettingsGeneral.sendMessage' => 'Send message',
 			'screenSettingsGeneral.newLineShiftEnter' => 'Shift + Enter — new line',
 			'screenSettingsGeneral.newLineEnter' => 'Enter — new line',
+			'screenSettingsGeneral.microphone' => 'Microphone',
+			'screenSettingsGeneral.camera' => 'Camera',
+			'screenSettingsGeneral.systemDefault' => 'System default',
+			'screenSettingsGeneral.testMicrophone' => 'Test microphone',
+			'screenSettingsGeneral.stopTest' => 'Stop test',
+			'screenSettingsGeneral.showPreview' => 'Show preview',
+			'screenSettingsGeneral.hidePreview' => 'Hide preview',
+			'screenSettingsGeneral.microphoneNoAccess' => 'No access to the microphone',
+			'screenSettingsGeneral.cameraNoAccess' => 'No access to the camera',
+			'screenSettingsGeneral.allow' => 'Allow',
+			'screenSettingsGeneral.openSettings' => 'Open settings',
+			'screenSettingsGeneral.microphoneHint' => 'Used for voice messages and calls.',
+			'screenSettingsGeneral.cameraHint' => 'Used for video calls. The camera is on only during a call or preview.',
 			'screenSettingsNotifications.notifications' => 'Notifications and sounds',
 			'screenSettingsNotifications.messageNotifications' => 'Message notifications',
 			'screenSettingsNotifications.privateChats' => 'Private chats',
@@ -5967,6 +6019,8 @@ extension on Translations {
 			'cloudPassword.disable' => 'Disable password',
 			'cloudPassword.loadError' => 'Couldn\'t load cloud password settings',
 			'cloudPassword.retry' => 'Retry',
+			_ => null,
+		} ?? switch (path) {
 			'cloudPassword.emailRequired' => 'Enter an email',
 			'cloudPassword.passwordRequired' => 'Enter a password',
 			'cloudPassword.passwordTooShort' => 'Password must be at least 5 characters',
@@ -5980,8 +6034,6 @@ extension on Translations {
 			'cloudPassword.sessionExpired' => 'Session expired. Please start again.',
 			'screenMyProfile.myprofile' => 'My profile',
 			'screenMyProfile.firstName' => 'First name',
-			_ => null,
-		} ?? switch (path) {
 			'screenMyProfile.lastName' => 'Last name',
 			'screenMyProfile.aboutMe' => 'About me',
 			'screenMyProfile.tellUsAboutYourself' => 'Tell us about yourself',

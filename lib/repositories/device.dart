@@ -345,6 +345,14 @@ class DeviceDatabase {
           // Десктоп, «Общие → Отправка сообщения»: 1 — ⌘/Ctrl+Enter.
           await tx.execute("ALTER TABLE settingsDevice ADD COLUMN sendWithModifierEnter INTEGER NOT NULL DEFAULT 0;");
         }),
+      )
+      ..add(
+        SqliteMigration(5, (tx) async {
+          // Десктоп, «Общие → Микрофон / Камера»: '' — как в системе.
+          for (final column in ['microphoneId', 'microphoneName', 'cameraId', 'cameraName']) {
+            await tx.execute("ALTER TABLE settingsDevice ADD COLUMN $column TEXT NOT NULL DEFAULT '';");
+          }
+        }),
       );
   }
 

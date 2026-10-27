@@ -162,6 +162,34 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
         opt: true,
         def: false,
       );
+  static String _$microphoneId(SettingsDeviceModel v) => v.microphoneId;
+  static const Field<SettingsDeviceModel, String> _f$microphoneId = Field(
+    'microphoneId',
+    _$microphoneId,
+    opt: true,
+    def: '',
+  );
+  static String _$microphoneName(SettingsDeviceModel v) => v.microphoneName;
+  static const Field<SettingsDeviceModel, String> _f$microphoneName = Field(
+    'microphoneName',
+    _$microphoneName,
+    opt: true,
+    def: '',
+  );
+  static String _$cameraId(SettingsDeviceModel v) => v.cameraId;
+  static const Field<SettingsDeviceModel, String> _f$cameraId = Field(
+    'cameraId',
+    _$cameraId,
+    opt: true,
+    def: '',
+  );
+  static String _$cameraName(SettingsDeviceModel v) => v.cameraName;
+  static const Field<SettingsDeviceModel, String> _f$cameraName = Field(
+    'cameraName',
+    _$cameraName,
+    opt: true,
+    def: '',
+  );
 
   @override
   final MappableFields<SettingsDeviceModel> fields = const {
@@ -184,6 +212,10 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     #quickReaction: _f$quickReaction,
     #callsE2ee: _f$callsE2ee,
     #sendWithModifierEnter: _f$sendWithModifierEnter,
+    #microphoneId: _f$microphoneId,
+    #microphoneName: _f$microphoneName,
+    #cameraId: _f$cameraId,
+    #cameraName: _f$cameraName,
   };
 
   static SettingsDeviceModel _instantiate(DecodingData data) {
@@ -207,6 +239,10 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
       quickReaction: data.dec(_f$quickReaction),
       callsE2ee: data.dec(_f$callsE2ee),
       sendWithModifierEnter: data.dec(_f$sendWithModifierEnter),
+      microphoneId: data.dec(_f$microphoneId),
+      microphoneName: data.dec(_f$microphoneName),
+      cameraId: data.dec(_f$cameraId),
+      cameraName: data.dec(_f$cameraName),
     );
   }
 
@@ -301,6 +337,10 @@ abstract class SettingsDeviceModelCopyWith<
     String? quickReaction,
     bool? callsE2ee,
     bool? sendWithModifierEnter,
+    String? microphoneId,
+    String? microphoneName,
+    String? cameraId,
+    String? cameraName,
   });
   SettingsDeviceModelCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -343,6 +383,10 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     String? quickReaction,
     bool? callsE2ee,
     bool? sendWithModifierEnter,
+    String? microphoneId,
+    String? microphoneName,
+    String? cameraId,
+    String? cameraName,
   }) => $apply(
     FieldCopyWithData({
       if (locale != $none) #locale: locale,
@@ -369,6 +413,10 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
       if (callsE2ee != null) #callsE2ee: callsE2ee,
       if (sendWithModifierEnter != null)
         #sendWithModifierEnter: sendWithModifierEnter,
+      if (microphoneId != null) #microphoneId: microphoneId,
+      if (microphoneName != null) #microphoneName: microphoneName,
+      if (cameraId != null) #cameraId: cameraId,
+      if (cameraName != null) #cameraName: cameraName,
     }),
   );
   @override
@@ -413,6 +461,10 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
       #sendWithModifierEnter,
       or: $value.sendWithModifierEnter,
     ),
+    microphoneId: data.get(#microphoneId, or: $value.microphoneId),
+    microphoneName: data.get(#microphoneName, or: $value.microphoneName),
+    cameraId: data.get(#cameraId, or: $value.cameraId),
+    cameraName: data.get(#cameraName, or: $value.cameraName),
   );
 
   @override

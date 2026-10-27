@@ -19,6 +19,7 @@ import '../../components.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
+import '../../desktop.dart';
 import '../../platform.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
@@ -453,7 +454,7 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
         ],
       ),
     );
-    if (open ?? false) await openAppSettings();
+    if (open ?? false) AppPlatform.isDesktop ? await Desktop.openPrivacySettings(MediaKind.microphone) : await openAppSettings();
   }
 
   void _maybeLoadOlder() {

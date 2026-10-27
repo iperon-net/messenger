@@ -52,6 +52,14 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
   /// (Shift+Enter — перенос), `true` — ⌘/Ctrl+Enter отправляет, Enter — перенос.
   final bool sendWithModifierEnter;
 
+  /// Десктоп, «Общие → Микрофон / Камера»: выбранное устройство — id и имя
+  /// (id после перезагрузки бывает другим — тогда ищем по имени, а у WebRTC
+  /// свои id — тоже по имени); пусто — «Как в системе».
+  final String microphoneId;
+  final String microphoneName;
+  final String cameraId;
+  final String cameraName;
+
   const SettingsDeviceModel({
     this.locale,
     this.darkMode = DarkModeModel.system,
@@ -72,6 +80,10 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     this.quickReaction = '❤️',
     this.callsE2ee = true,
     this.sendWithModifierEnter = false,
+    this.microphoneId = '',
+    this.microphoneName = '',
+    this.cameraId = '',
+    this.cameraName = '',
   });
 
   factory SettingsDeviceModel.fromSqlite(Map<String, dynamic> data) {
@@ -95,6 +107,10 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     // Отсутствующая/NULL колонка (старая БД до миграции) трактуется как включено.
     final callsE2ee = data['callsE2ee'] ?? 1;
     final sendWithModifierEnter = data['sendWithModifierEnter'] ?? 0;
+    final microphoneId = data['microphoneId'] as String? ?? '';
+    final microphoneName = data['microphoneName'] as String? ?? '';
+    final cameraId = data['cameraId'] as String? ?? '';
+    final cameraName = data['cameraName'] as String? ?? '';
 
     SettingsDeviceModel settingsDeviceModel = SettingsDeviceModel();
 
@@ -185,6 +201,13 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     if (sendWithModifierEnter > 0) {
       settingsDeviceModel = settingsDeviceModel.copyWith(sendWithModifierEnter: true);
     }
+
+    settingsDeviceModel = settingsDeviceModel.copyWith(
+      microphoneId: microphoneId,
+      microphoneName: microphoneName,
+      cameraId: cameraId,
+      cameraName: cameraName,
+    );
 
     return settingsDeviceModel;
   }

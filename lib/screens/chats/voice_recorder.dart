@@ -12,9 +12,13 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 
 import '../../chats/voice_player.dart';
+import '../../desktop.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../logger.dart';
+import '../../media_devices.dart';
+import '../../platform.dart';
+import '../../repositories.dart';
 import '../../models.dart' as models;
 
 /// Запись голосового (как в Telegram): удерживаешь микрофон — пишется,
@@ -65,35 +69,59 @@ class VoiceRecorder extends ChangeNotifier {
 
   bool get active => state != VoiceRecordState.idle;
 
+  /// Есть доступ к микрофону; нет — спрашиваем (запись не начинаем: палец всё
+  /// равно отпустят ради системного диалога) или [onDenied]. На macOS нет
+  /// `permission_handler` — там через канал desktop.
+  Future<bool> _microphoneAllowed() async {
+    if (AppPlatform.isDesktop) {
+      switch (await Desktop.mediaAccess(MediaKind.microphone)) {
+        case MediaAccess.granted:
+          return true;
+        case MediaAccess.notDetermined:
+          if (!await Desktop.requestMediaAccess(MediaKind.microphone)) await onDenied(true);
+          return false;
+        case MediaAccess.denied:
+          await onDenied(true);
+          return false;
+      }
+    }
+    final status = await Permission.microphone.status;
+    if (status.isGranted) return true;
+    if (status.isPermanentlyDenied) {
+      await onDenied(true);
+    } else {
+      final result = await Permission.microphone.request();
+      if (!result.isGranted) await onDenied(result.isPermanentlyDenied);
+    }
+    return false;
+  }
+
   /// Палец лёг на микрофон.
   Future<void> press() async {
     if (active || _starting) return;
     if (canStart?.call() == false) return;
-    final status = await Permission.microphone.status;
-    if (!status.isGranted) {
-      // Палец всё равно отпустят ради системного диалога — запись не начинаем.
-      if (status.isPermanentlyDenied) {
-        await onDenied(true);
-      } else {
-        final result = await Permission.microphone.request();
-        if (!result.isGranted) await onDenied(result.isPermanentlyDenied);
-      }
-      return;
-    }
+    if (!await _microphoneAllowed()) return;
     _starting = true;
     _releasedWhileStarting = false;
     await VoicePlayer.instance.stop();
     HapticFeedback.mediumImpact();
     try {
+      // Десктоп: микрофон из «Настройки → Общие» (если подключён).
+      final device = AppPlatform.isDesktop
+          ? await MediaDevices.recordingMicrophone(_recorder, await getIt.get<DeviceRepositories>().settingsDevice.getAll())
+          : null;
       await _recorder.start(
-        const RecordConfig(
+        RecordConfig(
           // AAC-LC моно 32 кбит/с: ~240 КБ в минуту, играется везде.
           encoder: AudioEncoder.aacLc,
           bitRate: 32000,
           sampleRate: 44100,
           numChannels: 1,
           noiseSuppress: true,
-          iosConfig: IosRecordConfig(categoryOptions: [IosAudioCategoryOption.defaultToSpeaker, IosAudioCategoryOption.allowBluetooth]),
+          device: device,
+          iosConfig: const IosRecordConfig(
+            categoryOptions: [IosAudioCategoryOption.defaultToSpeaker, IosAudioCategoryOption.allowBluetooth],
+          ),
         ),
         path: await _newPath(),
       );

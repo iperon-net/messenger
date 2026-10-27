@@ -93,6 +93,21 @@ abstract final class Desktop {
   static Future<String> setLaunchAtLogin(bool enabled) async =>
       await _channel.invokeMethod<String>('setLaunchAtLogin', {'enabled': enabled}) ?? 'disabled';
 
+  /// Доступ к камере / микрофону (`camera` | `microphone`); не десктоп или
+  /// ошибка — [MediaAccess.denied].
+  static Future<MediaAccess> mediaAccess(MediaKind kind) async => switch (await _invoke<String>('mediaAccess', {'kind': kind.name})) {
+    'granted' => MediaAccess.granted,
+    'notDetermined' => MediaAccess.notDetermined,
+    _ => MediaAccess.denied,
+  };
+
+  /// Системный запрос доступа (покажется, только если ещё не спрашивали).
+  static Future<bool> requestMediaAccess(MediaKind kind) async => await _invoke<bool>('requestMediaAccess', {'kind': kind.name}) ?? false;
+
+  /// Системные настройки конфиденциальности для [kind] — включить доступ после
+  /// отказа можно только там.
+  static Future<void> openPrivacySettings(MediaKind kind) => _invoke<void>('openPrivacySettings', {'kind': kind.name});
+
   static Future<T?> _invoke<T>(String method, [Map<String, Object?>? arguments]) async {
     if (!AppPlatform.isDesktop) return null;
     try {
@@ -103,6 +118,10 @@ abstract final class Desktop {
     }
   }
 }
+
+enum MediaKind { camera, microphone }
+
+enum MediaAccess { granted, denied, notDetermined }
 
 /// «В сети» на десктопе (как в Telegram Desktop). Стрим держится, пока
 /// приложение запущено (уведомления только по нему), но онлайн сессия — лишь

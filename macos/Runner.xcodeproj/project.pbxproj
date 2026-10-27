@@ -30,6 +30,7 @@
 		49C1B0743586BD1ED9A14116 /* VideoCompressor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B64F6EC82EEAC5D9E57ADD /* VideoCompressor.swift */; };
 		67D846D01B2EF8724FB8030A /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F00A78056A96443EF040AE80 /* Pods_RunnerTests.framework */; };
 		9E7773543ABFB75A3F2A33C2 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D264B49E92CC65A52C41F31 /* Pods_Runner.framework */; };
+		AB1E57A1E500000000000001 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = AB1E57A1E500000000000002 /* InfoPlist.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -90,6 +91,8 @@
 		E69BE53D377107514C491968 /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		EBCB127A272A07205E4E6296 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		F00A78056A96443EF040AE80 /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		AB1E57A1E500000000000003 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		AB1E57A1E500000000000004 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -158,6 +161,7 @@
 				33CC10F22044A3C60003C045 /* Assets.xcassets */,
 				33CC10F42044A3C60003C045 /* MainMenu.xib */,
 				33CC10F72044A3C60003C045 /* Info.plist */,
+				AB1E57A1E500000000000002 /* InfoPlist.strings */,
 			);
 			name = Resources;
 			path = ..;
@@ -294,6 +298,7 @@
 			knownRegions = (
 				en,
 				Base,
+				ru,
 			);
 			mainGroup = 33CC10E42044A3C60003C045;
 			productRefGroup = 33CC10EE2044A3C60003C045 /* Products */;
@@ -321,6 +326,7 @@
 			files = (
 				33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */,
 				33CC10F62044A3C60003C045 /* MainMenu.xib in Resources */,
+				AB1E57A1E500000000000001 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -487,6 +493,16 @@
 				33CC10F52044A3C60003C045 /* Base */,
 			);
 			name = MainMenu.xib;
+			path = Runner;
+			sourceTree = "<group>";
+		};
+		AB1E57A1E500000000000002 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				AB1E57A1E500000000000003 /* en */,
+				AB1E57A1E500000000000004 /* ru */,
+			);
+			name = InfoPlist.strings;
 			path = Runner;
 			sourceTree = "<group>";
 		};

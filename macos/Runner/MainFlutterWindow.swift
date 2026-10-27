@@ -1,3 +1,4 @@
+import AVFoundation
 import Cocoa
 import FlutterMacOS
 import ServiceManagement
@@ -183,6 +184,28 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
         UserDefaults.standard.removeObject(forKey: "splitListWidth")
       }
       result(nil)
+    case "mediaAccess":
+      // Доступ к камере / микрофону: granted | denied | notDetermined.
+      guard let type = Self.mediaType(args["kind"] as? String) else { return result("denied") }
+      switch AVCaptureDevice.authorizationStatus(for: type) {
+      case .authorized: result("granted")
+      case .notDetermined: result("notDetermined")
+      default: result("denied")
+      }
+    case "requestMediaAccess":
+      // Системный вопрос (только из notDetermined; иначе сразу ответ).
+      guard let type = Self.mediaType(args["kind"] as? String) else { return result(false) }
+      AVCaptureDevice.requestAccess(for: type) { granted in
+        DispatchQueue.main.async { result(granted) }
+      }
+    case "openPrivacySettings":
+      // «Конфиденциальность и безопасность → Камера / Микрофон» — включить
+      // доступ после отказа можно только там.
+      let pane = (args["kind"] as? String) == "camera" ? "Privacy_Camera" : "Privacy_Microphone"
+      if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?\(pane)") {
+        NSWorkspace.shared.open(url)
+      }
+      result(nil)
     case "launchAtLogin":
       result(SMAppService.mainApp.status == .enabled)
     case "setLaunchAtLogin":
@@ -211,6 +234,14 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
       result(service.status == .enabled ? "enabled" : "disabled")
     default:
       result(FlutterMethodNotImplemented)
+    }
+  }
+
+  private static func mediaType(_ kind: String?) -> AVMediaType? {
+    switch kind {
+    case "camera": return .video
+    case "microphone": return .audio
+    default: return nil
     }
   }
 

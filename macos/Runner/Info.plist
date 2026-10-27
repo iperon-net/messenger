@@ -30,7 +30,9 @@
 	<key>NSHumanReadableCopyright</key>
 	<string>$(PRODUCT_COPYRIGHT)</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Iperon needs the microphone to record voice messages.</string>
+	<string>Iperon uses the microphone for voice messages and calls.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Iperon uses the camera for video calls.</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>

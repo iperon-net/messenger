@@ -79,6 +79,14 @@ class SettingsDevice {
     await db.execute("UPDATE settingsDevice SET quickReaction = ?", [emoji]);
   }
 
+  Future<void> setMicrophone({required String id, required String name}) async {
+    await db.execute("UPDATE settingsDevice SET microphoneId = ?, microphoneName = ?", [id, name]);
+  }
+
+  Future<void> setCamera({required String id, required String name}) async {
+    await db.execute("UPDATE settingsDevice SET cameraId = ?, cameraName = ?", [id, name]);
+  }
+
   Future<void> setSendWithModifierEnter(bool value) async {
     await db.execute("UPDATE settingsDevice SET sendWithModifierEnter = ?", [value ? 1 : 0]);
   }
