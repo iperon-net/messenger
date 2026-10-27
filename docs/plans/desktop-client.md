@@ -218,6 +218,16 @@ screen_protector (наш форк — android/ios).
 **Шаг 2 — устройства и демонстрация экрана.**
 - Выбор микрофона / камеры / динамика (`Hardware.instance` LiveKit), переключение
   на лету, реакция на подключение/отключение гарнитуры.
+  **Сделано 2026-10-27 до звонков (не проверено на Mac):** «Настройки → Общие» —
+  микрофон (список `record`, проверка уровня пробной записью) и камера (список
+  WebRTC, превью по кнопке), «Как в системе» по умолчанию, подключение на ходу
+  (`Hardware.onDeviceChange`); выбор — `settingsDevice.microphone*/camera*` (id +
+  имя: у `record` и WebRTC id разные, ищем по id, потом по имени — `MediaDevices`
+  в `lib/media_devices.dart`). Микрофон уже используется для голосовых; в звонок
+  передать `deviceId` при входе в комнату. Доступ к камере / микрофону на macOS —
+  канал `desktop` (`mediaAccess` / `requestMediaAccess` / `openPrivacySettings`;
+  `permission_handler` на macOS нет — голосовые на десктопе из-за этого, похоже,
+  не записывались). Динамики — вместе со звонками.
 - Демонстрация экрана: на десктопе проще, чем на мобильных (без Broadcast Extension
   / MediaProjection) — выбор экрана/окна через `desktopCapturer` flutter_webrtc.
   Рецепт мобильной реализации — откат 2026-09-24 (revert dd334ce); macOS требует
