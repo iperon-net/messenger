@@ -339,6 +339,12 @@ class DeviceDatabase {
           );
         ''');
         }),
+      )
+      ..add(
+        SqliteMigration(4, (tx) async {
+          // Десктоп, «Общие → Отправка сообщения»: 1 — ⌘/Ctrl+Enter.
+          await tx.execute("ALTER TABLE settingsDevice ADD COLUMN sendWithModifierEnter INTEGER NOT NULL DEFAULT 0;");
+        }),
       );
   }
 

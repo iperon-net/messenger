@@ -1,10 +1,8 @@
-import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../desktop.dart';
 import '../../platform.dart';
 import '../../split_layout.dart';
 import '../../i18n/translations.g.dart';
@@ -61,6 +59,16 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                 const SettingsAccountsMaterial(),
                 const SizedBox(height: 6),
                 _group(context, [
+                  // Десктоп: клавиша отправки, автозапуск.
+                  if (AppPlatform.isDesktop)
+                    MaterialListTileIcon(
+                      title: Text(context.t.screenSettings.general),
+                      color: const Color(0xFF8E8E93),
+                      icon: FontAwesomeIcons.gear,
+                      onTab: () async => context.go("/settings/general"),
+                      selected: SplitSelection.of(context) == 'general',
+                      isTrailing: true,
+                    ),
                   MaterialListTileIcon(
                     title: Text(context.t.screenSettings.notifications),
                     color: const Color(0xFFE5214D),
@@ -122,12 +130,6 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                     isTrailing: true,
                   ),
                 ]),
-                // Десктоп: запуск вместе с системой (Telegram Desktop — там же).
-                if (AppPlatform.isDesktop) ...[
-                  const SizedBox(height: 6),
-                  _group(context, const [_LaunchAtLoginTile()]),
-                ],
-
                 const SizedBox(height: 6),
               ],
             ),
@@ -136,51 +138,4 @@ class _SettingsMaterial extends State<SettingsMaterial> {
       },
     );
   }
-}
-
-/// «Запускать при входе в систему» (десктоп, [Desktop.setLaunchAtLogin]).
-class _LaunchAtLoginTile extends StatefulWidget {
-  const _LaunchAtLoginTile();
-
-  @override
-  State<_LaunchAtLoginTile> createState() => _LaunchAtLoginTileState();
-}
-
-class _LaunchAtLoginTileState extends State<_LaunchAtLoginTile> {
-  bool? _enabled;
-
-  @override
-  void initState() {
-    super.initState();
-    Desktop.launchAtLogin().then((enabled) {
-      if (mounted) setState(() => _enabled = enabled);
-    });
-  }
-
-  Future<void> _set(bool value) async {
-    try {
-      final status = await Desktop.setLaunchAtLogin(value);
-      if (!mounted) return;
-      setState(() => _enabled = status == 'enabled');
-      if (status == 'requiresApproval') {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.t.screenSettings.launchAtLoginApproval)));
-      }
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            context.t.screenSettings.launchAtLoginFailed(error: error is PlatformException ? error.message ?? error.code : error),
-          ),
-        ),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) => SwitchListTile(
-    title: Text(context.t.screenSettings.launchAtLogin),
-    value: _enabled ?? false,
-    onChanged: _enabled == null ? null : _set,
-  );
 }

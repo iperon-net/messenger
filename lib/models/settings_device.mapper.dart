@@ -153,6 +153,15 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     opt: true,
     def: true,
   );
+  static bool _$sendWithModifierEnter(SettingsDeviceModel v) =>
+      v.sendWithModifierEnter;
+  static const Field<SettingsDeviceModel, bool> _f$sendWithModifierEnter =
+      Field(
+        'sendWithModifierEnter',
+        _$sendWithModifierEnter,
+        opt: true,
+        def: false,
+      );
 
   @override
   final MappableFields<SettingsDeviceModel> fields = const {
@@ -174,6 +183,7 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     #chatWallpaperIntensity: _f$chatWallpaperIntensity,
     #quickReaction: _f$quickReaction,
     #callsE2ee: _f$callsE2ee,
+    #sendWithModifierEnter: _f$sendWithModifierEnter,
   };
 
   static SettingsDeviceModel _instantiate(DecodingData data) {
@@ -196,6 +206,7 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
       chatWallpaperIntensity: data.dec(_f$chatWallpaperIntensity),
       quickReaction: data.dec(_f$quickReaction),
       callsE2ee: data.dec(_f$callsE2ee),
+      sendWithModifierEnter: data.dec(_f$sendWithModifierEnter),
     );
   }
 
@@ -289,6 +300,7 @@ abstract class SettingsDeviceModelCopyWith<
     int? chatWallpaperIntensity,
     String? quickReaction,
     bool? callsE2ee,
+    bool? sendWithModifierEnter,
   });
   SettingsDeviceModelCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -330,6 +342,7 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     int? chatWallpaperIntensity,
     String? quickReaction,
     bool? callsE2ee,
+    bool? sendWithModifierEnter,
   }) => $apply(
     FieldCopyWithData({
       if (locale != $none) #locale: locale,
@@ -354,6 +367,8 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
         #chatWallpaperIntensity: chatWallpaperIntensity,
       if (quickReaction != null) #quickReaction: quickReaction,
       if (callsE2ee != null) #callsE2ee: callsE2ee,
+      if (sendWithModifierEnter != null)
+        #sendWithModifierEnter: sendWithModifierEnter,
     }),
   );
   @override
@@ -394,6 +409,10 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     ),
     quickReaction: data.get(#quickReaction, or: $value.quickReaction),
     callsE2ee: data.get(#callsE2ee, or: $value.callsE2ee),
+    sendWithModifierEnter: data.get(
+      #sendWithModifierEnter,
+      or: $value.sendWithModifierEnter,
+    ),
   );
 
   @override

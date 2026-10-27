@@ -48,6 +48,10 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
   /// шифруется, только когда E2EE включён у обоих собеседников (см. [Calls]).
   final bool callsE2ee;
 
+  /// Десктоп, «Общие → Отправка сообщения»: `false` — Enter отправляет
+  /// (Shift+Enter — перенос), `true` — ⌘/Ctrl+Enter отправляет, Enter — перенос.
+  final bool sendWithModifierEnter;
+
   const SettingsDeviceModel({
     this.locale,
     this.darkMode = DarkModeModel.system,
@@ -67,6 +71,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     this.chatWallpaperIntensity = 40,
     this.quickReaction = '❤️',
     this.callsE2ee = true,
+    this.sendWithModifierEnter = false,
   });
 
   factory SettingsDeviceModel.fromSqlite(Map<String, dynamic> data) {
@@ -89,6 +94,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     final quickReaction = data['quickReaction'] as String?;
     // Отсутствующая/NULL колонка (старая БД до миграции) трактуется как включено.
     final callsE2ee = data['callsE2ee'] ?? 1;
+    final sendWithModifierEnter = data['sendWithModifierEnter'] ?? 0;
 
     SettingsDeviceModel settingsDeviceModel = SettingsDeviceModel();
 
@@ -174,6 +180,10 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
 
     if (callsE2ee == 0) {
       settingsDeviceModel = settingsDeviceModel.copyWith(callsE2ee: false);
+    }
+
+    if (sendWithModifierEnter > 0) {
+      settingsDeviceModel = settingsDeviceModel.copyWith(sendWithModifierEnter: true);
     }
 
     return settingsDeviceModel;

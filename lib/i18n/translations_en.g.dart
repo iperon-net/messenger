@@ -54,6 +54,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$screenPoll$en screenPoll = Translations$screenPoll$en.internal(_root);
 	late final Translations$screenChat$en screenChat = Translations$screenChat$en.internal(_root);
 	late final Translations$screenSettings$en screenSettings = Translations$screenSettings$en.internal(_root);
+	late final Translations$screenSettingsGeneral$en screenSettingsGeneral = Translations$screenSettingsGeneral$en.internal(_root);
 	late final Translations$screenSettingsNotifications$en screenSettingsNotifications = Translations$screenSettingsNotifications$en.internal(_root);
 	late final Translations$screenSettingsData$en screenSettingsData = Translations$screenSettingsData$en.internal(_root);
 	late final Translations$screenDeveloper$en screenDeveloper = Translations$screenDeveloper$en.internal(_root);
@@ -2112,6 +2113,9 @@ class Translations$screenSettings$en {
 	/// en: 'You can add up to {count} accounts'
 	String accountsLimit({required Object count}) => 'You can add up to ${count} accounts';
 
+	/// en: 'General'
+	String get general => 'General';
+
 	/// en: 'Launch at login'
 	String get launchAtLogin => 'Launch at login';
 
@@ -2132,6 +2136,27 @@ class Translations$screenSettings$en {
 
 	/// en: 'Can't switch accounts during a call'
 	String get accountSwitchCallActive => 'Can\'t switch accounts during a call';
+}
+
+// Path: screenSettingsGeneral
+class Translations$screenSettingsGeneral$en {
+	Translations$screenSettingsGeneral$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'General'
+	String get general => 'General';
+
+	/// en: 'Send message'
+	String get sendMessage => 'Send message';
+
+	/// en: 'Shift + Enter — new line'
+	String get newLineShiftEnter => 'Shift + Enter — new line';
+
+	/// en: 'Enter — new line'
+	String get newLineEnter => 'Enter — new line';
 }
 
 // Path: screenSettingsNotifications
@@ -5552,6 +5577,7 @@ extension on Translations {
 			'screenSettings.logout' => 'Logout',
 			'screenSettings.addAccount' => 'Add account',
 			'screenSettings.accountsLimit' => ({required Object count}) => 'You can add up to ${count} accounts',
+			'screenSettings.general' => 'General',
 			'screenSettings.launchAtLogin' => 'Launch at login',
 			'screenSettings.launchAtLoginApproval' => 'Allow Iperon in System Settings → General → Login Items',
 			'screenSettings.launchAtLoginFailed' => ({required Object error}) => 'Couldn\'t change launch at login: ${error}',
@@ -5559,6 +5585,10 @@ extension on Translations {
 			'screenSettings.trayQuit' => 'Quit Iperon',
 			'screenSettings.trayUpdates' => 'Check for Updates…',
 			'screenSettings.accountSwitchCallActive' => 'Can\'t switch accounts during a call',
+			'screenSettingsGeneral.general' => 'General',
+			'screenSettingsGeneral.sendMessage' => 'Send message',
+			'screenSettingsGeneral.newLineShiftEnter' => 'Shift + Enter — new line',
+			'screenSettingsGeneral.newLineEnter' => 'Enter — new line',
 			'screenSettingsNotifications.notifications' => 'Notifications and sounds',
 			'screenSettingsNotifications.messageNotifications' => 'Message notifications',
 			'screenSettingsNotifications.privateChats' => 'Private chats',
@@ -5950,13 +5980,13 @@ extension on Translations {
 			'cloudPassword.sessionExpired' => 'Session expired. Please start again.',
 			'screenMyProfile.myprofile' => 'My profile',
 			'screenMyProfile.firstName' => 'First name',
+			_ => null,
+		} ?? switch (path) {
 			'screenMyProfile.lastName' => 'Last name',
 			'screenMyProfile.aboutMe' => 'About me',
 			'screenMyProfile.tellUsAboutYourself' => 'Tell us about yourself',
 			'screenMyProfile.add' => 'Add',
 			'screenMyProfile.birthDate' => 'Birth date',
-			_ => null,
-		} ?? switch (path) {
 			'screenMyProfile.username' => 'Username',
 			'screenMyProfile.validationFirstNameMaxLength' => 'Must contain no more than 25 characters',
 			'screenMyProfile.validationLastNameMaxLength' => 'Must contain no more than 25 characters',

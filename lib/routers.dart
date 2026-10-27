@@ -2070,6 +2070,12 @@ class Routers {
             context: context,
           ),
         ),
+        // «Общие» — только десктоп (клавиша отправки, автозапуск).
+        GoRoute(
+          path: "general",
+          parentNavigatorKey: pane,
+          pageBuilder: (context, state) => _pageMaterial(state, const SettingsGeneralMaterial(), pane: split, context: context),
+        ),
         GoRoute(
           path: "appearance",
           parentNavigatorKey: pane,

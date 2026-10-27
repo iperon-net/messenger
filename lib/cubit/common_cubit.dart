@@ -279,4 +279,9 @@ class CommonCubit extends Cubit<CommonState> {
     await repositories.settingsDevice.setQuickReaction(emoji);
     emit(state.copyWith(settingsDevice: state.settingsDevice.copyWith(quickReaction: emoji)));
   }
+
+  Future<void> setSendWithModifierEnter(bool value) async {
+    await repositories.settingsDevice.setSendWithModifierEnter(value);
+    emit(state.copyWith(settingsDevice: state.settingsDevice.copyWith(sendWithModifierEnter: value)));
+  }
 }

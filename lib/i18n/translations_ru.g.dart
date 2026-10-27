@@ -52,6 +52,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$screenPoll$ru screenPoll = _Translations$screenPoll$ru._(_root);
 	@override late final _Translations$screenChat$ru screenChat = _Translations$screenChat$ru._(_root);
 	@override late final _Translations$screenSettings$ru screenSettings = _Translations$screenSettings$ru._(_root);
+	@override late final _Translations$screenSettingsGeneral$ru screenSettingsGeneral = _Translations$screenSettingsGeneral$ru._(_root);
 	@override late final _Translations$screenSettingsNotifications$ru screenSettingsNotifications = _Translations$screenSettingsNotifications$ru._(_root);
 	@override late final _Translations$screenSettingsData$ru screenSettingsData = _Translations$screenSettingsData$ru._(_root);
 	@override late final _Translations$screenDeveloper$ru screenDeveloper = _Translations$screenDeveloper$ru._(_root);
@@ -893,6 +894,7 @@ class _Translations$screenSettings$ru extends Translations$screenSettings$en {
 	@override String get logout => 'Выйти';
 	@override String get addAccount => 'Добавить аккаунт';
 	@override String accountsLimit({required Object count}) => 'Можно добавить не больше ${count} аккаунтов';
+	@override String get general => 'Общие';
 	@override String get launchAtLogin => 'Запускать при входе в систему';
 	@override String get launchAtLoginApproval => 'Разрешите Iperon в Системных настройках → Основные → Объекты входа';
 	@override String launchAtLoginFailed({required Object error}) => 'Не удалось изменить автозапуск: ${error}';
@@ -900,6 +902,19 @@ class _Translations$screenSettings$ru extends Translations$screenSettings$en {
 	@override String get trayQuit => 'Завершить Iperon';
 	@override String get trayUpdates => 'Проверить обновления…';
 	@override String get accountSwitchCallActive => 'Во время звонка аккаунт не переключить';
+}
+
+// Path: screenSettingsGeneral
+class _Translations$screenSettingsGeneral$ru extends Translations$screenSettingsGeneral$en {
+	_Translations$screenSettingsGeneral$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get general => 'Общие';
+	@override String get sendMessage => 'Отправка сообщения';
+	@override String get newLineShiftEnter => 'Shift + Enter — новая строка';
+	@override String get newLineEnter => 'Enter — новая строка';
 }
 
 // Path: screenSettingsNotifications
@@ -2723,6 +2738,7 @@ extension on TranslationsRu {
 			'screenSettings.logout' => 'Выйти',
 			'screenSettings.addAccount' => 'Добавить аккаунт',
 			'screenSettings.accountsLimit' => ({required Object count}) => 'Можно добавить не больше ${count} аккаунтов',
+			'screenSettings.general' => 'Общие',
 			'screenSettings.launchAtLogin' => 'Запускать при входе в систему',
 			'screenSettings.launchAtLoginApproval' => 'Разрешите Iperon в Системных настройках → Основные → Объекты входа',
 			'screenSettings.launchAtLoginFailed' => ({required Object error}) => 'Не удалось изменить автозапуск: ${error}',
@@ -2730,6 +2746,10 @@ extension on TranslationsRu {
 			'screenSettings.trayQuit' => 'Завершить Iperon',
 			'screenSettings.trayUpdates' => 'Проверить обновления…',
 			'screenSettings.accountSwitchCallActive' => 'Во время звонка аккаунт не переключить',
+			'screenSettingsGeneral.general' => 'Общие',
+			'screenSettingsGeneral.sendMessage' => 'Отправка сообщения',
+			'screenSettingsGeneral.newLineShiftEnter' => 'Shift + Enter — новая строка',
+			'screenSettingsGeneral.newLineEnter' => 'Enter — новая строка',
 			'screenSettingsNotifications.notifications' => 'Уведомления и звуки',
 			'screenSettingsNotifications.messageNotifications' => 'Уведомления о сообщениях',
 			'screenSettingsNotifications.privateChats' => 'Личные чаты',
@@ -3121,13 +3141,13 @@ extension on TranslationsRu {
 			'cloudPassword.sessionExpired' => 'Сессия истекла. Начните заново.',
 			'screenMyProfile.myprofile' => 'Мой профиль',
 			'screenMyProfile.firstName' => 'Имя',
+			_ => null,
+		} ?? switch (path) {
 			'screenMyProfile.lastName' => 'Фамилия',
 			'screenMyProfile.aboutMe' => 'О себе',
 			'screenMyProfile.tellUsAboutYourself' => 'Расскажите о себе',
 			'screenMyProfile.add' => 'Указать',
 			'screenMyProfile.birthDate' => 'Дата рождения',
-			_ => null,
-		} ?? switch (path) {
 			'screenMyProfile.username' => 'Имя пользователя',
 			'screenMyProfile.validationFirstNameMaxLength' => 'Должно содержать не более 25 символов',
 			'screenMyProfile.validationLastNameMaxLength' => 'Должно содержать не более 25 символов',

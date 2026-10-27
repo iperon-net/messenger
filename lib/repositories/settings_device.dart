@@ -78,4 +78,8 @@ class SettingsDevice {
   Future<void> setQuickReaction(String emoji) async {
     await db.execute("UPDATE settingsDevice SET quickReaction = ?", [emoji]);
   }
+
+  Future<void> setSendWithModifierEnter(bool value) async {
+    await db.execute("UPDATE settingsDevice SET sendWithModifierEnter = ?", [value ? 1 : 0]);
+  }
 }

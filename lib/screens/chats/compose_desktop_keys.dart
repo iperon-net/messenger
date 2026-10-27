@@ -1,11 +1,17 @@
+import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../cubit.dart';
 import '../../platform.dart';
 
 /// Клавиатура поля ввода на десктопе (как в Telegram Desktop): Enter —
 /// отправить, Shift+Enter — перенос строки (поле многострочное, его обычный
-/// Enter), ↑ в пустом поле — изменить последнее своё, Esc — отменить ответ /
+/// Enter); с настройкой «Общие → Отправка сообщения» = ⌘/Ctrl+Enter
+/// (`sendWithModifierEnter`) отправляет ⌘ (Mac) / Ctrl, а Enter переносит
+/// строку. ↑ в пустом поле — изменить последнее своё, Esc — отменить ответ /
 /// правку, ⌘/Ctrl+V — вставить картинку или файлы из буфера (текст — как
 /// обычно). На мобильных — только [child]. Перехватывает раньше поля:
 /// `Shortcuts` над ним срабатывают до `DefaultTextEditingShortcuts`
@@ -38,14 +44,21 @@ class ComposeDesktopKeys extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!AppPlatform.isDesktop) return child;
+    final modifier = context.select<CommonCubit, bool>((cubit) => cubit.state.settingsDevice.sendWithModifierEnter);
+    final mac = Platform.isMacOS;
     return Shortcuts(
-      shortcuts: const {
-        SingleActivator(LogicalKeyboardKey.enter): _SendIntent(),
-        SingleActivator(LogicalKeyboardKey.numpadEnter): _SendIntent(),
-        SingleActivator(LogicalKeyboardKey.arrowUp): _EditLastIntent(),
-        SingleActivator(LogicalKeyboardKey.escape): _EscapeIntent(),
-        SingleActivator(LogicalKeyboardKey.keyV, meta: true): _PasteIntent(),
-        SingleActivator(LogicalKeyboardKey.keyV, control: true): _PasteIntent(),
+      shortcuts: {
+        if (modifier) ...{
+          SingleActivator(LogicalKeyboardKey.enter, meta: mac, control: !mac): const _SendIntent(),
+          SingleActivator(LogicalKeyboardKey.numpadEnter, meta: mac, control: !mac): const _SendIntent(),
+        } else ...{
+          const SingleActivator(LogicalKeyboardKey.enter): const _SendIntent(),
+          const SingleActivator(LogicalKeyboardKey.numpadEnter): const _SendIntent(),
+        },
+        const SingleActivator(LogicalKeyboardKey.arrowUp): const _EditLastIntent(),
+        const SingleActivator(LogicalKeyboardKey.escape): const _EscapeIntent(),
+        const SingleActivator(LogicalKeyboardKey.keyV, meta: true): const _PasteIntent(),
+        const SingleActivator(LogicalKeyboardKey.keyV, control: true): const _PasteIntent(),
       },
       child: Actions(
         actions: {
