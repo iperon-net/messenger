@@ -1,0 +1,151 @@
+name: macOS
+
+# Сборка и выпуск десктопного клиента для macOS (docs/plans/desktop-client.md
+# §10): scripts/macos_release.sh — universal-сборка, подпись Developer ID,
+# нотаризация, DMG, подпись Sparkle, appcast → бакет S3 в Cloud.ru, его раздаёт
+# nginx на download.iperon.net (сайт ведёт на /macos/Iperon.dmg, приложение
+# читает /macos/appcast.xml).
+#
+# Секреты необязательные: чего нет — тот шаг пропускается, и сборка всё равно
+# даёт DMG артефактом (без сертификата — неподписанный, открывается только через
+# «Открыть всё равно»). В S3 уходит только нотаризованная и подписанная Sparkle
+# сборка — при publish и ключе S3.
+
+on:
+  workflow_call:
+    inputs:
+      flutter_version:
+        required: true
+        type: string
+      # Версия (CFBundleShortVersionString); пусто — из тега (v0.0.N → 0.0.N).
+      build_name:
+        required: false
+        type: string
+        default: ""
+      # Залить в S3 (иначе — только артефакт).
+      publish:
+        required: false
+        type: boolean
+        default: true
+    secrets:
+      firebase_options_dart_base64:
+        required: true
+      # Сертификат «Developer ID Application» (.p12) и пароль к нему.
+      macos_developer_id_p12_base64:
+        required: false
+      macos_developer_id_password:
+        required: false
+      # Тот же ключ App Store Connect API, что у fastlane: им же нотаризуем.
+      asc_key_id:
+        required: false
+      asc_issuer_id:
+        required: false
+      asc_key_p8_base64:
+        required: false
+      # Приватный EdDSA-ключ Sparkle (`generate_keys -x`, одна строка base64);
+      # публичный — SPARKLE_PUBLIC_ED_KEY в macos/Runner/Configs/AppInfo.xcconfig.
+      sparkle_ed_private_key:
+        required: false
+      # Ключ S3 только на запись в бакет загрузок.
+      download_s3_access_key_id:
+        required: false
+      download_s3_secret_access_key:
+        required: false
+
+env:
+  # Бакет (S3_BUCKET=iperon) задаётся в «Prepare signing secrets» — только
+  # когда заливаем.
+  S3_ENDPOINT: "https://s3.cloud.ru"
+  AWS_DEFAULT_REGION: "ru-central-1"
+
+jobs:
+  macos:
+    name: Build, notarize and publish
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      HAS_DEVELOPER_ID: ${{ secrets.macos_developer_id_p12_base64 != '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ inputs.flutter_version }}
+          channel: stable
+          cache: true
+
+      - name: Restore config files
+        env:
+          FIREBASE_OPTIONS_DART_BASE64: ${{ secrets.firebase_options_dart_base64 }}
+        run: |
+          set -euo pipefail
+          # На десктопе Firebase нет, но firebase_options.dart импортируется
+          # общим кодом. .env-файлы объявлены ассетами — без них сборка падает.
+          echo "$FIREBASE_OPTIONS_DART_BASE64" | base64 --decode > lib/firebase_options.dart
+          touch .env .env.development
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Import Developer ID certificate
+        if: env.HAS_DEVELOPER_ID == 'true'
+        uses: apple-actions/import-codesign-certs@v7
+        with:
+          p12-file-base64: ${{ secrets.macos_developer_id_p12_base64 }}
+          p12-password: ${{ secrets.macos_developer_id_password }}
+
+      - name: Prepare signing secrets
+        env:
+          ASC_KEY_P8_BASE64: ${{ secrets.asc_key_p8_base64 }}
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.sparkle_ed_private_key }}
+          PUBLISH: ${{ inputs.publish }}
+          S3_KEY_ID: ${{ secrets.download_s3_access_key_id }}
+        run: |
+          set -euo pipefail
+          if [ "$HAS_DEVELOPER_ID" = "true" ]; then
+            IDENTITY=$(security find-identity -v -p codesigning | sed -n 's/.*"\(Developer ID Application: .*\)"/\1/p' | head -1)
+            if [ -z "$IDENTITY" ]; then
+              echo "::error::No Developer ID Application identity in the imported certificate"
+              exit 1
+            fi
+            echo "MACOS_SIGN_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
+          else
+            echo "::warning::No Developer ID certificate — building an unsigned DMG"
+          fi
+          if [ -n "$ASC_KEY_P8_BASE64" ]; then
+            echo "$ASC_KEY_P8_BASE64" | base64 --decode > "$RUNNER_TEMP/asc_key.p8"
+            echo "ASC_KEY_PATH=$RUNNER_TEMP/asc_key.p8" >> "$GITHUB_ENV"
+          fi
+          if [ -n "$SPARKLE_ED_PRIVATE_KEY" ]; then
+            printf '%s' "$SPARKLE_ED_PRIVATE_KEY" > "$RUNNER_TEMP/sparkle_ed_key"
+            echo "SPARKLE_ED_KEY_FILE=$RUNNER_TEMP/sparkle_ed_key" >> "$GITHUB_ENV"
+          fi
+          if [ "$PUBLISH" = "true" ] && [ -n "$S3_KEY_ID" ]; then
+            echo "S3_BUCKET=iperon" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build and publish
+        env:
+          ASC_KEY_ID: ${{ secrets.asc_key_id }}
+          ASC_ISSUER_ID: ${{ secrets.asc_issuer_id }}
+          BUILD_NAME: ${{ inputs.build_name }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.download_s3_access_key_id }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.download_s3_secret_access_key }}
+        run: |
+          set -euo pipefail
+          # Версия — из входа или тега (v0.0.N → 0.0.N), номер сборки скрипт
+          # берёт из UTC-времени, как TestFlight.
+          scripts/macos_release.sh "${BUILD_NAME:-${GITHUB_REF_NAME#v}}"
+
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: Iperon-macos
+          path: build/macos/release/
+          retention-days: 14
+
+      - name: Clean up secrets
+        if: always()
+        run: rm -f "$RUNNER_TEMP/asc_key.p8" "$RUNNER_TEMP/sparkle_ed_key"
