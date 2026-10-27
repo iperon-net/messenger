@@ -168,7 +168,8 @@ screen_protector (наш форк — android/ios).
    **Сделан 2026-10-27 для macOS, проверен на Mac** — итоги в §14.
 6. Выпуск macOS: подпись, нотаризация, DMG, автообновление, CI, страница на сайте
    (подробно — §10).
-7. Windows: то же (установщик, подпись, WinSparkle, CI).
+7. Windows: то же (установщик, подпись, WinSparkle, CI) — план в §15, только
+   через CI.
 
 Порядок платформ: **macOS → Windows** (решено 2026-10-26). Linux — решим позже (у
 него меньше всего поддержки: нет Firebase, passkeys, local_auth, защиты от скриншотов).
@@ -488,3 +489,178 @@ Dart — `lib/desktop.dart` (`Desktop`, `DesktopPresence`).
   выбор файлов (`_pickDesktop`, `file_picker`): мобильная галерея (`photo_manager`)
   полезла бы в «Фото» и требует отдельного разрешения в `Info.plist`.
 - Не делаем: выбор прямо из «Фото» macOS (файлы и перетаскивание покрывают).
+
+## 15. Windows (этап 7) — план (2026-10-27)
+
+Решено 2026-10-27: Windows собираем и выпускаем **только через CI** (раннер
+`windows-latest`), своей Windows-машины для сборки нет. Схема выпуска — как у macOS
+(§10): тот же тег `v0.0.N`, отдельный независимый job, свой `windows/appcast.xml` в
+бакете `iperon`, раздача через `download.iperon.net/windows/`. Первый релиз — как
+на macOS: только сообщения, без звонков и секретных чатов; только x64 (Windows на
+ARM запускает x64 через эмуляцию; arm64-сборка — позже).
+
+Что уже готово и переносится без изменений: весь Dart-слой (чаты, крипта, SQLite,
+стрим, QR-вход, `CrashReports`, `AppPlatform.isDesktop`), `Utils.deviceInfo`
+(`osCode` 4, имя компьютера, версия Windows), сервер (`os` 4,
+`Session.ReceivesCalls`), конфиг nginx (`/windows/…`), скрипт-образец
+`scripts/macos_release.sh`.
+
+### W0. Спайк в CI (первый шаг)
+
+- `flutter create --platforms=windows --org net.iperon .` → `windows/` (runner на
+  C++). Имя продукта «Iperon», иконка (`windows/runner/resources/app_icon.ico` из
+  той же картинки, что macOS), `CompanyName` / `FileDescription` в `Runner.rc`.
+- Ручной workflow `windows.yaml` (workflow_dispatch) → `flutter build windows
+  --release` → папка `build/windows/x64/runner/Release/` артефактом (zip).
+- Дымовой тест в CI: запустить `Iperon.exe`, подождать ~20 с, процесс жив, в логе
+  нет необработанных исключений (экран QR-входа поднялся без сети к Firebase и
+  нативным каналам). Глазами — см. «Проверка» ниже.
+- Итог спайка — список того, что не собралось / упало (как §8 для macOS).
+
+### W1. Плагины и гейты
+
+По дереву зависимостей Windows-реализации **нет** у:
+
+| Пакет | Что делаем |
+|---|---|
+| `video_player` | `video_player_win` (Media Foundation, регистрируется как реализация `video_player` — код экранов не меняется) |
+| `flutter_image_compress` | пакет `image` (чистый Dart) в изоляте на десктопе (§2) |
+| `cryptography_flutter` | нативного ускорения нет — `cryptography` уходит на чистый Dart; замерить Argon2id (код-пароль, облачный пароль) и шифрование медиа, при необходимости поднять параметры только там, где это безопасно (Argon2 — нельзя, хэши разойдутся) |
+| `mobile_scanner`, `photo_manager`, `flutter_contacts`, `screen_protector`, `image_cropper` | на десктопе не нужны — проверить, что все вызовы закрыты `AppPlatform` (на macOS часть закрыта, потому что плагин там есть) |
+
+Есть на Windows: `flutter_secure_storage` (ключ БД — DPAPI), `sqlite3` /
+`sqlite3mc`, `record`, `audioplayers`, `pasteboard`, `desktop_drop`, `file_picker`,
+`url_launcher`, `share_plus`, `local_auth` (Windows Hello для код-пароля),
+`connectivity_plus`, `livekit_client` / `flutter_webrtc` (на звонки позже, §7).
+
+Пути: данные — `%APPDATA%\net.iperon\Iperon\…` (`path_provider`), «Сохранить» —
+`Загрузки\Iperon` (`_saveDesktop` уже общий). Шорткаты: `app_shortcuts.dart` уже
+различает ⌘/Ctrl.
+
+### W2. Нативный канал `net.iperon.messenger/desktop` на Windows
+
+Dart-сторона (`lib/desktop.dart`) не меняется — повторяем методы macOS
+(`MainFlutterWindow.swift`) в `windows/runner/` (C++, Win32):
+
+| Метод | Windows |
+|---|---|
+| `setBadge` | наложение на кнопку в панели задач (`ITaskbarList3::SetOverlayIcon`, кружок с числом) + число в подсказке трея |
+| `setTrayMenu` | значок в трее (`Shell_NotifyIcon`), меню «Открыть / Проверить обновления / Завершить»; клик — показать окно |
+| `requestAttention` | `FlashWindowEx` |
+| `idleSeconds` | `GetLastInputInfo` |
+| `requestNotifications` / `showNotification` / `notificationTap` | toast-уведомления: `flutter_local_notifications` (Windows поддерживается) только на Windows или свой WinRT; требуют AppUserModelID на ярлыке в «Пуске» (ставит установщик, W4), тап → маршрут в Dart |
+| `launchAtLogin` / `setLaunchAtLogin` | `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` |
+| `listWidth` / `setListWidth` | `HKCU\Software\Iperon` |
+
+Плюс поведение окна, как на Mac: закрытие окна — в трей (стрим живёт), выход — из
+меню трея; **одна копия** (именованный мьютекс; второй запуск поднимает уже
+открытое окно); размер и положение окна запоминаются.
+
+### W3. Медиа
+
+- Воспроизведение видео — `video_player_win` (W1).
+- **Канал `net.iperon.messenger/video`** (`lib/chats/video_prepare.dart`): без него
+  видео не отправится — `info` (размер с поворотом, длительность, битрейт, кадр-превью)
+  нужен всегда. Минимум для первого релиза — `info` и `frames` через Media
+  Foundation (`IMFSourceReader`); `compress` — либо тоже Media Foundation
+  (`IMFSinkWriter`, H.264 + AAC; HEVC на Windows не у всех — Dart уже откатывается
+  на H.264), либо первый релиз отправляет без сжатия с лимитом размера. Решить на
+  W0 по объёму.
+- Фото — пакет `image` (W1); кадрирование — `crop_your_image` уже общий.
+
+### W4. Установщик (Inno Setup)
+
+- Установка в профиль пользователя без прав администратора:
+  `%LOCALAPPDATA%\Programs\Iperon` (`PrivilegesRequired=lowest`) — обновления
+  ставятся без UAC, как у Telegram / Discord.
+- Ярлык в «Пуске» **с AppUserModelID** `net.iperon.messenger` (без него toast-уведомления
+  не показываются), запись в «Установка и удаление программ», опционально — ярлык
+  на рабочем столе.
+- **Visual C++ Runtime** (`msvcp140.dll`, `vcruntime140.dll`, `vcruntime140_1.dll`) —
+  рядом с exe (app-local, из Visual Studio на раннере), иначе на чистой Windows не
+  запустится.
+- `AppMutex` — установщик ждёт закрытия запущенного Iperon; тихий режим
+  (`/SILENT /SUPPRESSMSGBOXES /NORESTART`) — для автообновления.
+- Имя: `Iperon-<версия>.exe` (+ постоянный `Iperon.exe` для сайта) — nginx-конфиг
+  уже пропускает `.exe`.
+- Не делаем: MSIX / Microsoft Store (решено — только сайт, §6).
+
+### W5. Подпись кода — **начать сразу, это самый долгий пункт**
+
+Без подписи SmartScreen показывает «Windows защитила ваш компьютер» (жать
+«Подробнее → Выполнить в любом случае»), Defender чаще даёт ложные срабатывания.
+
+- С 2023 года сертификаты подписи кода выдают только на токен / облачный HSM —
+  файла `.pfx`, как `.p12` у Apple, нет. Для CI — облачная подпись (SSL.com eSigner,
+  DigiCert KeyLocker, Certum SimplySign и т.п.; у SimplySign — проверить, работает ли
+  без интерактивного входа).
+- Azure Trusted Signing (дешёвый, от Microsoft) — по нашим данным только для
+  организаций США / Канады / ЕС / Великобритании: скорее всего не подходит.
+- Российскому юр- / физлицу многие УЦ сейчас не продают — **выяснить, кто продаст и на
+  кого оформлять** (возможный блокер).
+- EV больше не даёт мгновенного доверия SmartScreen (Microsoft убрала в 2024) —
+  репутация копится по скачиваниям у любого сертификата, первые недели
+  предупреждение возможно и с подписью.
+- **Первый кандидат — SSL.com** (облачная подпись eSigner, работает из CI через
+  `CodeSignTool` / `signtool` + их KSP). Пример: установщик MAX под Windows
+  (`download.cdn.oneme.ru/win/release/MAX.msi`, проверено 2026-10-27) подписан
+  сертификатом SSL.com на физлицо (`CN=Konstantin Syomochkin, L=Astana, C=KZ`,
+  обычный, не EV, политика `2.23.140.1.4.1`, на год), метка времени — тоже SSL.com.
+  То есть физлицам с проверкой личности SSL.com продаёт; **продаст ли российскому
+  лицу — уточнить у них** (если нет — оформлять на лицо / компанию в другой
+  юрисдикции, как в примере).
+- Подписываем (`signtool`, метка времени RFC 3161) наши PE-файлы (`Iperon.exe`,
+  DLL плагинов) и установщик.
+- Запасной вариант, если сертификата не будет: выпуск без подписи с инструкцией на
+  сайте — решать отдельно.
+
+### W6. Автообновление (WinSparkle)
+
+- WinSparkle (DLL, C API) в runner: `win_sparkle_set_appcast_url`
+  (`https://download.iperon.net/windows/appcast.xml`), EdDSA-ключ, `win_sparkle_init`
+  при старте, «Проверить обновления…» в трее → `win_sparkle_check_update_with_ui`;
+  колбэки `can_shutdown` / `shutdown_request` — закрыть приложение перед запуском
+  установщика.
+- `windows/appcast.xml`: `sparkle:os="windows"`, `sparkle:installerArguments="/SILENT
+  /SUPPRESSMSGBOXES /NORESTART"`, `sparkle:edSignature`.
+- Отдельная пара EdDSA-ключей (секрет `WINSPARKLE_ED_PRIVATE_KEY`; подпись —
+  `winsparkle-tool sign`), не общая с macOS: компрометация одной платформы не
+  задевает другую.
+- **Версия:** у Windows части версии файла 16-битные (≤ 65535) — UTC-номер сборки
+  macOS (`2610271456`) не влезает. На Windows номер сборки — `github.run_number`, а
+  в appcast `sparkle:version` = сама версия (`0.0.549`): WinSparkle сравнивает
+  строки версий, патч растёт с каждым тегом.
+- Правило выпусков — как на macOS (сейчас временно каждый тег, потом X.Y.0, §10).
+
+### W7. CI
+
+- `_deploy_windows.yaml` (reusable) из `build_and_deploy.yaml` параллельно с
+  TestFlight и macOS (`needs: Linter`), независимый; ручной — `windows.yaml`.
+- Скрипт `scripts/windows_release.sh` (Git Bash на раннере, по образцу
+  `macos_release.sh`; шаги включаются секретами, без них — неподписанный установщик
+  артефактом): `flutter build windows --release` → подпись PE → Inno Setup (`iscc`,
+  через `choco install innosetup`, если нет в образе) → подпись установщика →
+  подпись WinSparkle → `appcast.xml` → S3 `windows/` (aws cli, одним PUT, appcast
+  последним).
+- Секреты: облачная подпись (зависит от УЦ, W5), `WINSPARKLE_ED_PRIVATE_KEY`, ключ
+  S3 — тот же `DOWNLOAD_S3_*` (расширить права на префикс `windows/`).
+
+### Проверка
+
+CI собирает, но смотреть глазами где-то нужно: виртуалка Windows 11 на Mac (UTM /
+Parallels, ARM-версия, x64-сборка идёт через эмуляцию) или любой ПК. Чек-лист:
+установка без прав администратора, QR-вход, отправка / приём сообщений и файлов,
+уведомление и тап по нему, трей и счётчик, закрытие в трей, вторая копия, Windows
+Hello для код-пароля, голосовое (разрешение микрофона в «Конфиденциальности»),
+видео (отправка и просмотр), обновление N → N+1.
+
+### Порядок
+
+1. **W5 — запрос сертификата** (параллельно со всем остальным).
+2. W0 — спайк в CI.
+3. W1 + W2 — плагины, гейты, нативный канал, окно / трей.
+4. W3 — медиа.
+5. W4 + W6 + W7 — установщик, автообновление, выпуск.
+
+Открытые вопросы: продаст ли SSL.com (или другой УЦ) и на кого сертификат (W5); где смотреть руками (виртуалка /
+ПК); сжатие видео в первом релизе или позже (W3).
