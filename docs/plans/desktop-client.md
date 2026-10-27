@@ -196,7 +196,17 @@ screen_protector (наш форк — android/ios).
 Пушей нет — звонок доходит, только пока приложение запущено (хотя бы в трее); для
 компьютера это нормально.
 
-**Шаг 1 — звонки 1-на-1 (аудио + видео).**
+**Шаг 1 — звонки 1-на-1 (аудио + видео).** **Написано 2026-10-28 для macOS, не
+проверено:** `AppPlatform.hasCalls` = мобильные + macOS, `hasSystemCallUi` —
+только мобильные (CallPush/CallKit на десктопе не стартуют); Subscribe шлёт
+capability `calls` (сервер уже умел: `Session.ReceivesCalls`, правки сервера не
+нужны); входящий — свой экран `/call` (`CallGate` считает `incoming` активным на
+десктопе) с рингтоном `audio/ringtone.wav`, окно вперёд + прыгающий значок
+(`showWindow` / `cancelAttention`) + системное уведомление `call:<id>`
+(убирается при уходе из `incoming`); доступ к микрофону / камере — канал
+`desktop`; в комнату LiveKit — микрофон и камера из «Общие → Звонки»
+(`MediaDevices.callDevices`, микрофон по имени); на экране звонка без выбора
+аудиовыхода и «сменить камеру». Окно входящего поверх всех и динамики — позже.
 - Платформенный слой: на десктопе регистрировать `Calls`, но без `CallPush` /
   CallKit / `flutter_callkit_incoming`; нативные каналы `call_window`, `call_audio`,
   `system_call`, `audio_devices`, `call_pip*`, `audio_route_ios` — заглушки или
