@@ -13,6 +13,7 @@ import '../../extensions.dart';
 import '../../themes.dart';
 import '../../utils.dart';
 import '../../i18n/translations.g.dart';
+import '../../platform.dart';
 import '../../chats/users_search.dart';
 import '../chats/users_search_list_material.dart';
 
@@ -101,7 +102,7 @@ class _ContactsMaterialState extends State<ContactsMaterial> with SearchHideOnSc
           // не выдан и пользователь его не закрыл. Поиск и облачные контакты при
           // этом доступны — экран не блокируется.
           BlocSelector<ContactsCubit, ContactsState, bool>(
-            selector: (state) => !state.permissionGranted && !state.bannerDismissed,
+            selector: (state) => AppPlatform.hasAddressBook && !state.permissionGranted && !state.bannerDismissed,
             builder: (context, showBanner) => showBanner
                 ? PermissionBannerMaterial(
                     icon: HugeIcons.strokeRoundedUsersRound,

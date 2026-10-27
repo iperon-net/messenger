@@ -16,6 +16,7 @@ import '../../constants.dart';
 import '../../crypto.dart';
 import '../../di.dart';
 import '../../logger.dart';
+import '../../platform.dart';
 import '../../protobuf.dart';
 import '../../protobuf.dart' as pb show Contact;
 import '../../repositories/repositories.dart';
@@ -87,7 +88,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     // discover() крутится лишь при старте shell, первом показе вкладки и
     // pull-to-refresh, и новый контакт не появляется до перезапуска вкладки.
     WidgetsBinding.instance.addObserver(this);
-    _bookChangeSub = FlutterContacts.onDatabaseChange.listen((_) => _onBookChanged());
+    if (AppPlatform.hasAddressBook) _bookChangeSub = FlutterContacts.onDatabaseChange.listen((_) => _onBookChanged());
     // Дельты облачных контактов с сервера (add/update/remove/резолв) на все
     // устройства владельца — держим локальную книгу облачных в синхроне.
     _updatedSub = api.on(MessageType.CONTACTS_UPDATED).listen(_onCloudUpdated);
@@ -386,6 +387,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   /// discover в фоне (номера и так доступны — системного диалога не будет).
   /// Иначе ничего не делаем: запрос разрешения откладываем до открытия вкладки.
   Future<void> discoverIfAlreadyGranted() async {
+    if (!AppPlatform.hasAddressBook) return;
     final status = await ph.Permission.contacts.status;
     if (isClosed) return;
     if (status.isGranted || status.isLimited) await discover();
@@ -438,7 +440,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   /// refresh) обходит эту проверку. Чтение книги и обновление снимка (в т.ч. имён)
   /// выполняются всегда — они дёшевы.
   Future<void> discover({bool force = false}) async {
-    if (_discovering) return;
+    if (_discovering || !AppPlatform.hasAddressBook) return;
     _discovering = true;
     _discoverStarted = true;
     try {
@@ -555,6 +557,11 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     // кубита (broadcast без буфера), тогда без pull статус ждал бы следующего push.
     unawaited(refreshPresence());
     if (_discoverStarted) return;
+    if (!AppPlatform.hasAddressBook) {
+      _discoverStarted = true;
+      emit(state.copyWith(status: Status.success));
+      return;
+    }
 
     final status = await ph.Permission.contacts.status;
     if (isClosed) return;
@@ -587,6 +594,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   /// показывает (отклонён навсегда / разовое решение iOS), request просто вернёт
   /// не-granted — тогда единственный путь это системные настройки, туда и ведём.
   Future<void> requestAccess() async {
+    if (!AppPlatform.hasAddressBook) return;
     final permission = await FlutterContacts.permissions.request(PermissionType.read);
     if (isClosed) return;
     if (permission == PermissionStatus.granted || permission == PermissionStatus.limited) {

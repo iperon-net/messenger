@@ -21,6 +21,10 @@ abstract final class AppPlatform {
 
   /// Секретные чаты — на десктопе не делаем (§3.7 плана).
   static bool get hasSecretChats => isMobile;
+
+  /// Телефонная книга устройства (поиск знакомых по OPRF, баннер доступа) — на
+  /// десктопе контакты только облачные (§3 плана).
+  static bool get hasAddressBook => isMobile;
 }
 
 /// Keychain на macOS: обычный (login) keychain, не data protection — тому нужны
