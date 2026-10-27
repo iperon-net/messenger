@@ -355,6 +355,24 @@ import flutter_callkit_incoming
       return
     }
 
+    // Мультиаккаунт: вызываемый залогинен вторым аккаунтом на телефоне
+    // звонящего. Когда он отвечает на другом устройстве, сервер шлёт cancel всем
+    // его устройствам — в том числе сюда, с тем же callId, что у нашего
+    // исходящего. endCall(callId) оборвал бы исходящий в момент ответа. Такой
+    // cancel не про нас: PushKit всё равно требует отрепортить звонок —
+    // репортим пустой с новым UUID и сразу снимаем, исходящий не трогаем.
+    if action == "cancel" && SystemCallMonitor.shared.isOutgoingCall(callId) {
+      NSLog("IPERON_CALL voip cancel ignored: \(callId) is our outgoing call")
+      let data = flutter_callkit_incoming.Data(id: UUID().uuidString, nameCaller: "Iperon", handle: "", type: 0)
+      data.appName = "Iperon"
+      data.includesCallsInRecents = false
+      SwiftFlutterCallkitIncomingPlugin.sharedInstance?.showCallkitIncoming(data, fromPushKit: true) {
+        SwiftFlutterCallkitIncomingPlugin.sharedInstance?.endCall(data)
+        completion()
+      }
+      return
+    }
+
     // Аккаунтов несколько — на какой звонят (подпись после вида звонка).
     let account = (dict["account"] as? String) ?? ""
     let accountName = (dict["accountName"] as? String) ?? ""
@@ -556,6 +574,12 @@ class SystemCallMonitor: NSObject, CXCallObserverDelegate {
   // Делегат обязателен для старта наблюдения, но состояние нам не нужно —
   // актуальный список берём из observer.calls в момент запроса.
   func callObserver(_ callObserver: CXCallObserver, callChanged call: CXCall) {}
+
+  /// Идёт ли на этом телефоне исходящий звонок [callId] (наш, через CallKit).
+  func isOutgoingCall(_ callId: String) -> Bool {
+    guard let uuid = UUID(uuidString: callId) else { return false }
+    return observer.calls.contains { $0.uuid == uuid && $0.isOutgoing && !$0.hasEnded }
+  }
 
   /// Есть ли активный (не завершённый) системный звонок, чей UUID не входит в
   /// [excluding] (наши собственные CallKit-звонки). Ringing-входящий тоже считаем
