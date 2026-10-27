@@ -190,6 +190,20 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     opt: true,
     def: '',
   );
+  static String _$speakerId(SettingsDeviceModel v) => v.speakerId;
+  static const Field<SettingsDeviceModel, String> _f$speakerId = Field(
+    'speakerId',
+    _$speakerId,
+    opt: true,
+    def: '',
+  );
+  static String _$speakerName(SettingsDeviceModel v) => v.speakerName;
+  static const Field<SettingsDeviceModel, String> _f$speakerName = Field(
+    'speakerName',
+    _$speakerName,
+    opt: true,
+    def: '',
+  );
 
   @override
   final MappableFields<SettingsDeviceModel> fields = const {
@@ -216,6 +230,8 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     #microphoneName: _f$microphoneName,
     #cameraId: _f$cameraId,
     #cameraName: _f$cameraName,
+    #speakerId: _f$speakerId,
+    #speakerName: _f$speakerName,
   };
 
   static SettingsDeviceModel _instantiate(DecodingData data) {
@@ -243,6 +259,8 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
       microphoneName: data.dec(_f$microphoneName),
       cameraId: data.dec(_f$cameraId),
       cameraName: data.dec(_f$cameraName),
+      speakerId: data.dec(_f$speakerId),
+      speakerName: data.dec(_f$speakerName),
     );
   }
 
@@ -341,6 +359,8 @@ abstract class SettingsDeviceModelCopyWith<
     String? microphoneName,
     String? cameraId,
     String? cameraName,
+    String? speakerId,
+    String? speakerName,
   });
   SettingsDeviceModelCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -387,6 +407,8 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     String? microphoneName,
     String? cameraId,
     String? cameraName,
+    String? speakerId,
+    String? speakerName,
   }) => $apply(
     FieldCopyWithData({
       if (locale != $none) #locale: locale,
@@ -417,6 +439,8 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
       if (microphoneName != null) #microphoneName: microphoneName,
       if (cameraId != null) #cameraId: cameraId,
       if (cameraName != null) #cameraName: cameraName,
+      if (speakerId != null) #speakerId: speakerId,
+      if (speakerName != null) #speakerName: speakerName,
     }),
   );
   @override
@@ -465,6 +489,8 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     microphoneName: data.get(#microphoneName, or: $value.microphoneName),
     cameraId: data.get(#cameraId, or: $value.cameraId),
     cameraName: data.get(#cameraName, or: $value.cameraName),
+    speakerId: data.get(#speakerId, or: $value.speakerId),
+    speakerName: data.get(#speakerName, or: $value.speakerName),
   );
 
   @override

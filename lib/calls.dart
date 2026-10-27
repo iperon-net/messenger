@@ -1307,12 +1307,13 @@ class Calls {
       // довыставляем в [_configureIosAudioForCall] — он тоже держит движок/сессию.
       // `e2eeOptions` — общий провайдер ключей на все попытки (от Room не
       // зависит); E2EE-менеджер LiveKit поднимается сам в room.connect.
-      // Десктоп: микрофон и камера из «Общие → Звонки» (null — системные).
+      // Десктоп: микрофон, динамик и камера из «Общие → Звонки» (null — системные).
       final devices = AppPlatform.isDesktop ? await MediaDevices.callDevices() : null;
       final room = Room(
         roomOptions: RoomOptions(
           defaultAudioCaptureOptions: AudioCaptureOptions(deviceId: devices?.microphone, stopAudioCaptureOnMute: false),
           defaultCameraCaptureOptions: CameraCaptureOptions(deviceId: devices?.camera),
+          defaultAudioOutputOptions: AudioOutputOptions(deviceId: devices?.speaker),
           e2eeOptions: e2eeOptions,
         ),
       );

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:record/record.dart';
 
+import 'desktop.dart';
 import 'di.dart';
 import 'models.dart' as models;
 import 'repositories.dart';
@@ -27,6 +28,13 @@ abstract final class MediaDevices {
   static InputDevice? microphone(List<InputDevice> devices, models.SettingsDeviceModel settings) =>
       _match(devices, settings.microphoneId, settings.microphoneName, (d) => d.id, (d) => d.label);
 
+  /// Динамики (UID CoreAudio и имя; macOS).
+  static Future<List<({String id, String name})>> speakers() => Desktop.audioOutputs();
+
+  /// Выбранный динамик среди подключённых; `null` — системный.
+  static ({String id, String name})? speaker(List<({String id, String name})> devices, models.SettingsDeviceModel settings) =>
+      _match(devices, settings.speakerId, settings.speakerName, (d) => d.id, (d) => d.name);
+
   /// Выбранная камера среди подключённых; `null` — системная.
   static MediaDevice? camera(List<MediaDevice> devices, models.SettingsDeviceModel settings) =>
       _match(devices, settings.cameraId, settings.cameraName, (d) => d.deviceId, (d) => d.label);
@@ -44,21 +52,22 @@ abstract final class MediaDevices {
   /// WebRTC-id микрофона и камеры для звонка (`RoomOptions`): выбранные, если
   /// подключены; иначе `null` — системные. Микрофон ищем по имени: в
   /// настройках — id `record`, у WebRTC свои.
-  static Future<({String? microphone, String? camera})> callDevices() async {
+  static Future<({String? microphone, String? speaker, String? camera})> callDevices() async {
     try {
       final settings = await getIt.get<DeviceRepositories>().settingsDevice.getAll();
-      if (settings.microphoneName.isEmpty && settings.cameraId.isEmpty && settings.cameraName.isEmpty) {
-        return (microphone: null, camera: null);
+      if (settings.microphoneName.isEmpty && settings.speakerName.isEmpty && settings.cameraId.isEmpty && settings.cameraName.isEmpty) {
+        return (microphone: null, speaker: null, camera: null);
       }
       final all = await Hardware.instance.enumerateDevices();
-      final microphones = all.where((device) => device.kind == 'audioinput').toList();
-      final cameras = all.where((device) => device.kind == 'videoinput').toList();
+      String? byName(String kind, String name) =>
+          _match(all.where((device) => device.kind == kind).toList(), '', name, (d) => d.deviceId, (d) => d.label)?.deviceId;
       return (
-        microphone: _match(microphones, '', settings.microphoneName, (d) => d.deviceId, (d) => d.label)?.deviceId,
-        camera: camera(cameras, settings)?.deviceId,
+        microphone: byName('audioinput', settings.microphoneName),
+        speaker: byName('audiooutput', settings.speakerName),
+        camera: camera(all.where((device) => device.kind == 'videoinput').toList(), settings)?.deviceId,
       );
     } catch (_) {
-      return (microphone: null, camera: null);
+      return (microphone: null, speaker: null, camera: null);
     }
   }
 

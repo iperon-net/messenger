@@ -353,6 +353,14 @@ class DeviceDatabase {
             await tx.execute("ALTER TABLE settingsDevice ADD COLUMN $column TEXT NOT NULL DEFAULT '';");
           }
         }),
+      )
+      ..add(
+        SqliteMigration(6, (tx) async {
+          // Десктоп, «Общие → Звонки → Динамик»: '' — как в системе.
+          for (final column in ['speakerId', 'speakerName']) {
+            await tx.execute("ALTER TABLE settingsDevice ADD COLUMN $column TEXT NOT NULL DEFAULT '';");
+          }
+        }),
       );
   }
 

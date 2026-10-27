@@ -2190,6 +2190,15 @@ class Translations$screenSettingsGeneral$en {
 
 	/// en: 'Used for video calls. The camera is on only while this screen is open or during a call.'
 	String get cameraHint => 'Used for video calls. The camera is on only while this screen is open or during a call.';
+
+	/// en: 'Speaker'
+	String get speaker => 'Speaker';
+
+	/// en: 'Test sound'
+	String get testSpeaker => 'Test sound';
+
+	/// en: 'Call audio. The chosen device plays a short sound right away.'
+	String get speakerHint => 'Call audio. The chosen device plays a short sound right away.';
 }
 
 // Path: screenSettingsNotifications
@@ -5633,6 +5642,9 @@ extension on Translations {
 			'screenSettingsGeneral.openSettings' => 'Open settings',
 			'screenSettingsGeneral.microphoneHint' => 'Used for voice messages and calls.',
 			'screenSettingsGeneral.cameraHint' => 'Used for video calls. The camera is on only while this screen is open or during a call.',
+			'screenSettingsGeneral.speaker' => 'Speaker',
+			'screenSettingsGeneral.testSpeaker' => 'Test sound',
+			'screenSettingsGeneral.speakerHint' => 'Call audio. The chosen device plays a short sound right away.',
 			'screenSettingsNotifications.notifications' => 'Notifications and sounds',
 			'screenSettingsNotifications.messageNotifications' => 'Message notifications',
 			'screenSettingsNotifications.privateChats' => 'Private chats',
@@ -6010,11 +6022,11 @@ extension on Translations {
 			'cloudPassword.verifyEmail' => 'Verify email',
 			'cloudPassword.disable' => 'Disable password',
 			'cloudPassword.loadError' => 'Couldn\'t load cloud password settings',
+			_ => null,
+		} ?? switch (path) {
 			'cloudPassword.retry' => 'Retry',
 			'cloudPassword.emailRequired' => 'Enter an email',
 			'cloudPassword.passwordRequired' => 'Enter a password',
-			_ => null,
-		} ?? switch (path) {
 			'cloudPassword.passwordTooShort' => 'Password must be at least 5 characters',
 			'cloudPassword.codeRequired' => 'Enter the code',
 			'cloudPassword.passwordsDoNotMatch' => 'Passwords don\'t match',

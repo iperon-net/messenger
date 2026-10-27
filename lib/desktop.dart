@@ -114,6 +114,17 @@ abstract final class Desktop {
   /// Системный запрос доступа (покажется, только если ещё не спрашивали).
   static Future<bool> requestMediaAccess(MediaKind kind) async => await _invoke<bool>('requestMediaAccess', {'kind': kind.name}) ?? false;
 
+  /// Устройства вывода звука (UID CoreAudio и имя).
+  static Future<List<({String id, String name})>> audioOutputs() async {
+    final list = await _invoke<List<Object?>>('audioOutputs') ?? const [];
+    return [
+      for (final item in list.whereType<Map<Object?, Object?>>()) (id: item['id'] as String? ?? '', name: item['name'] as String? ?? ''),
+    ];
+  }
+
+  /// Проиграть файл [path] через устройство [device] (UID; пусто — системное).
+  static Future<void> playTestSound(String path, {String device = ''}) => _invoke<void>('playTestSound', {'path': path, 'device': device});
+
   /// Системные настройки конфиденциальности для [kind] — включить доступ после
   /// отказа можно только там.
   static Future<void> openPrivacySettings(MediaKind kind) => _invoke<void>('openPrivacySettings', {'kind': kind.name});

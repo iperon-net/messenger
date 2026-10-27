@@ -1,5 +1,6 @@
 import AVFoundation
 import Cocoa
+import CoreAudio
 import FlutterMacOS
 import ServiceManagement
 import Sparkle
@@ -138,6 +139,8 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
   private let updater = AppUpdater()
   /// Запрос «прыгать значком» входящего звонка (`showWindow` attention).
   private var attentionRequest = 0
+  /// Проверка динамика (`playTestSound`) — держим, пока играет.
+  private var testPlayer: AVPlayer?
 
   init(messenger: FlutterBinaryMessenger, window: NSWindow) {
     channel = FlutterMethodChannel(name: "net.iperon.messenger/desktop", binaryMessenger: messenger)
@@ -219,6 +222,19 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
       AVCaptureDevice.requestAccess(for: type) { granted in
         DispatchQueue.main.async { result(granted) }
       }
+    case "audioOutputs":
+      result(Self.audioOutputs())
+    case "playTestSound":
+      // Проверка динамика: файл через выбранное устройство (UID CoreAudio;
+      // пусто — системное).
+      guard let path = args["path"] as? String else { return result(nil) }
+      let player = AVPlayer(url: URL(fileURLWithPath: path))
+      if let device = args["device"] as? String, !device.isEmpty {
+        player.audioOutputDeviceUniqueID = device
+      }
+      testPlayer = player
+      player.play()
+      result(nil)
     case "openPrivacySettings":
       // «Конфиденциальность и безопасность → Камера / Микрофон» — включить
       // доступ после отказа можно только там.
@@ -256,6 +272,38 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
     default:
       result(FlutterMethodNotImplemented)
     }
+  }
+
+  /// Устройства вывода звука (CoreAudio): UID и имя — те же имена, что у
+  /// WebRTC (по ним звонок находит выбранный динамик).
+  private static func audioOutputs() -> [[String: String]] {
+    let system = AudioObjectID(kAudioObjectSystemObject)
+    var address = AudioObjectPropertyAddress(
+      mSelector: kAudioHardwarePropertyDevices, mScope: kAudioObjectPropertyScopeGlobal, mElement: kAudioObjectPropertyElementMain)
+    var size: UInt32 = 0
+    guard AudioObjectGetPropertyDataSize(system, &address, 0, nil, &size) == noErr else { return [] }
+    var ids = [AudioDeviceID](repeating: 0, count: Int(size) / MemoryLayout<AudioDeviceID>.size)
+    guard AudioObjectGetPropertyData(system, &address, 0, nil, &size, &ids) == noErr else { return [] }
+    return ids.compactMap { id in
+      // Только устройства с выходными потоками.
+      var streams = AudioObjectPropertyAddress(
+        mSelector: kAudioDevicePropertyStreams, mScope: kAudioDevicePropertyScopeOutput, mElement: kAudioObjectPropertyElementMain)
+      var streamsSize: UInt32 = 0
+      guard AudioObjectGetPropertyDataSize(id, &streams, 0, nil, &streamsSize) == noErr, streamsSize > 0,
+        let uid = stringProperty(id, kAudioDevicePropertyDeviceUID),
+        let name = stringProperty(id, kAudioObjectPropertyName)
+      else { return nil }
+      return ["id": uid, "name": name]
+    }
+  }
+
+  private static func stringProperty(_ id: AudioObjectID, _ selector: AudioObjectPropertySelector) -> String? {
+    var address = AudioObjectPropertyAddress(
+      mSelector: selector, mScope: kAudioObjectPropertyScopeGlobal, mElement: kAudioObjectPropertyElementMain)
+    var value: Unmanaged<CFString>?
+    var size = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
+    guard AudioObjectGetPropertyData(id, &address, 0, nil, &size, &value) == noErr, let value else { return nil }
+    return value.takeRetainedValue() as String
   }
 
   private static func mediaType(_ kind: String?) -> AVMediaType? {

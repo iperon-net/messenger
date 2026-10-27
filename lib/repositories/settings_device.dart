@@ -83,6 +83,10 @@ class SettingsDevice {
     await db.execute("UPDATE settingsDevice SET microphoneId = ?, microphoneName = ?", [id, name]);
   }
 
+  Future<void> setSpeaker({required String id, required String name}) async {
+    await db.execute("UPDATE settingsDevice SET speakerId = ?, speakerName = ?", [id, name]);
+  }
+
   Future<void> setCamera({required String id, required String name}) async {
     await db.execute("UPDATE settingsDevice SET cameraId = ?, cameraName = ?", [id, name]);
   }

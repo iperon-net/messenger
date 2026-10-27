@@ -60,6 +60,10 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
   final String cameraId;
   final String cameraName;
 
+  /// Динамик (вывод звука звонка): UID CoreAudio и имя; пусто — как в системе.
+  final String speakerId;
+  final String speakerName;
+
   const SettingsDeviceModel({
     this.locale,
     this.darkMode = DarkModeModel.system,
@@ -84,6 +88,8 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     this.microphoneName = '',
     this.cameraId = '',
     this.cameraName = '',
+    this.speakerId = '',
+    this.speakerName = '',
   });
 
   factory SettingsDeviceModel.fromSqlite(Map<String, dynamic> data) {
@@ -111,6 +117,8 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     final microphoneName = data['microphoneName'] as String? ?? '';
     final cameraId = data['cameraId'] as String? ?? '';
     final cameraName = data['cameraName'] as String? ?? '';
+    final speakerId = data['speakerId'] as String? ?? '';
+    final speakerName = data['speakerName'] as String? ?? '';
 
     SettingsDeviceModel settingsDeviceModel = SettingsDeviceModel();
 
@@ -207,6 +215,8 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
       microphoneName: microphoneName,
       cameraId: cameraId,
       cameraName: cameraName,
+      speakerId: speakerId,
+      speakerName: speakerName,
     );
 
     return settingsDeviceModel;

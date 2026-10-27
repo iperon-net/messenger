@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:livekit_client/livekit_client.dart' hide ConnectionState;
 import 'package:material_ui/material_ui.dart';
@@ -29,7 +30,10 @@ class SettingsCallsMaterial extends StatelessWidget {
     body: const SafeArea(
       child: SingleChildScrollView(
         padding: EdgeInsets.only(bottom: 16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [_MicrophoneSection(), _CameraSection()]),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [_MicrophoneSection(), _SpeakerSection(), _CameraSection()],
+        ),
       ),
     ),
   );
@@ -277,6 +281,86 @@ class _MicrophoneSectionState extends _DeviceSectionState<_MicrophoneSection, In
           ),
         ],
         _hint(context, t.microphoneHint),
+      ],
+    );
+  }
+}
+
+/// «Динамик»: куда выводить звук звонка, и проверка — короткий звук через
+/// выбранное устройство (нативно: `audioplayers` устройство выбрать не умеет).
+class _SpeakerSection extends StatefulWidget {
+  const _SpeakerSection();
+
+  @override
+  State<_SpeakerSection> createState() => _SpeakerSectionState();
+}
+
+class _SpeakerSectionState extends State<_SpeakerSection> {
+  List<({String id, String name})> _devices = const [];
+  StreamSubscription<void>? _changes;
+  String? _testPath;
+
+  @override
+  void initState() {
+    super.initState();
+    _changes = MediaDevices.changes.listen((_) => unawaited(_load()));
+    unawaited(_load());
+  }
+
+  Future<void> _load() async {
+    final devices = await MediaDevices.speakers();
+    if (mounted) setState(() => _devices = devices);
+  }
+
+  Future<void> _select(int? index) async {
+    final device = index == null ? null : _devices[index];
+    await context.read<CommonCubit>().setSpeaker(id: device?.id ?? '', name: device?.name ?? '');
+    await _test();
+  }
+
+  Future<void> _test() async {
+    final settings = context.read<CommonCubit>().state.settingsDevice;
+    var path = _testPath;
+    if (path == null) {
+      final data = await rootBundle.load('assets/audio/ringtone.wav');
+      final file = File(p.join((await getTemporaryDirectory()).path, 'speaker_test.wav'));
+      await file.writeAsBytes(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
+      path = _testPath = file.path;
+    }
+    await Desktop.playTestSound(path, device: MediaDevices.speaker(_devices, settings)?.id ?? '');
+  }
+
+  @override
+  void dispose() {
+    _changes?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t.screenSettingsGeneral;
+    final settings = context.select<CommonCubit, models.SettingsDeviceModel>((cubit) => cubit.state.settingsDevice);
+    final selected = MediaDevices.speaker(_devices, settings);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _header(context, t.speaker),
+        _deviceList(
+          context,
+          names: [for (final device in _devices) device.name],
+          selected: selected == null ? null : _devices.indexOf(selected),
+          onSelect: _select,
+        ),
+        Card(
+          margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+          child: ListTile(
+            leading: Icon(Icons.volume_up_outlined, color: Theme.of(context).colorScheme.primary),
+            title: Text(t.testSpeaker),
+            textColor: Theme.of(context).colorScheme.primary,
+            onTap: _test,
+          ),
+        ),
+        _hint(context, t.speakerHint),
       ],
     );
   }

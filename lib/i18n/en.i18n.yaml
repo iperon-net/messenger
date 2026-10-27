@@ -697,6 +697,9 @@
   "openSettings": "Open settings"
   "microphoneHint": "Used for voice messages and calls."
   "cameraHint": "Used for video calls. The camera is on only while this screen is open or during a call."
+  "speaker": "Speaker"
+  "testSpeaker": "Test sound"
+  "speakerHint": "Call audio. The chosen device plays a short sound right away."
 
 "screenSettingsNotifications":
   "notifications": "Notifications and sounds"

@@ -926,6 +926,9 @@ class _Translations$screenSettingsGeneral$ru extends Translations$screenSettings
 	@override String get openSettings => 'Открыть настройки';
 	@override String get microphoneHint => 'Для голосовых сообщений и звонков.';
 	@override String get cameraHint => 'Для видеозвонков. Камера включена, только пока открыт этот экран или идёт звонок.';
+	@override String get speaker => 'Динамик';
+	@override String get testSpeaker => 'Проверить звук';
+	@override String get speakerHint => 'Звук звонков. Выбранное устройство сразу проиграет короткий звук.';
 }
 
 // Path: screenSettingsNotifications
@@ -2772,6 +2775,9 @@ extension on TranslationsRu {
 			'screenSettingsGeneral.openSettings' => 'Открыть настройки',
 			'screenSettingsGeneral.microphoneHint' => 'Для голосовых сообщений и звонков.',
 			'screenSettingsGeneral.cameraHint' => 'Для видеозвонков. Камера включена, только пока открыт этот экран или идёт звонок.',
+			'screenSettingsGeneral.speaker' => 'Динамик',
+			'screenSettingsGeneral.testSpeaker' => 'Проверить звук',
+			'screenSettingsGeneral.speakerHint' => 'Звук звонков. Выбранное устройство сразу проиграет короткий звук.',
 			'screenSettingsNotifications.notifications' => 'Уведомления и звуки',
 			'screenSettingsNotifications.messageNotifications' => 'Уведомления о сообщениях',
 			'screenSettingsNotifications.privateChats' => 'Личные чаты',
@@ -3149,11 +3155,11 @@ extension on TranslationsRu {
 			'cloudPassword.verifyEmail' => 'Подтвердить email',
 			'cloudPassword.disable' => 'Отключить пароль',
 			'cloudPassword.loadError' => 'Не удалось загрузить настройки облачного пароля',
+			_ => null,
+		} ?? switch (path) {
 			'cloudPassword.retry' => 'Повторить',
 			'cloudPassword.emailRequired' => 'Введите email',
 			'cloudPassword.passwordRequired' => 'Введите пароль',
-			_ => null,
-		} ?? switch (path) {
 			'cloudPassword.passwordTooShort' => 'Пароль должен быть не короче 5 символов',
 			'cloudPassword.codeRequired' => 'Введите код',
 			'cloudPassword.passwordsDoNotMatch' => 'Пароли не совпадают',

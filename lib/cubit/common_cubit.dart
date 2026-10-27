@@ -280,12 +280,21 @@ class CommonCubit extends Cubit<CommonState> {
     emit(state.copyWith(settingsDevice: state.settingsDevice.copyWith(quickReaction: emoji)));
   }
 
-  /// Микрофон / камера по умолчанию (десктоп); пустые — «Как в системе».
+  /// Микрофон / динамик / камера по умолчанию (десктоп); пустые — «Как в системе».
   Future<void> setMicrophone({required String id, required String name}) async {
     await repositories.settingsDevice.setMicrophone(id: id, name: name);
     emit(
       state.copyWith(
         settingsDevice: state.settingsDevice.copyWith(microphoneId: id, microphoneName: name),
+      ),
+    );
+  }
+
+  Future<void> setSpeaker({required String id, required String name}) async {
+    await repositories.settingsDevice.setSpeaker(id: id, name: name);
+    emit(
+      state.copyWith(
+        settingsDevice: state.settingsDevice.copyWith(speakerId: id, speakerName: name),
       ),
     );
   }
