@@ -2494,6 +2494,9 @@ class Translations$screenDeveloper$en {
 	/// en: 'Chats demo'
 	String get chatsDemo => 'Chats demo';
 
+	/// en: 'Calls via TURN only'
+	String get callsRelayOnly => 'Calls via TURN only';
+
 	/// en: 'Test notification'
 	String get testPush => 'Test notification';
 
@@ -5779,6 +5782,7 @@ extension on Translations {
 			'screenDeveloper.accountsEmpty' => 'signed out',
 			'screenDeveloper.accountsCallActive' => 'Can\'t switch accounts during a call',
 			'screenDeveloper.chatsDemo' => 'Chats demo',
+			'screenDeveloper.callsRelayOnly' => 'Calls via TURN only',
 			'screenDeveloper.testPush' => 'Test notification',
 			'screenDeveloper.testPushSent' => ({required Object apns, required Object fcm, required Object failed}) => 'Sent: APNs — ${apns}, FCM — ${fcm}, failed — ${failed}. Minimize the app or lock the screen to check background delivery.',
 			'screenDeveloper.testPushNoTokens' => 'None of your devices has a push token. Make sure notifications are allowed and restart the app.',
@@ -6066,9 +6070,9 @@ extension on Translations {
 			'cloudPassword.emailCodeSent' => 'We sent a verification code to your email.',
 			'cloudPassword.verifyEmail' => 'Verify email',
 			'cloudPassword.disable' => 'Disable password',
-			'cloudPassword.loadError' => 'Couldn\'t load cloud password settings',
 			_ => null,
 		} ?? switch (path) {
+			'cloudPassword.loadError' => 'Couldn\'t load cloud password settings',
 			'cloudPassword.retry' => 'Retry',
 			'cloudPassword.emailRequired' => 'Enter an email',
 			'cloudPassword.passwordRequired' => 'Enter a password',

@@ -9,6 +9,7 @@ import '../../themes.dart';
 import '../../i18n/translations.g.dart';
 import '../../components.dart';
 import '../../cubit.dart';
+import '../../calls.dart';
 import '../../di.dart';
 import '../../logger.dart';
 import 'developer_accounts.dart';
@@ -183,6 +184,17 @@ class SettingsDeveloperCupertino extends StatelessWidget {
                       onChanged: (value) => context.read<CommonCubit>().setChatsDemo(value: value),
                     ),
                     onTab: () => context.read<CommonCubit>().setChatsDemo(value: !chatsDemo),
+                  ),
+                ),
+                // Звонки только через TURN — проверка запасного пути на 443.
+                ValueListenableBuilder<bool>(
+                  valueListenable: Calls.forceRelay,
+                  builder: (context, relay, _) => CupertinoListTileIcon(
+                    title: Text(context.t.screenDeveloper.callsRelayOnly),
+                    color: const Color(0xFF34C759),
+                    icon: FontAwesomeIcons.towerBroadcast,
+                    trailing: CupertinoSwitch(value: relay, onChanged: (value) => Calls.forceRelay.value = value),
+                    onTab: () async => Calls.forceRelay.value = !relay,
                   ),
                 ),
                 CupertinoListTileIcon(

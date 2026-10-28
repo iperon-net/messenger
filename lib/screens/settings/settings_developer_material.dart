@@ -8,6 +8,7 @@ import '../../split_layout.dart';
 import '../../i18n/translations.g.dart';
 import '../../components.dart';
 import '../../cubit.dart';
+import '../../calls.dart';
 import '../../di.dart';
 import '../../logger.dart';
 import '../../platform.dart';
@@ -156,6 +157,17 @@ class SettingsDeveloperMaterial extends StatelessWidget {
                         onChanged: (value) => context.read<CommonCubit>().setChatsDemo(value: value),
                       ),
                       onTab: () => context.read<CommonCubit>().setChatsDemo(value: !chatsDemo),
+                    ),
+                  ),
+                  // Звонки только через TURN — проверка запасного пути на 443.
+                  ValueListenableBuilder<bool>(
+                    valueListenable: Calls.forceRelay,
+                    builder: (context, relay, _) => MaterialListTileIcon(
+                      title: Text(context.t.screenDeveloper.callsRelayOnly),
+                      color: const Color(0xFF34C759),
+                      icon: FontAwesomeIcons.towerBroadcast,
+                      trailing: Switch(value: relay, onChanged: (value) => Calls.forceRelay.value = value),
+                      onTab: () async => Calls.forceRelay.value = !relay,
                     ),
                   ),
                   MaterialListTileIcon(

@@ -1045,6 +1045,7 @@ class _Translations$screenDeveloper$ru extends Translations$screenDeveloper$en {
 	@override String get accountsEmpty => 'без входа';
 	@override String get accountsCallActive => 'Во время звонка аккаунт не переключить';
 	@override String get chatsDemo => 'Демо чатов';
+	@override String get callsRelayOnly => 'Звонки только через TURN';
 	@override String get testPush => 'Тестовое уведомление';
 	@override String testPushSent({required Object apns, required Object fcm, required Object failed}) => 'Отправлено: APNs — ${apns}, FCM — ${fcm}, ошибок — ${failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне.';
 	@override String get testPushNoTokens => 'Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение.';
@@ -2886,6 +2887,7 @@ extension on TranslationsRu {
 			'screenDeveloper.accountsEmpty' => 'без входа',
 			'screenDeveloper.accountsCallActive' => 'Во время звонка аккаунт не переключить',
 			'screenDeveloper.chatsDemo' => 'Демо чатов',
+			'screenDeveloper.callsRelayOnly' => 'Звонки только через TURN',
 			'screenDeveloper.testPush' => 'Тестовое уведомление',
 			'screenDeveloper.testPushSent' => ({required Object apns, required Object fcm, required Object failed}) => 'Отправлено: APNs — ${apns}, FCM — ${fcm}, ошибок — ${failed}. Сверните приложение или заблокируйте экран, чтобы проверить доставку в фоне.',
 			'screenDeveloper.testPushNoTokens' => 'Ни у одного вашего устройства нет push-токена. Проверьте, что уведомления разрешены, и перезапустите приложение.',
@@ -3173,9 +3175,9 @@ extension on TranslationsRu {
 			'cloudPassword.emailCodeSent' => 'Мы отправили код подтверждения на ваш email.',
 			'cloudPassword.verifyEmail' => 'Подтвердить email',
 			'cloudPassword.disable' => 'Отключить пароль',
-			'cloudPassword.loadError' => 'Не удалось загрузить настройки облачного пароля',
 			_ => null,
 		} ?? switch (path) {
+			'cloudPassword.loadError' => 'Не удалось загрузить настройки облачного пароля',
 			'cloudPassword.retry' => 'Повторить',
 			'cloudPassword.emailRequired' => 'Введите email',
 			'cloudPassword.passwordRequired' => 'Введите пароль',

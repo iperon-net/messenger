@@ -576,6 +576,10 @@ class Calls {
   /// Предел участников вместе с нами (сервер, ServiceCallRooms, — тот же).
   static const maxParticipants = 8;
 
+  /// Отладка (экран «Разработчик»): медиа только через TURN (`relay`) — проверка
+  /// запасного пути turns:turn.iperon.net:443. В памяти, до перезапуска.
+  static final forceRelay = ValueNotifier<bool>(false);
+
   /// Ключ комнаты группового звонка: участник, у которого он есть, передаёт его
   /// вошедшему ([_keyTopic], обёрнут под его публичный ключ — CallKeys.wrapRoomKey).
   static const _keyTopic = 'call.e2ee.key';
@@ -1485,7 +1489,16 @@ class Calls {
 
       try {
         _diag2('room.connect CALL seq=$seq attempt=$attempt room#=${identityHashCode(room)}');
-        await room.connect(response.url, response.token, connectOptions: ConnectOptions(timeouts: timeouts));
+        await room.connect(
+          response.url,
+          response.token,
+          connectOptions: ConnectOptions(
+            timeouts: timeouts,
+            rtcConfiguration: forceRelay.value
+                ? const RTCConfiguration(iceTransportPolicy: RTCIceTransportPolicy.relay)
+                : const RTCConfiguration(),
+          ),
+        );
         _diag2('room.connect DONE seq=$seq attempt=$attempt room#=${identityHashCode(room)}');
         break;
       } on MediaConnectException catch (error, stackTrace) {
