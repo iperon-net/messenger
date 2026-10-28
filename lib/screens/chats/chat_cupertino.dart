@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../../split_layout.dart';
 import '../../chats/edit_media.dart';
@@ -603,17 +604,37 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
                                   ),
                             trailing: chat == null
                                 ? null
-                                : GestureDetector(
-                                    onTap: () => _openInfo(context),
-                                    onLongPress: _startSearch,
-                                    child: ChatAvatar(
-                                      chat: chat,
-                                      size: 36,
-                                      accentColor: CupertinoTheme.of(context).primaryColor,
-                                      accentForeground: ThemesCupertino.onAccent(context),
-                                      // Автоудаление — значок таймера (как в Telegram).
-                                      ttlBadgeColor: CupertinoColors.systemGrey.resolveFrom(context),
-                                    ),
+                                : Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      // Звонок собеседнику (только аудио) — слева от аватара.
+                                      if (chatHasCallButton(chat))
+                                        CupertinoButton(
+                                          padding: EdgeInsets.zero,
+                                          minimumSize: const Size(40, 44),
+                                          onPressed: () => chatInfoCall(chat, video: false),
+                                          child: Semantics(
+                                            label: t.screenChatInfo.call,
+                                            child: HugeIcon(
+                                              icon: HugeIcons.strokeRoundedCall02,
+                                              color: ThemesCupertino.navActionColor(context),
+                                              size: 24,
+                                            ),
+                                          ),
+                                        ),
+                                      GestureDetector(
+                                        onTap: () => _openInfo(context),
+                                        onLongPress: _startSearch,
+                                        child: ChatAvatar(
+                                          chat: chat,
+                                          size: 36,
+                                          accentColor: CupertinoTheme.of(context).primaryColor,
+                                          accentForeground: ThemesCupertino.onAccent(context),
+                                          // Автоудаление — значок таймера (как в Telegram).
+                                          ttlBadgeColor: CupertinoColors.systemGrey.resolveFrom(context),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                           ),
                         ),

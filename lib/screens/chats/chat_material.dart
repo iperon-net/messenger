@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -672,6 +673,15 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
                                     onLongPress: _startSearch,
                                     child: _Header(chat: chat),
                                   ),
+                            actions: [
+                              // Звонок собеседнику (только аудио).
+                              if (chat != null && chatHasCallButton(chat))
+                                IconButton(
+                                  tooltip: t.screenChatInfo.call,
+                                  icon: const HugeIcon(icon: HugeIcons.strokeRoundedCall02),
+                                  onPressed: () => chatInfoCall(chat, video: false),
+                                ),
+                            ],
                           ),
                     // «Чат не найден» — на тех же обоях (иначе в тёмной теме чёрный фон).
                     body: chat == null

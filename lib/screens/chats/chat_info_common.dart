@@ -14,6 +14,7 @@ import '../../components.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import '../../platform.dart';
 import 'chat_create_common.dart';
 
 export '../../chats/group_rights.dart';
@@ -53,6 +54,11 @@ Future<void> chatInfoCall(models.Chat chat, {required bool video}) async {
   await ensureCallMicPermission();
   await getIt.get<Calls>().startCall(toUserID: idBytes(chat.peerUserID), video: video);
 }
+
+/// Кнопка звонка в шапке чата: личный чат с человеком (не «Избранное», не
+/// «Iperon», не демо без userID) и платформа со звонками.
+bool chatHasCallButton(models.Chat chat) =>
+    AppPlatform.hasCalls && chat.type == models.ChatType.private && !chat.isSelf && !chat.isSystem && chat.peerUserID.isNotEmpty;
 
 /// Кнопка выхода в профиле: личный чат — удаляют; владелец сообщества и его
 /// чатов — удаляет (у всех), остальные — покидают.
