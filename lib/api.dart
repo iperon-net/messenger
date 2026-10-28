@@ -220,6 +220,11 @@ class API {
   // переднем плане ИЛИ идёт активный звонок (см. [_callActive]).
   bool get _shouldRun => _authorized && (_appActive || _callActive);
 
+  /// Стрим сейчас нужен (авторизованы и на переднем плане / идёт звонок): [send]
+  /// не выбросит сообщение. Иначе (фон, ответ из CallKit до входа в комнату) —
+  /// слать unary-вызовом ([unaryEncoded]).
+  bool get streamActive => _shouldRun;
+
   // Соединение считается открытым, пока жив исходящий контроллер.
   bool get _isRunning => _outgoing != null && !_outgoing!.isClosed;
 

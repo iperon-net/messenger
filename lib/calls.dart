@@ -2813,7 +2813,14 @@ class Calls {
     final ring = CallRing(callId: callId, toUserID: Uint8List.fromList(toUserID), video: video, busy: busy);
     // fromUserID проставит сервер из сессии — здесь не заполняем.
     try {
-      await api.sendEncoded(type, ring.writeToBuffer());
+      // Стрим не поднят (ответили / отклонили из CallKit в фоне, комнаты ещё нет)
+      // — [API.send] сигнал молча выбросит: тогда unary. Так терялся CALL_ACCEPT,
+      // и на Mac того же аккаунта висел входящий.
+      if (api.streamActive) {
+        await api.sendEncoded(type, ring.writeToBuffer());
+      } else {
+        unawaited(api.unaryEncoded(type, ring.writeToBuffer()));
+      }
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     }
