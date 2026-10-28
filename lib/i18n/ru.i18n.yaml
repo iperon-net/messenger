@@ -1259,6 +1259,12 @@
   "removeFailed": "Не удалось удалить контакт"
 
 "screenCalls":
+  "newCall": "Новый звонок"
+  "groupAudio": "Групповой аудиозвонок"
+  "groupVideo": "Групповой видеозвонок"
+  "pickTitle": "Кому позвонить"
+  "pickSelected": "Выбрано: ${n} из ${max}"
+  "pickCall": "Позвонить"
   "title": "Звонки"
   "empty": "Здесь появятся ваши звонки"
   "emptyMissed": "Нет пропущенных звонков"

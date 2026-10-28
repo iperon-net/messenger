@@ -14,12 +14,15 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../call_pip_ios.dart';
 import '../../calls.dart';
 import '../../cubit.dart';
+import '../../di.dart';
 import '../../i18n/translations.g.dart';
 import '../../models/constants.dart';
 import '../../platform.dart';
 import '../../themes/cupertino.dart';
 import '../../themes/material.dart';
+import '../../utils.dart';
 import '../../screens/chats/forward_picker.dart';
+import '../call_permissions.dart';
 import '../no_connection_alert.dart';
 import '../user_avatar.dart';
 import 'audio_routes_sheet.dart';
@@ -871,7 +874,7 @@ class _Overlay extends StatelessWidget {
               ],
             ),
           ),
-          if (showAccount) Positioned(top: 8, right: 24, child: _AccountButton(palette: palette)),
+          if (showAccount && !AppPlatform.isDesktop) Positioned(top: 8, right: 24, child: _AccountButton(palette: palette)),
         ],
       ),
     );
@@ -929,116 +932,115 @@ class _Overlay extends StatelessWidget {
     final t = context.t.screenCall;
     const size = _rowButtonSize;
     const iconSize = _rowIconSize;
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _CircleButton(
-              label: state.micMuted ? t.micOn : t.micOff,
-              icon: state.micMuted ? HugeIcons.strokeRoundedMicOff01 : HugeIcons.strokeRoundedMic01,
-              color: state.micMuted ? palette.controlActiveBg : palette.controlBg,
-              iconColor: palette.fg,
-              palette: palette,
-              size: size,
-              iconSize: iconSize,
-              showLabel: _showLabels,
-              onTap: cubit.toggleMic,
-            ),
-            // Выбор аудио-выхода. iOS — системный пикер (AVRoutePickerView:
-            // iPhone/Speaker/BT/CarPlay/AirPlay); Android — свой лист устройств
-            // (setCommunicationDevice). См. route_picker_button.dart /
-            // audio_routes_sheet.dart. Десктоп — пока без выбора (динамики — вместе
-            // с выбором устройств в звонке, docs/plans/desktop-client.md §7).
-            if (Platform.isIOS)
-              RoutePickerButton(
-                backgroundColor: palette.controlBg,
-                iconColor: palette.fg,
-                labelColor: palette.buttonLabel,
-                size: size,
-                iconSize: iconSize,
-                showLabel: _showLabels,
-              )
-            else if (!AppPlatform.isDesktop)
-              AudioOutputButton(
-                backgroundColor: palette.controlBg,
-                iconColor: palette.fg,
-                labelColor: palette.buttonLabel,
-                size: size,
-                iconSize: iconSize,
-                showLabel: _showLabels,
-              ),
-            // Камера. В аудиозвонке — кнопка «Видео»: апгрейд аудио→видео
-            // (публикует нашу камеру, собеседник увидит картинку). В видео —
-            // вкл/выкл своей камеры.
-            if (!state.video)
-              _CircleButton(
-                label: t.startVideo,
-                icon: HugeIcons.strokeRoundedVideo01,
-                color: palette.controlBg,
-                iconColor: palette.fg,
-                palette: palette,
-                size: size,
-                iconSize: iconSize,
-                showLabel: _showLabels,
-                onTap: cubit.enableVideo,
-              )
-            else
-              _CircleButton(
-                label: state.cameraOff ? t.cameraOn : t.cameraOff,
-                icon: state.cameraOff ? HugeIcons.strokeRoundedVideoOff : HugeIcons.strokeRoundedVideo01,
-                color: state.cameraOff ? palette.controlActiveBg : palette.controlBg,
-                iconColor: palette.fg,
-                palette: palette,
-                size: size,
-                iconSize: iconSize,
-                showLabel: _showLabels,
-                onTap: cubit.toggleCamera,
-              ),
-            // Смена камеры (фронт/тыл) — справа, после кнопки камеры. Только когда
-            // наша камера включена (видеозвонок и камера не выключена); при
-            // выключенной камере кнопка пропадает (менять нечего).
-            // Десктоп: фронт/тыла нет, камера — в «Общие → Звонки».
-            if (state.video && !state.cameraOff && !AppPlatform.isDesktop)
-              _CircleButton(
-                label: t.switchCamera,
-                icon: HugeIcons.strokeRoundedSwitchCamera,
-                color: palette.controlBg,
-                iconColor: palette.fg,
-                palette: palette,
-                size: size,
-                iconSize: iconSize,
-                showLabel: _showLabels,
-                onTap: cubit.switchCamera,
-              ),
-            // Позвать ещё кого-то — звонок станет групповым.
-            if (state.callStatus == CallStatus.active)
-              _CircleButton(
-                label: t.addParticipant,
-                icon: HugeIcons.strokeRoundedUserAdd01,
-                color: palette.controlBg,
-                iconColor: palette.fg,
-                palette: palette,
-                size: size,
-                iconSize: iconSize,
-                showLabel: _showLabels,
-                onTap: () => inviteToCall(context),
-              ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        _CircleButton(
-          label: t.hangup,
-          icon: HugeIcons.strokeRoundedCallEnd03,
-          color: CallView._red,
-          iconColor: CallView._onAccent,
-          palette: palette,
-          showLabel: _showLabels,
-          onTap: cubit.hangup,
-        ),
-      ],
+    final hangup = _CircleButton(
+      label: t.hangup,
+      icon: HugeIcons.strokeRoundedCallEnd03,
+      color: CallView._red,
+      iconColor: CallView._onAccent,
+      palette: palette,
+      size: AppPlatform.isDesktop ? size : 68,
+      iconSize: AppPlatform.isDesktop ? iconSize : 28,
+      showLabel: _showLabels,
+      onTap: cubit.hangup,
     );
+    final buttons = <Widget>[
+      _CircleButton(
+        label: state.micMuted ? t.micOn : t.micOff,
+        icon: state.micMuted ? HugeIcons.strokeRoundedMicOff01 : HugeIcons.strokeRoundedMic01,
+        color: state.micMuted ? palette.controlActiveBg : palette.controlBg,
+        iconColor: palette.fg,
+        palette: palette,
+        size: size,
+        iconSize: iconSize,
+        showLabel: _showLabels,
+        onTap: cubit.toggleMic,
+      ),
+      // Выбор аудио-выхода. iOS — системный пикер (AVRoutePickerView:
+      // iPhone/Speaker/BT/CarPlay/AirPlay); Android — свой лист устройств
+      // (setCommunicationDevice). См. route_picker_button.dart /
+      // audio_routes_sheet.dart. Десктоп — пока без выбора (динамики — вместе
+      // с выбором устройств в звонке, docs/plans/desktop-client.md §7).
+      if (Platform.isIOS)
+        RoutePickerButton(
+          backgroundColor: palette.controlBg,
+          iconColor: palette.fg,
+          labelColor: palette.buttonLabel,
+          size: size,
+          iconSize: iconSize,
+          showLabel: _showLabels,
+        )
+      else if (!AppPlatform.isDesktop)
+        AudioOutputButton(
+          backgroundColor: palette.controlBg,
+          iconColor: palette.fg,
+          labelColor: palette.buttonLabel,
+          size: size,
+          iconSize: iconSize,
+          showLabel: _showLabels,
+        ),
+      // Камера. В аудиозвонке — кнопка «Видео»: апгрейд аудио→видео
+      // (публикует нашу камеру, собеседник увидит картинку). В видео —
+      // вкл/выкл своей камеры.
+      if (!state.video)
+        _CircleButton(
+          label: t.startVideo,
+          icon: HugeIcons.strokeRoundedVideo01,
+          color: palette.controlBg,
+          iconColor: palette.fg,
+          palette: palette,
+          size: size,
+          iconSize: iconSize,
+          showLabel: _showLabels,
+          onTap: cubit.enableVideo,
+        )
+      else
+        _CircleButton(
+          label: state.cameraOff ? t.cameraOn : t.cameraOff,
+          icon: state.cameraOff ? HugeIcons.strokeRoundedVideoOff : HugeIcons.strokeRoundedVideo01,
+          color: state.cameraOff ? palette.controlActiveBg : palette.controlBg,
+          iconColor: palette.fg,
+          palette: palette,
+          size: size,
+          iconSize: iconSize,
+          showLabel: _showLabels,
+          onTap: cubit.toggleCamera,
+        ),
+      // Смена камеры (фронт/тыл) — справа, после кнопки камеры. Только когда
+      // наша камера включена (видеозвонок и камера не выключена); при
+      // выключенной камере кнопка пропадает (менять нечего).
+      // Десктоп: фронт/тыла нет, камера — в «Общие → Звонки».
+      if (state.video && !state.cameraOff && !AppPlatform.isDesktop)
+        _CircleButton(
+          label: t.switchCamera,
+          icon: HugeIcons.strokeRoundedSwitchCamera,
+          color: palette.controlBg,
+          iconColor: palette.fg,
+          palette: palette,
+          size: size,
+          iconSize: iconSize,
+          showLabel: _showLabels,
+          onTap: cubit.switchCamera,
+        ),
+      // Позвать ещё кого-то — звонок станет групповым.
+      if (state.callStatus == CallStatus.active)
+        _CircleButton(
+          label: t.addParticipant,
+          icon: HugeIcons.strokeRoundedUserAdd01,
+          color: palette.controlBg,
+          iconColor: palette.fg,
+          palette: palette,
+          size: size,
+          iconSize: iconSize,
+          showLabel: _showLabels,
+          onTap: () => inviteToCall(context),
+        ),
+    ];
+    // Десктоп: окно широкое — один компактный ряд по центру, отбой в нём же, и
+    // там же «К чатам» (на мобильных — в правом верхнем углу).
+    if (AppPlatform.isDesktop) {
+      return _controlsRow([...buttons, _AccountButton(palette: palette, size: size), hangup]);
+    }
+    return Column(children: [_controlsRow(buttons), const SizedBox(height: 24), hangup]);
   }
 
   List<String> _nameLines(BuildContext context) {
@@ -1091,6 +1093,21 @@ class _Overlay extends StatelessWidget {
         return '';
     }
   }
+}
+
+/// Ряд кнопок управления звонком: на мобильных — по всей ширине, на десктопе —
+/// компактно по центру (в широком окне иначе кнопки разъезжаются по краям).
+Widget _controlsRow(List<Widget> buttons) {
+  if (!AppPlatform.isDesktop) {
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, crossAxisAlignment: CrossAxisAlignment.start, children: buttons);
+  }
+  return Row(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      for (final (index, button) in buttons.indexed) ...[if (index > 0) const SizedBox(width: 20), button],
+    ],
+  );
 }
 
 /// Тикающий таймер разговора (mm:ss, а от часа — h:mm:ss) от момента
@@ -1499,9 +1516,9 @@ enum _CallNotice {
 class _AccountButton extends StatelessWidget {
   final _CallPalette palette;
 
-  const _AccountButton({required this.palette});
+  final double size;
 
-  static const double _size = 44;
+  const _AccountButton({required this.palette, this.size = 44});
 
   void _onTap(BuildContext context) {
     // Под локом экран звонка рисуется в обход роутера — навигации нет, отдаём
@@ -1522,8 +1539,8 @@ class _AccountButton extends StatelessWidget {
       onTap: () => _onTap(context),
       behavior: HitTestBehavior.opaque,
       child: Container(
-        width: _size,
-        height: _size,
+        width: size,
+        height: size,
         decoration: BoxDecoration(color: palette.controlBg, shape: BoxShape.circle),
         alignment: Alignment.center,
         child: HugeIcon(icon: HugeIcons.strokeRoundedMessagesSquare, color: palette.fg, size: 24),
@@ -1640,12 +1657,23 @@ class _GroupCallViewState extends State<_GroupCallView> {
 
   GlobalKey _key(String id) => _keys.putIfAbsent(id, GlobalKey.new);
 
-  /// Сетка: колонок 1–3 по числу плиток, плитки одного размера.
-  static int _columns(int count) => count <= 1
-      ? 1
-      : count <= 4
-      ? 2
-      : 3;
+  static const _gap = 8.0;
+
+  /// Сетка плиток одной формы (окно шире, чем выше, — 16:9, иначе 3:4): число
+  /// колонок — то, при котором плитки крупнее всего. Не растягиваем плитку на всё
+  /// свободное место: иначе 2 участника на телефоне — две узкие полосы.
+  static ({int columns, Size tile}) _grid(Size area, int count) {
+    final aspect = area.width > area.height ? 16 / 9 : 3 / 4;
+    var best = (columns: 1, tile: Size.zero);
+    for (var columns = 1; columns <= count; columns++) {
+      final rows = (count / columns).ceil();
+      final byWidth = (area.width - _gap * (columns - 1)) / columns;
+      final byHeight = (area.height - _gap * (rows - 1)) / rows;
+      final width = byWidth < byHeight * aspect ? byWidth : byHeight * aspect;
+      if (width > best.tile.width) best = (columns: columns, tile: Size(width, width / aspect));
+    }
+    return best;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1679,20 +1707,28 @@ class _GroupCallViewState extends State<_GroupCallView> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
-              child: Column(
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  Text(
-                    t.groupCallTitle(n: joined + 1),
-                    style: TextStyle(color: palette.name, fontSize: 20, fontWeight: FontWeight.w600),
+                  Column(
+                    children: [
+                      Text(
+                        t.groupCallTitle(n: joined + 1),
+                        style: TextStyle(color: palette.name, fontSize: 20, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 4),
+                      if (state.callStatus == CallStatus.active && state.connectedAt != null)
+                        _CallTimer(connectedAt: state.connectedAt!, color: palette.timer)
+                      else
+                        Text(
+                          state.callStatus == CallStatus.outgoing ? t.calling : t.connecting,
+                          style: TextStyle(color: palette.status, fontSize: 15),
+                        ),
+                      _E2eeBadge(state: state, palette: palette),
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  if (state.callStatus == CallStatus.active && state.connectedAt != null)
-                    _CallTimer(connectedAt: state.connectedAt!, color: palette.timer)
-                  else
-                    Text(
-                      state.callStatus == CallStatus.outgoing ? t.calling : t.connecting,
-                      style: TextStyle(color: palette.status, fontSize: 15),
-                    ),
+                  // «К чатам»: мобильные — в углу, десктоп — в ряду кнопок.
+                  if (!AppPlatform.isDesktop) Positioned(top: 0, right: 0, child: _AccountButton(palette: palette)),
                 ],
               ),
             ),
@@ -1706,16 +1742,24 @@ class _GroupCallViewState extends State<_GroupCallView> {
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        final columns = _columns(tiles.length);
-                        final rows = (tiles.length / columns).ceil();
-                        const gap = 8.0;
-                        final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
-                        final height = (constraints.maxHeight - gap * (rows - 1)) / rows;
-                        return Wrap(
-                          spacing: gap,
-                          runSpacing: gap,
-                          alignment: WrapAlignment.center,
-                          children: [for (final tile in tiles) SizedBox(width: width, height: height, child: tile)],
+                        final grid = _grid(constraints.biggest, tiles.length);
+                        // Неполный последний ряд — по центру.
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            for (var start = 0; start < tiles.length; start += grid.columns) ...[
+                              if (start > 0) const SizedBox(height: _gap),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  for (var i = start; i < tiles.length && i < start + grid.columns; i++) ...[
+                                    if (i > start) const SizedBox(width: _gap),
+                                    SizedBox.fromSize(size: grid.tile, child: tiles[i]),
+                                  ],
+                                ],
+                              ),
+                            ],
+                          ],
                         );
                       },
                     ),
@@ -1725,55 +1769,53 @@ class _GroupCallViewState extends State<_GroupCallView> {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _CircleButton(
-                    label: state.micMuted ? t.micOn : t.micOff,
-                    icon: state.micMuted ? HugeIcons.strokeRoundedMicOff01 : HugeIcons.strokeRoundedMic01,
-                    color: state.micMuted ? palette.controlActiveBg : palette.controlBg,
-                    iconColor: palette.fg,
-                    palette: palette,
-                    size: _Overlay._rowButtonSize,
-                    iconSize: _Overlay._rowIconSize,
-                    showLabel: false,
-                    onTap: cubit.toggleMic,
-                  ),
-                  _CircleButton(
-                    label: !state.video || state.cameraOff ? t.cameraOn : t.cameraOff,
-                    icon: !state.video || state.cameraOff ? HugeIcons.strokeRoundedVideoOff : HugeIcons.strokeRoundedVideo01,
-                    color: !state.video || state.cameraOff ? palette.controlActiveBg : palette.controlBg,
-                    iconColor: palette.fg,
-                    palette: palette,
-                    size: _Overlay._rowButtonSize,
-                    iconSize: _Overlay._rowIconSize,
-                    showLabel: false,
-                    onTap: state.video ? cubit.toggleCamera : cubit.enableVideo,
-                  ),
-                  _CircleButton(
-                    label: t.addParticipant,
-                    icon: HugeIcons.strokeRoundedUserAdd01,
-                    color: palette.controlBg,
-                    iconColor: palette.fg,
-                    palette: palette,
-                    size: _Overlay._rowButtonSize,
-                    iconSize: _Overlay._rowIconSize,
-                    showLabel: false,
-                    onTap: () => inviteToCall(context),
-                  ),
-                  _CircleButton(
-                    label: t.hangup,
-                    icon: HugeIcons.strokeRoundedCallEnd03,
-                    color: CallView._red,
-                    iconColor: CallView._onAccent,
-                    palette: palette,
-                    size: _Overlay._rowButtonSize,
-                    iconSize: _Overlay._rowIconSize,
-                    showLabel: false,
-                    onTap: cubit.hangup,
-                  ),
-                ],
-              ),
+              child: _controlsRow([
+                _CircleButton(
+                  label: state.micMuted ? t.micOn : t.micOff,
+                  icon: state.micMuted ? HugeIcons.strokeRoundedMicOff01 : HugeIcons.strokeRoundedMic01,
+                  color: state.micMuted ? palette.controlActiveBg : palette.controlBg,
+                  iconColor: palette.fg,
+                  palette: palette,
+                  size: _Overlay._rowButtonSize,
+                  iconSize: _Overlay._rowIconSize,
+                  showLabel: false,
+                  onTap: cubit.toggleMic,
+                ),
+                _CircleButton(
+                  label: !state.video || state.cameraOff ? t.cameraOn : t.cameraOff,
+                  icon: !state.video || state.cameraOff ? HugeIcons.strokeRoundedVideoOff : HugeIcons.strokeRoundedVideo01,
+                  color: !state.video || state.cameraOff ? palette.controlActiveBg : palette.controlBg,
+                  iconColor: palette.fg,
+                  palette: palette,
+                  size: _Overlay._rowButtonSize,
+                  iconSize: _Overlay._rowIconSize,
+                  showLabel: false,
+                  onTap: state.video ? cubit.toggleCamera : cubit.enableVideo,
+                ),
+                _CircleButton(
+                  label: t.addParticipant,
+                  icon: HugeIcons.strokeRoundedUserAdd01,
+                  color: palette.controlBg,
+                  iconColor: palette.fg,
+                  palette: palette,
+                  size: _Overlay._rowButtonSize,
+                  iconSize: _Overlay._rowIconSize,
+                  showLabel: false,
+                  onTap: () => inviteToCall(context),
+                ),
+                if (AppPlatform.isDesktop) _AccountButton(palette: palette, size: _Overlay._rowButtonSize),
+                _CircleButton(
+                  label: t.hangup,
+                  icon: HugeIcons.strokeRoundedCallEnd03,
+                  color: CallView._red,
+                  iconColor: CallView._onAccent,
+                  palette: palette,
+                  size: _Overlay._rowButtonSize,
+                  iconSize: _Overlay._rowIconSize,
+                  showLabel: false,
+                  onTap: cubit.hangup,
+                ),
+              ]),
             ),
           ],
         ),
@@ -1833,7 +1875,8 @@ class _GroupTile extends StatelessWidget {
       opacity: dimmed ? 0.55 : 1,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: palette.controlBg,
+          // Цвет «обложки» звонка (фон экрана 1-на-1), чуть светлее фона сетки.
+          color: Color.lerp(palette.bg, const Color(0xFFFFFFFF), 0.14),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: speaking ? CallView._green : const Color(0x00000000), width: 3),
         ),
@@ -1851,7 +1894,7 @@ class _GroupTile extends StatelessWidget {
                       final size = (constraints.biggest.shortestSide * 0.45).clamp(40.0, 120.0);
                       return userID == null
                           ? HugeIcon(icon: HugeIcons.strokeRoundedUser, size: size, color: palette.dim)
-                          : UserAvatar(userID: userID, placeholderName: name, size: size);
+                          : UserAvatar(userID: userID, placeholderName: getIt.get<Utils>().bytesToHex(userID), size: size);
                     },
                   ),
                 ),
@@ -1888,4 +1931,23 @@ class _GroupTile extends StatelessWidget {
       ),
     );
   }
+}
+
+/// «Позвонить нескольким» (вкладка «Звонки»): выбор людей галочками, затем
+/// групповой звонок сразу ([Calls.startCall] с `others`).
+Future<void> startGroupCall(BuildContext context, {required bool video}) async {
+  final t = context.t.screenCalls;
+  final users = await callCandidates();
+  if (!context.mounted) return;
+  final picked = await showUsersPicker(
+    context,
+    title: t.pickTitle,
+    users: users,
+    max: Calls.maxParticipants - 1,
+    action: t.pickCall,
+    emptyText: context.t.screenCall.addParticipantEmpty,
+  );
+  if (picked == null || picked.isEmpty) return;
+  await ensureCallMicPermission();
+  await getIt.get<Calls>().startCall(toUserID: picked.first.userID, video: video, others: [for (final user in picked.skip(1)) user.userID]);
 }

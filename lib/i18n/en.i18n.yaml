@@ -1230,6 +1230,12 @@
   "removeFailed": "Couldn't delete the contact"
 
 "screenCalls":
+  "newCall": "New call"
+  "groupAudio": "Group audio call"
+  "groupVideo": "Group video call"
+  "pickTitle": "Who to call"
+  "pickSelected": "Selected: ${n} of ${max}"
+  "pickCall": "Call"
   "title": "Calls"
   "empty": "Your calls will appear here"
   "emptyMissed": "No missed calls"

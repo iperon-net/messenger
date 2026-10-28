@@ -127,36 +127,9 @@ class CallCubit extends Cubit<CallState> {
   /// Позвать человека в звонок (см. [Calls.invite]).
   Future<CallInviteResult> invite(List<int> userID) => _calls.invite(userID);
 
-  /// Кого можно позвать: собеседники личных чатов (свежие сверху) и контакты из
-  /// Iperon, кроме нас, «Iperon» и тех, кто уже в звонке.
-  Future<List<({Uint8List userID, String name})>> inviteCandidates() async {
-    final me = utils.bytesToHex(Uint8List.fromList(getIt.get<Auth>().session.userID));
-    final skip = <String>{
-      me,
-      models.systemUserID,
-      utils.bytesToHex(Uint8List.fromList(state.remoteUserID)),
-      for (final participant in state.participants) utils.bytesToHex(Uint8List.fromList(participant.userID)),
-    };
-    final result = <({Uint8List userID, String name})>[];
-    final dialogs =
-        (await repositories.chats.dialogs(
-            userID: getIt.get<Auth>().session.userID,
-          )).where((dialog) => dialog.type == pb.ChatType.CHAT_TYPE_PRIVATE.value).toList()
-          ..sort((a, b) => b.topMessageDate.compareTo(a.topMessageDate));
-    for (final dialog in dialogs) {
-      final peer = dialog.peerUserID;
-      if (peer == null || !skip.add(utils.bytesToHex(peer))) continue;
-      result.add((userID: peer, name: await peerDisplayName(peer)));
-    }
-    final contacts = <({Uint8List userID, String name})>[];
-    for (final contact in await repositories.contacts.getAll()) {
-      final userID = contact.userID;
-      if (userID == null || userID.isEmpty || !skip.add(utils.bytesToHex(Uint8List.fromList(userID)))) continue;
-      contacts.add((userID: Uint8List.fromList(userID), name: await peerDisplayName(userID)));
-    }
-    contacts.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-    return [...result, ...contacts].where((user) => user.name.isNotEmpty).toList(growable: false);
-  }
+  /// Кого можно позвать: [callCandidates] без тех, кто уже в звонке.
+  Future<List<({Uint8List userID, String name})>> inviteCandidates() =>
+      callCandidates(exclude: [state.remoteUserID, for (final participant in state.participants) participant.userID]);
 
   /// Разрешает имя/аватар собеседника по [userID]: сперва мгновенно из кэша БД
   /// (+ аватар из CDN-кэша без сети), затем шлёт запрос `PROFILE` и слушает
@@ -248,4 +221,34 @@ class CallCubit extends Cubit<CallState> {
     _profileSub?.cancel();
     return super.close();
   }
+}
+
+/// Кому можно позвонить: собеседники личных чатов (свежие сверху) и контакты из
+/// Iperon по алфавиту, кроме нас, «Iperon» и [exclude].
+Future<List<({Uint8List userID, String name})>> callCandidates({Iterable<List<int>> exclude = const []}) async {
+  final utils = getIt.get<Utils>();
+  final repositories = getIt.get<Repositories>();
+  final self = getIt.get<Auth>().session.userID;
+  final skip = <String>{
+    utils.bytesToHex(Uint8List.fromList(self)),
+    models.systemUserID,
+    for (final userID in exclude) utils.bytesToHex(Uint8List.fromList(userID)),
+  };
+  final result = <({Uint8List userID, String name})>[];
+  final dialogs =
+      (await repositories.chats.dialogs(userID: self)).where((dialog) => dialog.type == pb.ChatType.CHAT_TYPE_PRIVATE.value).toList()
+        ..sort((a, b) => b.topMessageDate.compareTo(a.topMessageDate));
+  for (final dialog in dialogs) {
+    final peer = dialog.peerUserID;
+    if (peer == null || !skip.add(utils.bytesToHex(peer))) continue;
+    result.add((userID: peer, name: await peerDisplayName(peer)));
+  }
+  final contacts = <({Uint8List userID, String name})>[];
+  for (final contact in await repositories.contacts.getAll()) {
+    final userID = contact.userID;
+    if (userID == null || userID.isEmpty || !skip.add(utils.bytesToHex(Uint8List.fromList(userID)))) continue;
+    contacts.add((userID: Uint8List.fromList(userID), name: await peerDisplayName(userID)));
+  }
+  contacts.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  return [...result, ...contacts].where((user) => user.name.isNotEmpty).toList(growable: false);
 }

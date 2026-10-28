@@ -741,7 +741,12 @@ class Calls {
 
   /// Инициирует исходящий звонок к [toUserID]. [video] — видеозвонок или только
   /// аудио. Входит в комнату LiveKit и будит абонента через `CALL_RING`.
-  Future<void> startCall({required List<int> toUserID, required bool video}) async {
+  ///
+  /// [others] — «Позвонить нескольким»: групповой звонок сразу. Комнату заводим
+  /// на себя одного (`CALL_TOKEN` с нашим же userID), и каждому, включая
+  /// [toUserID], звоним приглашением ([invite]) — у всех экран входящего с
+  /// составом. Ключ комнаты (E2EE) создаём сами и раздаём входящим.
+  Future<void> startCall({required List<int> toUserID, required bool video, List<List<int>> others = const []}) async {
     if (_hasActiveCall) {
       logger.warning('startCall ignored: call already in progress (${_snapshot.status})');
       return;
@@ -807,9 +812,37 @@ class Calls {
     _logDirection = models.CallDirection.outgoing;
     _emit(CallSnapshot(status: CallStatus.outgoing, callId: callId, remoteUserID: toUserID, video: video, speakerOn: video));
     _dbg('outgoing ${video ? 'video' : 'audio'}', reset: true);
+    final group = others.isNotEmpty;
+    if (group) {
+      for (final userID in _othersFrom([toUserID, ...others]).take(maxParticipants - 1)) {
+        _invited[_hex(userID)] = userID;
+      }
+      _syncParticipants();
+    }
 
     try {
-      await _connectRoom(callId: callId, remoteUserID: toUserID, video: video);
+      await _connectRoom(callId: callId, remoteUserID: group ? auth.session.userID : toUserID, video: video);
+      if (group) {
+        // По одному: в приглашении следующего уже видны предыдущие.
+        final results = <CallInviteResult>[];
+        for (final userID in List.of(_invited.values)) {
+          results.add(await _ringInvite(callId, userID));
+        }
+        if (_snapshot.callId != callId) return;
+        if (!results.contains(CallInviteResult.sent)) {
+          logger.info('startCall: no invite went through ($results)');
+          await _teardown(
+            results.every((result) => result == CallInviteResult.notAllowed) ? CallEndReason.notAllowed : CallEndReason.failed,
+          );
+          return;
+        }
+        _dbg('group ring sent');
+        if (_snapshot.status == CallStatus.outgoing) {
+          unawaited(_startRingback());
+          _startRingTimeout(callId);
+        }
+        return;
+      }
       // Будим абонента: сервер релеит CALL_RING в его стрим и шлёт call-пуш.
       // Ответа «принял» нет — увидим подключение как ParticipantConnected.
       //
@@ -990,7 +1023,9 @@ class Calls {
       // комнаты). Собеседник, которому мы звонили, так и не вошёл — снимаем его
       // входящий; если мы были последними — и ещё звонящие приглашения.
       final peer = _hex(_snapshot.remoteUserID);
-      if (_snapshot.remoteUserID.isNotEmpty && !(_room?.remoteParticipants.values.any((p) => p.identity == peer) ?? false)) {
+      if (_snapshot.remoteUserID.isNotEmpty &&
+          !_invited.containsKey(peer) &&
+          !(_room?.remoteParticipants.values.any((p) => p.identity == peer) ?? false)) {
         await _sendRing(MessageType.CALL_HANGUP, toUserID: _snapshot.remoteUserID, callId: _snapshot.callId, video: _snapshot.video);
       }
       if (!_othersRemain()) {
@@ -1231,6 +1266,10 @@ class Calls {
         if (_snapshot.callId == ring.callId && _invited.containsKey(_hex(from))) {
           _settleInvite(_hex(from));
           _syncParticipants();
+          // «Позвонить нескольким»: отказались все, никто не вошёл — свернуть.
+          if (_snapshot.status == CallStatus.outgoing && _invited.isEmpty && !_othersRemain()) {
+            await _teardown(ring.busy ? CallEndReason.busy : CallEndReason.rejected);
+          }
           return;
         }
         // Reject осмыслен только до ответа. После `active` любой CALL_REJECT с
@@ -1381,6 +1420,8 @@ class Calls {
     // собеседник по отсутствию атрибута тоже пойдёт без шифрования.
     final e2eePublicKey = await _setupCallE2ee();
     final e2eeOptions = _e2eeKeyProvider == null ? null : E2EEOptions(keyProvider: _e2eeKeyProvider!);
+    // «Позвонить нескольким»: попарного ключа не будет — ключ комнаты наш.
+    if (e2eeOptions != null && _invited.isNotEmpty && _invitedInto.isEmpty && _roomKey == null) await _createRoomKey();
     if (e2eeOptions == null && _hasActiveCall) {
       _emit(_snapshot.copyWith(encryption: CallEncryption.unencrypted, sas: const []));
     }
@@ -1897,9 +1938,15 @@ class Calls {
     if (inCall || _invited.containsKey(hex) || hex == _hex(auth.session.userID)) return CallInviteResult.already;
     if (1 + (_room?.remoteParticipants.length ?? 0) + _invited.length >= maxParticipants) return CallInviteResult.full;
 
-    final callId = _snapshot.callId;
     _invited[hex] = userID;
     _syncParticipants();
+    return _ringInvite(_snapshot.callId, userID);
+  }
+
+  /// Звонок-приглашение уже внесённому в [_invited]: ждёт ответа
+  /// [_inviteTimeout], отказ сервера убирает из «звонит».
+  Future<CallInviteResult> _ringInvite(String callId, List<int> userID) async {
+    final hex = _hex(userID);
     final status = await _sendRingInitiating(toUserID: userID, callId: callId, video: _snapshot.video);
     if (_snapshot.callId != callId) return CallInviteResult.failed;
     if (status.status == APIStatus.success) {
@@ -1907,6 +1954,10 @@ class Calls {
         if (_snapshot.callId != callId || !_invited.containsKey(hex)) return;
         _settleInvite(hex);
         _syncParticipants();
+        // «Позвонить нескольким»: никто так и не ответил.
+        if (_snapshot.status == CallStatus.outgoing && _invited.isEmpty && !_othersRemain()) {
+          unawaited(hangup(reason: CallEndReason.unavailable));
+        }
       });
       return CallInviteResult.sent;
     }
@@ -1959,6 +2010,23 @@ class Calls {
         logger.handle(error, stackTrace);
       }
       if (_hasActiveCall) _emit(_snapshot.copyWith(encryption: CallEncryption.unencrypted, sas: const []));
+    }
+  }
+
+  /// Новый ключ комнаты (32 случайных байта) — групповой звонок начали мы.
+  Future<void> _createRoomKey() async {
+    final keyProvider = _e2eeKeyProvider;
+    if (keyProvider == null) return;
+    try {
+      final random = Random.secure();
+      final roomKey = Uint8List.fromList(List<int>.generate(32, (_) => random.nextInt(256)));
+      await keyProvider.setRawKey(roomKey);
+      _roomKey = roomKey;
+      final sas = await crypto.callKeys.deriveSas(roomKey);
+      _dbg('e2ee group key created');
+      if (_hasActiveCall) _emit(_snapshot.copyWith(encryption: CallEncryption.encrypted, sas: sas));
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
     }
   }
 

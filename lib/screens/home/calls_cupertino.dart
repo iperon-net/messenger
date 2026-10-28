@@ -7,6 +7,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../split_layout.dart';
 import '../../calls.dart';
 import '../../components.dart';
+import '../../components/calls/call_view.dart' show startGroupCall;
 import '../../cubit.dart';
 import '../../di.dart';
 import '../../extensions.dart';
@@ -48,12 +49,23 @@ class _CallsCupertinoState extends State<CallsCupertino> with SearchHideOnScroll
           automaticBackgroundVisibility: false,
           backgroundColor: ThemesCupertino.appBackground,
           middle: Text(context.t.screenCalls.title),
-          trailing: BlocSelector<CallsCubit, CallsState, bool>(
-            selector: (state) => state.calls.isNotEmpty,
-            builder: (context, hasCalls) {
-              if (!hasCalls) return const SizedBox.shrink();
-              return NavBarButtonCupertino(NavBarAction.clear, label: context.t.screenCalls.clear, onPressed: () => _confirmClear(context));
-            },
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              BlocSelector<CallsCubit, CallsState, bool>(
+                selector: (state) => state.calls.isNotEmpty,
+                builder: (context, hasCalls) {
+                  if (!hasCalls) return const SizedBox.shrink();
+                  return NavBarButtonCupertino(
+                    NavBarAction.clear,
+                    label: context.t.screenCalls.clear,
+                    onPressed: () => _confirmClear(context),
+                  );
+                },
+              ),
+              const SizedBox(width: 8),
+              const _NewCallButton(),
+            ],
           ),
         ),
       ),
@@ -301,5 +313,40 @@ class _CallsCupertinoState extends State<CallsCupertino> with SearchHideOnScroll
     if (h == 0) return t.durationMin(m: m);
     if (m == 0) return t.durationHour(h: h);
     return t.durationHourMin(h: h, m: m);
+  }
+}
+
+/// «Новый звонок» в навбаре: меню «Групповой аудио / видеозвонок» → выбор людей.
+class _NewCallButton extends StatelessWidget {
+  const _NewCallButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t.screenCalls;
+    return CupertinoMenuAnchor(
+      useRootOverlay: true,
+      menuChildren: [
+        CupertinoMenuItem(
+          trailing: const Icon(CupertinoIcons.phone),
+          onPressed: () => startGroupCall(context, video: false),
+          child: Text(t.groupAudio),
+        ),
+        CupertinoMenuItem(
+          trailing: const Icon(CupertinoIcons.videocam),
+          onPressed: () => startGroupCall(context, video: true),
+          child: Text(t.groupVideo),
+        ),
+      ],
+      builder: (context, controller, child) => CupertinoButton(
+        padding: EdgeInsets.zero,
+        minimumSize: const Size(44, 44),
+        alignment: AlignmentDirectional.centerEnd,
+        onPressed: () => controller.isOpen ? controller.close() : controller.open(),
+        child: Semantics(
+          label: t.newCall,
+          child: HugeIcon(icon: HugeIcons.strokeRoundedCallAdd, color: ThemesCupertino.navActionColor(context), size: 24),
+        ),
+      ),
+    );
   }
 }

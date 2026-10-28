@@ -3832,6 +3832,24 @@ class Translations$screenCalls$en {
 
 	// Translations
 
+	/// en: 'New call'
+	String get newCall => 'New call';
+
+	/// en: 'Group audio call'
+	String get groupAudio => 'Group audio call';
+
+	/// en: 'Group video call'
+	String get groupVideo => 'Group video call';
+
+	/// en: 'Who to call'
+	String get pickTitle => 'Who to call';
+
+	/// en: 'Selected: ${n} of ${max}'
+	String pickSelected({required Object n, required Object max}) => 'Selected: \$${n} of \$${max}';
+
+	/// en: 'Call'
+	String get pickCall => 'Call';
+
 	/// en: 'Calls'
 	String get title => 'Calls';
 
@@ -6160,6 +6178,12 @@ extension on Translations {
 			'screenContacts.addToContacts' => 'Add to Contacts',
 			'screenContacts.removeContact' => 'Delete Contact',
 			'screenContacts.removeFailed' => 'Couldn\'t delete the contact',
+			'screenCalls.newCall' => 'New call',
+			'screenCalls.groupAudio' => 'Group audio call',
+			'screenCalls.groupVideo' => 'Group video call',
+			'screenCalls.pickTitle' => 'Who to call',
+			'screenCalls.pickSelected' => ({required Object n, required Object max}) => 'Selected: \$${n} of \$${max}',
+			'screenCalls.pickCall' => 'Call',
 			'screenCalls.title' => 'Calls',
 			'screenCalls.empty' => 'Your calls will appear here',
 			'screenCalls.emptyMissed' => 'No missed calls',

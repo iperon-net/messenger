@@ -1592,6 +1592,12 @@ class _Translations$screenCalls$ru extends Translations$screenCalls$en {
 	final TranslationsRu _root; // ignore: unused_field
 
 	// Translations
+	@override String get newCall => 'Новый звонок';
+	@override String get groupAudio => 'Групповой аудиозвонок';
+	@override String get groupVideo => 'Групповой видеозвонок';
+	@override String get pickTitle => 'Кому позвонить';
+	@override String pickSelected({required Object n, required Object max}) => 'Выбрано: \$${n} из \$${max}';
+	@override String get pickCall => 'Позвонить';
 	@override String get title => 'Звонки';
 	@override String get empty => 'Здесь появятся ваши звонки';
 	@override String get emptyMissed => 'Нет пропущенных звонков';
@@ -3279,6 +3285,12 @@ extension on TranslationsRu {
 			'screenContacts.addToContacts' => 'Добавить в контакты',
 			'screenContacts.removeContact' => 'Удалить контакт',
 			'screenContacts.removeFailed' => 'Не удалось удалить контакт',
+			'screenCalls.newCall' => 'Новый звонок',
+			'screenCalls.groupAudio' => 'Групповой аудиозвонок',
+			'screenCalls.groupVideo' => 'Групповой видеозвонок',
+			'screenCalls.pickTitle' => 'Кому позвонить',
+			'screenCalls.pickSelected' => ({required Object n, required Object max}) => 'Выбрано: \$${n} из \$${max}',
+			'screenCalls.pickCall' => 'Позвонить',
 			'screenCalls.title' => 'Звонки',
 			'screenCalls.empty' => 'Здесь появятся ваши звонки',
 			'screenCalls.emptyMissed' => 'Нет пропущенных звонков',

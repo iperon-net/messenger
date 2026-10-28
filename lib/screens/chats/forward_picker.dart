@@ -58,6 +58,29 @@ Future<PickerUser?> showUserPicker(BuildContext context, {required String title,
       ),
     );
 
+/// Выбор нескольких человек (тот же лист, отметки галочками): не больше [max],
+/// кнопка [action] возвращает выбранных; `null` — закрыли.
+Future<List<PickerUser>?> showUsersPicker(
+  BuildContext context, {
+  required String title,
+  required List<PickerUser> users,
+  required int max,
+  required String action,
+  String? emptyText,
+}) => _showPicker(
+  context,
+  _Picker<PickerUser>(
+    items: users,
+    title: (_) => title,
+    emptyText: emptyText,
+    label: (_, user) => user.name,
+    avatar: (context, user, _) => UserAvatar(userID: user.userID, placeholderName: getIt.get<Utils>().bytesToHex(user.userID), size: 42),
+    cupertino: Platform.isIOS,
+    max: max,
+    action: action,
+  ),
+);
+
 /// Выбор участника / контакта (тот же лист): аватар и имя участника.
 Future<models.ChatMember?> showMemberPicker(
   BuildContext context, {
@@ -76,11 +99,11 @@ Future<models.ChatMember?> showMemberPicker(
   ),
 );
 
-Future<T?> _showPicker<T>(BuildContext context, _Picker<T> picker) {
+Future<R?> _showPicker<R, T>(BuildContext context, _Picker<T> picker) {
   if (picker.cupertino) {
-    return c.showCupertinoModalPopup<T>(context: context, builder: (_) => picker);
+    return c.showCupertinoModalPopup<R>(context: context, builder: (_) => picker);
   }
-  return m.showModalBottomSheet<T>(
+  return m.showModalBottomSheet<R>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
@@ -97,6 +120,11 @@ class _Picker<T> extends StatefulWidget {
   final bool cupertino;
   final String? emptyText;
 
+  /// Выбор нескольких: не больше [max], [action] — кнопка «готово» (лист вернёт
+  /// `List<T>`). `null` — выбор одного по тапу.
+  final int? max;
+  final String? action;
+
   const _Picker({
     required this.items,
     required this.title,
@@ -104,6 +132,8 @@ class _Picker<T> extends StatefulWidget {
     required this.avatar,
     required this.cupertino,
     this.emptyText,
+    this.max,
+    this.action,
   });
 
   @override
@@ -112,6 +142,21 @@ class _Picker<T> extends StatefulWidget {
 
 class _PickerState<T> extends State<_Picker<T>> {
   String _query = '';
+  final _selected = <T>[];
+
+  bool get _multi => widget.max != null;
+
+  void _tap(T item) {
+    if (!_multi) {
+      Navigator.of(context).pop(item);
+      return;
+    }
+    setState(() {
+      if (!_selected.remove(item) && _selected.length < widget.max!) _selected.add(item);
+    });
+  }
+
+  void _done() => Navigator.of(context).pop(List<T>.of(_selected));
 
   /// Пусто: выбирать не из кого ([_Picker.emptyText]) или поиск ничего не нашёл.
   String _emptyText(Translations t) =>
@@ -159,11 +204,30 @@ class _PickerState<T> extends State<_Picker<T>> {
                         onPressed: () => Navigator.of(context).pop(),
                         child: Text(t.common.cancel, style: TextStyle(color: ThemesCupertino.actionColor(context))),
                       ),
+                      const Spacer(),
+                      if (_multi)
+                        c.CupertinoButton(
+                          onPressed: _selected.isEmpty ? null : _done,
+                          child: Text(
+                            widget.action!,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: _selected.isEmpty
+                                  ? c.CupertinoColors.tertiaryLabel.resolveFrom(context)
+                                  : ThemesCupertino.actionColor(context),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ],
               ),
             ),
+            if (_multi)
+              Text(
+                t.screenCalls.pickSelected(n: _selected.length, max: widget.max!),
+                style: TextStyle(fontSize: 13, color: c.CupertinoColors.secondaryLabel.resolveFrom(context)),
+              ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
               child: c.CupertinoSearchTextField(placeholder: t.screenChat.search, onChanged: (value) => setState(() => _query = value)),
@@ -190,7 +254,8 @@ class _PickerState<T> extends State<_Picker<T>> {
                           leadingSize: 42,
                           leading: widget.avatar(context, item, true),
                           title: Text(widget.label(t, item)),
-                          onTap: () => Navigator.of(context).pop(item),
+                          trailing: _multi ? _checkCupertino(context, _selected.contains(item)) : null,
+                          onTap: () => _tap(item),
                         );
                       },
                     ),
@@ -246,14 +311,36 @@ class _PickerState<T> extends State<_Picker<T>> {
                         return m.ListTile(
                           leading: widget.avatar(context, item, false),
                           title: Text(widget.label(t, item)),
-                          onTap: () => Navigator.of(context).pop(item),
+                          trailing: _multi ? m.Checkbox(value: _selected.contains(item), onChanged: (_) => _tap(item)) : null,
+                          onTap: () => _tap(item),
                         );
                       },
                     ),
             ),
+            if (_multi)
+              SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: m.FilledButton(
+                      onPressed: _selected.isEmpty ? null : _done,
+                      child: Text('${widget.action!} · ${t.screenCalls.pickSelected(n: _selected.length, max: widget.max!)}'),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
     );
   }
 }
+
+/// Отметка выбранного в листе (iOS): закрашенный кружок с галочкой / пустой.
+Widget _checkCupertino(BuildContext context, bool selected) => Icon(
+  selected ? c.CupertinoIcons.checkmark_circle_fill : c.CupertinoIcons.circle,
+  size: 24,
+  color: selected ? c.CupertinoTheme.of(context).primaryColor : c.CupertinoColors.tertiaryLabel.resolveFrom(context),
+);
