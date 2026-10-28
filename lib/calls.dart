@@ -1089,7 +1089,7 @@ class Calls {
     // Android первый вызов setCameraEnabled упирается в системный диалог и
     // возвращает null — камера включалась бы лишь со второго тапа).
     if (!off && !await ensureCallCameraPermission()) return;
-    final publication = await participant.setCameraEnabled(!off);
+    final publication = await participant.setCameraEnabled(!off, cameraCaptureOptions: _cameraCaptureOptions());
     _localVideoTrack = off ? null : (publication?.track as VideoTrack?);
     _emit(_snapshot.copyWith(cameraOff: off, mediaEpoch: _snapshot.mediaEpoch + 1));
   }
@@ -1115,7 +1115,7 @@ class Calls {
     // только со второго тапа.
     if (!await ensureCallCameraPermission()) return;
     _cameraPosition = CameraPosition.front;
-    final publication = await participant.setCameraEnabled(true);
+    final publication = await participant.setCameraEnabled(true, cameraCaptureOptions: _cameraCaptureOptions());
     _localVideoTrack = publication?.track as VideoTrack?;
     // Апгрейд аудио→видео включает громкую связь ТОЛЬКО на этом телефоне (том, где
     // нажали «Видео»): пользователь переходит от «телефон у уха» к «смотрю на
@@ -1742,12 +1742,29 @@ class Calls {
     // Разрешение CAMERA — до первой публикации видеодорожки, чтобы на Android
     // видеозвонок «с нуля» поднимал камеру с первого раза (см.
     // ensureCallCameraPermission). Отказ не валит звонок — остаёмся в аудио.
+    // Нас позвали в групповой звонок — входим с выключенной камерой (включит
+    // сам): в сетке до 8 плиток, и не каждый готов сразу в кадр.
+    if (video && _invitedInto.isNotEmpty) {
+      _emit(_snapshot.copyWith(cameraOff: true, mediaEpoch: _snapshot.mediaEpoch + 1));
+      _dbg('published audio (group: camera off)');
+      return;
+    }
     if (video && await ensureCallCameraPermission()) {
-      final publication = await participant.setCameraEnabled(true);
+      final publication = await participant.setCameraEnabled(true, cameraCaptureOptions: _cameraCaptureOptions());
       _localVideoTrack = publication?.track as VideoTrack?;
       _emit(_snapshot.copyWith(mediaEpoch: _snapshot.mediaEpoch + 1));
     }
     _dbg('published ${video ? 'audio+video' : 'audio'}');
+  }
+
+  /// Захват камеры. Групповой звонок — не выше 540p: плитки маленькие, а
+  /// каждый поток SFU раздаёт до 7 участникам (1-на-1 — 720p из [RoomOptions]).
+  /// Действует при создании дорожки: камера, включённая ещё в 1-на-1, остаётся
+  /// 720p (маленьким плиткам dynacast отдаёт нижний слой simulcast).
+  CameraCaptureOptions? _cameraCaptureOptions() {
+    if (!_snapshot.group && _invited.isEmpty && _invitedInto.isEmpty) return null;
+    final defaults = _room?.roomOptions.defaultCameraCaptureOptions ?? const CameraCaptureOptions();
+    return defaults.copyWith(params: VideoParametersPresets.h540_169, cameraPosition: _cameraPosition);
   }
 
   // ---------------------------------------------------------------------------
