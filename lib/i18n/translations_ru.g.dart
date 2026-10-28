@@ -1723,6 +1723,10 @@ class _Translations$screenCall$ru extends Translations$screenCall$en {
 	// Translations
 	@override String get addParticipant => 'Добавить участника';
 	@override String get addParticipantEmpty => 'Некого добавить';
+	@override String inviteDeclined({required Object name}) => '\$${name}: звонок отклонён';
+	@override String inviteBusy({required Object name}) => '\$${name}: занято';
+	@override String inviteNoAnswer({required Object name}) => '\$${name}: нет ответа';
+	@override String get inviteSomeone => 'Приглашённый';
 	@override String get groupInvite => 'Групповой звонок';
 	@override String groupCallTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
 		one: '${n} участник',
@@ -3354,6 +3358,10 @@ extension on TranslationsRu {
 			'dateTime.relativeDateTimeOther' => ({required Object date, required Object time}) => '${date} в ${time}',
 			'screenCall.addParticipant' => 'Добавить участника',
 			'screenCall.addParticipantEmpty' => 'Некого добавить',
+			'screenCall.inviteDeclined' => ({required Object name}) => '\$${name}: звонок отклонён',
+			'screenCall.inviteBusy' => ({required Object name}) => '\$${name}: занято',
+			'screenCall.inviteNoAnswer' => ({required Object name}) => '\$${name}: нет ответа',
+			'screenCall.inviteSomeone' => 'Приглашённый',
 			'screenCall.groupInvite' => 'Групповой звонок',
 			'screenCall.groupCallTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} участник', few: '${n} участника', many: '${n} участников', other: '${n} участника', ), 
 			'screenCall.you' => 'Вы',

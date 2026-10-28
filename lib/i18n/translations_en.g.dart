@@ -4099,6 +4099,18 @@ class Translations$screenCall$en {
 	/// en: 'No one to add'
 	String get addParticipantEmpty => 'No one to add';
 
+	/// en: '${name} declined the call'
+	String inviteDeclined({required Object name}) => '\$${name} declined the call';
+
+	/// en: '${name} is busy'
+	String inviteBusy({required Object name}) => '\$${name} is busy';
+
+	/// en: '${name} didn't answer'
+	String inviteNoAnswer({required Object name}) => '\$${name} didn\'t answer';
+
+	/// en: 'Invitee'
+	String get inviteSomeone => 'Invitee';
+
 	/// en: 'Group call'
 	String get groupInvite => 'Group call';
 
@@ -6249,6 +6261,10 @@ extension on Translations {
 			'dateTime.relativeDateTimeOther' => ({required Object date, required Object time}) => '${date} at ${time}',
 			'screenCall.addParticipant' => 'Add participant',
 			'screenCall.addParticipantEmpty' => 'No one to add',
+			'screenCall.inviteDeclined' => ({required Object name}) => '\$${name} declined the call',
+			'screenCall.inviteBusy' => ({required Object name}) => '\$${name} is busy',
+			'screenCall.inviteNoAnswer' => ({required Object name}) => '\$${name} didn\'t answer',
+			'screenCall.inviteSomeone' => 'Invitee',
 			'screenCall.groupInvite' => 'Group call',
 			'screenCall.groupCallTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} participant', other: '${n} participants', ), 
 			'screenCall.you' => 'You',

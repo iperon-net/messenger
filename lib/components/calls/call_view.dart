@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -459,7 +460,9 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
         _syncPipAllowed(isVideoCall);
         // iOS: имя/аватар собеседника для плейсхолдера в системном мини-окне (само
         // окно и видео в нём ведёт сервис звонков, см. CallPipIos). Дедуп внутри.
-        CallPipIos.setPeer(state.displayName, state.avatarBytes);
+        // Групповой звонок — тот, на ком фокус (говорящий), см. [CallSnapshot.focusUserID].
+        final focus = _focusOf(state);
+        CallPipIos.setPeer(focus?.name ?? state.displayName, focus == null ? state.avatarBytes : focus.avatarBytes);
         // Дорожки берём из сервиса; mediaEpoch в state гарантирует, что при их
         // появлении/смене BlocBuilder перестроит рендереры (сами VideoTrack не
         // участвуют в equality состояния).
@@ -548,7 +551,13 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
                   // его аватар по центру вместо пустого фона.
                   if (_inPip && !mainOn)
                     Center(
-                      child: _Avatar(state: state, palette: palette),
+                      child: _focusOf(state) == null
+                          ? _Avatar(state: state, palette: palette)
+                          : UserAvatar(
+                              userID: Uint8List.fromList(_focusOf(state)!.userID),
+                              placeholderName: getIt.get<Utils>().bytesToHex(Uint8List.fromList(_focusOf(state)!.userID)),
+                              size: 96,
+                            ),
                     ),
                   if (!_inPip)
                     ValueListenableBuilder<bool>(
@@ -584,6 +593,20 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
                           child: Padding(
                             padding: EdgeInsets.only(bottom: 32 + _Overlay.mediaControlsHeight + 12),
                             child: _RemoteMicPill(notice: _CallNotice.of(state)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  // «Надя: звонок отклонён» — приглашение не состоялось (звонок мог
+                  // снова стать 1-на-1, когда отказался единственный приглашённый).
+                  if (!_inPip)
+                    Positioned.fill(
+                      child: SafeArea(
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Padding(
+                            padding: EdgeInsets.only(bottom: 32 + _Overlay.mediaControlsHeight + 56),
+                            child: _InviteNotice(state: state),
                           ),
                         ),
                       ),
@@ -1779,6 +1802,7 @@ class _GroupCallViewState extends State<_GroupCallView> {
                 ),
               ),
             ),
+            _InviteNotice(state: state),
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
               child: _controlsRow([
@@ -1988,4 +2012,87 @@ Future<void> startGroupCall(BuildContext context, {required bool video}) async {
   if (picked == null || picked.isEmpty) return;
   await ensureCallMicPermission();
   await getIt.get<Calls>().startCall(toUserID: picked.first.userID, video: video, others: [for (final user in picked.skip(1)) user.userID]);
+}
+
+/// Участник группового звонка, на ком фокус мини-окна (PiP); `null` — звонок
+/// 1-на-1 или фокуса ещё нет.
+CallParticipantView? _focusOf(CallState state) {
+  if (!state.group || state.focusUserID.isEmpty) return null;
+  for (final participant in state.participants) {
+    if (listEquals(participant.userID, state.focusUserID)) return participant;
+  }
+  return null;
+}
+
+/// Короткая плашка «Надя: звонок отклонён / занято / нет ответа» — приглашение
+/// в групповой звонок не состоялось (видят все участники). Показывается на
+/// несколько секунд при новом [CallState.inviteNoticeSeq].
+class _InviteNotice extends StatefulWidget {
+  final CallState state;
+
+  const _InviteNotice({required this.state});
+
+  @override
+  State<_InviteNotice> createState() => _InviteNoticeState();
+}
+
+class _InviteNoticeState extends State<_InviteNotice> {
+  static const _shown = Duration(seconds: 4);
+
+  late int _seq = widget.state.inviteNoticeSeq;
+  bool _visible = false;
+  Timer? _timer;
+
+  @override
+  void didUpdateWidget(_InviteNotice oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final seq = widget.state.inviteNoticeSeq;
+    if (seq == _seq) return;
+    _seq = seq;
+    _timer?.cancel();
+    _visible = true;
+    _timer = Timer(_shown, () {
+      if (mounted) setState(() => _visible = false);
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t.screenCall;
+    final state = widget.state;
+    final name = state.inviteNoticeName.isEmpty ? t.inviteSomeone : state.inviteNoticeName;
+    final text = switch (state.inviteNoticeOutcome) {
+      'busy' => t.inviteBusy(name: name),
+      'noAnswer' => t.inviteNoAnswer(name: name),
+      _ => t.inviteDeclined(name: name),
+    };
+    return IgnorePointer(
+      child: AnimatedOpacity(
+        opacity: _visible ? 1 : 0,
+        duration: const Duration(milliseconds: 250),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+          child: DecoratedBox(
+            decoration: BoxDecoration(color: const Color(0x99000000), borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              child: Text(
+                text,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Color(0xFFFFFFFF), fontSize: 14),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

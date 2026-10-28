@@ -104,6 +104,20 @@ class CallParticipant {
   int get hashCode => Object.hash(Object.hashAll(userID), joined, micMuted, videoOff, speaking);
 }
 
+/// Чем закончилось приглашение в групповой звонок (видят все участники).
+enum CallInviteOutcome { declined, busy, noAnswer }
+
+/// «Надя отклонила звонок» — последнее несостоявшееся приглашение; [seq] растёт
+/// с каждым новым, по нему UI показывает короткую плашку.
+@immutable
+class CallInviteNotice {
+  final List<int> userID;
+  final CallInviteOutcome outcome;
+  final int seq;
+
+  const CallInviteNotice({required this.userID, required this.outcome, required this.seq});
+}
+
 /// Неизменяемый снимок текущего звонка. [Calls] публикует его в [Calls.snapshots]
 /// на каждое изменение; [CallCubit] переводит снимок в состояние экрана.
 @immutable
@@ -186,6 +200,13 @@ class CallSnapshot {
 
   bool get group => participants.isNotEmpty;
 
+  /// Групповой звонок: чьё видео / имя в мини-окне (PiP) и в [Calls.remoteVideoTrack]
+  /// — говорящий, с видео в приоритете. Пусто в 1-на-1.
+  final List<int> focusUserID;
+
+  /// Последнее несостоявшееся приглашение (групповой звонок).
+  final CallInviteNotice? inviteNotice;
+
   const CallSnapshot({
     this.status = CallStatus.idle,
     this.callId = '',
@@ -207,6 +228,8 @@ class CallSnapshot {
     this.encryption = CallEncryption.negotiating,
     this.sas = const [],
     this.participants = const [],
+    this.focusUserID = const [],
+    this.inviteNotice,
   });
 
   CallSnapshot copyWith({
@@ -230,6 +253,8 @@ class CallSnapshot {
     CallEncryption? encryption,
     List<String>? sas,
     List<CallParticipant>? participants,
+    List<int>? focusUserID,
+    CallInviteNotice? inviteNotice,
   }) {
     return CallSnapshot(
       status: status ?? this.status,
@@ -252,6 +277,8 @@ class CallSnapshot {
       encryption: encryption ?? this.encryption,
       sas: sas ?? this.sas,
       participants: participants ?? this.participants,
+      focusUserID: focusUserID ?? this.focusUserID,
+      inviteNotice: inviteNotice ?? this.inviteNotice,
     );
   }
 }
@@ -602,6 +629,35 @@ class Calls {
   /// Ключ комнаты (32 байта), когда звонок шифрован: в 1-на-1 — выведенный из
   /// ECDH, в групповом — тот же, переданный приглашённым.
   Uint8List? _roomKey;
+
+  /// Индекс ключа комнаты в кольце ключей LiveKit, которым мы шифруем. Ротация
+  /// ([_rotateRoomKey]) кладёт новый ключ под следующий индекс: кадр несёт индекс
+  /// в трейлере, поэтому старые и новые кадры расшифровываются одновременно.
+  int _keyIndex = 0;
+
+  Timer? _rotateTimer;
+  static const _keyRingSize = 16;
+
+  /// Пауза между раздачей нового ключа и переходом на него: остальные успевают
+  /// его поставить, и наши кадры у них не теряются.
+  static const _keySwitchDelay = Duration(milliseconds: 1500);
+
+  /// Длина обёрнутого ключа (nonce 12 + ключ 32 + MAC 16); с индексом — на байт больше.
+  static const _wrappedKeyLength = 60;
+
+  /// Приглашения в групповом звонке (`{"u": hex, "s": ring|declined|busy|noAnswer}`):
+  /// пригласивший сообщает остальным, кто ещё звонит и чем кончилось.
+  static const _inviteTopic = 'call.invite';
+
+  /// Приглашённые другими участниками и ещё не вошедшие: hex → userID.
+  final _othersInvited = <String, List<int>>{};
+  int _inviteNoticeSeq = 0;
+
+  /// Мини-окно группового звонка: на ком фокус и когда переключились (не
+  /// скачем между говорящими чаще [_focusHold]).
+  String _focusIdentity = '';
+  DateTime _focusAt = DateTime.fromMillisecondsSinceEpoch(0);
+  static const _focusHold = Duration(seconds: 2);
   static const _peerGraceTimeout = Duration(seconds: 45);
   Timer? _peerGoneTimer;
 
@@ -1273,6 +1329,8 @@ class Calls {
         // Приглашённый нами отказался (или занят) — убираем из «звонит».
         if (_snapshot.callId == ring.callId && _invited.containsKey(_hex(from))) {
           _settleInvite(_hex(from));
+          unawaited(_publishInvite(_hex(from), ring.busy ? 'busy' : 'declined'));
+          _noticeInvite(from, ring.busy ? CallInviteOutcome.busy : CallInviteOutcome.declined);
           _syncParticipants();
           // «Позвонить нескольким»: отказались все, никто не вошёл — свернуть.
           if (_snapshot.status == CallStatus.outgoing && _invited.isEmpty && !_othersRemain()) {
@@ -1905,6 +1963,11 @@ class Calls {
     _invited.clear();
     _invitedInto = const [];
     _roomKey = null;
+    _keyIndex = 0;
+    _rotateTimer?.cancel();
+    _rotateTimer = null;
+    _othersInvited.clear();
+    _focusIdentity = '';
   }
 
   /// Пересобирает [CallSnapshot.participants]: кто в комнате (с mute / камерой /
@@ -1914,7 +1977,7 @@ class Calls {
     if (!_hasActiveCall) return;
     final room = _room;
     final remote = room?.remoteParticipants.values.toList() ?? const <RemoteParticipant>[];
-    final group = _snapshot.group || _invited.isNotEmpty || _invitedInto.isNotEmpty || remote.length > 1;
+    final group = _snapshot.group || _invited.isNotEmpty || _othersInvited.isNotEmpty || _invitedInto.isNotEmpty || remote.length > 1;
     if (!group) return;
 
     final list = <CallParticipant>[];
@@ -1932,7 +1995,7 @@ class Calls {
       }
       list.add(CallParticipant(userID: userID, micMuted: participant.isMuted, videoOff: videoOff, speaking: participant.isSpeaking));
     }
-    for (final MapEntry(key: hex, value: userID) in _invited.entries) {
+    for (final MapEntry(key: hex, value: userID) in [..._invited.entries, ..._othersInvited.entries]) {
       if (seen.add(hex)) list.add(CallParticipant(userID: userID, joined: false));
     }
     // Пока сами не в комнате — кто в звонке, знаем только из приглашения.
@@ -1941,8 +2004,104 @@ class Calls {
         if (seen.add(_hex(userID))) list.add(CallParticipant(userID: userID));
       }
     }
-    if (listEquals(list, _snapshot.participants)) return;
-    _emit(_snapshot.copyWith(participants: list, mediaEpoch: _snapshot.mediaEpoch + 1));
+    if (!listEquals(list, _snapshot.participants)) {
+      _emit(_snapshot.copyWith(participants: list, mediaEpoch: _snapshot.mediaEpoch + 1));
+    }
+    _syncFocus();
+  }
+
+  /// Групповой звонок: на ком фокус мини-окна (PiP) — говорящий с включённой
+  /// камерой, иначе тот, на ком уже фокус, если у него есть видео, иначе первый с
+  /// видео, иначе говорящий / первый в комнате. Его дорожка становится
+  /// [remoteVideoTrack] (её берут мини-окна iOS и Android). Не переключаемся чаще
+  /// [_focusHold], пока текущий в комнате и с видео.
+  void _syncFocus() {
+    final room = _room;
+    if (room == null || !_snapshot.group) return;
+    final remote = room.remoteParticipants.values.toList();
+    if (remote.isEmpty) return;
+
+    VideoTrack? videoOf(RemoteParticipant participant) {
+      for (final publication in participant.videoTrackPublications) {
+        final track = publication.track;
+        if (publication.source == TrackSource.camera && !publication.muted && track is VideoTrack) return track;
+      }
+      return null;
+    }
+
+    final speakers = room.activeSpeakers.whereType<RemoteParticipant>().toList();
+    final current = remote.where((participant) => participant.identity == _focusIdentity).firstOrNull;
+    final currentHasVideo = current != null && videoOf(current) != null;
+    final holding = currentHasVideo && DateTime.now().difference(_focusAt) < _focusHold;
+
+    final next = holding
+        ? current
+        : speakers.where((participant) => videoOf(participant) != null).firstOrNull ??
+              (currentHasVideo ? current : null) ??
+              remote.where((participant) => videoOf(participant) != null).firstOrNull ??
+              speakers.firstOrNull ??
+              current ??
+              remote.first;
+
+    final track = videoOf(next);
+    final focusChanged = next.identity != _focusIdentity;
+    if (focusChanged) {
+      _focusIdentity = next.identity;
+      _focusAt = DateTime.now();
+    }
+    if (!focusChanged && identical(track, _remoteVideoTrack) && (track == null) == _snapshot.remoteVideoOff) return;
+    _remoteVideoTrack = track;
+    _emit(
+      _snapshot.copyWith(focusUserID: utils.hexToBytes(next.identity), remoteVideoOff: track == null, mediaEpoch: _snapshot.mediaEpoch + 1),
+    );
+  }
+
+  /// Пригласивший сообщает остальным участникам, кто ещё звонит и чем кончилось
+  /// приглашение ([_inviteTopic]).
+  Future<void> _publishInvite(String hex, String state) async {
+    final participant = _room?.localParticipant;
+    if (participant == null || (_room?.remoteParticipants.isEmpty ?? true)) return;
+    try {
+      await participant.publishData(utf8.encode(jsonEncode({'u': hex, 's': state})), reliable: true, topic: _inviteTopic);
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  void _onInviteEvent(List<int> data) {
+    final Map<String, dynamic> event;
+    try {
+      event = jsonDecode(utf8.decode(data)) as Map<String, dynamic>;
+    } catch (_) {
+      return;
+    }
+    final hex = event['u'] as String? ?? '';
+    final userID = utils.hexToBytes(hex);
+    if (userID.isEmpty || hex == _hex(auth.session.userID)) return;
+    switch (event['s']) {
+      case 'ring':
+        final inRoom = _room?.remoteParticipants.values.any((participant) => participant.identity == hex) ?? false;
+        if (!inRoom) _othersInvited[hex] = userID;
+      case 'declined':
+        _othersInvited.remove(hex);
+        _noticeInvite(userID, CallInviteOutcome.declined);
+      case 'busy':
+        _othersInvited.remove(hex);
+        _noticeInvite(userID, CallInviteOutcome.busy);
+      case 'noAnswer':
+        _othersInvited.remove(hex);
+        _noticeInvite(userID, CallInviteOutcome.noAnswer);
+    }
+    _syncParticipants();
+  }
+
+  void _noticeInvite(List<int> userID, CallInviteOutcome outcome) {
+    if (!_hasActiveCall) return;
+    _emit(
+      _snapshot.copyWith(
+        inviteNotice: CallInviteNotice(userID: userID, outcome: outcome, seq: ++_inviteNoticeSeq),
+      ),
+    );
   }
 
   /// Видео участника группового звонка (камера включена и подписались) — для
@@ -1985,9 +2144,12 @@ class Calls {
     final status = await _sendRingInitiating(toUserID: userID, callId: callId, video: _snapshot.video);
     if (_snapshot.callId != callId) return CallInviteResult.failed;
     if (status.status == APIStatus.success) {
+      unawaited(_publishInvite(hex, 'ring'));
       _inviteTimers[hex] = Timer(_inviteTimeout, () {
         if (_snapshot.callId != callId || !_invited.containsKey(hex)) return;
         _settleInvite(hex);
+        unawaited(_publishInvite(hex, 'noAnswer'));
+        _noticeInvite(userID, CallInviteOutcome.noAnswer);
         _syncParticipants();
         // «Позвонить нескольким»: никто так и не ответил.
         if (_snapshot.status == CallStatus.outgoing && _invited.isEmpty && !_othersRemain()) {
@@ -2012,7 +2174,7 @@ class Calls {
   /// - ключа ещё нет (нас только позвали) — ждём его от участников; у кого-то
   ///   из участников нет E2EE — звонок открытый, выключаем шифрование;
   /// - звонок открытый — ничего не делаем.
-  /// Ушедший участник ключ знает (ротации пока нет — фаза 5, групповой E2EE).
+  /// Ушедшему участнику ключ меняем ([_rotateRoomKey]).
   Future<void> _applyGroupE2ee(RemoteParticipant participant, String encoded) async {
     final room = _room;
     final keyPair = _callKeyPair;
@@ -2024,13 +2186,7 @@ class Calls {
         return;
       }
       try {
-        final wrapped = await crypto.callKeys.wrapRoomKey(
-          keyPair: keyPair,
-          remotePublicKey: base64.decode(encoded),
-          callId: _snapshot.callId,
-          roomKey: roomKey,
-        );
-        await room.localParticipant?.publishData(wrapped, reliable: true, destinationIdentities: [participant.identity], topic: _keyTopic);
+        await _sendRoomKey(participant.identity, encoded, roomKey, _keyIndex);
         _dbg('e2ee key sent');
       } catch (error, stackTrace) {
         logger.handle(error, stackTrace);
@@ -2057,6 +2213,7 @@ class Calls {
       final roomKey = Uint8List.fromList(List<int>.generate(32, (_) => random.nextInt(256)));
       await keyProvider.setRawKey(roomKey);
       _roomKey = roomKey;
+      _keyIndex = 0;
       final sas = await crypto.callKeys.deriveSas(roomKey);
       _dbg('e2ee group key created');
       if (_hasActiveCall) _emit(_snapshot.copyWith(encryption: CallEncryption.encrypted, sas: sas));
@@ -2065,29 +2222,120 @@ class Calls {
     }
   }
 
-  /// Ключ комнаты от участника [from] (нас позвали в шифрованный звонок).
-  /// Ставится и поверх ключа, выведенного попарно, — если в комнате к нашему
-  /// входу оставался один участник, мы могли принять звонок за 1-на-1.
+  /// Ключ комнаты от участника [from]: нас позвали в шифрованный звонок или ключ
+  /// сменили ([_rotateRoomKey]). Сообщение — `[индекс] + обёрнутый ключ` (старые
+  /// клиенты — без индекса, индекс 0). Первый ключ ставим и сразу им шифруем
+  /// (поверх попарного — если к нашему входу в комнате оставался один участник,
+  /// мы могли принять звонок за 1-на-1); новый при смене — сначала ставим, а
+  /// шифровать им начинаем через [_keySwitchDelay], когда он есть у всех.
   Future<void> _onGroupKey(RemoteParticipant? from, List<int> data) async {
     final keyPair = _callKeyPair;
     final keyProvider = _e2eeKeyProvider;
     final encoded = from?.attributes[_e2eeAttribute] ?? '';
     if (keyPair == null || keyProvider == null || encoded.isEmpty) return;
+    final indexed = data.length == _wrappedKeyLength + 1;
+    final index = indexed ? data[0] % _keyRingSize : 0;
+    final wrapped = Uint8List.fromList(indexed ? data.sublist(1) : data);
+    final callId = _snapshot.callId;
     try {
       final roomKey = await crypto.callKeys.unwrapRoomKey(
         keyPair: keyPair,
         remotePublicKey: base64.decode(encoded),
-        callId: _snapshot.callId,
-        wrapped: Uint8List.fromList(data),
+        callId: callId,
+        wrapped: wrapped,
       );
-      if (_roomKey != null && listEquals(_roomKey, roomKey)) return;
-      await keyProvider.setRawKey(roomKey);
-      _roomKey = roomKey;
+      if (index == _keyIndex && listEquals(_roomKey, roomKey)) return;
+      final first = _roomKey == null;
+      await keyProvider.setRawKey(roomKey, keyIndex: index);
       _e2eePeerKey = encoded;
-      final sas = await crypto.callKeys.deriveSas(roomKey);
-      _dbg('e2ee group key');
-      logger.info('call: group e2ee key received');
-      if (_hasActiveCall) _emit(_snapshot.copyWith(encryption: CallEncryption.encrypted, sas: sas));
+      if (first) {
+        logger.info('call: group e2ee key received (index $index)');
+        await _useRoomKey(roomKey, index);
+        return;
+      }
+      logger.info('call: group e2ee key rotated (index $index)');
+      await Future<void>.delayed(_keySwitchDelay);
+      if (_snapshot.callId != callId) return;
+      await _useRoomKey(roomKey, index);
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  /// Шифруем ключом [roomKey] под индексом [index]; SAS — от него.
+  Future<void> _useRoomKey(Uint8List roomKey, int index) async {
+    _roomKey = roomKey;
+    _keyIndex = index;
+    try {
+      await _room?.e2eeManager?.setKeyIndex(index);
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+    final sas = await crypto.callKeys.deriveSas(roomKey);
+    _dbg('e2ee key #$index');
+    if (_hasActiveCall) _emit(_snapshot.copyWith(encryption: CallEncryption.encrypted, sas: sas));
+  }
+
+  /// Ключ [roomKey] с индексом [index] — участнику [identity], обёрнутый под его
+  /// публичный ключ [encoded] (атрибут `e2ee.pub`).
+  Future<void> _sendRoomKey(String identity, String encoded, Uint8List roomKey, int index) async {
+    final room = _room;
+    final keyPair = _callKeyPair;
+    if (room == null || keyPair == null) return;
+    final wrapped = await crypto.callKeys.wrapRoomKey(
+      keyPair: keyPair,
+      remotePublicKey: base64.decode(encoded),
+      callId: _snapshot.callId,
+      roomKey: roomKey,
+    );
+    await room.localParticipant?.publishData(
+      Uint8List.fromList([index, ...wrapped]),
+      reliable: true,
+      destinationIdentities: [identity],
+      topic: _keyTopic,
+    );
+  }
+
+  /// Участник ушёл из группового звонка — через секунду (несколько ушедших
+  /// подряд — одна смена) меняем ключ комнаты.
+  void _scheduleRotate() {
+    if (!_snapshot.group || _roomKey == null || _snapshot.encryption != CallEncryption.encrypted) return;
+    _rotateTimer?.cancel();
+    final callId = _snapshot.callId;
+    _rotateTimer = Timer(const Duration(seconds: 1), () {
+      if (_snapshot.callId == callId) unawaited(_rotateRoomKey());
+    });
+  }
+
+  /// Смена ключа комнаты, чтобы ушедший не мог расшифровать продолжение звонка.
+  /// Меняет один — участник с наименьшим identity среди оставшихся (все считают
+  /// его одинаково): новый ключ под следующим индексом кольца — каждому
+  /// оставшемуся, обёрнутым под его ключ; шифровать им — через [_keySwitchDelay].
+  Future<void> _rotateRoomKey() async {
+    final room = _room;
+    final keyProvider = _e2eeKeyProvider;
+    final local = room?.localParticipant?.identity;
+    if (room == null || keyProvider == null || local == null) return;
+    final remote = room.remoteParticipants.values.toList();
+    if (remote.isEmpty) return;
+    final identities = [local, ...remote.map((participant) => participant.identity)]..sort();
+    if (identities.first != local) return;
+
+    final callId = _snapshot.callId;
+    final random = Random.secure();
+    final roomKey = Uint8List.fromList(List<int>.generate(32, (_) => random.nextInt(256)));
+    final index = (_keyIndex + 1) % _keyRingSize;
+    try {
+      await keyProvider.setRawKey(roomKey, keyIndex: index);
+      for (final participant in remote) {
+        final encoded = participant.attributes[_e2eeAttribute] ?? '';
+        if (encoded.isEmpty) continue;
+        await _sendRoomKey(participant.identity, encoded, roomKey, index);
+      }
+      logger.info('call: group e2ee key rotated by us (index $index)');
+      await Future<void>.delayed(_keySwitchDelay);
+      if (_snapshot.callId != callId) return;
+      await _useRoomKey(roomKey, index);
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     }
@@ -2101,6 +2349,7 @@ class Calls {
         _cancelPeerGone();
         _markActive();
         _settleInvite(event.participant.identity);
+        _othersInvited.remove(event.participant.identity);
         _syncParticipants();
         // Мы уже на удержании, а собеседник вошёл (пере-вошёл) только сейчас —
         // прошлое сообщение он не видел, повторяем.
@@ -2170,8 +2419,19 @@ class Calls {
         _syncRemoteVideo();
         _syncParticipants();
       })
-      // Групповой звонок: подсветка говорящего.
+      // Групповой звонок: подсветка говорящего (и фокус мини-окна).
       ..on<ActiveSpeakersChangedEvent>((event) => _syncParticipants())
+      // Новая своя дорожка (включили камеру после смены ключа) — её шифратор
+      // LiveKit создаёт с индексом 0; переводим на текущий.
+      ..on<LocalTrackPublishedEvent>((event) {
+        if (_keyIndex == 0) return;
+        final index = _keyIndex;
+        unawaited(
+          Future<void>.delayed(const Duration(milliseconds: 300), () async {
+            if (_keyIndex == index) await _room?.e2eeManager?.setKeyIndex(index);
+          }),
+        );
+      })
       ..on<ParticipantConnectionQualityUpdatedEvent>((event) {
         // Индикатор показывает качество собеседника — локального участника
         // игнорируем. Обновляем только для живого звонка.
@@ -2200,6 +2460,10 @@ class Calls {
           unawaited(_onGroupKey(event.participant, event.data));
           return;
         }
+        if (event.topic == _inviteTopic) {
+          _onInviteEvent(event.data);
+          return;
+        }
         if (event.topic != _holdTopic) return;
         final onHold = utf8.decode(event.data, allowMalformed: true) == '1';
         logger.info('call: remote on hold=$onHold');
@@ -2209,9 +2473,11 @@ class Calls {
         // Собеседник пропал из комнаты без «пока» ([_byeTopic]) — обрыв связи
         // (у него или наш full restart), а не отбой. Ждём возвращения.
         _dbg('peer left');
-        // Групповой звонок: пока в комнате кто-то есть — просто убираем ушедшего.
+        // Групповой звонок: пока в комнате кто-то есть — убираем ушедшего и
+        // меняем ключ комнаты: ушедший его знает ([_rotateRoomKey]).
         if (_room?.remoteParticipants.isNotEmpty ?? false) {
           _syncParticipants();
+          _scheduleRotate();
           return;
         }
         _syncParticipants();
@@ -2276,7 +2542,8 @@ class Calls {
   // застывший последний кадр (см. [CallSnapshot.remoteVideoOff]).
   void _syncRemoteVideo() {
     final room = _room;
-    if (room == null) return;
+    // Групповой звонок: «собеседник» — фокус мини-окна ([_syncFocus]).
+    if (room == null || _snapshot.group) return;
     final participant = room.remoteParticipants.values.firstOrNull;
     var off = true;
     if (participant != null) {

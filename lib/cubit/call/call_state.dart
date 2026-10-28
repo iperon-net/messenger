@@ -111,6 +111,15 @@ class CallState with CallStateMappable {
   /// Наш аватар (из `myProfile`) — своя плитка группового звонка.
   final Uint8List? selfAvatarBytes;
 
+  /// Групповой звонок: на ком фокус мини-окна (PiP) — см. [CallSnapshot.focusUserID].
+  final List<int> focusUserID;
+
+  /// «Надя отклонила звонок»: имя, исход (`declined` / `busy` / `noAnswer`) и
+  /// счётчик — новое значение [inviteNoticeSeq] = показать плашку.
+  final String inviteNoticeName;
+  final String inviteNoticeOutcome;
+  final int inviteNoticeSeq;
+
   const CallState({
     this.status = Status.initialization,
     this.callStatus = CallStatus.idle,
@@ -138,5 +147,9 @@ class CallState with CallStateMappable {
     this.sas = const [],
     this.participants = const [],
     this.selfAvatarBytes,
+    this.focusUserID = const [],
+    this.inviteNoticeName = '',
+    this.inviteNoticeOutcome = '',
+    this.inviteNoticeSeq = 0,
   });
 }

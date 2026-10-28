@@ -99,6 +99,10 @@ class CallCubit extends Cubit<CallState> {
     encryption: s.encryption,
     sas: s.sas,
     participants: _participants(s.participants),
+    focusUserID: s.focusUserID,
+    inviteNoticeName: s.inviteNotice == null ? '' : _names[utils.bytesToHex(Uint8List.fromList(s.inviteNotice!.userID))] ?? '',
+    inviteNoticeOutcome: s.inviteNotice?.outcome.name ?? '',
+    inviteNoticeSeq: s.inviteNotice?.seq ?? 0,
   );
 
   List<CallParticipantView> _participants(List<CallParticipant> participants) {

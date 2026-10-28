@@ -1312,6 +1312,10 @@ dateTime:
 "screenCall":
   "addParticipant": "Add participant"
   "addParticipantEmpty": "No one to add"
+  "inviteDeclined": "${name} declined the call"
+  "inviteBusy": "${name} is busy"
+  "inviteNoAnswer": "${name} didn't answer"
+  "inviteSomeone": "Invitee"
   "groupInvite": "Group call"
   "groupCallTitle(plural)":
     one: "{n} participant"

@@ -422,6 +422,34 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     _$selfAvatarBytes,
     opt: true,
   );
+  static List<int> _$focusUserID(CallState v) => v.focusUserID;
+  static const Field<CallState, List<int>> _f$focusUserID = Field(
+    'focusUserID',
+    _$focusUserID,
+    opt: true,
+    def: const [],
+  );
+  static String _$inviteNoticeName(CallState v) => v.inviteNoticeName;
+  static const Field<CallState, String> _f$inviteNoticeName = Field(
+    'inviteNoticeName',
+    _$inviteNoticeName,
+    opt: true,
+    def: '',
+  );
+  static String _$inviteNoticeOutcome(CallState v) => v.inviteNoticeOutcome;
+  static const Field<CallState, String> _f$inviteNoticeOutcome = Field(
+    'inviteNoticeOutcome',
+    _$inviteNoticeOutcome,
+    opt: true,
+    def: '',
+  );
+  static int _$inviteNoticeSeq(CallState v) => v.inviteNoticeSeq;
+  static const Field<CallState, int> _f$inviteNoticeSeq = Field(
+    'inviteNoticeSeq',
+    _$inviteNoticeSeq,
+    opt: true,
+    def: 0,
+  );
 
   @override
   final MappableFields<CallState> fields = const {
@@ -451,6 +479,10 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     #sas: _f$sas,
     #participants: _f$participants,
     #selfAvatarBytes: _f$selfAvatarBytes,
+    #focusUserID: _f$focusUserID,
+    #inviteNoticeName: _f$inviteNoticeName,
+    #inviteNoticeOutcome: _f$inviteNoticeOutcome,
+    #inviteNoticeSeq: _f$inviteNoticeSeq,
   };
 
   static CallState _instantiate(DecodingData data) {
@@ -481,6 +513,10 @@ class CallStateMapper extends ClassMapperBase<CallState> {
       sas: data.dec(_f$sas),
       participants: data.dec(_f$participants),
       selfAvatarBytes: data.dec(_f$selfAvatarBytes),
+      focusUserID: data.dec(_f$focusUserID),
+      inviteNoticeName: data.dec(_f$inviteNoticeName),
+      inviteNoticeOutcome: data.dec(_f$inviteNoticeOutcome),
+      inviteNoticeSeq: data.dec(_f$inviteNoticeSeq),
     );
   }
 
@@ -552,6 +588,7 @@ abstract class CallStateCopyWith<$R, $In extends CallState, $Out>
     CallParticipantViewCopyWith<$R, CallParticipantView, CallParticipantView>
   >
   get participants;
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get focusUserID;
   $R call({
     Status? status,
     CallStatus? callStatus,
@@ -579,6 +616,10 @@ abstract class CallStateCopyWith<$R, $In extends CallState, $Out>
     List<String>? sas,
     List<CallParticipantView>? participants,
     Uint8List? selfAvatarBytes,
+    List<int>? focusUserID,
+    String? inviteNoticeName,
+    String? inviteNoticeOutcome,
+    int? inviteNoticeSeq,
   });
   CallStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -624,6 +665,13 @@ class _CallStateCopyWithImpl<$R, $Out>
     (v) => call(participants: v),
   );
   @override
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get focusUserID =>
+      ListCopyWith(
+        $value.focusUserID,
+        (v, t) => ObjectCopyWith(v, $identity, t),
+        (v) => call(focusUserID: v),
+      );
+  @override
   $R call({
     Status? status,
     CallStatus? callStatus,
@@ -651,6 +699,10 @@ class _CallStateCopyWithImpl<$R, $Out>
     List<String>? sas,
     List<CallParticipantView>? participants,
     Object? selfAvatarBytes = $none,
+    List<int>? focusUserID,
+    String? inviteNoticeName,
+    String? inviteNoticeOutcome,
+    int? inviteNoticeSeq,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -679,6 +731,11 @@ class _CallStateCopyWithImpl<$R, $Out>
       if (sas != null) #sas: sas,
       if (participants != null) #participants: participants,
       if (selfAvatarBytes != $none) #selfAvatarBytes: selfAvatarBytes,
+      if (focusUserID != null) #focusUserID: focusUserID,
+      if (inviteNoticeName != null) #inviteNoticeName: inviteNoticeName,
+      if (inviteNoticeOutcome != null)
+        #inviteNoticeOutcome: inviteNoticeOutcome,
+      if (inviteNoticeSeq != null) #inviteNoticeSeq: inviteNoticeSeq,
     }),
   );
   @override
@@ -712,6 +769,13 @@ class _CallStateCopyWithImpl<$R, $Out>
     sas: data.get(#sas, or: $value.sas),
     participants: data.get(#participants, or: $value.participants),
     selfAvatarBytes: data.get(#selfAvatarBytes, or: $value.selfAvatarBytes),
+    focusUserID: data.get(#focusUserID, or: $value.focusUserID),
+    inviteNoticeName: data.get(#inviteNoticeName, or: $value.inviteNoticeName),
+    inviteNoticeOutcome: data.get(
+      #inviteNoticeOutcome,
+      or: $value.inviteNoticeOutcome,
+    ),
+    inviteNoticeSeq: data.get(#inviteNoticeSeq, or: $value.inviteNoticeSeq),
   );
 
   @override
