@@ -416,6 +416,12 @@ class CallStateMapper extends ClassMapperBase<CallState> {
       v.participants;
   static const Field<CallState, List<CallParticipantView>> _f$participants =
       Field('participants', _$participants, opt: true, def: const []);
+  static Uint8List? _$selfAvatarBytes(CallState v) => v.selfAvatarBytes;
+  static const Field<CallState, Uint8List> _f$selfAvatarBytes = Field(
+    'selfAvatarBytes',
+    _$selfAvatarBytes,
+    opt: true,
+  );
 
   @override
   final MappableFields<CallState> fields = const {
@@ -444,6 +450,7 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     #encryption: _f$encryption,
     #sas: _f$sas,
     #participants: _f$participants,
+    #selfAvatarBytes: _f$selfAvatarBytes,
   };
 
   static CallState _instantiate(DecodingData data) {
@@ -473,6 +480,7 @@ class CallStateMapper extends ClassMapperBase<CallState> {
       encryption: data.dec(_f$encryption),
       sas: data.dec(_f$sas),
       participants: data.dec(_f$participants),
+      selfAvatarBytes: data.dec(_f$selfAvatarBytes),
     );
   }
 
@@ -570,6 +578,7 @@ abstract class CallStateCopyWith<$R, $In extends CallState, $Out>
     CallEncryption? encryption,
     List<String>? sas,
     List<CallParticipantView>? participants,
+    Uint8List? selfAvatarBytes,
   });
   CallStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -641,6 +650,7 @@ class _CallStateCopyWithImpl<$R, $Out>
     CallEncryption? encryption,
     List<String>? sas,
     List<CallParticipantView>? participants,
+    Object? selfAvatarBytes = $none,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -668,6 +678,7 @@ class _CallStateCopyWithImpl<$R, $Out>
       if (encryption != null) #encryption: encryption,
       if (sas != null) #sas: sas,
       if (participants != null) #participants: participants,
+      if (selfAvatarBytes != $none) #selfAvatarBytes: selfAvatarBytes,
     }),
   );
   @override
@@ -700,6 +711,7 @@ class _CallStateCopyWithImpl<$R, $Out>
     encryption: data.get(#encryption, or: $value.encryption),
     sas: data.get(#sas, or: $value.sas),
     participants: data.get(#participants, or: $value.participants),
+    selfAvatarBytes: data.get(#selfAvatarBytes, or: $value.selfAvatarBytes),
   );
 
   @override

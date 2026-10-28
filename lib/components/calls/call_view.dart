@@ -11,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../auth.dart';
 import '../../call_pip_ios.dart';
 import '../../calls.dart';
 import '../../cubit.dart';
@@ -1692,6 +1693,8 @@ class _GroupCallViewState extends State<_GroupCallView> {
       _GroupTile(
         name: t.you,
         userID: null,
+        avatarBytes: state.selfAvatarBytes,
+        seed: getIt.get<Utils>().bytesToHex(Uint8List.fromList(getIt.get<Auth>().session.userID)),
         video: local == null
             ? null
             : KeyedSubtree(
@@ -1711,29 +1714,34 @@ class _GroupCallViewState extends State<_GroupCallView> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Column(
-                    children: [
-                      Text(
-                        t.groupCallTitle(n: joined + 1),
-                        style: TextStyle(color: palette.name, fontSize: 20, fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 4),
-                      if (state.callStatus == CallStatus.active && state.connectedAt != null)
-                        _CallTimer(connectedAt: state.connectedAt!, color: palette.timer)
-                      else
+              // На всю ширину: иначе Stack размером с заголовок, и «К чатам»
+              // оказывается рядом с ним, у центра.
+              child: SizedBox(
+                width: double.infinity,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Column(
+                      children: [
                         Text(
-                          state.callStatus == CallStatus.outgoing ? t.calling : t.connecting,
-                          style: TextStyle(color: palette.status, fontSize: 15),
+                          t.groupCallTitle(n: joined + 1),
+                          style: TextStyle(color: palette.name, fontSize: 20, fontWeight: FontWeight.w600),
                         ),
-                      _E2eeBadge(state: state, palette: palette),
-                    ],
-                  ),
-                  // «К чатам»: мобильные — в углу, десктоп — в ряду кнопок.
-                  if (!AppPlatform.isDesktop) Positioned(top: 0, right: 0, child: _AccountButton(palette: palette)),
-                ],
+                        const SizedBox(height: 4),
+                        if (state.callStatus == CallStatus.active && state.connectedAt != null)
+                          _CallTimer(connectedAt: state.connectedAt!, color: palette.timer)
+                        else
+                          Text(
+                            state.callStatus == CallStatus.outgoing ? t.calling : t.connecting,
+                            style: TextStyle(color: palette.status, fontSize: 15),
+                          ),
+                        _E2eeBadge(state: state, palette: palette),
+                      ],
+                    ),
+                    // «К чатам»: мобильные — в углу, десктоп — в ряду кнопок.
+                    if (!AppPlatform.isDesktop) Positioned(top: 0, right: 0, child: _AccountButton(palette: palette)),
+                  ],
+                ),
               ),
             ),
             Expanded(
@@ -1834,6 +1842,8 @@ class _GroupCallViewState extends State<_GroupCallView> {
     return _GroupTile(
       name: participant.name,
       userID: userID,
+      avatarBytes: participant.avatarBytes,
+      seed: id,
       subtitle: participant.joined ? null : ringing,
       video: track == null
           ? null
@@ -1854,6 +1864,12 @@ class _GroupCallViewState extends State<_GroupCallView> {
 class _GroupTile extends StatelessWidget {
   final String name;
   final Uint8List? userID;
+
+  /// Фото из кэша (кубит); нет — [UserAvatar] (догрузит) с инициалами.
+  final Uint8List? avatarBytes;
+
+  /// hex userID — сид генеративного аватара.
+  final String seed;
   final String? subtitle;
   final Widget? video;
   final bool micMuted;
@@ -1864,6 +1880,8 @@ class _GroupTile extends StatelessWidget {
   const _GroupTile({
     required this.name,
     required this.userID,
+    required this.avatarBytes,
+    required this.seed,
     required this.video,
     required this.micMuted,
     required this.palette,
@@ -1896,9 +1914,24 @@ class _GroupTile extends StatelessWidget {
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       final size = (constraints.biggest.shortestSide * 0.45).clamp(40.0, 120.0);
+                      final bytes = avatarBytes;
+                      if (bytes != null) {
+                        return ClipOval(
+                          child: Image.memory(bytes, width: size, height: size, fit: BoxFit.cover, gaplessPlayback: true),
+                        );
+                      }
+                      // Своя плитка без фото — тот же генеративный аватар, что везде.
                       return userID == null
-                          ? HugeIcon(icon: HugeIcons.strokeRoundedUser, size: size, color: palette.dim)
-                          : UserAvatar(userID: userID, placeholderName: getIt.get<Utils>().bytesToHex(userID), size: size);
+                          ? SizedBox.square(
+                              dimension: size,
+                              child: AnimatedBoringAvatar(
+                                name: seed,
+                                type: BoringAvatarType.beam,
+                                shape: const CircleBorder(),
+                                duration: const Duration(milliseconds: 400),
+                              ),
+                            )
+                          : UserAvatar(userID: userID, placeholderName: seed, size: size);
                     },
                   ),
                 ),

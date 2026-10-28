@@ -108,6 +108,9 @@ class CallState with CallStateMappable {
 
   bool get group => participants.isNotEmpty;
 
+  /// Наш аватар (из `myProfile`) — своя плитка группового звонка.
+  final Uint8List? selfAvatarBytes;
+
   const CallState({
     this.status = Status.initialization,
     this.callStatus = CallStatus.idle,
@@ -134,5 +137,6 @@ class CallState with CallStateMappable {
     this.encryption = CallEncryption.negotiating,
     this.sas = const [],
     this.participants = const [],
+    this.selfAvatarBytes,
   });
 }

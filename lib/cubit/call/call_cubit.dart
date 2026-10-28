@@ -58,6 +58,23 @@ class CallCubit extends Cubit<CallState> {
     emit(_fromSnapshot(_calls.snapshot, Status.success));
     _sub = _calls.snapshots.listen((snapshot) => emit(_fromSnapshot(snapshot, Status.success)));
     _resolveIdentity(_calls.snapshot.remoteUserID);
+    unawaited(_resolveSelf());
+  }
+
+  /// Свой аватар из `myProfile` (без сети — из кэша) для своей плитки.
+  Future<void> _resolveSelf() async {
+    try {
+      final profile = await repositories.myProfile.getByUserID(userID: getIt.get<Auth>().session.userID);
+      Uint8List? avatar;
+      final cdnID = profile.avatarCdnID;
+      if (cdnID != null && cdnID.isNotEmpty) {
+        avatar = await (await cdnManager.cachedFile(Uint8List.fromList(cdnID)))?.readAsBytes();
+      }
+      if (isClosed) return;
+      if (avatar != null) emit(state.copyWith(selfAvatarBytes: avatar));
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
   }
 
   CallState _fromSnapshot(CallSnapshot s, Status status) => state.copyWith(
