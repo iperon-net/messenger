@@ -452,6 +452,7 @@ class PushManager {
   Future<void> _handleAction(Object? arguments) async {
     final action = arguments as Map? ?? const {};
     if (action['action'] == 'callDecline') return _declineCall(action);
+    if (action['action'] == 'callBusy') return _declineCall(action, busy: true);
     // Кнопка уведомления другого аккаунта — выполняет его PushManager (после
     // переключения на этот аккаунт).
     if (await _switchTo((action['account'] as String?) ?? '')) {
@@ -481,20 +482,22 @@ class PushManager {
 
   /// «Отклонить» входящего, нажатое, пока приложение было выгружено (Android,
   /// `CallDeclineBridge`: событие плагина некому было слушать, натив поднял
-  /// движок ради него). Отказ — unary от сессии аккаунта, которому звонили,
-  /// без переключения; без сети звонящий дождётся таймаута.
-  Future<void> _declineCall(Map action) async {
+  /// движок ради него), либо [busy] — входящий пришёл пушем, когда телефон занят
+  /// сотовым / другим звонком (`CallFcmService`, экран входящего не показан):
+  /// звонящий услышит «занято». Отказ — unary от сессии аккаунта, которому
+  /// звонили, без переключения; без сети звонящий дождётся таймаута.
+  Future<void> _declineCall(Map action, {bool busy = false}) async {
     final callId = (action['callId'] as String?) ?? '';
     final fromUserID = (action['fromUserID'] as String?) ?? '';
     final account = (action['account'] as String?) ?? '';
-    logger.info('push: call decline from native callId=$callId');
+    logger.info('push: call ${busy ? 'busy' : 'decline'} from native callId=$callId');
     try {
       if (callId.isEmpty || fromUserID.isEmpty) return;
       final toUserID = getIt.get<Utils>().hexToBytes(fromUserID);
       if (account.isNotEmpty && account != AccountScope.current.accountID) {
-        await rejectCallAs(account, callId: callId, toUserID: toUserID);
+        await rejectCallAs(account, callId: callId, toUserID: toUserID, busy: busy);
       } else if (auth.isAuthorized) {
-        final ring = CallRing(callId: callId, toUserID: Uint8List.fromList(toUserID));
+        final ring = CallRing(callId: callId, toUserID: Uint8List.fromList(toUserID), busy: busy);
         await api.unaryEncoded(MessageType.CALL_REJECT, ring.writeToBuffer());
       }
     } catch (error, stackTrace) {

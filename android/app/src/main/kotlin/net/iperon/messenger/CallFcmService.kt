@@ -5,9 +5,14 @@ import android.app.KeyguardManager
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
+import android.media.AudioManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.Parcel
+import android.util.Log
 import com.google.firebase.messaging.RemoteMessage
 import com.hiennv.flutter_callkit_incoming.CallkitConstants
 import com.hiennv.flutter_callkit_incoming.CallkitIncomingBroadcastReceiver
@@ -70,6 +75,12 @@ class CallFcmService : FlutterFirebaseMessagingService() {
             }
             val message = callMessage(received, payload)
             cancelIfNeeded(message.data)
+            // Телефон занят сотовым / чужим VoIP — входящий не показываем, звонящему
+            // «занято» (как при приёме по стриму на переднем плане, calls.dart _onRing).
+            if (payload.kind == PushPayload.KIND_CALL_INCOMING && isBusyWithOtherCall()) {
+                rejectBusy(message.data)
+                return
+            }
             deliverToDart(message)
             return
         }
@@ -77,6 +88,42 @@ class CallFcmService : FlutterFirebaseMessagingService() {
         // Dart-endCall безвреден; RING показывает фоновый isolate.
         cancelIfNeeded(received.data)
         super.onMessageReceived(received)
+    }
+
+    /// Занят ли телефон активным звонком: сотовым (`MODE_IN_CALL`) или VoIP
+    /// (`MODE_IN_COMMUNICATION`) — тот же признак, что `MainActivity.hasActiveExternalCall`,
+    /// без разрешений. Свой идущий звонок сюда тоже попадает — и он тоже «занято».
+    private fun isBusyWithOtherCall(): Boolean {
+        val audioManager = getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return false
+        return audioManager.mode == AudioManager.MODE_IN_CALL || audioManager.mode == AudioManager.MODE_IN_COMMUNICATION
+    }
+
+    /// «Занято» звонящему без экрана входящего: поднимаем движок без Activity и
+    /// отдаём в Dart действие `callBusy` тем же путём, что «Отклонить» на баннере
+    /// выгруженного приложения ([CallDeclineBridge]) — `PushManager` шлёт
+    /// `CALL_REJECT` с `busy` от сессии аккаунта, которому звонили.
+    private fun rejectBusy(data: Map<String, String>) {
+        val callId = data[KEY_CALL_ID].orEmpty()
+        val fromUserID = data[KEY_FROM_USER_ID].orEmpty()
+        if (callId.isEmpty() || fromUserID.isEmpty()) return
+        Log.i(LOG_TAG, "call: busy with another call, rejecting callId=$callId")
+        val action = mapOf<String, Any>(
+            "action" to "callBusy",
+            "callId" to callId,
+            "fromUserID" to fromUserID,
+            "account" to data[KEY_ACCOUNT].orEmpty(),
+            "id" to java.util.UUID.randomUUID().toString(),
+        )
+        val context = applicationContext
+        // Движок и канал — только с главного потока.
+        Handler(Looper.getMainLooper()).post {
+            try {
+                AppEngine.ensure(context)
+                PushChannel.deliverAction(action, null)
+            } catch (error: Exception) {
+                Log.w(LOG_TAG, "call: busy delivery failed", error)
+            }
+        }
     }
 
     private fun cancelIfNeeded(data: Map<String, String>) {
@@ -184,6 +231,7 @@ class CallFcmService : FlutterFirebaseMessagingService() {
     }
 
     private companion object {
+        const val LOG_TAG = "IperonCall"
         // Ключи FCM-payload — см. internal/services/push.go (data map) и
         // lib/call_push.dart (_kAction/_kCallId/_kActionCancel).
         const val KEY_ACTION = "action"
