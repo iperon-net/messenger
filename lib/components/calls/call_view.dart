@@ -371,11 +371,11 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
   /// две строки имени, снизу — блок кнопок и его нижний отступ.
   Widget _stage(CallState state, Widget video) {
     const top = 32.0 + 8 + 2 * 26 + 8 + 22 + 24;
-    const bottom = 32 + _Overlay.mediaControlsHeight + 24;
+    final bottom = 32 + _Overlay.mediaControlsHeight + 24;
     return Positioned.fill(
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, top, 24, bottom),
+          padding: EdgeInsets.fromLTRB(24, top, 24, bottom),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: _stageMaxWidth),
@@ -581,7 +581,7 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
                         child: Align(
                           alignment: Alignment.bottomCenter,
                           child: Padding(
-                            padding: const EdgeInsets.only(bottom: 32 + _Overlay.mediaControlsHeight + 12),
+                            padding: EdgeInsets.only(bottom: 32 + _Overlay.mediaControlsHeight + 12),
                             child: _RemoteMicPill(notice: _CallNotice.of(state)),
                           ),
                         ),
@@ -755,7 +755,8 @@ class _Overlay extends StatelessWidget {
   // крупная кнопка отбоя (дефолтные 68 у [_CircleButton]). Используется в
   // [CallView] для позиционирования значка «микрофон собеседника выключен»
   // ровно над этим блоком.
-  static const double mediaControlsHeight = _rowButtonSize + 24 + 68;
+  // Десктоп — один ряд, отбой в нём же.
+  static final double mediaControlsHeight = AppPlatform.isDesktop ? _rowButtonSize : _rowButtonSize + 24 + 68;
 
   // ВРЕМЕННО: подписи под кнопками управления скрыты — смотрим вид «только иконки».
   // Вернуть подписи = сменить на `true`.
@@ -772,6 +773,9 @@ class _Overlay extends StatelessWidget {
 
     return SafeArea(
       child: Stack(
+        // На всё окно: иначе колонка ужимается по самому широкому ряду и прилипает
+        // к левому краю (десктоп — ряд кнопок компактный, не во всю ширину).
+        fit: StackFit.expand,
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
