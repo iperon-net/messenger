@@ -4072,6 +4072,33 @@ class Translations$screenCall$en {
 
 	// Translations
 
+	/// en: 'Add participant'
+	String get addParticipant => 'Add participant';
+
+	/// en: 'No one to add'
+	String get addParticipantEmpty => 'No one to add';
+
+	/// en: 'Group call'
+	String get groupInvite => 'Group call';
+
+	/// en: '(one) {{n} participant} (other) {{n} participants}'
+	String groupCallTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} participant',
+		other: '${n} participants',
+	);
+
+	/// en: 'You'
+	String get you => 'You';
+
+	/// en: 'ringing…'
+	String get inviteRinging => 'ringing…';
+
+	/// en: 'Call is full'
+	String get fullTitle => 'Call is full';
+
+	/// en: 'A call can have up to 8 participants.'
+	String get fullMessage => 'A call can have up to 8 participants.';
+
 	/// en: 'Call'
 	String get title => 'Call';
 
@@ -6192,6 +6219,14 @@ extension on Translations {
 			'dateTime.relativeDateTimeToday' => ({required Object time}) => 'today at ${time}',
 			'dateTime.relativeDateTimeYesterday' => ({required Object time}) => 'yesterday at ${time}',
 			'dateTime.relativeDateTimeOther' => ({required Object date, required Object time}) => '${date} at ${time}',
+			'screenCall.addParticipant' => 'Add participant',
+			'screenCall.addParticipantEmpty' => 'No one to add',
+			'screenCall.groupInvite' => 'Group call',
+			'screenCall.groupCallTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} participant', other: '${n} participants', ), 
+			'screenCall.you' => 'You',
+			'screenCall.inviteRinging' => 'ringing…',
+			'screenCall.fullTitle' => 'Call is full',
+			'screenCall.fullMessage' => 'A call can have up to 8 participants.',
 			'screenCall.title' => 'Call',
 			'screenCall.returnToCall' => 'Tap to return to the call',
 			'screenCall.bannerRinging' => 'Call',

@@ -8,6 +8,228 @@
 
 part of 'call_state.dart';
 
+class CallParticipantViewMapper extends ClassMapperBase<CallParticipantView> {
+  CallParticipantViewMapper._();
+
+  static CallParticipantViewMapper? _instance;
+  static CallParticipantViewMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = CallParticipantViewMapper._());
+      MapperContainer.globals.useAll([Uint8ListMapper()]);
+    }
+    return _instance!;
+  }
+
+  @override
+  final String id = 'CallParticipantView';
+
+  static List<int> _$userID(CallParticipantView v) => v.userID;
+  static const Field<CallParticipantView, List<int>> _f$userID = Field(
+    'userID',
+    _$userID,
+  );
+  static String _$name(CallParticipantView v) => v.name;
+  static const Field<CallParticipantView, String> _f$name = Field(
+    'name',
+    _$name,
+    opt: true,
+    def: '',
+  );
+  static Uint8List? _$avatarBytes(CallParticipantView v) => v.avatarBytes;
+  static const Field<CallParticipantView, Uint8List> _f$avatarBytes = Field(
+    'avatarBytes',
+    _$avatarBytes,
+    opt: true,
+  );
+  static bool _$joined(CallParticipantView v) => v.joined;
+  static const Field<CallParticipantView, bool> _f$joined = Field(
+    'joined',
+    _$joined,
+    opt: true,
+    def: true,
+  );
+  static bool _$micMuted(CallParticipantView v) => v.micMuted;
+  static const Field<CallParticipantView, bool> _f$micMuted = Field(
+    'micMuted',
+    _$micMuted,
+    opt: true,
+    def: false,
+  );
+  static bool _$videoOff(CallParticipantView v) => v.videoOff;
+  static const Field<CallParticipantView, bool> _f$videoOff = Field(
+    'videoOff',
+    _$videoOff,
+    opt: true,
+    def: true,
+  );
+  static bool _$speaking(CallParticipantView v) => v.speaking;
+  static const Field<CallParticipantView, bool> _f$speaking = Field(
+    'speaking',
+    _$speaking,
+    opt: true,
+    def: false,
+  );
+
+  @override
+  final MappableFields<CallParticipantView> fields = const {
+    #userID: _f$userID,
+    #name: _f$name,
+    #avatarBytes: _f$avatarBytes,
+    #joined: _f$joined,
+    #micMuted: _f$micMuted,
+    #videoOff: _f$videoOff,
+    #speaking: _f$speaking,
+  };
+
+  static CallParticipantView _instantiate(DecodingData data) {
+    return CallParticipantView(
+      userID: data.dec(_f$userID),
+      name: data.dec(_f$name),
+      avatarBytes: data.dec(_f$avatarBytes),
+      joined: data.dec(_f$joined),
+      micMuted: data.dec(_f$micMuted),
+      videoOff: data.dec(_f$videoOff),
+      speaking: data.dec(_f$speaking),
+    );
+  }
+
+  @override
+  final Function instantiate = _instantiate;
+
+  static CallParticipantView fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<CallParticipantView>(map);
+  }
+
+  static CallParticipantView fromJson(String json) {
+    return ensureInitialized().decodeJson<CallParticipantView>(json);
+  }
+}
+
+mixin CallParticipantViewMappable {
+  String toJson() {
+    return CallParticipantViewMapper.ensureInitialized()
+        .encodeJson<CallParticipantView>(this as CallParticipantView);
+  }
+
+  Map<String, dynamic> toMap() {
+    return CallParticipantViewMapper.ensureInitialized()
+        .encodeMap<CallParticipantView>(this as CallParticipantView);
+  }
+
+  CallParticipantViewCopyWith<
+    CallParticipantView,
+    CallParticipantView,
+    CallParticipantView
+  >
+  get copyWith =>
+      _CallParticipantViewCopyWithImpl<
+        CallParticipantView,
+        CallParticipantView
+      >(this as CallParticipantView, $identity, $identity);
+  @override
+  String toString() {
+    return CallParticipantViewMapper.ensureInitialized().stringifyValue(
+      this as CallParticipantView,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return CallParticipantViewMapper.ensureInitialized().equalsValue(
+      this as CallParticipantView,
+      other,
+    );
+  }
+
+  @override
+  int get hashCode {
+    return CallParticipantViewMapper.ensureInitialized().hashValue(
+      this as CallParticipantView,
+    );
+  }
+}
+
+extension CallParticipantViewValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, CallParticipantView, $Out> {
+  CallParticipantViewCopyWith<$R, CallParticipantView, $Out>
+  get $asCallParticipantView => $base.as(
+    (v, t, t2) => _CallParticipantViewCopyWithImpl<$R, $Out>(v, t, t2),
+  );
+}
+
+abstract class CallParticipantViewCopyWith<
+  $R,
+  $In extends CallParticipantView,
+  $Out
+>
+    implements ClassCopyWith<$R, $In, $Out> {
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get userID;
+  $R call({
+    List<int>? userID,
+    String? name,
+    Uint8List? avatarBytes,
+    bool? joined,
+    bool? micMuted,
+    bool? videoOff,
+    bool? speaking,
+  });
+  CallParticipantViewCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
+    Then<$Out2, $R2> t,
+  );
+}
+
+class _CallParticipantViewCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, CallParticipantView, $Out>
+    implements CallParticipantViewCopyWith<$R, CallParticipantView, $Out> {
+  _CallParticipantViewCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<CallParticipantView> $mapper =
+      CallParticipantViewMapper.ensureInitialized();
+  @override
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get userID =>
+      ListCopyWith(
+        $value.userID,
+        (v, t) => ObjectCopyWith(v, $identity, t),
+        (v) => call(userID: v),
+      );
+  @override
+  $R call({
+    List<int>? userID,
+    String? name,
+    Object? avatarBytes = $none,
+    bool? joined,
+    bool? micMuted,
+    bool? videoOff,
+    bool? speaking,
+  }) => $apply(
+    FieldCopyWithData({
+      if (userID != null) #userID: userID,
+      if (name != null) #name: name,
+      if (avatarBytes != $none) #avatarBytes: avatarBytes,
+      if (joined != null) #joined: joined,
+      if (micMuted != null) #micMuted: micMuted,
+      if (videoOff != null) #videoOff: videoOff,
+      if (speaking != null) #speaking: speaking,
+    }),
+  );
+  @override
+  CallParticipantView $make(CopyWithData data) => CallParticipantView(
+    userID: data.get(#userID, or: $value.userID),
+    name: data.get(#name, or: $value.name),
+    avatarBytes: data.get(#avatarBytes, or: $value.avatarBytes),
+    joined: data.get(#joined, or: $value.joined),
+    micMuted: data.get(#micMuted, or: $value.micMuted),
+    videoOff: data.get(#videoOff, or: $value.videoOff),
+    speaking: data.get(#speaking, or: $value.speaking),
+  );
+
+  @override
+  CallParticipantViewCopyWith<$R2, CallParticipantView, $Out2>
+  $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
+      _CallParticipantViewCopyWithImpl<$R2, $Out2>($value, $cast, t);
+}
+
 class CallStateMapper extends ClassMapperBase<CallState> {
   CallStateMapper._();
 
@@ -16,6 +238,7 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = CallStateMapper._());
       MapperContainer.globals.useAll([Uint8ListMapper()]);
+      CallParticipantViewMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -189,6 +412,10 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     opt: true,
     def: const [],
   );
+  static List<CallParticipantView> _$participants(CallState v) =>
+      v.participants;
+  static const Field<CallState, List<CallParticipantView>> _f$participants =
+      Field('participants', _$participants, opt: true, def: const []);
 
   @override
   final MappableFields<CallState> fields = const {
@@ -216,6 +443,7 @@ class CallStateMapper extends ClassMapperBase<CallState> {
     #avatarBytes: _f$avatarBytes,
     #encryption: _f$encryption,
     #sas: _f$sas,
+    #participants: _f$participants,
   };
 
   static CallState _instantiate(DecodingData data) {
@@ -244,6 +472,7 @@ class CallStateMapper extends ClassMapperBase<CallState> {
       avatarBytes: data.dec(_f$avatarBytes),
       encryption: data.dec(_f$encryption),
       sas: data.dec(_f$sas),
+      participants: data.dec(_f$participants),
     );
   }
 
@@ -309,6 +538,12 @@ abstract class CallStateCopyWith<$R, $In extends CallState, $Out>
   ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get remoteUserID;
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get nameLines;
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get sas;
+  ListCopyWith<
+    $R,
+    CallParticipantView,
+    CallParticipantViewCopyWith<$R, CallParticipantView, CallParticipantView>
+  >
+  get participants;
   $R call({
     Status? status,
     CallStatus? callStatus,
@@ -334,6 +569,7 @@ abstract class CallStateCopyWith<$R, $In extends CallState, $Out>
     Uint8List? avatarBytes,
     CallEncryption? encryption,
     List<String>? sas,
+    List<CallParticipantView>? participants,
   });
   CallStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -368,6 +604,17 @@ class _CallStateCopyWithImpl<$R, $Out>
         (v) => call(sas: v),
       );
   @override
+  ListCopyWith<
+    $R,
+    CallParticipantView,
+    CallParticipantViewCopyWith<$R, CallParticipantView, CallParticipantView>
+  >
+  get participants => ListCopyWith(
+    $value.participants,
+    (v, t) => v.copyWith.$chain(t),
+    (v) => call(participants: v),
+  );
+  @override
   $R call({
     Status? status,
     CallStatus? callStatus,
@@ -393,6 +640,7 @@ class _CallStateCopyWithImpl<$R, $Out>
     Object? avatarBytes = $none,
     CallEncryption? encryption,
     List<String>? sas,
+    List<CallParticipantView>? participants,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -419,6 +667,7 @@ class _CallStateCopyWithImpl<$R, $Out>
       if (avatarBytes != $none) #avatarBytes: avatarBytes,
       if (encryption != null) #encryption: encryption,
       if (sas != null) #sas: sas,
+      if (participants != null) #participants: participants,
     }),
   );
   @override
@@ -450,6 +699,7 @@ class _CallStateCopyWithImpl<$R, $Out>
     avatarBytes: data.get(#avatarBytes, or: $value.avatarBytes),
     encryption: data.get(#encryption, or: $value.encryption),
     sas: data.get(#sas, or: $value.sas),
+    participants: data.get(#participants, or: $value.participants),
   );
 
   @override

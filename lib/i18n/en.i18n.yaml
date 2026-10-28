@@ -1303,6 +1303,16 @@ dateTime:
   "relativeDateTimeOther": "{date} at {time}"
 
 "screenCall":
+  "addParticipant": "Add participant"
+  "addParticipantEmpty": "No one to add"
+  "groupInvite": "Group call"
+  "groupCallTitle(plural)":
+    one: "{n} participant"
+    other: "{n} participants"
+  "you": "You"
+  "inviteRinging": "ringing…"
+  "fullTitle": "Call is full"
+  "fullMessage": "A call can have up to 8 participants."
   "title": "Call"
   "returnToCall": "Tap to return to the call"
   "bannerRinging": "Call"

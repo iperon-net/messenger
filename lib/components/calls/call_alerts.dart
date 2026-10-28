@@ -25,6 +25,12 @@ Future<void> showCallDeviceBusy(BuildContext context) {
   return _showCallAlert(context, title: t.deviceBusyTitle, message: t.deviceBusyMessage, androidIcon: Icons.phone_in_talk_outlined);
 }
 
+/// В групповом звонке нет места (сервер: не больше 8 участников).
+Future<void> showCallFull(BuildContext context) {
+  final t = context.t.screenCall;
+  return _showCallAlert(context, title: t.fullTitle, message: t.fullMessage, androidIcon: Icons.groups_outlined);
+}
+
 Future<void> _showCallAlert(BuildContext context, {required String title, required String message, required IconData androidIcon}) {
   if (Platform.isIOS) {
     return showCupertinoDialog<void>(

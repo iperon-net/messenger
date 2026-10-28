@@ -1332,6 +1332,18 @@ dateTime:
   "relativeDateTimeOther": "{date} в {time}"
 
 "screenCall":
+  "addParticipant": "Добавить участника"
+  "addParticipantEmpty": "Некого добавить"
+  "groupInvite": "Групповой звонок"
+  "groupCallTitle(plural)":
+    one: "{n} участник"
+    few: "{n} участника"
+    many: "{n} участников"
+    other: "{n} участника"
+  "you": "Вы"
+  "inviteRinging": "звонит…"
+  "fullTitle": "Звонок заполнен"
+  "fullMessage": "В звонке может быть не больше 8 участников."
   "title": "Звонок"
   "returnToCall": "Коснитесь, чтобы вернуться к звонку"
   "bannerRinging": "Вызов"

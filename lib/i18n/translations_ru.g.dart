@@ -1714,6 +1714,19 @@ class _Translations$screenCall$ru extends Translations$screenCall$en {
 	final TranslationsRu _root; // ignore: unused_field
 
 	// Translations
+	@override String get addParticipant => 'Добавить участника';
+	@override String get addParticipantEmpty => 'Некого добавить';
+	@override String get groupInvite => 'Групповой звонок';
+	@override String groupCallTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: '${n} участник',
+		few: '${n} участника',
+		many: '${n} участников',
+		other: '${n} участника',
+	);
+	@override String get you => 'Вы';
+	@override String get inviteRinging => 'звонит…';
+	@override String get fullTitle => 'Звонок заполнен';
+	@override String get fullMessage => 'В звонке может быть не больше 8 участников.';
 	@override String get title => 'Звонок';
 	@override String get returnToCall => 'Коснитесь, чтобы вернуться к звонку';
 	@override String get bannerRinging => 'Вызов';
@@ -3325,6 +3338,14 @@ extension on TranslationsRu {
 			'dateTime.relativeDateTimeToday' => ({required Object time}) => 'сегодня в ${time}',
 			'dateTime.relativeDateTimeYesterday' => ({required Object time}) => 'вчера в ${time}',
 			'dateTime.relativeDateTimeOther' => ({required Object date, required Object time}) => '${date} в ${time}',
+			'screenCall.addParticipant' => 'Добавить участника',
+			'screenCall.addParticipantEmpty' => 'Некого добавить',
+			'screenCall.groupInvite' => 'Групповой звонок',
+			'screenCall.groupCallTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} участник', few: '${n} участника', many: '${n} участников', other: '${n} участника', ), 
+			'screenCall.you' => 'Вы',
+			'screenCall.inviteRinging' => 'звонит…',
+			'screenCall.fullTitle' => 'Звонок заполнен',
+			'screenCall.fullMessage' => 'В звонке может быть не больше 8 участников.',
 			'screenCall.title' => 'Звонок',
 			'screenCall.returnToCall' => 'Коснитесь, чтобы вернуться к звонку',
 			'screenCall.bannerRinging' => 'Вызов',

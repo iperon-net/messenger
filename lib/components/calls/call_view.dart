@@ -19,7 +19,11 @@ import '../../models/constants.dart';
 import '../../platform.dart';
 import '../../themes/cupertino.dart';
 import '../../themes/material.dart';
+import '../../screens/chats/forward_picker.dart';
+import '../no_connection_alert.dart';
+import '../user_avatar.dart';
 import 'audio_routes_sheet.dart';
+import 'call_alerts.dart';
 import 'route_picker_button.dart';
 
 /// Палитра экрана звонка. Две версии — светлая/тёмная (см. [_CallPalette.of]),
@@ -504,6 +508,13 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
         // Поверх видео — светлая палитра (контраст над картинкой); иначе — под тему.
         // Десктоп: имя и кнопки не над видео, а над и под «сценой» — под тему.
         final palette = mainOn && !desktop ? _CallPalette.overMedia : _CallPalette.of(context, darkMode);
+
+        // Групповой звонок — сетка участников (входящее приглашение — обычный экран
+        // входящего с составом в подписи).
+        if (state.group && state.callStatus != CallStatus.incoming && !_inPip) {
+          _syncOverlayHideable(false);
+          return _GroupCallView(state: state, palette: _CallPalette.of(context, darkMode));
+        }
 
         // Task1: панель управления скрываем по тапу только на активном видеозвонке
         // с картинкой на главном экране (в дозвоне/соединении/аудио — всегда видна).
@@ -1001,6 +1012,19 @@ class _Overlay extends StatelessWidget {
                 showLabel: _showLabels,
                 onTap: cubit.switchCamera,
               ),
+            // Позвать ещё кого-то — звонок станет групповым.
+            if (state.callStatus == CallStatus.active)
+              _CircleButton(
+                label: t.addParticipant,
+                icon: HugeIcons.strokeRoundedUserAdd01,
+                color: palette.controlBg,
+                iconColor: palette.fg,
+                palette: palette,
+                size: size,
+                iconSize: iconSize,
+                showLabel: _showLabels,
+                onTap: () => inviteToCall(context),
+              ),
           ],
         ),
         const SizedBox(height: 24),
@@ -1027,6 +1051,11 @@ class _Overlay extends StatelessWidget {
     final t = context.t.screenCall;
     switch (state.callStatus) {
       case CallStatus.incoming:
+        // Позвали в групповой звонок — кто в нём.
+        if (state.group) {
+          final names = [for (final participant in state.participants) participant.name].where((name) => name.isNotEmpty).join(', ');
+          return names.isEmpty ? t.groupInvite : '${t.groupInvite}: $names';
+        }
         return state.video ? t.incomingVideo : t.incomingAudio;
       case CallStatus.outgoing:
         return t.calling;
@@ -1562,6 +1591,300 @@ class _CircleButton extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// «Добавить участника»: выбор из собеседников личных чатов и контактов, затем
+/// приглашение ([Calls.invite]) — у адресата звонит обычный входящий. Отказ
+/// сервера объясняем тем же уведомлением, что и для обычного звонка.
+Future<void> inviteToCall(BuildContext context) async {
+  final cubit = context.read<CallCubit>();
+  final t = context.t.screenCall;
+  final users = await cubit.inviteCandidates();
+  if (!context.mounted) return;
+  final user = await showUserPicker(context, title: t.addParticipant, users: users, emptyText: t.addParticipantEmpty);
+  if (user == null || !context.mounted) return;
+  final result = await cubit.invite(user.userID);
+  if (!context.mounted) return;
+  switch (result) {
+    case CallInviteResult.notAllowed:
+      await showCallNotAllowed(context);
+    case CallInviteResult.noConnection:
+      await showNoConnectionAlert(context);
+    case CallInviteResult.full:
+      await showCallFull(context);
+    case CallInviteResult.sent || CallInviteResult.already || CallInviteResult.failed:
+      break;
+  }
+}
+
+/// Групповой звонок: сетка участников (мы — первая плитка), сверху число
+/// участников и время, снизу — микрофон, камера, «Добавить», отбой. Рендерер
+/// видео каждого участника привязан к своему [GlobalKey] — при перестройке
+/// сетки (кто-то вошёл / вышел) он переносится, а не пересоздаётся (пересоздание
+/// рендерера на живой дорожке роняет flutter_webrtc).
+class _GroupCallView extends StatefulWidget {
+  final CallState state;
+  final _CallPalette palette;
+
+  const _GroupCallView({required this.state, required this.palette});
+
+  @override
+  State<_GroupCallView> createState() => _GroupCallViewState();
+}
+
+class _GroupCallViewState extends State<_GroupCallView> {
+  final _keys = <String, GlobalKey>{};
+
+  GlobalKey _key(String id) => _keys.putIfAbsent(id, GlobalKey.new);
+
+  /// Сетка: колонок 1–3 по числу плиток, плитки одного размера.
+  static int _columns(int count) => count <= 1
+      ? 1
+      : count <= 4
+      ? 2
+      : 3;
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<CallCubit>();
+    final state = widget.state;
+    final palette = widget.palette;
+    final t = context.t.screenCall;
+    final joined = state.participants.where((participant) => participant.joined).length;
+
+    final local = state.video && !state.cameraOff ? cubit.localVideoTrack : null;
+    final tiles = <Widget>[
+      _GroupTile(
+        name: t.you,
+        userID: null,
+        video: local == null
+            ? null
+            : KeyedSubtree(
+                key: _key('self'),
+                child: VideoTrackRenderer(local, fit: VideoViewFit.cover, mirrorMode: VideoViewMirrorMode.auto),
+              ),
+        micMuted: state.micMuted,
+        palette: palette,
+      ),
+      for (final participant in state.participants) _participantTile(cubit, participant, palette, t.inviteRinging),
+    ];
+
+    return ColoredBox(
+      color: palette.bg,
+      child: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
+              child: Column(
+                children: [
+                  Text(
+                    t.groupCallTitle(n: joined + 1),
+                    style: TextStyle(color: palette.name, fontSize: 20, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 4),
+                  if (state.callStatus == CallStatus.active && state.connectedAt != null)
+                    _CallTimer(connectedAt: state.connectedAt!, color: palette.timer)
+                  else
+                    Text(
+                      state.callStatus == CallStatus.outgoing ? t.calling : t.connecting,
+                      style: TextStyle(color: palette.status, fontSize: 15),
+                    ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: ConstrainedBox(
+                  // Десктоп — сетка не шире «сцены» (на большом мониторе плитки
+                  // не разрастаются).
+                  constraints: const BoxConstraints(maxWidth: 1100),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final columns = _columns(tiles.length);
+                        final rows = (tiles.length / columns).ceil();
+                        const gap = 8.0;
+                        final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
+                        final height = (constraints.maxHeight - gap * (rows - 1)) / rows;
+                        return Wrap(
+                          spacing: gap,
+                          runSpacing: gap,
+                          alignment: WrapAlignment.center,
+                          children: [for (final tile in tiles) SizedBox(width: width, height: height, child: tile)],
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _CircleButton(
+                    label: state.micMuted ? t.micOn : t.micOff,
+                    icon: state.micMuted ? HugeIcons.strokeRoundedMicOff01 : HugeIcons.strokeRoundedMic01,
+                    color: state.micMuted ? palette.controlActiveBg : palette.controlBg,
+                    iconColor: palette.fg,
+                    palette: palette,
+                    size: _Overlay._rowButtonSize,
+                    iconSize: _Overlay._rowIconSize,
+                    showLabel: false,
+                    onTap: cubit.toggleMic,
+                  ),
+                  _CircleButton(
+                    label: !state.video || state.cameraOff ? t.cameraOn : t.cameraOff,
+                    icon: !state.video || state.cameraOff ? HugeIcons.strokeRoundedVideoOff : HugeIcons.strokeRoundedVideo01,
+                    color: !state.video || state.cameraOff ? palette.controlActiveBg : palette.controlBg,
+                    iconColor: palette.fg,
+                    palette: palette,
+                    size: _Overlay._rowButtonSize,
+                    iconSize: _Overlay._rowIconSize,
+                    showLabel: false,
+                    onTap: state.video ? cubit.toggleCamera : cubit.enableVideo,
+                  ),
+                  _CircleButton(
+                    label: t.addParticipant,
+                    icon: HugeIcons.strokeRoundedUserAdd01,
+                    color: palette.controlBg,
+                    iconColor: palette.fg,
+                    palette: palette,
+                    size: _Overlay._rowButtonSize,
+                    iconSize: _Overlay._rowIconSize,
+                    showLabel: false,
+                    onTap: () => inviteToCall(context),
+                  ),
+                  _CircleButton(
+                    label: t.hangup,
+                    icon: HugeIcons.strokeRoundedCallEnd03,
+                    color: CallView._red,
+                    iconColor: CallView._onAccent,
+                    palette: palette,
+                    size: _Overlay._rowButtonSize,
+                    iconSize: _Overlay._rowIconSize,
+                    showLabel: false,
+                    onTap: cubit.hangup,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _participantTile(CallCubit cubit, CallParticipantView participant, _CallPalette palette, String ringing) {
+    final userID = Uint8List.fromList(participant.userID);
+    final id = participant.userID.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    final track = participant.joined && !participant.videoOff ? cubit.remoteVideoTrackOf(participant.userID) : null;
+    return _GroupTile(
+      name: participant.name,
+      userID: userID,
+      subtitle: participant.joined ? null : ringing,
+      video: track == null
+          ? null
+          : KeyedSubtree(
+              key: _key(id),
+              child: VideoTrackRenderer(track, fit: VideoViewFit.cover, mirrorMode: VideoViewMirrorMode.auto),
+            ),
+      micMuted: participant.joined && participant.micMuted,
+      speaking: participant.speaking,
+      dimmed: !participant.joined,
+      palette: palette,
+    );
+  }
+}
+
+/// Плитка участника: видео или аватар, имя, значок выключенного микрофона,
+/// рамка у говорящего; ещё не вошедший («Звонит…») — приглушён.
+class _GroupTile extends StatelessWidget {
+  final String name;
+  final Uint8List? userID;
+  final String? subtitle;
+  final Widget? video;
+  final bool micMuted;
+  final bool speaking;
+  final bool dimmed;
+  final _CallPalette palette;
+
+  const _GroupTile({
+    required this.name,
+    required this.userID,
+    required this.video,
+    required this.micMuted,
+    required this.palette,
+    this.subtitle,
+    this.speaking = false,
+    this.dimmed = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final userID = this.userID;
+    return Opacity(
+      opacity: dimmed ? 0.55 : 1,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: palette.controlBg,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: speaking ? CallView._green : const Color(0x00000000), width: 3),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(13),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (video != null)
+                video!
+              else
+                Center(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final size = (constraints.biggest.shortestSide * 0.45).clamp(40.0, 120.0);
+                      return userID == null
+                          ? HugeIcon(icon: HugeIcons.strokeRoundedUser, size: size, color: palette.dim)
+                          : UserAvatar(userID: userID, placeholderName: name, size: size);
+                    },
+                  ),
+                ),
+              Positioned(
+                left: 8,
+                right: 8,
+                bottom: 8,
+                child: Row(
+                  children: [
+                    if (micMuted) ...[
+                      HugeIcon(icon: HugeIcons.strokeRoundedMicOff01, color: const Color(0xFFFFFFFF), size: 16),
+                      const SizedBox(width: 4),
+                    ],
+                    Flexible(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(color: const Color(0x66000000), borderRadius: BorderRadius.circular(8)),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          child: Text(
+                            subtitle == null ? name : '$name · $subtitle',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: Color(0xFFFFFFFF), fontSize: 13),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

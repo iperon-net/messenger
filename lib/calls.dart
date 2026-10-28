@@ -76,6 +76,34 @@ enum CallQuality { unknown, poor, good, excellent }
 ///   поддерживается (старый клиент). UI показывает предупреждение.
 enum CallEncryption { negotiating, encrypted, unencrypted }
 
+/// Итог [Calls.invite].
+enum CallInviteResult { sent, already, full, notAllowed, noConnection, failed }
+
+/// Участник группового звонка (кроме нас). [joined] — уже в комнате LiveKit;
+/// `false` — приглашён и у него ещё звонит. Остальные поля — по его дорожкам в
+/// комнате.
+class CallParticipant {
+  final List<int> userID;
+  final bool joined;
+  final bool micMuted;
+  final bool videoOff;
+  final bool speaking;
+
+  const CallParticipant({required this.userID, this.joined = true, this.micMuted = false, this.videoOff = true, this.speaking = false});
+
+  @override
+  bool operator ==(Object other) =>
+      other is CallParticipant &&
+      listEquals(other.userID, userID) &&
+      other.joined == joined &&
+      other.micMuted == micMuted &&
+      other.videoOff == videoOff &&
+      other.speaking == speaking;
+
+  @override
+  int get hashCode => Object.hash(Object.hashAll(userID), joined, micMuted, videoOff, speaking);
+}
+
 /// Неизменяемый снимок текущего звонка. [Calls] публикует его в [Calls.snapshots]
 /// на каждое изменение; [CallCubit] переводит снимок в состояние экрана.
 @immutable
@@ -150,6 +178,14 @@ class CallSnapshot {
   /// только когда шифрование [CallEncryption.encrypted]. См. [CallKeys.deriveSas].
   final List<String> sas;
 
+  /// Групповой звонок (docs/plans/livekit-calls-migration.md, фаза 5): все, кроме
+  /// нас, — в комнате и приглашённые. Пусто в звонке 1-на-1, пока никого не
+  /// позвали; [group] — с момента первого приглашения (у приглашённого — с
+  /// входящего: сервер прислал состав в `CallRing.participants`).
+  final List<CallParticipant> participants;
+
+  bool get group => participants.isNotEmpty;
+
   const CallSnapshot({
     this.status = CallStatus.idle,
     this.callId = '',
@@ -170,6 +206,7 @@ class CallSnapshot {
     this.quality = CallQuality.unknown,
     this.encryption = CallEncryption.negotiating,
     this.sas = const [],
+    this.participants = const [],
   });
 
   CallSnapshot copyWith({
@@ -192,6 +229,7 @@ class CallSnapshot {
     CallQuality? quality,
     CallEncryption? encryption,
     List<String>? sas,
+    List<CallParticipant>? participants,
   }) {
     return CallSnapshot(
       status: status ?? this.status,
@@ -213,6 +251,7 @@ class CallSnapshot {
       quality: quality ?? this.quality,
       encryption: encryption ?? this.encryption,
       sas: sas ?? this.sas,
+      participants: participants ?? this.participants,
     );
   }
 }
@@ -531,6 +570,30 @@ class Calls {
   // реконнекта LiveKit-SDK ≈ 45 с, см. `defaultRetryDelaysInMs`) и только потом
   // завершаем как [CallEndReason.connectionLost]. См. [_onPeerGone].
   static const _byeTopic = 'call.bye';
+
+  // --- Групповой звонок (docs/plans/livekit-calls-migration.md, фаза 5) ---
+
+  /// Предел участников вместе с нами (сервер, ServiceCallRooms, — тот же).
+  static const maxParticipants = 8;
+
+  /// Ключ комнаты группового звонка: участник, у которого он есть, передаёт его
+  /// вошедшему ([_keyTopic], обёрнут под его публичный ключ — CallKeys.wrapRoomKey).
+  static const _keyTopic = 'call.e2ee.key';
+
+  /// Сколько звонит у приглашённого, пока не считаем приглашение несостоявшимся.
+  static const _inviteTimeout = Duration(seconds: 60);
+
+  /// Приглашённые нами и ещё не вошедшие: hex userID → userID.
+  final _invited = <String, List<int>>{};
+  final _inviteTimers = <String, Timer>{};
+
+  /// Нас позвали в идущий звонок — его состав из `CallRing.participants` (пока
+  /// сами не вошли в комнату и не видим её участников).
+  List<List<int>> _invitedInto = const [];
+
+  /// Ключ комнаты (32 байта), когда звонок шифрован: в 1-на-1 — выведенный из
+  /// ECDH, в групповом — тот же, переданный приглашённым.
+  Uint8List? _roomKey;
   static const _peerGraceTimeout = Duration(seconds: 45);
   Timer? _peerGoneTimer;
 
@@ -922,7 +985,22 @@ class Calls {
     // сразу, а не будет ждать нашего возвращения (см. [_byeTopic]). Не ждём
     // дольше доли секунды — отбой не должен тормозить.
     await _publishBye();
-    await _sendRing(MessageType.CALL_HANGUP, toUserID: _snapshot.remoteUserID, callId: _snapshot.callId, video: _snapshot.video);
+    if (_snapshot.group) {
+      // Групповой звонок: остальные продолжают (о нашем уходе — «пока» и выход из
+      // комнаты). Собеседник, которому мы звонили, так и не вошёл — снимаем его
+      // входящий; если мы были последними — и ещё звонящие приглашения.
+      final peer = _hex(_snapshot.remoteUserID);
+      if (_snapshot.remoteUserID.isNotEmpty && !(_room?.remoteParticipants.values.any((p) => p.identity == peer) ?? false)) {
+        await _sendRing(MessageType.CALL_HANGUP, toUserID: _snapshot.remoteUserID, callId: _snapshot.callId, video: _snapshot.video);
+      }
+      if (!_othersRemain()) {
+        for (final userID in _invited.values) {
+          await _sendRing(MessageType.CALL_HANGUP, toUserID: userID, callId: _snapshot.callId, video: _snapshot.video);
+        }
+      }
+    } else {
+      await _sendRing(MessageType.CALL_HANGUP, toUserID: _snapshot.remoteUserID, callId: _snapshot.callId, video: _snapshot.video);
+    }
     await _teardown(reason);
   }
 
@@ -931,7 +1009,9 @@ class Calls {
   /// записывает звонок с длительностью в чат (журнал «Звонков»). Собеседнику
   /// он безвреден — его звонок уже не активен. Best-effort, без ожидания.
   void _notifyCallEnded() {
-    if (!_hasActiveCall || _snapshot.callId.isEmpty) return;
+    // Групповой звонок журнал 1-на-1 не пишет, а отбой собеседнику завершил бы
+    // его разговор с остальными.
+    if (!_hasActiveCall || _snapshot.callId.isEmpty || _snapshot.group) return;
     unawaited(
       _sendRing(
         MessageType.CALL_HANGUP,
@@ -1133,6 +1213,12 @@ class Calls {
       case MessageType.CALL_RING:
         await _onRing(ring, from);
       case MessageType.CALL_HANGUP:
+        // Групповой звонок: отбой одного не завершает разговор остальных — кто в
+        // нём, видно по комнате (ушедший пропадает из неё).
+        if (_snapshot.callId == ring.callId && _snapshot.group && _snapshot.status != CallStatus.incoming) {
+          _syncParticipants();
+          return;
+        }
         if (_isCurrentPeer(ring.callId, from)) {
           await _teardown(CallEndReason.hangup);
         } else if (!_isHandling(ring.callId)) {
@@ -1141,6 +1227,12 @@ class Calls {
           _dismissIncoming(ring.callId);
         }
       case MessageType.CALL_REJECT:
+        // Приглашённый нами отказался (или занят) — убираем из «звонит».
+        if (_snapshot.callId == ring.callId && _invited.containsKey(_hex(from))) {
+          _settleInvite(_hex(from));
+          _syncParticipants();
+          return;
+        }
         // Reject осмыслен только до ответа. После `active` любой CALL_REJECT с
         // этим callId — это отбой ДРУГОГО устройства того же аккаунта (сиблинга,
         // где звонок ещё звонил), а не собеседника: игнорируем, чтобы не оборвать
@@ -1179,7 +1271,18 @@ class Calls {
 
   Future<void> _onRing(CallRing ring, List<int> from) async {
     // Повторный/дублирующий ring текущего звонка — уже обрабатываем, игнорируем.
-    if (_hasActiveCall && _isCurrentPeer(ring.callId, from)) return;
+    if (_hasActiveCall && _isCurrentPeer(ring.callId, from)) {
+      // Приняли из пуша раньше, чем дошёл звонок, — состав приглашения всё равно
+      // нужен (групповой звонок).
+      if (ring.participants.isNotEmpty && _invitedInto.isEmpty) {
+        _invitedInto = _othersFrom(ring.participants);
+        _syncParticipants();
+      }
+      return;
+    }
+    // Нас позвали ещё раз в звонок, в котором мы уже есть (другой участник), —
+    // не «занято».
+    if (_hasActiveCall && _snapshot.callId == ring.callId) return;
 
     // Заняты другим звонком — отвечаем «занято», текущий не трогаем. Флаг busy
     // отличает это авто-отклонение от ручного отказа: звонящий по нему проиграет
@@ -1201,7 +1304,17 @@ class Calls {
     }
 
     _logDirection = models.CallDirection.incoming;
-    _emit(CallSnapshot(status: CallStatus.incoming, callId: ring.callId, remoteUserID: from, video: ring.video, speakerOn: ring.video));
+    _invitedInto = _othersFrom(ring.participants);
+    _emit(
+      CallSnapshot(
+        status: CallStatus.incoming,
+        callId: ring.callId,
+        remoteUserID: from,
+        video: ring.video,
+        speakerOn: ring.video,
+        participants: [for (final userID in _invitedInto) CallParticipant(userID: userID)],
+      ),
+    );
     _dbg('ring recv', reset: true);
 
     // Пользователь уже принял звонок в нативном экране из push, пока ring ехал
@@ -1314,6 +1427,11 @@ class Calls {
           defaultAudioCaptureOptions: AudioCaptureOptions(deviceId: devices?.microphone, stopAudioCaptureOnMute: false),
           defaultCameraCaptureOptions: CameraCaptureOptions(deviceId: devices?.camera),
           defaultAudioOutputOptions: AudioOutputOptions(deviceId: devices?.speaker),
+          // Не кодировать слои simulcast, которые сейчас никто не смотрит
+          // (групповой звонок: плитки маленькие). adaptiveStream пока не включаем:
+          // он ставит на паузу видео без видимого Flutter-рендерера, а мини-окно
+          // iOS PiP рисует нативно.
+          dynacast: true,
           e2eeOptions: e2eeOptions,
         ),
       );
@@ -1378,6 +1496,10 @@ class Calls {
     _roomConnected = true;
     _dbg('room connected');
     _startHoldMonitor();
+
+    // Групповой звонок: в комнате уже несколько участников — состав до E2EE (он
+    // решает, ключ попарный или общий).
+    _syncParticipants();
 
     // Собеседник уже в комнате (мы принимаем звонок) — решаем E2EE по его атрибуту
     // ДО публикации своего медиа. Если его ещё нет (мы звоним), решим на
@@ -1605,7 +1727,9 @@ class Calls {
       return null;
     }
     final settingsDevice = await getIt.get<Repositories>().settingsDevice.getAll();
-    if (!settingsDevice.callsE2ee) {
+    // Позвали в групповой звонок — входим с E2EE всегда: звонок уже шифрован (или
+    // нет — тогда нас переведут на открытое по участникам без ключа).
+    if (!settingsDevice.callsE2ee && _invitedInto.isEmpty) {
       logger.info('call: e2ee disabled in settings, connecting without it');
       return null;
     }
@@ -1642,6 +1766,7 @@ class Calls {
     if (keyPair == null || keyProvider == null || room == null) return;
 
     final encoded = participant.attributes[_e2eeAttribute] ?? '';
+    if (_snapshot.group) return _applyGroupE2ee(participant, encoded);
     if (encoded.isEmpty) {
       if (_e2eePeerKey != null || _snapshot.encryption == CallEncryption.unencrypted) return;
       logger.info('call: peer has no e2ee key, media goes unencrypted');
@@ -1660,12 +1785,205 @@ class Calls {
       final remotePublicKey = base64.decode(encoded);
       final roomKey = await crypto.callKeys.deriveRoomKey(keyPair: keyPair, remotePublicKey: remotePublicKey, callId: _snapshot.callId);
       await keyProvider.setRawKey(roomKey);
+      _roomKey = roomKey;
       // SAS для сверки от MITM — оба конца выводят из одного ключа одинаковые 4
       // эмодзи (см. [CallKeys.deriveSas]).
       final sas = await crypto.callKeys.deriveSas(roomKey);
       _e2eePeerKey = encoded;
       _dbg('e2ee on');
       logger.info('call: e2ee key established');
+      if (_hasActiveCall) _emit(_snapshot.copyWith(encryption: CallEncryption.encrypted, sas: sas));
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Групповой звонок
+  // ---------------------------------------------------------------------------
+
+  String _hex(List<int> userID) => utils.bytesToHex(Uint8List.fromList(userID));
+
+  /// Состав из приглашения без нас самих.
+  List<List<int>> _othersFrom(List<List<int>> userIDs) {
+    final self = _hex(auth.session.userID);
+    return [
+      for (final userID in userIDs)
+        if (_hex(userID) != self) userID,
+    ];
+  }
+
+  /// В комнате есть кто-то, кроме нас (и кроме [except]).
+  bool _othersRemain({String? except}) => _room?.remoteParticipants.values.any((participant) => participant.identity != except) ?? false;
+
+  /// Приглашённый вошёл / отказался / не ответил — больше не «звонит».
+  void _settleInvite(String hex) {
+    _inviteTimers.remove(hex)?.cancel();
+    _invited.remove(hex);
+  }
+
+  void _resetGroup() {
+    for (final timer in _inviteTimers.values) {
+      timer.cancel();
+    }
+    _inviteTimers.clear();
+    _invited.clear();
+    _invitedInto = const [];
+    _roomKey = null;
+  }
+
+  /// Пересобирает [CallSnapshot.participants]: кто в комнате (с mute / камерой /
+  /// «говорит»), кто ещё звонит (приглашён нами), а до входа в комнату — состав
+  /// из приглашения. Звонок 1-на-1 (никого не звали, в комнате один) не трогаем.
+  void _syncParticipants() {
+    if (!_hasActiveCall) return;
+    final room = _room;
+    final remote = room?.remoteParticipants.values.toList() ?? const <RemoteParticipant>[];
+    final group = _snapshot.group || _invited.isNotEmpty || _invitedInto.isNotEmpty || remote.length > 1;
+    if (!group) return;
+
+    final list = <CallParticipant>[];
+    final seen = <String>{};
+    for (final participant in remote) {
+      final userID = utils.hexToBytes(participant.identity);
+      if (userID.isEmpty) continue;
+      seen.add(participant.identity);
+      var videoOff = true;
+      for (final publication in participant.videoTrackPublications) {
+        if (publication.source == TrackSource.camera) {
+          videoOff = publication.muted;
+          break;
+        }
+      }
+      list.add(CallParticipant(userID: userID, micMuted: participant.isMuted, videoOff: videoOff, speaking: participant.isSpeaking));
+    }
+    for (final MapEntry(key: hex, value: userID) in _invited.entries) {
+      if (seen.add(hex)) list.add(CallParticipant(userID: userID, joined: false));
+    }
+    // Пока сами не в комнате — кто в звонке, знаем только из приглашения.
+    if (!_roomConnected) {
+      for (final userID in _invitedInto) {
+        if (seen.add(_hex(userID))) list.add(CallParticipant(userID: userID));
+      }
+    }
+    if (listEquals(list, _snapshot.participants)) return;
+    _emit(_snapshot.copyWith(participants: list, mediaEpoch: _snapshot.mediaEpoch + 1));
+  }
+
+  /// Видео участника группового звонка (камера включена и подписались) — для
+  /// плитки сетки; `null` — показываем аватар.
+  VideoTrack? remoteVideoTrackOf(List<int> userID) {
+    final identity = _hex(userID);
+    final participant = _room?.remoteParticipants.values.where((p) => p.identity == identity).firstOrNull;
+    if (participant == null) return null;
+    for (final publication in participant.videoTrackPublications) {
+      if (publication.source == TrackSource.camera && !publication.muted) {
+        final track = publication.track;
+        if (track is VideoTrack) return track;
+      }
+    }
+    return null;
+  }
+
+  /// Позвать [userID] в идущий звонок (тот же callId — та же комната): сервер
+  /// проверит, что мы в звонке, место есть (не больше [maxParticipants]) и что
+  /// адресат принимает звонки от нас, и позвонит ему как обычный входящий.
+  Future<CallInviteResult> invite(List<int> userID) async {
+    if (_room == null || !_roomConnected || !(_snapshot.status == CallStatus.active || _snapshot.status == CallStatus.outgoing)) {
+      return CallInviteResult.failed;
+    }
+    final hex = _hex(userID);
+    final inCall = _room?.remoteParticipants.values.any((participant) => participant.identity == hex) ?? false;
+    if (inCall || _invited.containsKey(hex) || hex == _hex(auth.session.userID)) return CallInviteResult.already;
+    if (1 + (_room?.remoteParticipants.length ?? 0) + _invited.length >= maxParticipants) return CallInviteResult.full;
+
+    final callId = _snapshot.callId;
+    _invited[hex] = userID;
+    _syncParticipants();
+    final status = await _sendRingInitiating(toUserID: userID, callId: callId, video: _snapshot.video);
+    if (_snapshot.callId != callId) return CallInviteResult.failed;
+    if (status.status == APIStatus.success) {
+      _inviteTimers[hex] = Timer(_inviteTimeout, () {
+        if (_snapshot.callId != callId || !_invited.containsKey(hex)) return;
+        _settleInvite(hex);
+        _syncParticipants();
+      });
+      return CallInviteResult.sent;
+    }
+    _settleInvite(hex);
+    _syncParticipants();
+    return switch (status.statusCode) {
+      StatusCode.permissionDenied => CallInviteResult.notAllowed,
+      StatusCode.resourceExhausted => CallInviteResult.full,
+      StatusCode.unavailable || StatusCode.deadlineExceeded => CallInviteResult.noConnection,
+      _ => CallInviteResult.failed,
+    };
+  }
+
+  /// E2EE группового звонка — ключ комнаты один на всех:
+  /// - ключ у нас есть, у вошедшего есть публичный ключ — передаём ему ключ
+  ///   комнаты, обёрнутый под его ключ ([_keyTopic]);
+  /// - ключа ещё нет (нас только позвали) — ждём его от участников; у кого-то
+  ///   из участников нет E2EE — звонок открытый, выключаем шифрование;
+  /// - звонок открытый — ничего не делаем.
+  /// Ушедший участник ключ знает (ротации пока нет — фаза 5, групповой E2EE).
+  Future<void> _applyGroupE2ee(RemoteParticipant participant, String encoded) async {
+    final room = _room;
+    final keyPair = _callKeyPair;
+    if (room == null || keyPair == null || _snapshot.encryption == CallEncryption.unencrypted) return;
+    final roomKey = _roomKey;
+    if (roomKey != null) {
+      if (encoded.isEmpty) {
+        logger.warning('call: group participant without e2ee joined an encrypted call');
+        return;
+      }
+      try {
+        final wrapped = await crypto.callKeys.wrapRoomKey(
+          keyPair: keyPair,
+          remotePublicKey: base64.decode(encoded),
+          callId: _snapshot.callId,
+          roomKey: roomKey,
+        );
+        await room.localParticipant?.publishData(wrapped, reliable: true, destinationIdentities: [participant.identity], topic: _keyTopic);
+        _dbg('e2ee key sent');
+      } catch (error, stackTrace) {
+        logger.handle(error, stackTrace);
+      }
+      return;
+    }
+    if (encoded.isEmpty) {
+      logger.info('call: group participant without e2ee, media goes unencrypted');
+      try {
+        await room.setE2EEEnabled(false);
+      } catch (error, stackTrace) {
+        logger.handle(error, stackTrace);
+      }
+      if (_hasActiveCall) _emit(_snapshot.copyWith(encryption: CallEncryption.unencrypted, sas: const []));
+    }
+  }
+
+  /// Ключ комнаты от участника [from] (нас позвали в шифрованный звонок).
+  /// Ставится и поверх ключа, выведенного попарно, — если в комнате к нашему
+  /// входу оставался один участник, мы могли принять звонок за 1-на-1.
+  Future<void> _onGroupKey(RemoteParticipant? from, List<int> data) async {
+    final keyPair = _callKeyPair;
+    final keyProvider = _e2eeKeyProvider;
+    final encoded = from?.attributes[_e2eeAttribute] ?? '';
+    if (keyPair == null || keyProvider == null || encoded.isEmpty) return;
+    try {
+      final roomKey = await crypto.callKeys.unwrapRoomKey(
+        keyPair: keyPair,
+        remotePublicKey: base64.decode(encoded),
+        callId: _snapshot.callId,
+        wrapped: Uint8List.fromList(data),
+      );
+      if (_roomKey != null && listEquals(_roomKey, roomKey)) return;
+      await keyProvider.setRawKey(roomKey);
+      _roomKey = roomKey;
+      _e2eePeerKey = encoded;
+      final sas = await crypto.callKeys.deriveSas(roomKey);
+      _dbg('e2ee group key');
+      logger.info('call: group e2ee key received');
       if (_hasActiveCall) _emit(_snapshot.copyWith(encryption: CallEncryption.encrypted, sas: sas));
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
@@ -1679,6 +1997,8 @@ class Calls {
         // Собеседник вернулся после обрыва — продолжаем разговор.
         _cancelPeerGone();
         _markActive();
+        _settleInvite(event.participant.identity);
+        _syncParticipants();
         // Мы уже на удержании, а собеседник вошёл (пере-вошёл) только сейчас —
         // прошлое сообщение он не видел, повторяем.
         if (_localOnHold) unawaited(_publishHold(true));
@@ -1713,6 +2033,7 @@ class Calls {
         // ловим здесь, иначе индикатор не появится до первого переключения.
         _syncRemoteMic();
         _syncRemoteVideo();
+        _syncParticipants();
         _markActive();
       })
       ..on<TrackUnsubscribedEvent>((event) {
@@ -1721,6 +2042,7 @@ class Calls {
           _emit(_snapshot.copyWith(mediaEpoch: _snapshot.mediaEpoch + 1));
         }
         _syncRemoteVideo();
+        _syncParticipants();
       })
       // Собеседник выключил/включил микрофон или камеру (или опубликовал дорожку
       // уже замьюченной) — отражаем состояние удалённых дорожек в снимке для
@@ -1729,16 +2051,24 @@ class Calls {
       ..on<TrackMutedEvent>((event) {
         _syncRemoteMic();
         _syncRemoteVideo();
+        _syncParticipants();
       })
       ..on<TrackUnmutedEvent>((event) {
         _syncRemoteMic();
         _syncRemoteVideo();
+        _syncParticipants();
       })
       ..on<TrackPublishedEvent>((event) {
         _syncRemoteMic();
         _syncRemoteVideo();
+        _syncParticipants();
       })
-      ..on<TrackUnpublishedEvent>((event) => _syncRemoteVideo())
+      ..on<TrackUnpublishedEvent>((event) {
+        _syncRemoteVideo();
+        _syncParticipants();
+      })
+      // Групповой звонок: подсветка говорящего.
+      ..on<ActiveSpeakersChangedEvent>((event) => _syncParticipants())
       ..on<ParticipantConnectionQualityUpdatedEvent>((event) {
         // Индикатор показывает качество собеседника — локального участника
         // игнорируем. Обновляем только для живого звонка.
@@ -1755,7 +2085,16 @@ class Calls {
         // ParticipantDisconnected и окна переподключения.
         if (event.topic == _byeTopic) {
           _dbg('peer bye');
+          // Групповой звонок: ушёл один — остальные продолжают.
+          if (_othersRemain(except: event.participant?.identity)) {
+            _syncParticipants();
+            return;
+          }
           unawaited(_teardown(CallEndReason.hangup));
+          return;
+        }
+        if (event.topic == _keyTopic) {
+          unawaited(_onGroupKey(event.participant, event.data));
           return;
         }
         if (event.topic != _holdTopic) return;
@@ -1767,6 +2106,12 @@ class Calls {
         // Собеседник пропал из комнаты без «пока» ([_byeTopic]) — обрыв связи
         // (у него или наш full restart), а не отбой. Ждём возвращения.
         _dbg('peer left');
+        // Групповой звонок: пока в комнате кто-то есть — просто убираем ушедшего.
+        if (_room?.remoteParticipants.isNotEmpty ?? false) {
+          _syncParticipants();
+          return;
+        }
+        _syncParticipants();
         _onPeerGone();
       })
       ..on<RoomReconnectingEvent>((event) {
@@ -2065,6 +2410,7 @@ class Calls {
       _cancelIncomingTimeout();
       _cancelConnectTimeout();
       _stopHoldMonitor();
+      _resetGroup();
       _cancelPeerGone();
 
       _pushAcceptedCallId = null;

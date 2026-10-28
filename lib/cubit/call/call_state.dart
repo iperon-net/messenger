@@ -8,6 +8,28 @@ import '../../models/mapper.dart';
 
 part 'call_state.mapper.dart';
 
+/// Участник группового звонка для экрана: из [CallParticipant] + имя и аватар.
+@MappableClass(includeCustomMappers: [Uint8ListMapper()])
+class CallParticipantView with CallParticipantViewMappable {
+  final List<int> userID;
+  final String name;
+  final Uint8List? avatarBytes;
+  final bool joined;
+  final bool micMuted;
+  final bool videoOff;
+  final bool speaking;
+
+  const CallParticipantView({
+    required this.userID,
+    this.name = '',
+    this.avatarBytes,
+    this.joined = true,
+    this.micMuted = false,
+    this.videoOff = true,
+    this.speaking = false,
+  });
+}
+
 /// Состояние экрана звонка. Зеркалит [CallSnapshot] из сервиса [Calls]
 /// (см. [CallCubit]) в mappable-состояние по конвенции проекта, плюс несёт
 /// «личность» собеседника (имя/аватар), которую [CallCubit] подтягивает из
@@ -80,6 +102,12 @@ class CallState with CallStateMappable {
   /// [CallSnapshot.sas].
   final List<String> sas;
 
+  /// Групповой звонок: остальные участники (в комнате и ещё звонящие); пусто —
+  /// звонок 1-на-1.
+  final List<CallParticipantView> participants;
+
+  bool get group => participants.isNotEmpty;
+
   const CallState({
     this.status = Status.initialization,
     this.callStatus = CallStatus.idle,
@@ -105,5 +133,6 @@ class CallState with CallStateMappable {
     this.avatarBytes,
     this.encryption = CallEncryption.negotiating,
     this.sas = const [],
+    this.participants = const [],
   });
 }

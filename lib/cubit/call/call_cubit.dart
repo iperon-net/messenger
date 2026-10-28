@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:livekit_client/livekit_client.dart';
 
 import '../../api.dart';
+import '../../auth.dart';
 import '../../calls.dart';
 import '../../cdn.dart';
 import '../../constants.dart';
@@ -14,6 +15,7 @@ import '../../logger.dart';
 import '../../peer_names.dart';
 import '../../models.dart' as models;
 import '../../protobuf.dart';
+import '../../protobuf/protos/chats_v1.pb.dart' as pb;
 import '../../repositories/repositories.dart';
 import '../../utils.dart';
 
@@ -43,6 +45,15 @@ class CallCubit extends Cubit<CallState> {
   VideoTrack? get localVideoTrack => _calls.localVideoTrack;
   VideoTrack? get remoteVideoTrack => _calls.remoteVideoTrack;
 
+  /// Видео участника группового звонка (плитка сетки).
+  VideoTrack? remoteVideoTrackOf(List<int> userID) => _calls.remoteVideoTrackOf(userID);
+
+  /// Имена и аватары участников группового звонка (hex userID) — разрешаются
+  /// один раз на участника.
+  final _names = <String, String>{};
+  final _avatars = <String, Uint8List>{};
+  final _resolving = <String>{};
+
   void initialization() {
     emit(_fromSnapshot(_calls.snapshot, Status.success));
     _sub = _calls.snapshots.listen((snapshot) => emit(_fromSnapshot(snapshot, Status.success)));
@@ -70,7 +81,82 @@ class CallCubit extends Cubit<CallState> {
     mediaEpoch: s.mediaEpoch,
     encryption: s.encryption,
     sas: s.sas,
+    participants: _participants(s.participants),
   );
+
+  List<CallParticipantView> _participants(List<CallParticipant> participants) {
+    final views = <CallParticipantView>[];
+    for (final participant in participants) {
+      final hex = utils.bytesToHex(Uint8List.fromList(participant.userID));
+      if (!_names.containsKey(hex)) unawaited(_resolveParticipant(hex, participant.userID));
+      views.add(
+        CallParticipantView(
+          userID: participant.userID,
+          name: _names[hex] ?? '',
+          avatarBytes: _avatars[hex],
+          joined: participant.joined,
+          micMuted: participant.micMuted,
+          videoOff: participant.videoOff,
+          speaking: participant.speaking,
+        ),
+      );
+    }
+    return views;
+  }
+
+  /// Имя (общее правило) и аватар из кэша — для плитки участника.
+  Future<void> _resolveParticipant(String hex, List<int> userID) async {
+    if (!_resolving.add(hex)) return;
+    final name = await peerDisplayName(userID);
+    Uint8List? avatar;
+    try {
+      final profile = await repositories.profiles.getByUserID(userID: userID);
+      final avatarCdnID = profile.avatarCdnID;
+      if (avatarCdnID != null && avatarCdnID.isNotEmpty) {
+        avatar = await (await cdnManager.cachedFile(Uint8List.fromList(avatarCdnID)))?.readAsBytes();
+      }
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace);
+    }
+    if (isClosed) return;
+    _names[hex] = name;
+    if (avatar != null) _avatars[hex] = avatar;
+    emit(_fromSnapshot(_calls.snapshot, state.status));
+  }
+
+  /// Позвать человека в звонок (см. [Calls.invite]).
+  Future<CallInviteResult> invite(List<int> userID) => _calls.invite(userID);
+
+  /// Кого можно позвать: собеседники личных чатов (свежие сверху) и контакты из
+  /// Iperon, кроме нас, «Iperon» и тех, кто уже в звонке.
+  Future<List<({Uint8List userID, String name})>> inviteCandidates() async {
+    final me = utils.bytesToHex(Uint8List.fromList(getIt.get<Auth>().session.userID));
+    final skip = <String>{
+      me,
+      models.systemUserID,
+      utils.bytesToHex(Uint8List.fromList(state.remoteUserID)),
+      for (final participant in state.participants) utils.bytesToHex(Uint8List.fromList(participant.userID)),
+    };
+    final result = <({Uint8List userID, String name})>[];
+    final dialogs =
+        (await repositories.chats.dialogs(
+            userID: getIt.get<Auth>().session.userID,
+          )).where((dialog) => dialog.type == pb.ChatType.CHAT_TYPE_PRIVATE.value).toList()
+          ..sort((a, b) => b.topMessageDate.compareTo(a.topMessageDate));
+    for (final dialog in dialogs) {
+      final peer = dialog.peerUserID;
+      if (peer == null || !skip.add(utils.bytesToHex(peer))) continue;
+      result.add((userID: peer, name: await peerDisplayName(peer)));
+    }
+    final contacts = <({Uint8List userID, String name})>[];
+    for (final contact in await repositories.contacts.getAll()) {
+      final userID = contact.userID;
+      if (userID == null || userID.isEmpty || !skip.add(utils.bytesToHex(Uint8List.fromList(userID)))) continue;
+      contacts.add((userID: Uint8List.fromList(userID), name: await peerDisplayName(userID)));
+    }
+    contacts.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return [...result, ...contacts].where((user) => user.name.isNotEmpty).toList(growable: false);
+  }
 
   /// Разрешает имя/аватар собеседника по [userID]: сперва мгновенно из кэша БД
   /// (+ аватар из CDN-кэша без сети), затем шлёт запрос `PROFILE` и слушает

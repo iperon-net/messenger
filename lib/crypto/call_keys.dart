@@ -37,6 +37,13 @@ class CallKeys {
   /// с ключом комнаты. См. [deriveSas].
   static const _sasLabel = 'iperon-call-sas-v1';
 
+  /// Инфо-строка HKDF для ключа-обёртки, которым участник группового звонка
+  /// передаёт новому участнику ключ комнаты ([wrapRoomKey]) — отдельный домен,
+  /// чтобы не совпасть с попарным ключом комнаты звонка 1-на-1.
+  static const _wrapKeyInfo = 'iperon-call-e2ee-wrap-v1';
+
+  final _aesGcm = AesGcm.with256bits();
+
   /// Алфавит SAS: ровно 64 различимых эмодзи (6 бит на символ). Порядок и состав —
   /// часть протокола: обе стороны обязаны иметь идентичный список, иначе увидят
   /// разные эмодзи при одном ключе. Менять только с бампом версии схемы.
@@ -79,6 +86,46 @@ class CallKeys {
     final roomKey = await _hkdf.deriveKey(secretKey: sharedSecret, nonce: utf8.encode(callId), info: utf8.encode(_roomKeyInfo));
     final bytes = await roomKey.extractBytes();
     return Uint8List.fromList(bytes);
+  }
+
+  /// Групповой звонок: ключ комнаты один на всех. Участник, у которого он есть,
+  /// передаёт его новому участнику: обёртка — AES-GCM ключом из ECDH нашей пары и
+  /// публичного ключа адресата (HKDF, соль `callId`, своя инфо-строка). Сервер и
+  /// SFU, видя только публичные ключи, обёртку не вскроют. Результат — nonce ‖
+  /// шифротекст ‖ MAC.
+  Future<Uint8List> wrapRoomKey({
+    required SimpleKeyPair keyPair,
+    required Uint8List remotePublicKey,
+    required String callId,
+    required Uint8List roomKey,
+  }) async {
+    final box = await _aesGcm.encrypt(roomKey, secretKey: await _wrapKey(keyPair, remotePublicKey, callId));
+    return box.concatenation();
+  }
+
+  /// Разворачивает ключ комнаты из [wrapRoomKey] отправителя с публичным ключом
+  /// [remotePublicKey]. Бросает на подмене или чужом ключе (MAC не сошёлся).
+  Future<Uint8List> unwrapRoomKey({
+    required SimpleKeyPair keyPair,
+    required Uint8List remotePublicKey,
+    required String callId,
+    required Uint8List wrapped,
+  }) async {
+    final box = SecretBox.fromConcatenation(wrapped, nonceLength: _aesGcm.nonceLength, macLength: _aesGcm.macAlgorithm.macLength);
+    final roomKey = await _aesGcm.decrypt(box, secretKey: await _wrapKey(keyPair, remotePublicKey, callId));
+    if (roomKey.length != 32) throw ArgumentError('call e2ee: bad wrapped room key length ${roomKey.length}');
+    return Uint8List.fromList(roomKey);
+  }
+
+  Future<SecretKey> _wrapKey(SimpleKeyPair keyPair, Uint8List remotePublicKey, String callId) async {
+    if (remotePublicKey.length != 32) {
+      throw ArgumentError('call e2ee: bad remote public key length ${remotePublicKey.length}');
+    }
+    final sharedSecret = await _x25519.sharedSecretKey(
+      keyPair: keyPair,
+      remotePublicKey: SimplePublicKey(remotePublicKey, type: KeyPairType.x25519),
+    );
+    return _hkdf.deriveKey(secretKey: sharedSecret, nonce: utf8.encode(callId), info: utf8.encode(_wrapKeyInfo));
   }
 
   /// Выводит SAS (short authentication string) из ключа комнаты — 4 эмодзи, которые
