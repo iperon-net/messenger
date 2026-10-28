@@ -33,6 +33,7 @@ class CallRing extends $pb.GeneratedMessage {
     $core.List<$core.int>? fromUserID,
     $core.bool? video,
     $core.bool? busy,
+    $core.Iterable<$core.List<$core.int>>? participants,
   }) {
     final result = create();
     if (callId != null) result.callId = callId;
@@ -40,6 +41,7 @@ class CallRing extends $pb.GeneratedMessage {
     if (fromUserID != null) result.fromUserID = fromUserID;
     if (video != null) result.video = video;
     if (busy != null) result.busy = busy;
+    if (participants != null) result.participants.addAll(participants);
     return result;
   }
 
@@ -57,6 +59,7 @@ class CallRing extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'fromUserID', $pb.PbFieldType.OY, protoName: 'fromUserID')
     ..aOB(4, _omitFieldNames ? '' : 'video')
     ..aOB(5, _omitFieldNames ? '' : 'busy')
+    ..p<$core.List<$core.int>>(6, _omitFieldNames ? '' : 'participants', $pb.PbFieldType.PY)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -132,6 +135,14 @@ class CallRing extends $pb.GeneratedMessage {
   $core.bool hasBusy() => $_has(4);
   @$pb.TagNumber(5)
   void clearBusy() => $_clearField(5);
+
+  /// participants — групповой звонок: кто уже в звонке (вошёл или приглашён),
+  /// кроме адресата. Проставляет СЕРВЕР только на CALL_RING-приглашение в уже
+  /// идущий звонок (адресата ещё нет в составе); клиентское значение
+  /// игнорируется. Пусто — обычный звонок 1-на-1. callId приглашения — тот же,
+  /// что у идущего звонка (одна комната LiveKit).
+  @$pb.TagNumber(6)
+  $pb.PbList<$core.List<$core.int>> get participants => $_getList(5);
 }
 
 class CallToken_Request extends $pb.GeneratedMessage {

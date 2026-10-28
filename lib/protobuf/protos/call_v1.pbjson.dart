@@ -24,6 +24,7 @@ const CallRing$json = {
     {'1': 'fromUserID', '3': 3, '4': 1, '5': 12, '10': 'fromUserID'},
     {'1': 'video', '3': 4, '4': 1, '5': 8, '10': 'video'},
     {'1': 'busy', '3': 5, '4': 1, '5': 8, '10': 'busy'},
+    {'1': 'participants', '3': 6, '4': 3, '5': 12, '10': 'participants'},
   ],
 };
 
@@ -31,7 +32,8 @@ const CallRing$json = {
 final $typed_data.Uint8List callRingDescriptor =
     $convert.base64Decode('CghDYWxsUmluZxIWCgZjYWxsSWQYASABKAlSBmNhbGxJZBIaCgh0b1VzZXJJRBgCIAEoDFIIdG'
         '9Vc2VySUQSHgoKZnJvbVVzZXJJRBgDIAEoDFIKZnJvbVVzZXJJRBIUCgV2aWRlbxgEIAEoCFIF'
-        'dmlkZW8SEgoEYnVzeRgFIAEoCFIEYnVzeQ==');
+        'dmlkZW8SEgoEYnVzeRgFIAEoCFIEYnVzeRIiCgxwYXJ0aWNpcGFudHMYBiADKAxSDHBhcnRpY2'
+        'lwYW50cw==');
 
 @$core.Deprecated('Use callTokenDescriptor instead')
 const CallToken$json = {
