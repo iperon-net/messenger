@@ -10,6 +10,7 @@ import 'package:lottie/lottie.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../chats/animated_emoji.dart';
+import '../../chats/emoji_filter.dart';
 import '../../device_performance.dart';
 import '../../i18n/translations.g.dart';
 
@@ -192,6 +193,8 @@ class EmojiPanel extends StatelessWidget {
         config: Config(
           height: height,
           locale: Locale(locale),
+          // Без ЛГБТ-флагов и однополых пар / семей (см. isHiddenEmoji).
+          emojiSet: filteredEmojiSet,
           checkPlatformCompatibility: true,
           emojiViewConfig: EmojiViewConfig(
             // На телефоне 8, на iPad / планшете — по ширине, а не 8 огромных.
