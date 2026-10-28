@@ -1027,7 +1027,7 @@ class _Overlay extends StatelessWidget {
           onTap: cubit.switchCamera,
         ),
       // Позвать ещё кого-то — звонок станет групповым.
-      if (state.callStatus == CallStatus.active)
+      if (state.callStatus == CallStatus.active && getIt.get<Calls>().groupCallsEnabled)
         _CircleButton(
           label: t.addParticipant,
           icon: HugeIcons.strokeRoundedUserAdd01,
@@ -1804,17 +1804,18 @@ class _GroupCallViewState extends State<_GroupCallView> {
                   showLabel: false,
                   onTap: state.video ? cubit.toggleCamera : cubit.enableVideo,
                 ),
-                _CircleButton(
-                  label: t.addParticipant,
-                  icon: HugeIcons.strokeRoundedUserAdd01,
-                  color: palette.controlBg,
-                  iconColor: palette.fg,
-                  palette: palette,
-                  size: _Overlay._rowButtonSize,
-                  iconSize: _Overlay._rowIconSize,
-                  showLabel: false,
-                  onTap: () => inviteToCall(context),
-                ),
+                if (getIt.get<Calls>().groupCallsEnabled)
+                  _CircleButton(
+                    label: t.addParticipant,
+                    icon: HugeIcons.strokeRoundedUserAdd01,
+                    color: palette.controlBg,
+                    iconColor: palette.fg,
+                    palette: palette,
+                    size: _Overlay._rowButtonSize,
+                    iconSize: _Overlay._rowIconSize,
+                    showLabel: false,
+                    onTap: () => inviteToCall(context),
+                  ),
                 if (AppPlatform.isDesktop) _AccountButton(palette: palette, size: _Overlay._rowButtonSize),
                 _CircleButton(
                   label: t.hangup,

@@ -576,6 +576,10 @@ class Calls {
   /// Предел участников вместе с нами (сервер, ServiceCallRooms, — тот же).
   static const maxParticipants = 8;
 
+  /// Можно ли звать в звонок (Remote Config `GROUP_CALLS_ENABLED`) — кнопки
+  /// «Добавить участника» / «Позвонить нескольким».
+  bool get groupCallsEnabled => settings.groupCallsEnabled;
+
   /// Отладка (экран «Разработчик»): медиа только через TURN (`relay`) — проверка
   /// запасного пути turns:turn.iperon.net:443. В памяти, до перезапуска.
   static final forceRelay = ValueNotifier<bool>(false);
@@ -816,7 +820,7 @@ class Calls {
     _logDirection = models.CallDirection.outgoing;
     _emit(CallSnapshot(status: CallStatus.outgoing, callId: callId, remoteUserID: toUserID, video: video, speakerOn: video));
     _dbg('outgoing ${video ? 'video' : 'audio'}', reset: true);
-    final group = others.isNotEmpty;
+    final group = others.isNotEmpty && groupCallsEnabled;
     if (group) {
       for (final userID in _othersFrom([toUserID, ...others]).take(maxParticipants - 1)) {
         _invited[_hex(userID)] = userID;
@@ -1960,6 +1964,7 @@ class Calls {
   /// проверит, что мы в звонке, место есть (не больше [maxParticipants]) и что
   /// адресат принимает звонки от нас, и позвонит ему как обычный входящий.
   Future<CallInviteResult> invite(List<int> userID) async {
+    if (!groupCallsEnabled) return CallInviteResult.notAllowed;
     if (_room == null || !_roomConnected || !(_snapshot.status == CallStatus.active || _snapshot.status == CallStatus.outgoing)) {
       return CallInviteResult.failed;
     }

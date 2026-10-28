@@ -63,8 +63,7 @@ class _CallsCupertinoState extends State<CallsCupertino> with SearchHideOnScroll
                   );
                 },
               ),
-              const SizedBox(width: 8),
-              const _NewCallButton(),
+              if (getIt.get<Calls>().groupCallsEnabled) ...[const SizedBox(width: 8), const _NewCallButton()],
             ],
           ),
         ),

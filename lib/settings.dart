@@ -29,6 +29,9 @@ class Settings {
     // о создании (то же правило дублирует сервер, secretChats.*).
     "SECRET_CHATS_ENABLED": false,
     "SECRET_CHATS_PREMIUM_ONLY": false,
+    // Групповые звонки: «Добавить участника» и «Позвонить нескольким». На
+    // старте выключены (только 1-на-1); сервер дублирует — livekit.groupCalls.
+    "GROUP_CALLS_ENABLED": false,
   };
 
   String _getString(String key) => AppPlatform.hasFirebase ? remoteConfig.getString(key) : (_defaults[key] as String? ?? '');
@@ -138,6 +141,14 @@ class Settings {
   bool get secretChatsEnabled {
     if (kDebugMode) return dotenv.getBool('SECRET_CHATS_ENABLED', fallback: false);
     return _getBool("SECRET_CHATS_ENABLED");
+  }
+
+  /// Групповые звонки (Remote Config; в debug — `.env.development`). Выключены —
+  /// нет «Добавить участника» и «Позвонить нескольким»; приглашения в чужой
+  /// групповой звонок по-прежнему принимаются.
+  bool get groupCallsEnabled {
+    if (kDebugMode) return dotenv.getBool('GROUP_CALLS_ENABLED', fallback: false);
+    return _getBool("GROUP_CALLS_ENABLED");
   }
 
   /// Создавать секретные чаты может только Premium (принять — любой).
