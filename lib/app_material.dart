@@ -217,9 +217,11 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
           child: MaterialApp.router(
             debugShowCheckedModeBanner: kDebugMode,
             routerConfig: goRouter,
-            // Десктоп: ⌘/Ctrl+F — поиск, ⌘/Ctrl+N — новое сообщение.
+            // Десктоп: ⌘/Ctrl+F — поиск, ⌘/Ctrl+N — новое сообщение, Esc — назад.
             shortcuts: AppPlatform.isDesktop ? DesktopShortcuts.shortcuts() : null,
-            actions: AppPlatform.isDesktop ? DesktopShortcuts.actions(goRouter.go) : null,
+            actions: AppPlatform.isDesktop
+                ? DesktopShortcuts.actions(goRouter.go, () => goRouter.routerDelegate.currentConfiguration.uri.path)
+                : null,
             localizationsDelegates: const <LocalizationsDelegate<Object>>[
               GlobalMaterialLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,

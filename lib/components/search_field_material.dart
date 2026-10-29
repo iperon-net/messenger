@@ -1,8 +1,12 @@
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
+
+import '../platform.dart';
 
 /// Компактное поле поиска (Android) для вкладок «Контакты», «Звонки», «Чаты»:
 /// высота 40, тональная заливка без контура, скругление 12 — в стиле
-/// табов-папок чатов.
+/// табов-папок чатов. На десктопе Esc очищает запрос, в пустом — снимает
+/// фокус (как в Telegram Desktop).
 class SearchFieldMaterial extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
@@ -11,9 +15,18 @@ class SearchFieldMaterial extends StatelessWidget {
 
   const SearchFieldMaterial({super.key, required this.controller, required this.hintText, this.onChanged, this.focusNode});
 
+  void _escape() {
+    if (controller.text.isEmpty) {
+      FocusManager.instance.primaryFocus?.unfocus();
+      return;
+    }
+    controller.clear();
+    onChanged?.call('');
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    final field = SizedBox(
       height: 40,
       child: TextField(
         controller: controller,
@@ -32,5 +45,7 @@ class SearchFieldMaterial extends StatelessWidget {
         onChanged: onChanged,
       ),
     );
+    if (!AppPlatform.isDesktop) return field;
+    return CallbackShortcuts(bindings: {const SingleActivator(LogicalKeyboardKey.escape): _escape}, child: field);
   }
 }
