@@ -883,6 +883,7 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get gb => 'ГБ';
 	@override String mediaCounter({required Object current, required Object total}) => '${current} из ${total}';
 	@override String get addCaption => 'Добавить подпись…';
+	@override String get send => 'Отправить';
 }
 
 // Path: screenSettings
@@ -2878,6 +2879,7 @@ extension on TranslationsRu {
 			'screenChat.gb' => 'ГБ',
 			'screenChat.mediaCounter' => ({required Object current, required Object total}) => '${current} из ${total}',
 			'screenChat.addCaption' => 'Добавить подпись…',
+			'screenChat.send' => 'Отправить',
 			'screenSettings.settings' => 'Настройки',
 			'screenSettings.myProfile' => 'Мой профиль',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
@@ -3286,9 +3288,9 @@ extension on TranslationsRu {
 			'cloudPassword.newPasswordPlaceholder' => 'Новый пароль',
 			'cloudPassword.repeatPasswordPlaceholder' => 'Повторите пароль',
 			'cloudPassword.currentPasswordPlaceholder' => 'Текущий пароль',
-			'cloudPassword.resetPassword' => 'Сбросить пароль',
 			_ => null,
 		} ?? switch (path) {
+			'cloudPassword.resetPassword' => 'Сбросить пароль',
 			'cloudPassword.reset' => 'Сбросить',
 			'cloudPassword.attemptsLeft' => ({required Object count}) => 'Осталось попыток: ${count}',
 			'cloudPassword.attemptsLeftInline' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'осталось ${n} попытка', few: 'осталось ${n} попытки', many: 'осталось ${n} попыток', ), 

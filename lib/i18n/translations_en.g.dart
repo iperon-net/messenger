@@ -2089,6 +2089,9 @@ class Translations$screenChat$en {
 
 	/// en: 'Add a caption…'
 	String get addCaption => 'Add a caption…';
+
+	/// en: 'Send'
+	String get send => 'Send';
 }
 
 // Path: screenSettings
@@ -5879,6 +5882,7 @@ extension on Translations {
 			'screenChat.gb' => 'GB',
 			'screenChat.mediaCounter' => ({required Object current, required Object total}) => '${current} of ${total}',
 			'screenChat.addCaption' => 'Add a caption…',
+			'screenChat.send' => 'Send',
 			'screenSettings.settings' => 'Settings',
 			'screenSettings.myProfile' => 'My profile',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
@@ -6287,9 +6291,9 @@ extension on Translations {
 			'cloudPassword.newPasswordPlaceholder' => 'New password',
 			'cloudPassword.repeatPasswordPlaceholder' => 'Repeat password',
 			'cloudPassword.currentPasswordPlaceholder' => 'Current password',
-			'cloudPassword.resetPassword' => 'Reset password',
 			_ => null,
 		} ?? switch (path) {
+			'cloudPassword.resetPassword' => 'Reset password',
 			'cloudPassword.reset' => 'Reset',
 			'cloudPassword.attemptsLeft' => ({required Object count}) => 'Attempts left: ${count}',
 			'cloudPassword.attemptsLeftInline' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} attempt left', other: '${n} attempts left', ), 
