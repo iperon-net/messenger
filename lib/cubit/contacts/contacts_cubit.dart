@@ -274,7 +274,14 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     if (isClosed || status.status != APIStatus.success || payload == null) return;
 
     final response = Presence_Response.fromBuffer(payload);
-    _applyPresenceItems(response.items);
+    // Не пришёл — скрыт от нас (старый сервер так и отвечает): как item без
+    // присутствия — «был(а) недавно».
+    final returned = {for (final item in response.items) utils.bytesToHex(Uint8List.fromList(item.userID))};
+    _applyPresenceItems([
+      ...response.items,
+      for (final userID in ids)
+        if (!returned.contains(utils.bytesToHex(userID))) Presence_Item(userID: userID),
+    ]);
     if (!isClosed) _emitAll();
   }
 
@@ -299,10 +306,13 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
 
       // Персистим last-seen в кэш профиля — чтобы показать дату на cold-start /
       // без сети до прихода снимка. online НЕ сохраняем (эфемерный). Best-effort.
-      if (lastSeen != null) {
+      // Время скрыто («Время захода» → 0) — стираем кэш, а не оставляем
+      // устаревшее.
+      if (!item.online) {
         unawaited(
-          repositories.profiles
-              .updateLastSeen(userID: userID, lastSeen: lastSeen)
+          (lastSeen != null
+                  ? repositories.profiles.updateLastSeen(userID: userID, lastSeen: lastSeen)
+                  : repositories.profiles.clearLastSeen(userID: userID))
               .catchError((Object e, StackTrace s) => logger.handle(e, s)),
         );
       }

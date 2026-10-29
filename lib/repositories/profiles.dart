@@ -78,6 +78,13 @@ class Profiles {
     );
   }
 
+  /// Стирает закэшированный last-seen [userID]: сервер его больше не отдаёт
+  /// (скрыт «Временем захода») — UI покажет «был(а) недавно», а не устаревшее
+  /// время. Пишет только если было что стирать (иначе лишний `onChange`).
+  Future<void> clearLastSeen({required List<int> userID}) async {
+    await db.execute("UPDATE profiles SET lastSeenAt = NULL WHERE userID = ? AND lastSeenAt IS NOT NULL;", [userID]);
+  }
+
   /// Upsert всех текстовых полей профиля разом (кроме аватара — он привязывается
   /// отдельно через [updateAvatarByCdnID], т.к. может приходить/скачиваться
   /// независимо). Ключ конфликта — `userID`.

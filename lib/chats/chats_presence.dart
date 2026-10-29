@@ -16,7 +16,8 @@ import '../account_scope.dart';
 /// после переподключения и раз в [_pollInterval], пока окно открыто. То же —
 /// для собеседников всех личных чатов, пока открыт список ([setListPeers]):
 /// зелёная точка у аватара. Push'и (контакты) тоже ловим. Видимость гейтит сервер («Время захода»): скрыто —
-/// item не приходит, показываем «был(а) недавно».
+/// item без времени (старый сервер — без item'а), показываем «был(а) недавно»
+/// и стираем закэшированное время.
 ///
 /// `online` эфемерный — только в памяти; время захода пишем в кэш профилей
 /// (`profiles.lastSeenAt`), оттуда его берёт список чатов (и без сети).
@@ -107,7 +108,7 @@ class ChatsPresence implements AccountService {
 
   void _start() {
     _pushSubscription ??= _api.on(MessageType.PRESENCE).listen((payload) {
-      _apply(Presence_Response.fromBuffer(payload).items);
+      unawaited(_apply(Presence_Response.fromBuffer(payload).items));
     });
     // Стрим переподключился (в т.ч. вернулись из фона) — онлайн мог устареть.
     _connectionSubscription ??= _api.connectionStatusStream.listen((status) {
@@ -136,33 +137,38 @@ class ChatsPresence implements AccountService {
     // Нет сети — остаёмся на прошлом (онлайн снимет следующий удачный опрос).
     if (status.status != APIStatus.success || payload == null) return;
     final items = Presence_Response.fromBuffer(payload).items;
-    // Не пришёл — скрыт от нас: не «в сети».
+    // Не пришёл — скрыт от нас (старый сервер так и отвечает): как item без
+    // присутствия.
     final returned = {for (final item in items) idHex(item.userID)};
-    var changed = false;
-    for (final userID in userIDs) {
-      final key = idHex(userID);
-      if (!returned.contains(key) && _online.remove(key)) changed = true;
-    }
-    _apply(items, changed: changed);
+    await _apply([
+      ...items,
+      for (final userID in userIDs)
+        if (!returned.contains(idHex(userID))) Presence_Item(userID: userID),
+    ]);
   }
 
-  void _apply(List<Presence_Item> items, {bool changed = false}) {
+  Future<void> _apply(List<Presence_Item> items) async {
+    var changed = false;
+    final writes = <Future<void>>[];
+    final profiles = getIt.get<Repositories>().profiles;
     for (final item in items) {
       final key = idHex(item.userID);
       changed = (item.online ? _online.add(key) : _online.remove(key)) || changed;
       // В сети — lastSeen это срок онлайн-метки (в будущем), не время захода.
+      if (item.online) continue;
       final seconds = item.lastSeen.toInt();
-      if (!item.online && seconds > 0) {
-        unawaited(
-          getIt
-              .get<Repositories>()
-              .profiles
-              .updateLastSeen(userID: item.userID, lastSeen: DateTime.fromMillisecondsSinceEpoch(seconds * 1000))
-              .catchError((Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace)),
-        );
-      }
+      // 0 — время скрыто «Временем захода» (или неизвестно): стираем кэш, иначе
+      // так и висело бы время, видимое до того, как его скрыли.
+      writes.add(
+        (seconds > 0
+                ? profiles.updateLastSeen(userID: item.userID, lastSeen: DateTime.fromMillisecondsSinceEpoch(seconds * 1000))
+                : profiles.clearLastSeen(userID: item.userID))
+            .catchError((Object error, StackTrace stackTrace) => _logger.handle(error, stackTrace)),
+      );
     }
-    if (changed) _changed.add(null);
+    // Профиль перечитывает время захода из кэша по [changed] — сначала запись.
+    await Future.wait(writes);
+    if (changed || writes.isNotEmpty) _changed.add(null);
   }
 
   /// Переключение аккаунта: остановить таймеры и подписки этого аккаунта.

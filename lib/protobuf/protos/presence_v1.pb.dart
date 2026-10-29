@@ -172,8 +172,9 @@ class Presence_Response extends $pb.GeneratedMessage {
   static Presence_Response getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Presence_Response>(create);
   static Presence_Response? _defaultInstance;
 
-  /// Только пользователи, чью видимость пропустил гейт приватности; остальные
-  /// просто отсутствуют в ответе.
+  /// Скрытые гейтом приватности («Время захода») приходят item'ом без
+  /// присутствия: online=false, lastSeen=0 — клиент показывает «был(а)
+  /// недавно» и стирает закэшированное время захода.
   @$pb.TagNumber(1)
   $pb.PbList<Presence_Item> get items => $_getList(0);
 }
