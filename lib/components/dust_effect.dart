@@ -44,7 +44,7 @@ abstract final class DustEffect {
         image.dispose();
         return null;
       }
-      return DustSnapshot._(image, bytes, rect, ratio);
+      return DustSnapshot._(image, bytes, rect, ratio, boundary);
     } catch (_) {
       return null;
     }
@@ -68,6 +68,9 @@ abstract final class DustEffect {
         s.dispose();
       }
       return;
+    }
+    for (final s in snapshots) {
+      s._relocate();
     }
     playIn(Overlay.of(context, rootOverlay: true), snapshots);
   }
@@ -158,12 +161,24 @@ class _RenderDustSource extends RenderRepaintBoundary {}
 /// Снимок элемента: картинка, её пиксели (где прозрачно — частиц нет) и место
 /// на экране.
 class DustSnapshot {
-  DustSnapshot._(this.image, this._bytes, this.rect, this.ratio);
+  DustSnapshot._(this.image, this._bytes, this.rect, this.ratio, this._source);
 
   final ui.Image image;
   final ByteData _bytes;
-  final Rect rect;
+  Rect rect;
   final double ratio;
+
+  /// Откуда снято: пока элемент на экране (строка удерживается на время
+  /// удаления), место берём заново перед показом — см. [_relocate].
+  final _RenderDustSource _source;
+
+  /// Место элемента сейчас: между снимком и показом экран мог сдвинуться —
+  /// например, после меню снова выехала клавиатура и подняла ленту, и пыль по
+  /// старому месту ушла бы под клавиатуру. Элемента уже нет — старое место.
+  void _relocate() {
+    if (!_source.attached || !_source.hasSize) return;
+    rect = _source.localToGlobal(Offset.zero) & _source.size;
+  }
 
   bool _disposed = false;
 
