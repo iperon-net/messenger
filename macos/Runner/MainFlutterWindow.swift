@@ -57,6 +57,11 @@ final class AppUpdater {
     #endif
   }
 
+  /// Проверка по запросу приложения (экран «Обновите приложение»).
+  func check() {
+    controller.checkForUpdates(nil)
+  }
+
   /// Подпись на языке приложения; пункт в меню приложения (после «О программе»)
   /// добавляется при первом вызове — к этому времени главное меню уже загружено.
   func setTitle(_ title: String) {
@@ -166,6 +171,9 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
       if let title = args["updates"] as? String {
         updater?.setTitle(title)
       }
+      result(nil)
+    case "checkForUpdates":
+      updater?.check()
       result(nil)
     case "requestAttention":
       NSApp.requestUserAttention(.informationalRequest)

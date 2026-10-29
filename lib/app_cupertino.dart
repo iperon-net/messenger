@@ -17,6 +17,8 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:local_auth/local_auth.dart';
 
 import 'api.dart';
+import 'components/app_update/app_update_common.dart';
+import 'components/app_update/app_update_cupertino.dart';
 import 'calls.dart';
 import 'chats/chats_sync.dart';
 import 'cubit.dart';
@@ -295,6 +297,11 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                   InAppNoticeHost(
                     router: goRouter,
                     card: (context, notice) => InAppNoticeCupertino(notice: notice),
+                  ),
+                  // Сборка старше минимальной из админки — «Обновите
+                  // приложение» поверх всего.
+                  AppUpdateGate(
+                    builder: (context, current, minimal) => AppUpdateCupertino(current: current, minimal: minimal),
                   ),
                   // Размытие при неактивности — слой поверх, а не обёртка над
                   // child: иначе смена структуры дерева на `inactive` (а его даёт

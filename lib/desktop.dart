@@ -95,6 +95,9 @@ abstract final class Desktop {
 
   static Future<void> setListWidth(double? width) => _invoke<void>('setListWidth', {'width': width});
 
+  /// Проверить обновления (Sparkle; в debug и без ключа — ничего).
+  static Future<void> checkForUpdates() => _invoke<void>('checkForUpdates');
+
   static Future<bool> launchAtLogin() async => await _invoke<bool>('launchAtLogin') ?? false;
 
   /// Включить / выключить запуск при входе в систему: `enabled` / `disabled`

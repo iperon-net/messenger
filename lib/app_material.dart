@@ -24,6 +24,8 @@ import 'package:go_router/go_router.dart';
 import 'package:local_auth/local_auth.dart';
 
 import 'api.dart';
+import 'components/app_update/app_update_common.dart';
+import 'components/app_update/app_update_material.dart';
 import 'app_shortcuts.dart';
 import 'calls.dart';
 import 'cubit.dart';
@@ -281,6 +283,11 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
                   InAppNoticeHost(
                     router: goRouter,
                     card: (context, notice) => InAppNoticeMaterial(notice: notice),
+                  ),
+                  // Сборка старше минимальной из админки — «Обновите
+                  // приложение» поверх всего.
+                  AppUpdateGate(
+                    builder: (context, current, minimal) => AppUpdateMaterial(current: current, minimal: minimal),
                   ),
                   // Размытие при неактивности — слой поверх, а не обёртка над
                   // child: иначе смена структуры дерева на `inactive` (а его даёт
