@@ -72,11 +72,15 @@ class AuthCallPassword_Response extends $pb.GeneratedMessage {
     $core.List<$core.int>? callPasswordSession,
     $core.double? timeout,
     $core.String? confirmationPhoneNumber,
+    $core.bool? fixedCode,
+    $core.List<$core.int>? fixedCodeSession,
   }) {
     final result = create();
     if (callPasswordSession != null) result.callPasswordSession = callPasswordSession;
     if (timeout != null) result.timeout = timeout;
     if (confirmationPhoneNumber != null) result.confirmationPhoneNumber = confirmationPhoneNumber;
+    if (fixedCode != null) result.fixedCode = fixedCode;
+    if (fixedCodeSession != null) result.fixedCodeSession = fixedCodeSession;
     return result;
   }
 
@@ -93,6 +97,8 @@ class AuthCallPassword_Response extends $pb.GeneratedMessage {
     ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'callPasswordSession', $pb.PbFieldType.OY, protoName: 'callPasswordSession')
     ..aD(2, _omitFieldNames ? '' : 'timeout', fieldType: $pb.PbFieldType.OF)
     ..aOS(3, _omitFieldNames ? '' : 'confirmationPhoneNumber', protoName: 'confirmationPhoneNumber')
+    ..aOB(4, _omitFieldNames ? '' : 'fixedCode', protoName: 'fixedCode')
+    ..a<$core.List<$core.int>>(5, _omitFieldNames ? '' : 'fixedCodeSession', $pb.PbFieldType.OY, protoName: 'fixedCodeSession')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -139,6 +145,28 @@ class AuthCallPassword_Response extends $pb.GeneratedMessage {
   $core.bool hasConfirmationPhoneNumber() => $_has(2);
   @$pb.TagNumber(3)
   void clearConfirmationPhoneNumber() => $_clearField(3);
+
+  /// Тестовый аккаунт (админка → «Тестовые аккаунты»): звонка нет, вход по
+  /// постоянному коду — fixedCodeSession передаётся в
+  /// AUTH_MODERATION_APPLICATION_STORE_CONFIRMATION вместе с кодом.
+  /// callPasswordSession тогда пуст.
+  @$pb.TagNumber(4)
+  $core.bool get fixedCode => $_getBF(3);
+  @$pb.TagNumber(4)
+  set fixedCode($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasFixedCode() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearFixedCode() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.List<$core.int> get fixedCodeSession => $_getN(4);
+  @$pb.TagNumber(5)
+  set fixedCodeSession($core.List<$core.int> value) => $_setBytes(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasFixedCodeSession() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearFixedCodeSession() => $_clearField(5);
 }
 
 class AuthCallPassword extends $pb.GeneratedMessage {

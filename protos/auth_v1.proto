@@ -15,6 +15,12 @@ message AuthCallPassword {
     bytes callPasswordSession = 1;
     float timeout = 2;
     string confirmationPhoneNumber = 3;
+    // Тестовый аккаунт (админка → «Тестовые аккаунты»): звонка нет, вход по
+    // постоянному коду — fixedCodeSession передаётся в
+    // AUTH_MODERATION_APPLICATION_STORE_CONFIRMATION вместе с кодом.
+    // callPasswordSession тогда пуст.
+    bool fixedCode = 4;
+    bytes fixedCodeSession = 5;
   }
 }
 

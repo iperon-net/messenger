@@ -214,6 +214,10 @@ class MessageType extends $pb.ProtobufEnum {
   /// Жалоба модерации (пользователь, чат, сообщения). См. reports_v1.proto.
   static const MessageType REPORT = MessageType._(97, _omitEnumNames ? '' : 'REPORT');
 
+  /// Настройки приложения с сервера (вместо Remote Config): pre-auth unary и
+  /// пуш по стриму при изменении в админке. См. client_config_v1.proto.
+  static const MessageType CLIENT_CONFIG = MessageType._(98, _omitEnumNames ? '' : 'CLIENT_CONFIG');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -309,9 +313,10 @@ class MessageType extends $pb.ProtobufEnum {
     AUTH_QR,
     AUTH_QR_CONFIRM,
     REPORT,
+    CLIENT_CONFIG,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 97);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 98);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

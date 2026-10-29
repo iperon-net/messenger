@@ -18,6 +18,7 @@ export './protos/push_test_v1.pb.dart';
 export './protos/push_payload_v1.pb.dart';
 export './protos/app_state_v1.pb.dart';
 export './protos/notify_settings_v1.pb.dart';
+export './protos/client_config_v1.pb.dart';
 export './protos/cloud_password_v1.pb.dart';
 export './protos/passkey_v1.pb.dart';
 export './protos/yandex_v1.pb.dart';

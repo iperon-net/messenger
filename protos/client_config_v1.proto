@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+// Настройки приложения с сервера (админка → «Настройки», этап 5б плана
+// docs/plans/admin-panel.md клиента) вместо Firebase Remote Config. Ничего
+// секретного и ничего о конкретном пользователе: конфиг видит любой, в т.ч. до
+// входа.
+//
+// Как доходит: до входа — pre-auth unary CLIENT_CONFIG (как META_DATA_INFO,
+// без шифрования); после входа — в Subscribe.Response и пушем CLIENT_CONFIG по
+// стриму, когда настройку поменяли в админке. Клиент хранит последний ответ и
+// сравнивает байты: другие — значит, что-то поменялось.
+//
+// Ноль / пустая строка — «не задано»: приложение берёт своё значение по
+// умолчанию (так и старые серверы без поля не ломают клиента).
+message ClientConfig {
+  message Request {}
+
+  message Response {
+    // secretChats.enabled / premiumOnly — те же выключатели, что на сервере.
+    bool secretChatsEnabled = 1;
+    bool secretChatsPremiumOnly = 2;
+    // calls.groupEnabled — «Добавить участника» / «Позвонить нескольким».
+    bool groupCallsEnabled = 3;
+    // calls.* — подключение к комнате LiveKit и время дозвона, секунды.
+    int32 callConnectMaxAttempts = 4;
+    int32 callPeerConnectionTimeoutSeconds = 5;
+    int32 callRingTimeoutSeconds = 6;
+    // client.animatedEmojiUrl — откуда докачивать анимированные эмодзи
+    // (`<url><имя>.json`, со «/» в конце).
+    string animatedEmojiUrl = 7;
+    // oauth.yandex.clientId сервера (пусто — вход через Яндекс выключен).
+    string yandexClientId = 8;
+    // client.minimalVersion — сборка старше («0.0.570») должна обновиться.
+    string minimalVersion = 9;
+  }
+}

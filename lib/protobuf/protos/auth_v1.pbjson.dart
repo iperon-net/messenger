@@ -36,15 +36,19 @@ const AuthCallPassword_Response$json = {
     {'1': 'callPasswordSession', '3': 1, '4': 1, '5': 12, '10': 'callPasswordSession'},
     {'1': 'timeout', '3': 2, '4': 1, '5': 2, '10': 'timeout'},
     {'1': 'confirmationPhoneNumber', '3': 3, '4': 1, '5': 9, '10': 'confirmationPhoneNumber'},
+    {'1': 'fixedCode', '3': 4, '4': 1, '5': 8, '10': 'fixedCode'},
+    {'1': 'fixedCodeSession', '3': 5, '4': 1, '5': 12, '10': 'fixedCodeSession'},
   ],
 };
 
 /// Descriptor for `AuthCallPassword`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List authCallPasswordDescriptor =
     $convert.base64Decode('ChBBdXRoQ2FsbFBhc3N3b3JkGisKB1JlcXVlc3QSIAoLcGhvbmVOdW1iZXIYASABKAlSC3Bob2'
-        '5lTnVtYmVyGpABCghSZXNwb25zZRIwChNjYWxsUGFzc3dvcmRTZXNzaW9uGAEgASgMUhNjYWxs'
+        '5lTnVtYmVyGtoBCghSZXNwb25zZRIwChNjYWxsUGFzc3dvcmRTZXNzaW9uGAEgASgMUhNjYWxs'
         'UGFzc3dvcmRTZXNzaW9uEhgKB3RpbWVvdXQYAiABKAJSB3RpbWVvdXQSOAoXY29uZmlybWF0aW'
-        '9uUGhvbmVOdW1iZXIYAyABKAlSF2NvbmZpcm1hdGlvblBob25lTnVtYmVy');
+        '9uUGhvbmVOdW1iZXIYAyABKAlSF2NvbmZpcm1hdGlvblBob25lTnVtYmVyEhwKCWZpeGVkQ29k'
+        'ZRgEIAEoCFIJZml4ZWRDb2RlEioKEGZpeGVkQ29kZVNlc3Npb24YBSABKAxSEGZpeGVkQ29kZV'
+        'Nlc3Npb24=');
 
 @$core.Deprecated('Use authCallPasswordConfirmationDescriptor instead')
 const AuthCallPasswordConfirmation$json = {

@@ -177,6 +177,9 @@ enum MessageType {
   AUTH_QR_CONFIRM = 96;
   // Жалоба модерации (пользователь, чат, сообщения). См. reports_v1.proto.
   REPORT = 97;
+  // Настройки приложения с сервера (вместо Remote Config): pre-auth unary и
+  // пуш по стриму при изменении в админке. См. client_config_v1.proto.
+  CLIENT_CONFIG = 98;
 }
 
 service Iperon {

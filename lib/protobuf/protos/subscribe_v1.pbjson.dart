@@ -33,9 +33,14 @@ const Subscribe_Request$json = {
 @$core.Deprecated('Use subscribeDescriptor instead')
 const Subscribe_Response$json = {
   '1': 'Response',
+  '2': [
+    {'1': 'clientConfig', '3': 1, '4': 1, '5': 11, '6': '.iperon.v1.ClientConfig.Response', '10': 'clientConfig'},
+  ],
 };
 
 /// Descriptor for `Subscribe`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List subscribeDescriptor =
     $convert.base64Decode('CglTdWJzY3JpYmUaTQoHUmVxdWVzdBIeCgpiYWNrZ3JvdW5kGAEgASgIUgpiYWNrZ3JvdW5kEi'
-        'IKDGNhcGFiaWxpdGllcxgCIAMoCVIMY2FwYWJpbGl0aWVzGgoKCFJlc3BvbnNl');
+        'IKDGNhcGFiaWxpdGllcxgCIAMoCVIMY2FwYWJpbGl0aWVzGlAKCFJlc3BvbnNlEkQKDGNsaWVu'
+        'dENvbmZpZxgBIAEoCzIgLmlwZXJvbi52MS5DbGllbnRDb25maWcuUmVzcG9uc2VSDGNsaWVudE'
+        'NvbmZpZw==');

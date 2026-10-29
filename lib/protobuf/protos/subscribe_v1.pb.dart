@@ -14,6 +14,8 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
+import 'client_config_v1.pb.dart' as $0;
+
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
 class Subscribe_Request extends $pb.GeneratedMessage {
@@ -81,7 +83,13 @@ class Subscribe_Request extends $pb.GeneratedMessage {
 }
 
 class Subscribe_Response extends $pb.GeneratedMessage {
-  factory Subscribe_Response() => create();
+  factory Subscribe_Response({
+    $0.ClientConfig_Response? clientConfig,
+  }) {
+    final result = create();
+    if (clientConfig != null) result.clientConfig = clientConfig;
+    return result;
+  }
 
   Subscribe_Response._();
 
@@ -92,6 +100,8 @@ class Subscribe_Response extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'Subscribe.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<$0.ClientConfig_Response>(1, _omitFieldNames ? '' : 'clientConfig',
+        protoName: 'clientConfig', subBuilder: $0.ClientConfig_Response.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -110,6 +120,18 @@ class Subscribe_Response extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static Subscribe_Response getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Subscribe_Response>(create);
   static Subscribe_Response? _defaultInstance;
+
+  /// Настройки приложения на момент подписки (дальше — пуш CLIENT_CONFIG).
+  @$pb.TagNumber(1)
+  $0.ClientConfig_Response get clientConfig => $_getN(0);
+  @$pb.TagNumber(1)
+  set clientConfig($0.ClientConfig_Response value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasClientConfig() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearClientConfig() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $0.ClientConfig_Response ensureClientConfig() => $_ensure(0);
 }
 
 class Subscribe extends $pb.GeneratedMessage {

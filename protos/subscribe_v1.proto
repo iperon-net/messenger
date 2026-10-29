@@ -3,6 +3,8 @@ syntax = "proto3";
 package iperon.v1;
 option go_package = "internal/api/v1";
 
+import "protos/client_config_v1.proto";
+
 message Subscribe {
   message Request {
     // background — приложение запущено системой в фоне (VoIP / тихий пуш), а не
@@ -18,5 +20,8 @@ message Subscribe {
     // сессиям.
     repeated string capabilities = 2;
   }
-  message Response {}
+  message Response {
+    // Настройки приложения на момент подписки (дальше — пуш CLIENT_CONFIG).
+    ClientConfig.Response clientConfig = 1;
+  }
 }

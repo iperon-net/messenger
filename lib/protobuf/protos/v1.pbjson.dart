@@ -115,6 +115,7 @@ const MessageType$json = {
     {'1': 'AUTH_QR', '2': 95},
     {'1': 'AUTH_QR_CONFIRM', '2': 96},
     {'1': 'REPORT', '2': 97},
+    {'1': 'CLIENT_CONFIG', '2': 98},
   ],
   '4': [
     {'1': 16, '2': 16},
@@ -170,8 +171,8 @@ final $typed_data.Uint8List messageTypeDescriptor =
         'VfTlVNQkVSX0ZJTkRfVVBEQVRFEFoSIAocUFJJVkFDWV9HUk9VUF9JTlZJVEVTX1VQREFURRBb'
         'EiYKIlBSSVZBQ1lfR1JPVVBfSU5WSVRFU19BTExPV19VUERBVEUQXBIlCiFQUklWQUNZX0dST1'
         'VQX0lOVklURVNfREVOWV9VUERBVEUQXRIQCgxDUkFTSF9SRVBPUlQQXhILCgdBVVRIX1FSEF8S'
-        'EwoPQVVUSF9RUl9DT05GSVJNEGASCgoGUkVQT1JUEGEiBAgQEBAiBAgREBEiBAgSEBIiBAgVEB'
-        'U=');
+        'EwoPQVVUSF9RUl9DT05GSVJNEGASCgoGUkVQT1JUEGESEQoNQ0xJRU5UX0NPTkZJRxBiIgQIEB'
+        'AQIgQIERARIgQIEhASIgQIFRAV');
 
 @$core.Deprecated('Use messageDescriptor instead')
 const Message$json = {
