@@ -925,6 +925,10 @@ class _Translations$screenSettingsGeneral$ru extends Translations$screenSettings
 	final TranslationsRu _root; // ignore: unused_field
 
 	// Translations
+	@override String get checkUpdates => 'Проверить обновления';
+	@override String updateAvailable({required Object version}) => 'Доступна новая версия ${version}';
+	@override String get upToDate => 'Установлена последняя версия';
+	@override String get updatesOff => 'Обновления в этой сборке выключены';
 	@override String get calls => 'Звонки';
 	@override String get noCamera => 'Камера не найдена';
 	@override String get general => 'Общие';
@@ -2904,6 +2908,10 @@ extension on TranslationsRu {
 			'screenSettings.trayQuit' => 'Завершить Iperon',
 			'screenSettings.trayUpdates' => 'Проверить обновления…',
 			'screenSettings.accountSwitchCallActive' => 'Во время звонка аккаунт не переключить',
+			'screenSettingsGeneral.checkUpdates' => 'Проверить обновления',
+			'screenSettingsGeneral.updateAvailable' => ({required Object version}) => 'Доступна новая версия ${version}',
+			'screenSettingsGeneral.upToDate' => 'Установлена последняя версия',
+			'screenSettingsGeneral.updatesOff' => 'Обновления в этой сборке выключены',
 			'screenSettingsGeneral.calls' => 'Звонки',
 			'screenSettingsGeneral.noCamera' => 'Камера не найдена',
 			'screenSettingsGeneral.general' => 'Общие',
@@ -3285,12 +3293,12 @@ extension on TranslationsRu {
 			'cloudPassword.next' => 'Далее',
 			'cloudPassword.forgotPassword' => 'Забыли пароль?',
 			'cloudPassword.recoveryHint' => ({required Object email}) => 'Мы отправили код восстановления на ${email}',
+			_ => null,
+		} ?? switch (path) {
 			'cloudPassword.recoveryEmailHint' => 'Укажите email, привязанный к аккаунту. Если он совпадёт, мы отправим на него код восстановления.',
 			'cloudPassword.codePlaceholder' => 'Код из письма',
 			'cloudPassword.newPasswordPlaceholder' => 'Новый пароль',
 			'cloudPassword.repeatPasswordPlaceholder' => 'Повторите пароль',
-			_ => null,
-		} ?? switch (path) {
 			'cloudPassword.currentPasswordPlaceholder' => 'Текущий пароль',
 			'cloudPassword.resetPassword' => 'Сбросить пароль',
 			'cloudPassword.reset' => 'Сбросить',

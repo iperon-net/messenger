@@ -37,6 +37,8 @@ class MainFlutterWindow: NSWindow {
 /// меню приложения и в строке меню. В debug и без ключа выключено (`nil`).
 final class AppUpdater {
   private let controller: SPUStandardUpdaterController
+  /// Делегат Sparkle держим сами: контроллер хранит его слабой ссылкой.
+  private let probe = UpdateProbe()
   /// Пункт меню в строке меню ([TrayIcon]); пункт меню приложения — свой
   /// (NSMenuItem живёт только в одном меню).
   let trayItem: NSMenuItem
@@ -48,7 +50,7 @@ final class AppUpdater {
     #else
     let key = Bundle.main.object(forInfoDictionaryKey: "SUPublicEDKey") as? String ?? ""
     if key.isEmpty { return nil }
-    controller = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+    controller = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: probe, userDriverDelegate: nil)
     let action = #selector(SPUStandardUpdaterController.checkForUpdates(_:))
     trayItem = NSMenuItem(title: "Check for Updates…", action: action, keyEquivalent: "")
     appMenuItem = NSMenuItem(title: "Check for Updates…", action: action, keyEquivalent: "")
@@ -57,9 +59,19 @@ final class AppUpdater {
     #endif
   }
 
-  /// Проверка по запросу приложения (экран «Обновите приложение»).
+  /// Проверка по запросу приложения (экран «Обновите приложение», «Общие»).
   func check() {
     controller.checkForUpdates(nil)
+  }
+
+  /// Тихая проверка appcast без окна Sparkle («Общие» → «Проверить
+  /// обновления»): версия новой сборки или пусто — новее нет / не вышло.
+  func latestVersion(_ completion: @escaping (String) -> Void) {
+    probe.waiting.append(completion)
+    // Идёт своя проверка Sparkle — дождёмся её конца (ответ придёт оттуда).
+    if probe.waiting.count == 1, !controller.updater.sessionInProgress {
+      controller.updater.checkForUpdateInformation()
+    }
   }
 
   /// Подпись на языке приложения; пункт в меню приложения (после «О программе»)
@@ -70,6 +82,26 @@ final class AppUpdater {
     if appMenuItem.menu == nil, let menu = NSApp.mainMenu?.items.first?.submenu {
       menu.insertItem(appMenuItem, at: min(1, menu.numberOfItems))
     }
+  }
+}
+
+/// Итог тихой проверки [AppUpdater.latestVersion]: найденная версия приходит в
+/// `didFindValidUpdate`, конец любой проверки — в `didFinishUpdateCycleFor`
+/// (там отвечаем «пусто», если версии не нашли).
+final class UpdateProbe: NSObject, SPUUpdaterDelegate {
+  var waiting: [(String) -> Void] = []
+  private var found = ""
+
+  func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
+    found = item.displayVersionString
+  }
+
+  func updater(_ updater: SPUUpdater, didFinishUpdateCycleFor updateCheck: SPUUpdateCheck, error: Error?) {
+    let version = found
+    found = ""
+    let callbacks = waiting
+    waiting = []
+    callbacks.forEach { $0(version) }
   }
 }
 
@@ -175,6 +207,13 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
     case "checkForUpdates":
       updater?.check()
       result(nil)
+    case "latestVersion":
+      // nil — автообновление выключено (debug, нет ключа Sparkle).
+      guard let updater else {
+        result(nil)
+        return
+      }
+      updater.latestVersion { result($0) }
     case "requestAttention":
       NSApp.requestUserAttention(.informationalRequest)
       result(nil)

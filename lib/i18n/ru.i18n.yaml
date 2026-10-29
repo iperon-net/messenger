@@ -718,6 +718,10 @@
   "accountSwitchCallActive": "Во время звонка аккаунт не переключить"
 
 "screenSettingsGeneral":
+  "checkUpdates": "Проверить обновления"
+  "updateAvailable": "Доступна новая версия {version}"
+  "upToDate": "Установлена последняя версия"
+  "updatesOff": "Обновления в этой сборке выключены"
   "calls": "Звонки"
   "noCamera": "Камера не найдена"
   "general": "Общие"

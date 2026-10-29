@@ -98,6 +98,11 @@ abstract final class Desktop {
   /// Проверить обновления (Sparkle; в debug и без ключа — ничего).
   static Future<void> checkForUpdates() => _invoke<void>('checkForUpdates');
 
+  /// Тихая проверка обновления (Sparkle, без окна): версия новой сборки, `''` —
+  /// новее нет (или проверка не удалась), `null` — автообновление в этой
+  /// сборке выключено (debug, нет ключа Sparkle).
+  static Future<String?> latestVersion() => _invoke<String>('latestVersion');
+
   static Future<bool> launchAtLogin() async => await _invoke<bool>('launchAtLogin') ?? false;
 
   /// Включить / выключить запуск при входе в систему: `enabled` / `disabled`

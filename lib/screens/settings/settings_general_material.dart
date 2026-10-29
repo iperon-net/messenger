@@ -10,9 +10,12 @@ import '../../cubit.dart';
 import '../../desktop.dart';
 import '../../i18n/translations.g.dart';
 import '../../split_layout.dart';
+import '../../utils.dart';
+import '../../di.dart';
 
 /// «Общие» (только десктоп): клавиша отправки сообщения, «Звонки» (микрофон и
-/// камера — [SettingsCallsMaterial]), запуск при входе в систему.
+/// камера — [SettingsCallsMaterial]), запуск при входе в систему, «Проверить
+/// обновления» (версия приложения; есть новее — подпись под пунктом).
 class SettingsGeneralMaterial extends StatelessWidget {
   const SettingsGeneralMaterial({super.key});
 
@@ -53,7 +56,8 @@ class SettingsGeneralMaterial extends StatelessWidget {
                 onTap: () => context.push('/settings/general/calls'),
               ),
             ),
-            const Card(margin: EdgeInsets.fromLTRB(12, 16, 12, 16), child: _LaunchAtLoginTile()),
+            const Card(margin: EdgeInsets.fromLTRB(12, 16, 12, 4), child: _LaunchAtLoginTile()),
+            const Card(margin: EdgeInsets.fromLTRB(12, 16, 12, 16), child: _UpdatesTile()),
           ],
         ),
       ),
@@ -122,4 +126,74 @@ class _LaunchAtLoginTileState extends State<_LaunchAtLoginTile> {
     value: _enabled ?? false,
     onChanged: _enabled == null ? null : _set,
   );
+}
+
+/// «Проверить обновления»: справа — версия приложения; при открытии экрана
+/// тихо спрашивает Sparkle ([Desktop.latestVersion]), нашлась новее — подпись
+/// «Доступна новая версия». Нажатие — окно Sparkle (скачать и поставить).
+class _UpdatesTile extends StatefulWidget {
+  const _UpdatesTile();
+
+  @override
+  State<_UpdatesTile> createState() => _UpdatesTileState();
+}
+
+class _UpdatesTileState extends State<_UpdatesTile> {
+  String _version = '';
+
+  /// null — ещё проверяем или обновления выключены ([_enabled]); '' — новее нет.
+  String? _latest;
+  bool _enabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    getIt.get<Utils>().packageInfo().then((info) {
+      if (mounted) setState(() => _version = info.appVersion);
+    });
+    Desktop.latestVersion().then((latest) {
+      if (!mounted) return;
+      setState(() {
+        _enabled = latest != null;
+        _latest = latest;
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t.screenSettingsGeneral;
+    final scheme = Theme.of(context).colorScheme;
+    final latest = _latest;
+    final available = latest != null && latest.isNotEmpty;
+    return ListTile(
+      leading: const Icon(Icons.system_update_alt),
+      title: Text(t.checkUpdates),
+      subtitle: switch ((enabled: _enabled, latest: latest)) {
+        (enabled: false, latest: _) => Text(t.updatesOff),
+        (enabled: true, latest: null) => null,
+        _ when available => Text(
+          t.updateAvailable(version: latest),
+          style: TextStyle(color: scheme.primary),
+        ),
+        _ => Text(t.upToDate),
+      },
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (available)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(color: scheme.primary, shape: BoxShape.circle),
+              ),
+            ),
+          Text(_version, style: TextStyle(color: scheme.onSurfaceVariant)),
+        ],
+      ),
+      onTap: _enabled ? Desktop.checkForUpdates : null,
+    );
+  }
 }

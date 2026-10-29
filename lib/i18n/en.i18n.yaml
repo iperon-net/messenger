@@ -692,6 +692,10 @@
   "accountSwitchCallActive": "Can't switch accounts during a call"
 
 "screenSettingsGeneral":
+  "checkUpdates": "Check for updates"
+  "updateAvailable": "New version {version} is available"
+  "upToDate": "You're on the latest version"
+  "updatesOff": "Updates are off in this build"
   "calls": "Calls"
   "noCamera": "No camera found"
   "general": "General"

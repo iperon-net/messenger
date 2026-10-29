@@ -2180,6 +2180,18 @@ class Translations$screenSettingsGeneral$en {
 
 	// Translations
 
+	/// en: 'Check for updates'
+	String get checkUpdates => 'Check for updates';
+
+	/// en: 'New version {version} is available'
+	String updateAvailable({required Object version}) => 'New version ${version} is available';
+
+	/// en: 'You're on the latest version'
+	String get upToDate => 'You\'re on the latest version';
+
+	/// en: 'Updates are off in this build'
+	String get updatesOff => 'Updates are off in this build';
+
 	/// en: 'Calls'
 	String get calls => 'Calls';
 
@@ -5909,6 +5921,10 @@ extension on Translations {
 			'screenSettings.trayQuit' => 'Quit Iperon',
 			'screenSettings.trayUpdates' => 'Check for Updates…',
 			'screenSettings.accountSwitchCallActive' => 'Can\'t switch accounts during a call',
+			'screenSettingsGeneral.checkUpdates' => 'Check for updates',
+			'screenSettingsGeneral.updateAvailable' => ({required Object version}) => 'New version ${version} is available',
+			'screenSettingsGeneral.upToDate' => 'You\'re on the latest version',
+			'screenSettingsGeneral.updatesOff' => 'Updates are off in this build',
 			'screenSettingsGeneral.calls' => 'Calls',
 			'screenSettingsGeneral.noCamera' => 'No camera found',
 			'screenSettingsGeneral.general' => 'General',
@@ -6290,12 +6306,12 @@ extension on Translations {
 			'cloudPassword.next' => 'Next',
 			'cloudPassword.forgotPassword' => 'Forgot password?',
 			'cloudPassword.recoveryHint' => ({required Object email}) => 'We sent a recovery code to ${email}',
+			_ => null,
+		} ?? switch (path) {
 			'cloudPassword.recoveryEmailHint' => 'Enter the email linked to your account. If it matches, we\'ll send a recovery code to it.',
 			'cloudPassword.codePlaceholder' => 'Code from email',
 			'cloudPassword.newPasswordPlaceholder' => 'New password',
 			'cloudPassword.repeatPasswordPlaceholder' => 'Repeat password',
-			_ => null,
-		} ?? switch (path) {
 			'cloudPassword.currentPasswordPlaceholder' => 'Current password',
 			'cloudPassword.resetPassword' => 'Reset password',
 			'cloudPassword.reset' => 'Reset',
