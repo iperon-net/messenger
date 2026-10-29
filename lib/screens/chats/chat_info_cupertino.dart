@@ -396,7 +396,7 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
             : [
                 const SizedBox(height: 4),
                 Center(
-                  child: ChatAvatar(chat: chat, size: 96, accentColor: primary, accentForeground: ThemesCupertino.onAccent(context)),
+                  child: ChatInfoAvatar(chat: chat, accentColor: primary, accentForeground: ThemesCupertino.onAccent(context)),
                 ),
                 const SizedBox(height: 12),
                 Padding(

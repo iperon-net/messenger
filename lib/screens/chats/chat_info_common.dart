@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/widgets.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -835,3 +837,45 @@ String slowModeLabel(Translations t, int seconds) => switch (seconds) {
   < 3600 => t.screenChatInfo.slowModeMinutes(n: seconds ~/ 60),
   _ => t.screenChatInfo.slowModeHours(n: seconds ~/ 3600),
 };
+
+/// Аватар в шапке группы / канала: есть скачанное фото — тап открывает его во
+/// весь экран (как в профиле человека, [showAvatarViewer]); нет — просто
+/// аватар-заглушка.
+class ChatInfoAvatar extends StatefulWidget {
+  final models.Chat chat;
+  final double size;
+  final Color accentColor;
+  final Color accentForeground;
+
+  const ChatInfoAvatar({super.key, required this.chat, this.size = 96, required this.accentColor, required this.accentForeground});
+
+  @override
+  State<ChatInfoAvatar> createState() => _ChatInfoAvatarState();
+}
+
+class _ChatInfoAvatarState extends State<ChatInfoAvatar> {
+  final _hero = Object();
+
+  Future<void> _open() async {
+    final file = File(widget.chat.avatarPath);
+    if (!await file.exists()) return;
+    final bytes = await file.readAsBytes();
+    if (!mounted || bytes.isEmpty) return;
+    await showAvatarViewer(context, bytes: bytes, heroTag: _hero, title: ChatTileContent.title(context.t, widget.chat));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final avatar = ChatAvatar(
+      chat: widget.chat,
+      size: widget.size,
+      accentColor: widget.accentColor,
+      accentForeground: widget.accentForeground,
+    );
+    if (widget.chat.avatarPath.isEmpty) return avatar;
+    return GestureDetector(
+      onTap: _open,
+      child: Hero(tag: _hero, child: avatar),
+    );
+  }
+}

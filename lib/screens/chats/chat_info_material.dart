@@ -459,7 +459,7 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                           )
                         else ...[
                           Center(
-                            child: ChatAvatar(chat: chat, size: 96, accentColor: scheme.primary, accentForeground: scheme.onPrimary),
+                            child: ChatInfoAvatar(chat: chat, accentColor: scheme.primary, accentForeground: scheme.onPrimary),
                           ),
                           const SizedBox(height: 12),
                           Padding(
