@@ -88,6 +88,8 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$authQr$ru authQr = _Translations$authQr$ru._(_root);
 	@override late final _Translations$deviceLink$ru deviceLink = _Translations$deviceLink$ru._(_root);
 	@override late final _Translations$qrLogin$ru qrLogin = _Translations$qrLogin$ru._(_root);
+	@override late final _Translations$auth$ru auth = _Translations$auth$ru._(_root);
+	@override late final _Translations$screenAuthBlocked$ru screenAuthBlocked = _Translations$screenAuthBlocked$ru._(_root);
 }
 
 // Path: common
@@ -619,6 +621,7 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get yesterday => 'Вчера';
 	@override String get online => 'в сети';
 	@override String get lastSeenRecently => 'был(а) недавно';
+	@override String get accountBlocked => 'Аккаунт заблокирован';
 	@override String members({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
 		one: '${count} участник',
 		few: '${count} участника',
@@ -2145,6 +2148,47 @@ class _Translations$qrLogin$ru extends Translations$qrLogin$en {
 	@override String get expired => 'QR-код устарел — отсканируйте новый на компьютере';
 }
 
+// Path: auth
+class _Translations$auth$ru extends Translations$auth$en {
+	_Translations$auth$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get accountBlocked => 'Аккаунт заблокирован';
+}
+
+// Path: screenAuthBlocked
+class _Translations$screenAuthBlocked$ru extends Translations$screenAuthBlocked$en {
+	_Translations$screenAuthBlocked$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Аккаунт заблокирован';
+	@override String get text => 'Войти в этот аккаунт сейчас нельзя: он заблокирован за нарушение правил Iperon.';
+	@override String reason({required Object reason}) => 'Причина: ${reason}';
+	@override String until({required Object date}) => 'Блокировка действует до ${date}.';
+	@override String get forever => 'Блокировка бессрочная.';
+	@override String get support => 'Если вы считаете, что это ошибка, напишите в поддержку:';
+	@override String get back => 'Назад';
+	@override late final _Translations$screenAuthBlocked$reasons$ru reasons = _Translations$screenAuthBlocked$reasons$ru._(_root);
+}
+
+// Path: screenAuthBlocked.reasons
+class _Translations$screenAuthBlocked$reasons$ru extends Translations$screenAuthBlocked$reasons$en {
+	_Translations$screenAuthBlocked$reasons$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get spam => 'спам';
+	@override String get fraud => 'мошенничество';
+	@override String get abuse => 'оскорбления и угрозы';
+	@override String get illegal => 'незаконный контент';
+	@override String get rules => 'нарушение правил';
+}
+
 /// The flat map containing all translations for locale <ru>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -2553,6 +2597,7 @@ extension on TranslationsRu {
 			'screenChat.yesterday' => 'Вчера',
 			'screenChat.online' => 'в сети',
 			'screenChat.lastSeenRecently' => 'был(а) недавно',
+			'screenChat.accountBlocked' => 'Аккаунт заблокирован',
 			'screenChat.members' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} участник', few: '${count} участника', many: '${count} участников', other: '${count} участника', ), 
 			'screenChat.subscribers' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} подписчик', few: '${count} подписчика', many: '${count} подписчиков', other: '${count} подписчика', ), 
 			'screenChat.comments' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} комментарий', few: '${count} комментария', many: '${count} комментариев', other: '${count} комментария', ), 
@@ -2664,9 +2709,9 @@ extension on TranslationsRu {
 			'screenChat.searchOffline' => 'Нет соединения — показаны только сообщения на устройстве',
 			'screenChat.unreadMessages' => 'Непрочитанные сообщения',
 			'screenChat.select' => 'Выбрать',
-			'screenChat.videoCompressing' => 'Сжатие видео',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.videoCompressing' => 'Сжатие видео',
 			'screenChat.pin' => 'Закрепить',
 			'screenChat.unpin' => 'Открепить',
 			'screenChat.pinnedTitle' => 'Закреплённое сообщение',
@@ -3178,9 +3223,9 @@ extension on TranslationsRu {
 			'cloudPassword.emailNotSet' => 'Не задан',
 			'cloudPassword.emailCodeSent' => 'Мы отправили код подтверждения на ваш email.',
 			'cloudPassword.verifyEmail' => 'Подтвердить email',
-			'cloudPassword.disable' => 'Отключить пароль',
 			_ => null,
 		} ?? switch (path) {
+			'cloudPassword.disable' => 'Отключить пароль',
 			'cloudPassword.loadError' => 'Не удалось загрузить настройки облачного пароля',
 			'cloudPassword.retry' => 'Повторить',
 			'cloudPassword.emailRequired' => 'Введите email',
@@ -3633,6 +3678,19 @@ extension on TranslationsRu {
 			'deviceLink.invalidCode' => 'Это не QR-код входа в Iperon',
 			'deviceLink.cameraDenied' => 'Нет доступа к камере. Разрешите его в настройках.',
 			'qrLogin.expired' => 'QR-код устарел — отсканируйте новый на компьютере',
+			'auth.accountBlocked' => 'Аккаунт заблокирован',
+			'screenAuthBlocked.title' => 'Аккаунт заблокирован',
+			'screenAuthBlocked.text' => 'Войти в этот аккаунт сейчас нельзя: он заблокирован за нарушение правил Iperon.',
+			'screenAuthBlocked.reason' => ({required Object reason}) => 'Причина: ${reason}',
+			'screenAuthBlocked.until' => ({required Object date}) => 'Блокировка действует до ${date}.',
+			'screenAuthBlocked.forever' => 'Блокировка бессрочная.',
+			'screenAuthBlocked.support' => 'Если вы считаете, что это ошибка, напишите в поддержку:',
+			'screenAuthBlocked.back' => 'Назад',
+			'screenAuthBlocked.reasons.spam' => 'спам',
+			'screenAuthBlocked.reasons.fraud' => 'мошенничество',
+			'screenAuthBlocked.reasons.abuse' => 'оскорбления и угрозы',
+			'screenAuthBlocked.reasons.illegal' => 'незаконный контент',
+			'screenAuthBlocked.reasons.rules' => 'нарушение правил',
 			_ => null,
 		};
 	}

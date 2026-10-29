@@ -366,7 +366,9 @@ class _ProfileViewState extends State<_ProfileView> {
         ? null
         : (system
               ? (text: t.systemNotice.subtitle, active: false)
-              : (chat != null ? chatSubtitle(t, chat) : userPresence(t, online: profile.online, lastSeen: profile.lastSeen)));
+              : (profile.accountBlocked
+                    ? (text: t.screenChat.accountBlocked, active: false)
+                    : (chat != null ? chatSubtitle(t, chat) : userPresence(t, online: profile.online, lastSeen: profile.lastSeen))));
     final tabs = chat == null ? const <ChatInfoTab>[] : chatInfoTabs(chat);
     final tab = tabs.contains(_tab) ? _tab! : (tabs.firstOrNull ?? ChatInfoTab.media);
     final moreItems = _moreItems(context, profile, chat);

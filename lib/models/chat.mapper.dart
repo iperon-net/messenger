@@ -1903,6 +1903,13 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: '',
   );
+  static bool _$accountBlocked(Chat v) => v.accountBlocked;
+  static const Field<Chat, bool> _f$accountBlocked = Field(
+    'accountBlocked',
+    _$accountBlocked,
+    opt: true,
+    def: false,
+  );
   static String _$coverPath(Chat v) => v.coverPath;
   static const Field<Chat, String> _f$coverPath = Field(
     'coverPath',
@@ -2166,6 +2173,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #inviteLink: _f$inviteLink,
     #avatarPath: _f$avatarPath,
     #avatarThumbhash: _f$avatarThumbhash,
+    #accountBlocked: _f$accountBlocked,
     #coverPath: _f$coverPath,
     #phone: _f$phone,
     #address: _f$address,
@@ -2234,6 +2242,7 @@ class ChatMapper extends ClassMapperBase<Chat> {
       inviteLink: data.dec(_f$inviteLink),
       avatarPath: data.dec(_f$avatarPath),
       avatarThumbhash: data.dec(_f$avatarThumbhash),
+      accountBlocked: data.dec(_f$accountBlocked),
       coverPath: data.dec(_f$coverPath),
       phone: data.dec(_f$phone),
       address: data.dec(_f$address),
@@ -2360,6 +2369,7 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     String? inviteLink,
     String? avatarPath,
     String? avatarThumbhash,
+    bool? accountBlocked,
     String? coverPath,
     String? phone,
     String? address,
@@ -2468,6 +2478,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     String? inviteLink,
     String? avatarPath,
     String? avatarThumbhash,
+    bool? accountBlocked,
     String? coverPath,
     String? phone,
     String? address,
@@ -2534,6 +2545,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (inviteLink != null) #inviteLink: inviteLink,
       if (avatarPath != null) #avatarPath: avatarPath,
       if (avatarThumbhash != null) #avatarThumbhash: avatarThumbhash,
+      if (accountBlocked != null) #accountBlocked: accountBlocked,
       if (coverPath != null) #coverPath: coverPath,
       if (phone != null) #phone: phone,
       if (address != null) #address: address,
@@ -2603,6 +2615,7 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     inviteLink: data.get(#inviteLink, or: $value.inviteLink),
     avatarPath: data.get(#avatarPath, or: $value.avatarPath),
     avatarThumbhash: data.get(#avatarThumbhash, or: $value.avatarThumbhash),
+    accountBlocked: data.get(#accountBlocked, or: $value.accountBlocked),
     coverPath: data.get(#coverPath, or: $value.coverPath),
     phone: data.get(#phone, or: $value.phone),
     address: data.get(#address, or: $value.address),

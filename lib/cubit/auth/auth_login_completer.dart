@@ -12,6 +12,23 @@ import '../../repositories/repositories.dart';
 import '../../utils.dart';
 import '../../protobuf.dart';
 
+/// Ответ сервера на вход в аккаунт, заблокированный модерацией
+/// (PermissionDenied; подробности — в трейлере, см. [accountBlockedURI]).
+const accountBlockedError = "auth.accountBlocked";
+
+/// Экран «Аккаунт заблокирован» с подробностями из трейлера ответа:
+/// `iperon-block-reason` (категория), `iperon-block-until` (unix-секунды; нет —
+/// навсегда), `iperon-support` (контакт поддержки).
+String accountBlockedURI(Map<String, String> trailers) {
+  final query = <String, String>{
+    if ((trailers["iperon-block-reason"] ?? "").isNotEmpty) "reason": trailers["iperon-block-reason"]!,
+    if ((trailers["iperon-block-until"] ?? "").isNotEmpty) "until": trailers["iperon-block-until"]!,
+    if ((trailers["iperon-support"] ?? "").isNotEmpty) "support": trailers["iperon-support"]!,
+  };
+
+  return Uri(path: "/auth/blocked", queryParameters: query.isEmpty ? null : query).toString();
+}
+
 /// Итог завершения входа: непустой [redirectURI] — куда перейти (`/chats` при
 /// успехе, `/auth` при фатальной ошибке); непустой [error] — i18n-ключ ошибки для
 /// показа. Пустая строка = «не задано» (совпадает с семантикой полей state).
@@ -80,6 +97,9 @@ class AuthLoginCompleter {
       messageAuthConfirmationResponse = await api.client.unary(messageAuthConfirmationRequest);
     });
 
+    if (authConfirmationGrpcError.status == APIStatus.error && authConfirmationGrpcError.error == accountBlockedError) {
+      return (error: "", redirectURI: accountBlockedURI(authConfirmationGrpcError.trailers));
+    }
     if (authConfirmationGrpcError.status == APIStatus.error && authConfirmationGrpcError.statusCode == StatusCode.invalidArgument) {
       return (error: authConfirmationGrpcError.error, redirectURI: Uri.parse("/auth").toString());
     } else if (authConfirmationGrpcError.status == APIStatus.error) {

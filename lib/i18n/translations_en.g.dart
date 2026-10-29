@@ -90,6 +90,8 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$authQr$en authQr = Translations$authQr$en.internal(_root);
 	late final Translations$deviceLink$en deviceLink = Translations$deviceLink$en.internal(_root);
 	late final Translations$qrLogin$en qrLogin = Translations$qrLogin$en.internal(_root);
+	late final Translations$auth$en auth = Translations$auth$en.internal(_root);
+	late final Translations$screenAuthBlocked$en screenAuthBlocked = Translations$screenAuthBlocked$en.internal(_root);
 }
 
 // Path: common
@@ -1413,6 +1415,9 @@ class Translations$screenChat$en {
 
 	/// en: 'last seen recently'
 	String get lastSeenRecently => 'last seen recently';
+
+	/// en: 'Account blocked'
+	String get accountBlocked => 'Account blocked';
 
 	/// en: '(one) {{count} member} (other) {{count} members}'
 	String members({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
@@ -5048,6 +5053,74 @@ class Translations$qrLogin$en {
 	String get expired => 'The QR code has expired — scan a new one on your computer';
 }
 
+// Path: auth
+class Translations$auth$en {
+	Translations$auth$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Account blocked'
+	String get accountBlocked => 'Account blocked';
+}
+
+// Path: screenAuthBlocked
+class Translations$screenAuthBlocked$en {
+	Translations$screenAuthBlocked$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Account blocked'
+	String get title => 'Account blocked';
+
+	/// en: 'You can't sign in to this account right now: it has been blocked for violating the Iperon rules.'
+	String get text => 'You can\'t sign in to this account right now: it has been blocked for violating the Iperon rules.';
+
+	/// en: 'Reason: {reason}'
+	String reason({required Object reason}) => 'Reason: ${reason}';
+
+	/// en: 'The block lasts until {date}.'
+	String until({required Object date}) => 'The block lasts until ${date}.';
+
+	/// en: 'The block is permanent.'
+	String get forever => 'The block is permanent.';
+
+	/// en: 'If you think this is a mistake, contact support:'
+	String get support => 'If you think this is a mistake, contact support:';
+
+	/// en: 'Back'
+	String get back => 'Back';
+
+	late final Translations$screenAuthBlocked$reasons$en reasons = Translations$screenAuthBlocked$reasons$en.internal(_root);
+}
+
+// Path: screenAuthBlocked.reasons
+class Translations$screenAuthBlocked$reasons$en {
+	Translations$screenAuthBlocked$reasons$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'spam'
+	String get spam => 'spam';
+
+	/// en: 'fraud'
+	String get fraud => 'fraud';
+
+	/// en: 'abuse and threats'
+	String get abuse => 'abuse and threats';
+
+	/// en: 'illegal content'
+	String get illegal => 'illegal content';
+
+	/// en: 'rules violation'
+	String get rules => 'rules violation';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -5456,6 +5529,7 @@ extension on Translations {
 			'screenChat.yesterday' => 'Yesterday',
 			'screenChat.online' => 'online',
 			'screenChat.lastSeenRecently' => 'last seen recently',
+			'screenChat.accountBlocked' => 'Account blocked',
 			'screenChat.members' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} member', other: '${count} members', ), 
 			'screenChat.subscribers' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} subscriber', other: '${count} subscribers', ), 
 			'screenChat.comments' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} comment', other: '${count} comments', ), 
@@ -5567,9 +5641,9 @@ extension on Translations {
 			'screenChat.searchOffline' => 'No connection — showing only messages on this device',
 			'screenChat.unreadMessages' => 'Unread messages',
 			'screenChat.select' => 'Select',
-			'screenChat.videoCompressing' => 'Compressing video',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.videoCompressing' => 'Compressing video',
 			'screenChat.pin' => 'Pin',
 			'screenChat.unpin' => 'Unpin',
 			'screenChat.pinnedTitle' => 'Pinned message',
@@ -6081,9 +6155,9 @@ extension on Translations {
 			'cloudPassword.emailNotSet' => 'Not set',
 			'cloudPassword.emailCodeSent' => 'We sent a verification code to your email.',
 			'cloudPassword.verifyEmail' => 'Verify email',
-			'cloudPassword.disable' => 'Disable password',
 			_ => null,
 		} ?? switch (path) {
+			'cloudPassword.disable' => 'Disable password',
 			'cloudPassword.loadError' => 'Couldn\'t load cloud password settings',
 			'cloudPassword.retry' => 'Retry',
 			'cloudPassword.emailRequired' => 'Enter an email',
@@ -6536,6 +6610,19 @@ extension on Translations {
 			'deviceLink.invalidCode' => 'This is not an Iperon login QR code',
 			'deviceLink.cameraDenied' => 'No camera access. Allow it in settings.',
 			'qrLogin.expired' => 'The QR code has expired — scan a new one on your computer',
+			'auth.accountBlocked' => 'Account blocked',
+			'screenAuthBlocked.title' => 'Account blocked',
+			'screenAuthBlocked.text' => 'You can\'t sign in to this account right now: it has been blocked for violating the Iperon rules.',
+			'screenAuthBlocked.reason' => ({required Object reason}) => 'Reason: ${reason}',
+			'screenAuthBlocked.until' => ({required Object date}) => 'The block lasts until ${date}.',
+			'screenAuthBlocked.forever' => 'The block is permanent.',
+			'screenAuthBlocked.support' => 'If you think this is a mistake, contact support:',
+			'screenAuthBlocked.back' => 'Back',
+			'screenAuthBlocked.reasons.spam' => 'spam',
+			'screenAuthBlocked.reasons.fraud' => 'fraud',
+			'screenAuthBlocked.reasons.abuse' => 'abuse and threats',
+			'screenAuthBlocked.reasons.illegal' => 'illegal content',
+			'screenAuthBlocked.reasons.rules' => 'rules violation',
 			_ => null,
 		};
 	}

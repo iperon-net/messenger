@@ -406,6 +406,11 @@ class Chat with ChatMappable {
   /// (картинка ещё качается) или файл декодируется. Пусто — заглушка.
   final String avatarThumbhash;
 
+  /// Личный чат: аккаунт собеседника заблокирован модерацией
+  /// (`Profile.accountBlocked`) — «Аккаунт заблокирован» вместо статуса,
+  /// писать нельзя.
+  final bool accountBlocked;
+
   /// Обложка сообщества — фон шапки его страницы (локальный файл, как
   /// [avatarPath]). Пусто — генеративный фон.
   final String coverPath;
@@ -556,6 +561,7 @@ class Chat with ChatMappable {
     this.inviteLink = '',
     this.avatarPath = '',
     this.avatarThumbhash = '',
+    this.accountBlocked = false,
     this.coverPath = '',
     this.phone = '',
     this.address = '',
@@ -639,9 +645,11 @@ class Chat with ChatMappable {
 
   /// Можно писать: не канал, либо админ/владелец канала (публикует посты; с
   /// известными правами — админ с правом публиковать). В чат «Iperon» пишет
-  /// только сервер — внизу «Звук», как у подписчика канала.
+  /// только сервер, заблокированному модерацией — никто: внизу «Звук», как у
+  /// подписчика канала.
   bool get canPost =>
       isMember &&
       !isSystem &&
+      !accountBlocked &&
       (type != ChatType.channel || myRole == ChatRole.owner || (myRole == ChatRole.admin && (myRights == null || myRights!.postMessages)));
 }

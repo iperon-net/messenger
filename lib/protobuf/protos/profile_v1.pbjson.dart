@@ -48,6 +48,7 @@ const Profile_Response$json = {
     {'1': 'hide_birth_year', '3': 9, '4': 1, '5': 8, '10': 'hideBirthYear'},
     {'1': 'official', '3': 10, '4': 1, '5': 8, '10': 'official'},
     {'1': 'avatarThumbhash', '3': 11, '4': 1, '5': 9, '10': 'avatarThumbhash'},
+    {'1': 'accountBlocked', '3': 12, '4': 1, '5': 8, '10': 'accountBlocked'},
   ],
   '8': [
     {'1': '_firstName'},
@@ -64,7 +65,7 @@ const Profile_Response$json = {
 /// Descriptor for `Profile`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List profileDescriptor =
     $convert.base64Decode('CgdQcm9maWxlGk8KB1JlcXVlc3QSGAoGdXNlcklEGAEgASgMSABSBnVzZXJJRBIcCgh1c2Vybm'
-        'FtZRgCIAEoCUgAUgh1c2VybmFtZUIMCgppZGVudGlmaWVyGpQECghSZXNwb25zZRIhCglmaXJz'
+        'FtZRgCIAEoCUgAUgh1c2VybmFtZUIMCgppZGVudGlmaWVyGrwECghSZXNwb25zZRIhCglmaXJz'
         'dE5hbWUYASABKAlIAFIJZmlyc3ROYW1liAEBEh8KCGxhc3ROYW1lGAIgASgJSAFSCGxhc3ROYW'
         '1liAEBEh0KB2Fib3V0TWUYBCABKAlIAlIHYWJvdXRNZYgBARI9CgliaXJ0aERhdGUYAyABKAsy'
         'Gi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wSANSCWJpcnRoRGF0ZYgBARIrCgZhdmF0YXIYBS'
@@ -72,6 +73,6 @@ final $typed_data.Uint8List profileDescriptor =
         'c2VybmFtZYgBARIlCgtwaG9uZU51bWJlchgHIAEoCUgGUgtwaG9uZU51bWJlcogBARIbCgZ1c2'
         'VySUQYCCABKAxIB1IGdXNlcklEiAEBEiYKD2hpZGVfYmlydGhfeWVhchgJIAEoCFINaGlkZUJp'
         'cnRoWWVhchIaCghvZmZpY2lhbBgKIAEoCFIIb2ZmaWNpYWwSKAoPYXZhdGFyVGh1bWJoYXNoGA'
-        'sgASgJUg9hdmF0YXJUaHVtYmhhc2hCDAoKX2ZpcnN0TmFtZUILCglfbGFzdE5hbWVCCgoIX2Fi'
-        'b3V0TWVCDAoKX2JpcnRoRGF0ZUIJCgdfYXZhdGFyQgsKCV91c2VybmFtZUIOCgxfcGhvbmVOdW'
-        '1iZXJCCQoHX3VzZXJJRA==');
+        'sgASgJUg9hdmF0YXJUaHVtYmhhc2gSJgoOYWNjb3VudEJsb2NrZWQYDCABKAhSDmFjY291bnRC'
+        'bG9ja2VkQgwKCl9maXJzdE5hbWVCCwoJX2xhc3ROYW1lQgoKCF9hYm91dE1lQgwKCl9iaXJ0aE'
+        'RhdGVCCQoHX2F2YXRhckILCglfdXNlcm5hbWVCDgoMX3Bob25lTnVtYmVyQgkKB191c2VySUQ=');

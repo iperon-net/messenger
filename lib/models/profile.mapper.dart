@@ -97,6 +97,13 @@ class ProfileMapper extends ClassMapperBase<Profile> {
     _$lastSeenAt,
     opt: true,
   );
+  static bool _$accountBlocked(Profile v) => v.accountBlocked;
+  static const Field<Profile, bool> _f$accountBlocked = Field(
+    'accountBlocked',
+    _$accountBlocked,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<Profile> fields = const {
@@ -111,6 +118,7 @@ class ProfileMapper extends ClassMapperBase<Profile> {
     #avatarCdnID: _f$avatarCdnID,
     #avatarThumbhash: _f$avatarThumbhash,
     #lastSeenAt: _f$lastSeenAt,
+    #accountBlocked: _f$accountBlocked,
   };
 
   static Profile _instantiate(DecodingData data) {
@@ -126,6 +134,7 @@ class ProfileMapper extends ClassMapperBase<Profile> {
       avatarCdnID: data.dec(_f$avatarCdnID),
       avatarThumbhash: data.dec(_f$avatarThumbhash),
       lastSeenAt: data.dec(_f$lastSeenAt),
+      accountBlocked: data.dec(_f$accountBlocked),
     );
   }
 
@@ -200,6 +209,7 @@ abstract class ProfileCopyWith<$R, $In extends Profile, $Out>
     List<int>? avatarCdnID,
     String? avatarThumbhash,
     DateTime? lastSeenAt,
+    bool? accountBlocked,
   });
   ProfileCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -241,6 +251,7 @@ class _ProfileCopyWithImpl<$R, $Out>
     Object? avatarCdnID = $none,
     String? avatarThumbhash,
     Object? lastSeenAt = $none,
+    bool? accountBlocked,
   }) => $apply(
     FieldCopyWithData({
       if (userID != null) #userID: userID,
@@ -254,6 +265,7 @@ class _ProfileCopyWithImpl<$R, $Out>
       if (avatarCdnID != $none) #avatarCdnID: avatarCdnID,
       if (avatarThumbhash != null) #avatarThumbhash: avatarThumbhash,
       if (lastSeenAt != $none) #lastSeenAt: lastSeenAt,
+      if (accountBlocked != null) #accountBlocked: accountBlocked,
     }),
   );
   @override
@@ -269,6 +281,7 @@ class _ProfileCopyWithImpl<$R, $Out>
     avatarCdnID: data.get(#avatarCdnID, or: $value.avatarCdnID),
     avatarThumbhash: data.get(#avatarThumbhash, or: $value.avatarThumbhash),
     lastSeenAt: data.get(#lastSeenAt, or: $value.lastSeenAt),
+    accountBlocked: data.get(#accountBlocked, or: $value.accountBlocked),
   );
 
   @override

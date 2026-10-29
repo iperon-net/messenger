@@ -190,6 +190,13 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
     opt: true,
     def: false,
   );
+  static bool _$accountBlocked(ProfileState v) => v.accountBlocked;
+  static const Field<ProfileState, bool> _f$accountBlocked = Field(
+    'accountBlocked',
+    _$accountBlocked,
+    opt: true,
+    def: false,
+  );
 
   @override
   final MappableFields<ProfileState> fields = const {
@@ -217,6 +224,7 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
     #contactName: _f$contactName,
     #contactCloud: _f$contactCloud,
     #blocked: _f$blocked,
+    #accountBlocked: _f$accountBlocked,
   };
 
   static ProfileState _instantiate(DecodingData data) {
@@ -245,6 +253,7 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
       contactName: data.dec(_f$contactName),
       contactCloud: data.dec(_f$contactCloud),
       blocked: data.dec(_f$blocked),
+      accountBlocked: data.dec(_f$accountBlocked),
     );
   }
 
@@ -336,6 +345,7 @@ abstract class ProfileStateCopyWith<$R, $In extends ProfileState, $Out>
     String? contactName,
     bool? contactCloud,
     bool? blocked,
+    bool? accountBlocked,
   });
   ProfileStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -381,6 +391,7 @@ class _ProfileStateCopyWithImpl<$R, $Out>
     String? contactName,
     bool? contactCloud,
     bool? blocked,
+    bool? accountBlocked,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -407,6 +418,7 @@ class _ProfileStateCopyWithImpl<$R, $Out>
       if (contactName != null) #contactName: contactName,
       if (contactCloud != null) #contactCloud: contactCloud,
       if (blocked != null) #blocked: blocked,
+      if (accountBlocked != null) #accountBlocked: accountBlocked,
     }),
   );
   @override
@@ -435,6 +447,7 @@ class _ProfileStateCopyWithImpl<$R, $Out>
     contactName: data.get(#contactName, or: $value.contactName),
     contactCloud: data.get(#contactCloud, or: $value.contactCloud),
     blocked: data.get(#blocked, or: $value.blocked),
+    accountBlocked: data.get(#accountBlocked, or: $value.accountBlocked),
   );
 
   @override

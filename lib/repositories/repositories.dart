@@ -1050,6 +1050,14 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(52, (tx) async {
+        // Аккаунт собеседника заблокирован модерацией (Profile.accountBlocked):
+        // «Аккаунт заблокирован» вместо статуса, писать нельзя.
+        await tx.execute('ALTER TABLE profiles ADD COLUMN accountBlocked INTEGER NOT NULL DEFAULT 0;');
+      }),
+    );
+
     return migrations;
   }
 }

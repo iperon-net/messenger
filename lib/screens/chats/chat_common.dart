@@ -55,6 +55,7 @@ export '../../components/chats/chat_toast.dart' show showChatToast;
     models.ChatType.private when chat.isSelf => (text: '', active: false),
     // «Iperon» — не человек: вместо «в сети» — что это за чат.
     models.ChatType.private when chat.isSystem => (text: t.systemNotice.subtitle, active: false),
+    models.ChatType.private when chat.accountBlocked => (text: t.screenChat.accountBlocked, active: false),
     models.ChatType.private => chatPresence(t, chat),
     models.ChatType.group || models.ChatType.community => (text: t.screenChat.members(n: count, count: count.grouped), active: false),
     models.ChatType.channel => (text: t.screenChat.subscribers(n: count, count: count.grouped), active: false),

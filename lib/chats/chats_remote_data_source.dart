@@ -465,6 +465,7 @@ class ChatsRemoteDataSource implements ChatsDataSource {
           username: info?.profile?.username ?? '',
           avatarPath: await _avatarPath(info?.profile?.avatarCdnID),
           avatarThumbhash: info?.profile?.avatarThumbhash ?? '',
+          accountBlocked: info?.profile?.accountBlocked ?? false,
           phone: info?.profile?.phoneNumber ?? '',
           online: peer != null && !isSelf && ChatsPresence.instance.isOnline(idHex(peer)),
           lastSeen: info?.profile?.lastSeenAt,

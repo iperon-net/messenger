@@ -18,7 +18,7 @@ class Profiles {
 
   Future<models.Profile> getByUserID({required List<int> userID}) async {
     final rows = await db.execute(
-      "SELECT userID, username, fistName, lastName, birthDate, hideBirthYear, aboutMe, phoneNumber, avatarCdnID, avatarThumbhash, lastSeenAt FROM profiles WHERE userID = ?;",
+      "SELECT userID, username, fistName, lastName, birthDate, hideBirthYear, aboutMe, phoneNumber, avatarCdnID, avatarThumbhash, lastSeenAt, accountBlocked FROM profiles WHERE userID = ?;",
       [userID],
     );
     if (rows.isEmpty) return models.Profile();
@@ -38,7 +38,7 @@ class Profiles {
     if (userIDs.isEmpty) return {};
     final placeholders = List.filled(userIDs.length, '?').join(',');
     final rows = await db.execute(
-      "SELECT userID, username, fistName, lastName, birthDate, hideBirthYear, aboutMe, phoneNumber, avatarCdnID, avatarThumbhash, lastSeenAt FROM profiles WHERE userID IN ($placeholders);",
+      "SELECT userID, username, fistName, lastName, birthDate, hideBirthYear, aboutMe, phoneNumber, avatarCdnID, avatarThumbhash, lastSeenAt, accountBlocked FROM profiles WHERE userID IN ($placeholders);",
       userIDs,
     );
     return {for (final row in rows) toHex(row["userID"] as List<int>): models.ProfileMapper.fromMap(row)};
@@ -90,11 +90,12 @@ class Profiles {
     bool hideBirthYear = false,
     String aboutMe = "",
     String phoneNumber = "",
+    bool accountBlocked = false,
   }) async {
     await db.execute(
       """
-      INSERT INTO profiles (userID, username, fistName, lastName, birthDate, hideBirthYear, aboutMe, phoneNumber)
-      VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO profiles (userID, username, fistName, lastName, birthDate, hideBirthYear, aboutMe, phoneNumber, accountBlocked)
+      VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(userID) DO UPDATE SET
         username = excluded.username,
         fistName = excluded.fistName,
@@ -102,9 +103,20 @@ class Profiles {
         birthDate = excluded.birthDate,
         hideBirthYear = excluded.hideBirthYear,
         aboutMe = excluded.aboutMe,
-        phoneNumber = excluded.phoneNumber;
+        phoneNumber = excluded.phoneNumber,
+        accountBlocked = excluded.accountBlocked;
       """,
-      [userID, username, fistName, lastName, birthDate?.millisecondsSinceEpoch, hideBirthYear ? 1 : 0, aboutMe, phoneNumber],
+      [
+        userID,
+        username,
+        fistName,
+        lastName,
+        birthDate?.millisecondsSinceEpoch,
+        hideBirthYear ? 1 : 0,
+        aboutMe,
+        phoneNumber,
+        accountBlocked ? 1 : 0,
+      ],
     );
   }
 

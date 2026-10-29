@@ -150,13 +150,16 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
 
     if (response.isBlocked) {
       _stop();
-      emit(
-        state.copyWith(
-          result: AuthCallPasswordConfirmationResult.blocked,
-          error: response.hasErrorMessage() ? response.errorMessage : null,
-          redirectURI: Uri.parse("/auth").toString(),
-        ),
-      );
+      // Подробности (причина, срок, поддержка) отдаёт гейт входа: идём в
+      // AUTH_CONFIRMATION напрямую (облачный пароль заблокированному не нужен)
+      // — он ответит accountBlocked с ними в трейлере.
+      var redirectURI = accountBlockedURI(const {});
+      if (response.confirmationSession.isNotEmpty) {
+        final completion = await AuthLoginCompleter().complete(response.confirmationSession);
+        if (completion.redirectURI.startsWith("/auth/blocked")) redirectURI = completion.redirectURI;
+      }
+      if (isClosed) return;
+      emit(state.copyWith(result: AuthCallPasswordConfirmationResult.blocked, status: Status.success, redirectURI: redirectURI));
       return;
     }
 

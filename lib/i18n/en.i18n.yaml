@@ -431,6 +431,7 @@
   "yesterday": "Yesterday"
   "online": "online"
   "lastSeenRecently": "last seen recently"
+  "accountBlocked": "Account blocked"
   "members(plural)":
     one: "{count} member"
     other: "{count} members"
@@ -1628,3 +1629,20 @@ dateTime:
 
 "qrLogin":
   "expired": "The QR code has expired — scan a new one on your computer"
+
+"auth":
+  "accountBlocked": "Account blocked"
+"screenAuthBlocked":
+  "title": "Account blocked"
+  "text": "You can't sign in to this account right now: it has been blocked for violating the Iperon rules."
+  "reason": "Reason: {reason}"
+  "until": "The block lasts until {date}."
+  "forever": "The block is permanent."
+  "support": "If you think this is a mistake, contact support:"
+  "back": "Back"
+  "reasons":
+    "spam": "spam"
+    "fraud": "fraud"
+    "abuse": "abuse and threats"
+    "illegal": "illegal content"
+    "rules": "rules violation"

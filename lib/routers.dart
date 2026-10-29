@@ -232,6 +232,10 @@ class Routers {
             );
           },
         ),
+        GoRoute(
+          path: "/blocked",
+          pageBuilder: (context, state) => _page(state, AuthBlockedCupertino(info: AuthBlockedInfo.fromQuery(state.uri.queryParameters))),
+        ),
       ],
     ),
   ];
@@ -2249,6 +2253,11 @@ class Routers {
               ),
             );
           },
+        ),
+        GoRoute(
+          path: "/blocked",
+          pageBuilder: (context, state) =>
+              _pageMaterial(state, AuthBlockedMaterial(info: AuthBlockedInfo.fromQuery(state.uri.queryParameters))),
         ),
       ],
     ),

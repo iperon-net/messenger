@@ -107,6 +107,7 @@ class Profile_Response extends $pb.GeneratedMessage {
     $core.bool? hideBirthYear,
     $core.bool? official,
     $core.String? avatarThumbhash,
+    $core.bool? accountBlocked,
   }) {
     final result = create();
     if (firstName != null) result.firstName = firstName;
@@ -120,6 +121,7 @@ class Profile_Response extends $pb.GeneratedMessage {
     if (hideBirthYear != null) result.hideBirthYear = hideBirthYear;
     if (official != null) result.official = official;
     if (avatarThumbhash != null) result.avatarThumbhash = avatarThumbhash;
+    if (accountBlocked != null) result.accountBlocked = accountBlocked;
     return result;
   }
 
@@ -143,6 +145,7 @@ class Profile_Response extends $pb.GeneratedMessage {
     ..aOB(9, _omitFieldNames ? '' : 'hideBirthYear')
     ..aOB(10, _omitFieldNames ? '' : 'official')
     ..aOS(11, _omitFieldNames ? '' : 'avatarThumbhash', protoName: 'avatarThumbhash')
+    ..aOB(12, _omitFieldNames ? '' : 'accountBlocked', protoName: 'accountBlocked')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -276,6 +279,18 @@ class Profile_Response extends $pb.GeneratedMessage {
   $core.bool hasAvatarThumbhash() => $_has(10);
   @$pb.TagNumber(11)
   void clearAvatarThumbhash() => $_clearField(11);
+
+  /// Аккаунт заблокирован модерацией: имени, аватара, «о себе», username и
+  /// номера нет; клиент показывает «Аккаунт заблокирован» вместо статуса и
+  /// поля ввода. Свой профиль так не приходит (заблокированный не входит).
+  @$pb.TagNumber(12)
+  $core.bool get accountBlocked => $_getBF(11);
+  @$pb.TagNumber(12)
+  set accountBlocked($core.bool value) => $_setBool(11, value);
+  @$pb.TagNumber(12)
+  $core.bool hasAccountBlocked() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearAccountBlocked() => $_clearField(12);
 }
 
 class Profile extends $pb.GeneratedMessage {

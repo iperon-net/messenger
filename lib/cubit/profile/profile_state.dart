@@ -65,6 +65,10 @@ class ProfileState with ProfileStateMappable {
   /// Человек у меня в «Заблокированных» (кэш настроек приватности).
   final bool blocked;
 
+  /// Аккаунт заблокирован модерацией (Profile.accountBlocked): вместо
+  /// статуса — «Аккаунт заблокирован».
+  final bool accountBlocked;
+
   /// Чат искали ([chatID] уже достоверен) — до этого секции чата не рисуем,
   /// чтобы экран не перестраивался.
   final bool chatResolved;
@@ -96,6 +100,7 @@ class ProfileState with ProfileStateMappable {
     this.contactName = "",
     this.contactCloud = false,
     this.blocked = false,
+    this.accountBlocked = false,
   });
 
   bool get isContact => contactPhoneE164.isNotEmpty;

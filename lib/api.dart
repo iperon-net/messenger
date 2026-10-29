@@ -134,7 +134,10 @@ class APICallStatus {
   final int statusCode;
   final bool isGrpc;
 
-  const APICallStatus({required this.status, this.error = "", this.isGrpc = false, required this.statusCode});
+  /// Трейлер ответа с ошибкой (подробности, например у `auth.accountBlocked`).
+  final Map<String, String> trailers;
+
+  const APICallStatus({required this.status, this.error = "", this.isGrpc = false, required this.statusCode, this.trailers = const {}});
 
   @override
   String toString() {
@@ -417,7 +420,12 @@ class API {
     } else if ([StatusCode.internal].contains(err.code)) {
       return APICallStatus(status: APIStatus.error, error: "grpcError.internalServerError", isGrpc: true, statusCode: err.code);
     } else {
-      return APICallStatus(status: APIStatus.error, error: err.message.toString(), statusCode: err.code);
+      return APICallStatus(
+        status: APIStatus.error,
+        error: err.message.toString(),
+        statusCode: err.code,
+        trailers: err.trailers ?? const {},
+      );
     }
   }
 
@@ -792,6 +800,7 @@ class API {
       hideBirthYear: payload.hideBirthYear,
       aboutMe: payload.aboutMe,
       phoneNumber: payload.phoneNumber,
+      accountBlocked: payload.accountBlocked,
     );
     // Размытое превью — сразу, до скачивания картинки: строки покажут его
     // вместо заглушки.

@@ -38,6 +38,11 @@ class Profile with ProfileMappable {
   /// ещё не знаем. online здесь НЕ храним — он эфемерный.
   final DateTime? lastSeenAt;
 
+  /// Аккаунт заблокирован модерацией (`Profile.Response.accountBlocked`):
+  /// имени и аватара нет, вместо статуса — «Аккаунт заблокирован», писать
+  /// нельзя.
+  final bool accountBlocked;
+
   const Profile({
     this.userID = const [],
     this.username = "",
@@ -50,5 +55,6 @@ class Profile with ProfileMappable {
     this.avatarCdnID,
     this.avatarThumbhash = "",
     this.lastSeenAt,
+    this.accountBlocked = false,
   });
 }
