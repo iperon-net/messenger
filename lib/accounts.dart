@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
+
+import 'package:path/path.dart' as p;
 
 import 'account_scope.dart';
 import 'di.dart';
@@ -46,11 +49,25 @@ Future<List<AccountEntry>> signedInAccounts({bool withUnread = false}) async {
           accountID: slot.accountID,
           userHex: utils.bytesToHex(slot.userID),
           title: slot.name.isNotEmpty ? slot.name : phone(slot.phoneNumber),
-          avatarPath: slot.avatarPath,
+          avatarPath: _avatarFile(slot.accountID, slot.avatarPath),
           active: slot.accountID == current,
           unread: slot.accountID == current ? 0 : badges[slot.accountID] ?? 0,
         ),
   ];
+}
+
+/// Аватар слота: в `device.db` — путь внутри папки данных аккаунта
+/// ([AccountProfileSync]). Прежний абсолютный путь в кэше — как есть, а если
+/// файла там нет (на iOS после обновления меняется контейнер) — тот же файл в
+/// нынешней папке кэша аккаунта. Нет файла — пусто (заглушка, а не битая
+/// картинка).
+String _avatarFile(String accountID, String stored) {
+  if (stored.isEmpty) return '';
+  final files = AccountFiles(supportDir: _device.supportDir, cacheRoot: _device.cacheRoot, accountID: accountID);
+  final candidates = p.isAbsolute(stored)
+      ? [stored, p.join(files.mediaDir.path, p.basename(stored))]
+      : [p.join(files.dataDir.path, stored)];
+  return candidates.where((path) => File(path).existsSync()).firstOrNull ?? '';
 }
 
 /// userID других аккаунтов, уже вошедших на устройстве: сервер не даст войти
@@ -153,7 +170,11 @@ Future<void> rejectCallAs(String accountID, {required String callId, required Li
 }
 
 /// Имя и аватар активного аккаунта — в его слот `device.db`: список аккаунтов
-/// показывает и неактивные, чьи базы закрыты. Сервис аккаунта
+/// показывает и неактивные, чьи базы закрыты. Аватар копируется в папку
+/// данных аккаунта ([_avatarDir]), а в слот идёт путь относительно неё: файл
+/// кэша система может удалить, а абсолютный путь на iOS ломается при смене
+/// контейнера после обновления — неактивный аккаунт его не перепишет, пока в
+/// него не переключиться. Сервис аккаунта
 /// ([AccountScope]); запускается в `startAccountServices`.
 class AccountProfileSync implements AccountService {
   AccountProfileSync._();
@@ -180,12 +201,31 @@ class AccountProfileSync implements AccountService {
       await _device.accounts.setProfile(
         accountID: _scope.accountID,
         name: name,
-        avatarPath: avatar?.path ?? '',
+        avatarPath: avatar == null ? '' : await _keepAvatar(avatar, getIt.get<Utils>().bytesToHex(Uint8List.fromList(cdnID!))),
         phoneNumber: user.phoneNumber,
       );
     } catch (error, stackTrace) {
       getIt.get<Logger>().handle(error, stackTrace);
     }
+  }
+
+  /// Папка копии аватара внутри данных аккаунта.
+  static const _avatarDir = 'account_avatar';
+
+  /// Копия [file] (аватар с cdnID [cdnHex]) в [_avatarDir]; прежние копии
+  /// удаляются. Возвращает путь относительно папки данных аккаунта.
+  Future<String> _keepAvatar(File file, String cdnHex) async {
+    final dir = await _scope.dataSubdir(_avatarDir);
+    final name = '$cdnHex${p.extension(file.path)}';
+    final copy = File(p.join(dir.path, name));
+    if (!await copy.exists()) {
+      await file.copy('${copy.path}.tmp');
+      await File('${copy.path}.tmp').rename(copy.path);
+    }
+    await for (final entry in dir.list()) {
+      if (entry is File && p.basename(entry.path) != name) await entry.delete();
+    }
+    return p.join(_avatarDir, name);
   }
 
   @override
