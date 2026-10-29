@@ -116,9 +116,9 @@ fanout api (`V1.postSystemNotice`, фоном, как `RecordCall`). Точки:
 | `RECOVERY_EMAIL_SET` | `CloudPasswordEmailVerify` (почта подтверждена). |
 | `PASSKEY_ADDED` / `REMOVED` | `PasskeyRegisterFinish` / `PasskeyDelete`. |
 
-Выключатель — `systemNotices.enabled` в конфиге сервера, **по умолчанию выключен**.
-Сборки без поддержки показали бы от «Iperon» пустое сообщение, поэтому включать
-только вместе с выходом клиента.
+Выключатель — `systemNotices.enabled` в «Настройки» админки (хранится в базе), **по умолчанию включён** (с 2026-10-29; раньше был выключен в конфиге сервера).
+Сборки без поддержки показали бы от «Iperon» пустое сообщение — клиент с
+поддержкой уже выпущен.
 
 Pre-auth события (`Confirmation`, `CloudPasswordVerify`, `RecoveryConfirm`) пишет
 сам `ServiceAuth` через узкий интерфейс `SystemNoticesInterface` (реализует api,
