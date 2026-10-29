@@ -81,8 +81,10 @@ class _ReportSheetState extends State<_ReportSheet> {
             children: [
               SizedBox(
                 height: 52,
+                // Отступы от краёв, как у CupertinoNavigationBar.
                 child: Row(
                   children: [
+                    const SizedBox(width: 16),
                     NavBarButtonCupertino(NavBarAction.cancel, onPressed: () => Navigator.of(context).pop(false)),
                     Expanded(
                       child: Text(
@@ -97,6 +99,7 @@ class _ReportSheetState extends State<_ReportSheet> {
                       loading: _sending,
                       onPressed: _reason == null ? null : _send,
                     ),
+                    const SizedBox(width: 16),
                   ],
                 ),
               ),
