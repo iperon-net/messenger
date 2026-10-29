@@ -818,19 +818,34 @@ Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController
       chat != null &&
       chat.type != models.ChatType.private &&
       (chat.type == models.ChatType.channel ? features.channelExtras && chat.canPost : features.groupExtras);
-  // Десктоп: галереи нет — сразу системный выбор файлов (фото и видео из них
-  // уходят как медиа, остальное — файлами); с опросом — сначала выбор.
+  // Десктоп: меню у скрепки, как в Telegram Desktop — «Фото или видео»
+  // (системный выбор, уходят медиа), «Файл» (как есть, без сжатия), «Опрос».
   if (AppPlatform.isDesktop) {
-    final poll = polls && await _desktopAttachPoll(context);
-    if (!context.mounted) return;
-    if (poll) {
-      final created = await showPollCreateMaterial(context, channel: chat.type == models.ChatType.channel);
+    final kind = await _desktopAttachMenu(context, polls: polls);
+    if (kind == null || !context.mounted) return;
+    if (kind == _DesktopAttach.poll) {
+      final created = await showPollCreateMaterial(context, channel: chat!.type == models.ChatType.channel);
       if (created != null) await cubit.sendPoll(created);
       return;
     }
-    final files = await pickAttachmentDocuments();
+    final List<AttachmentDraft> items;
+    if (kind == _DesktopAttach.media) {
+      final result = await showToolbarAttachments(
+        context,
+        tabs: const [ToolbarAttachmentTabKind.gallery],
+        media: ToolbarAttachmentMediaType.all,
+        multiSelect: true,
+      );
+      items = switch (result) {
+        ToolbarAttachmentImageResult(:final file) => [attachmentDraft(file.path)],
+        ToolbarAttachmentMultiImageResult(:final files) => [for (final file in files) attachmentDraft(file.path)],
+        _ => const [],
+      };
+    } else {
+      items = [for (final file in await pickAttachmentDocuments()) attachmentDraft(file.path, asFile: true)];
+    }
     if (!context.mounted) return;
-    await sendAttachmentDrafts(context, [for (final file in files) attachmentDraft(file.path)], input: input);
+    await sendAttachmentDrafts(context, items, input: input);
     return;
   }
   final result = await showToolbarAttachments(
@@ -861,30 +876,37 @@ Future<void> pickAndSendAttachments(BuildContext context, {TextEditingController
   await sendAttachmentDrafts(context, items, input: input);
 }
 
-/// Скрепка на десктопе в чате с опросами: `true` — «Опрос», `false` — «Файл»
-/// (или закрыли — тогда выбор файла тоже не открываем: см. вызов).
-Future<bool> _desktopAttachPoll(BuildContext context) async {
-  final poll = await m.showModalBottomSheet<bool>(
-    context: context,
-    builder: (context) => SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          m.ListTile(
-            leading: const m.Icon(m.Icons.attach_file),
-            title: Text(context.t.screenMyProfile.chooseFile),
-            onTap: () => Navigator.of(context).pop(false),
-          ),
-          m.ListTile(
-            leading: const m.Icon(m.Icons.poll_outlined),
-            title: Text(context.t.screenChat.poll),
-            onTap: () => Navigator.of(context).pop(true),
-          ),
-        ],
-      ),
-    ),
+enum _DesktopAttach { media, file, poll }
+
+/// Меню скрепки на десктопе — над кнопкой [context] (контекст самой кнопки);
+/// `null` — закрыли.
+Future<_DesktopAttach?> _desktopAttachMenu(BuildContext context, {required bool polls}) {
+  final t = context.t.screenChat;
+  final button = context.findRenderObject()! as RenderBox;
+  final overlay = Navigator.of(context).overlay!.context.findRenderObject()! as RenderBox;
+  final rect = Rect.fromPoints(
+    button.localToGlobal(Offset.zero, ancestor: overlay),
+    button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
   );
-  return poll ?? false;
+  const itemHeight = 40.0;
+  m.PopupMenuItem<_DesktopAttach> item(_DesktopAttach value, m.IconData icon, String title) => m.PopupMenuItem(
+    value: value,
+    height: itemHeight,
+    child: Row(children: [m.Icon(icon, size: 20), const SizedBox(width: 12), Text(title)]),
+  );
+  final items = [
+    item(_DesktopAttach.media, m.Icons.photo_outlined, t.attachMedia),
+    item(_DesktopAttach.file, m.Icons.insert_drive_file_outlined, t.file),
+    if (polls) item(_DesktopAttach.poll, m.Icons.poll_outlined, t.poll),
+  ];
+  // Над скрепкой: showMenu кладёт меню верхним краем в точку, поэтому точка —
+  // выше кнопки на высоту меню (пункты + отступы списка по 8).
+  final top = rect.top - items.length * itemHeight - 16 - 4;
+  return m.showMenu<_DesktopAttach>(
+    context: context,
+    position: RelativeRect.fromRect(Rect.fromLTWH(rect.left, top, 0, 0), Offset.zero & overlay.size),
+    items: items,
+  );
 }
 
 /// Вставка из буфера обмена (меню «Вставить» в поле ввода, картинка с

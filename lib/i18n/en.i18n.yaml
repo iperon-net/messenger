@@ -665,6 +665,7 @@
   "mediaCounter": "{current} of {total}"
   "addCaption": "Add a caption…"
   "send": "Send"
+  "attachMedia": "Photo or video"
 
 "screenSettings":
   "settings": "Settings"

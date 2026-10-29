@@ -1391,14 +1391,17 @@ class _ComposeBar extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     if (!recorder.active)
-                      IconButton(
-                        icon: const Icon(Icons.attach_file),
-                        color: scheme.onSurfaceVariant,
-                        onPressed: !editing
-                            ? () => pickAndSendAttachments(context, input: input)
-                            : context.read<ChatCubit>().canEditMedia
-                            ? () => pickEditAttachments(context, index: editMediaMode(state.editing!) == EditMediaMode.album ? -1 : 0)
-                            : null,
+                      // Builder — контекст самой кнопки: меню скрепки на десктопе встаёт над ней.
+                      Builder(
+                        builder: (context) => IconButton(
+                          icon: const Icon(Icons.attach_file),
+                          color: scheme.onSurfaceVariant,
+                          onPressed: !editing
+                              ? () => pickAndSendAttachments(context, input: input)
+                              : context.read<ChatCubit>().canEditMedia
+                              ? () => pickEditAttachments(context, index: editMediaMode(state.editing!) == EditMediaMode.album ? -1 : 0)
+                              : null,
+                        ),
                       ),
                     Expanded(
                       child: recorder.active

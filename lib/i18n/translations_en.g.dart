@@ -2092,6 +2092,9 @@ class Translations$screenChat$en {
 
 	/// en: 'Send'
 	String get send => 'Send';
+
+	/// en: 'Photo or video'
+	String get attachMedia => 'Photo or video';
 }
 
 // Path: screenSettings
@@ -5883,6 +5886,7 @@ extension on Translations {
 			'screenChat.mediaCounter' => ({required Object current, required Object total}) => '${current} of ${total}',
 			'screenChat.addCaption' => 'Add a caption…',
 			'screenChat.send' => 'Send',
+			'screenChat.attachMedia' => 'Photo or video',
 			'screenSettings.settings' => 'Settings',
 			'screenSettings.myProfile' => 'My profile',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
@@ -6290,9 +6294,9 @@ extension on Translations {
 			'cloudPassword.codePlaceholder' => 'Code from email',
 			'cloudPassword.newPasswordPlaceholder' => 'New password',
 			'cloudPassword.repeatPasswordPlaceholder' => 'Repeat password',
-			'cloudPassword.currentPasswordPlaceholder' => 'Current password',
 			_ => null,
 		} ?? switch (path) {
+			'cloudPassword.currentPasswordPlaceholder' => 'Current password',
 			'cloudPassword.resetPassword' => 'Reset password',
 			'cloudPassword.reset' => 'Reset',
 			'cloudPassword.attemptsLeft' => ({required Object count}) => 'Attempts left: ${count}',

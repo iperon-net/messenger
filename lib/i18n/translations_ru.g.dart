@@ -884,6 +884,7 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String mediaCounter({required Object current, required Object total}) => '${current} из ${total}';
 	@override String get addCaption => 'Добавить подпись…';
 	@override String get send => 'Отправить';
+	@override String get attachMedia => 'Фото или видео';
 }
 
 // Path: screenSettings
@@ -2880,6 +2881,7 @@ extension on TranslationsRu {
 			'screenChat.mediaCounter' => ({required Object current, required Object total}) => '${current} из ${total}',
 			'screenChat.addCaption' => 'Добавить подпись…',
 			'screenChat.send' => 'Отправить',
+			'screenChat.attachMedia' => 'Фото или видео',
 			'screenSettings.settings' => 'Настройки',
 			'screenSettings.myProfile' => 'Мой профиль',
 			'screenSettings.devices' => _root.screenSettingsDevices.devices,
@@ -3287,9 +3289,9 @@ extension on TranslationsRu {
 			'cloudPassword.codePlaceholder' => 'Код из письма',
 			'cloudPassword.newPasswordPlaceholder' => 'Новый пароль',
 			'cloudPassword.repeatPasswordPlaceholder' => 'Повторите пароль',
-			'cloudPassword.currentPasswordPlaceholder' => 'Текущий пароль',
 			_ => null,
 		} ?? switch (path) {
+			'cloudPassword.currentPasswordPlaceholder' => 'Текущий пароль',
 			'cloudPassword.resetPassword' => 'Сбросить пароль',
 			'cloudPassword.reset' => 'Сбросить',
 			'cloudPassword.attemptsLeft' => ({required Object count}) => 'Осталось попыток: ${count}',
