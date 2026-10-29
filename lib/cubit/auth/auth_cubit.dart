@@ -73,7 +73,9 @@ class AuthCubit extends Cubit<AuthState> {
       return;
     }
 
-    // Workflow moderation application store
+    // Workflow moderation application store — по списку из Remote Config,
+    // пока он есть (переходный период: сервер сам отвечает fixedCode на
+    // AUTH_CALL_PASSWORD, см. ниже).
     final phoneNumberEnable = settings.phoneNumberModerationApplicationStoreEnable;
     if (phoneNumberEnable && settings.phoneNumbersModerationApplicationStore.contains(phoneNumberNormalization.raw)) {
       final messageRequest = Message(
@@ -124,6 +126,19 @@ class AuthCubit extends Cubit<AuthState> {
     }
 
     final messageResponse = AuthCallPassword_Response.fromBuffer(response.message);
+
+    // Тестовый аккаунт (админка → «Тестовые аккаунты»): сервер не звонит, а
+    // сразу даёт сессию входа по постоянному коду.
+    if (messageResponse.fixedCode) {
+      final uri = Uri.parse("/auth/moderation_application_store").replace(
+        queryParameters: {
+          "moderationApplicationStoreSession": utils.bytesToHex(Uint8List.fromList(messageResponse.fixedCodeSession)),
+          "phoneNumber": phoneNumberNormalization.international,
+        },
+      );
+      emit(state.copyWith(status: Status.success, error: "", redirectURI: uri.toString()));
+      return;
+    }
 
     final callPasswordSession = utils.bytesToHex(Uint8List.fromList(messageResponse.callPasswordSession));
 
