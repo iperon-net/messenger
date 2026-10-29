@@ -21,6 +21,8 @@ import '../chats/chat_ttl.dart';
 import '../chats/secret_chat_common.dart';
 import '../home/contacts_add_cupertino.dart';
 import 'profile_common.dart';
+import '../report/report_common.dart';
+import '../report/report_cupertino.dart';
 
 /// Профиль пользователя (iOS) — один экран, откуда бы его ни открыли:
 /// Контакты, Звонки, участник группы, упоминание или шапка личного чата
@@ -247,6 +249,12 @@ class _ProfileViewState extends State<_ProfileView> {
         title: t.screenProfile.hideProfile,
         icon: CupertinoIcons.eye_slash,
         onTap: () => context.push('${profileRoute(context, profileHex(profile.userID))}/hide'),
+      ),
+      ChatInfoMoreItem(
+        title: t.report.title,
+        icon: CupertinoIcons.flag,
+        destructive: true,
+        onTap: () => showReportCupertino(context, ReportTarget.user(profile.userID)),
       ),
       ChatInfoMoreItem(
         title: profile.blocked ? t.screenProfile.unblock : t.screenProfile.block,

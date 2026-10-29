@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+// Жалоба модерации (MessageType_REPORT, зашифрованный unary; этап 3 плана
+// docs/plans/admin-panel.md клиента). Ответа по существу нет: о решении
+// пожаловавшийся не узнаёт, как в Telegram.
+message Report {
+  enum Reason {
+    REASON_UNKNOWN = 0;
+    SPAM = 1;
+    VIOLENCE = 2;
+    PORNOGRAPHY = 3;
+    CHILD_ABUSE = 4;
+    ILLEGAL_DRUGS = 5;
+    PERSONAL_DATA = 6;
+    FAKE = 7;
+    COPYRIGHT = 8;
+    OTHER = 9;
+  }
+
+  message Request {
+    // На кого — одно из двух: userID (профиль, секретный чат — без
+    // содержимого) или chatID (личный чат — на собеседника, группа, канал).
+    bytes userID = 1;
+    bytes chatID = 2;
+    // Сообщения чата chatID — доказательства (до 20; в личном чате только
+    // они попадают модератору). Пусто для группы / канала — последние
+    // сообщения чата.
+    repeated int64 messageIDs = 3;
+    Reason reason = 4;
+    // Необязательный комментарий (до 1000 символов).
+    string comment = 5;
+  }
+
+  message Response {}
+}

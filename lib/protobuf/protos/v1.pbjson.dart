@@ -114,6 +114,7 @@ const MessageType$json = {
     {'1': 'CRASH_REPORT', '2': 94},
     {'1': 'AUTH_QR', '2': 95},
     {'1': 'AUTH_QR_CONFIRM', '2': 96},
+    {'1': 'REPORT', '2': 97},
   ],
   '4': [
     {'1': 16, '2': 16},
@@ -169,7 +170,8 @@ final $typed_data.Uint8List messageTypeDescriptor =
         'VfTlVNQkVSX0ZJTkRfVVBEQVRFEFoSIAocUFJJVkFDWV9HUk9VUF9JTlZJVEVTX1VQREFURRBb'
         'EiYKIlBSSVZBQ1lfR1JPVVBfSU5WSVRFU19BTExPV19VUERBVEUQXBIlCiFQUklWQUNZX0dST1'
         'VQX0lOVklURVNfREVOWV9VUERBVEUQXRIQCgxDUkFTSF9SRVBPUlQQXhILCgdBVVRIX1FSEF8S'
-        'EwoPQVVUSF9RUl9DT05GSVJNEGAiBAgQEBAiBAgREBEiBAgSEBIiBAgVEBU=');
+        'EwoPQVVUSF9RUl9DT05GSVJNEGASCgoGUkVQT1JUEGEiBAgQEBAiBAgREBEiBAgSEBIiBAgVEB'
+        'U=');
 
 @$core.Deprecated('Use messageDescriptor instead')
 const Message$json = {

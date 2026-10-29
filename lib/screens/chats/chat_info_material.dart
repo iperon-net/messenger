@@ -32,6 +32,8 @@ import 'community_common.dart';
 import 'community_material.dart';
 import 'chat_actions_material.dart';
 import '../profile/profile_material.dart';
+import '../report/report_common.dart';
+import '../report/report_material.dart';
 
 /// Профиль чата (Android) — тап по шапке окна чата. Результат — что сделать в
 /// чате: поиск или переход к сообщению.
@@ -161,6 +163,12 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                 title: Text(chatNoForwardsActionLabel(t, noForwards: chat.noForwards, mine: chat.noForwardsMine)),
                 onTap: () => Navigator.of(sheetContext).pop('noForwards'),
               ),
+            if (ReportTarget.fromChat(chat) != null)
+              ListTile(
+                leading: Icon(Icons.flag_outlined, color: error),
+                title: Text(t.report.title, style: TextStyle(color: error)),
+                onTap: () => Navigator.of(sheetContext).pop('report'),
+              ),
             if (!chat.announcements)
               ListTile(
                 leading: Icon(chatInfoDeletes(chat) ? Icons.delete_outline : Icons.logout, color: error),
@@ -183,6 +191,9 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
         await _leave(context, chat);
       case 'secret':
         await startSecretChat(context, getIt.get<Utils>().hexToBytes(chat.peerUserID));
+      case 'report':
+        final report = ReportTarget.fromChat(chat);
+        if (report != null) await showReportMaterial(context, report);
     }
   }
 

@@ -110,3 +110,6 @@ export 'profile/profile_hide_cupertino.dart';
 export 'profile/profile_hide_material.dart';
 export 'settings/settings_chat_themes_cupertino.dart';
 export 'settings/settings_chat_themes_material.dart';
+export 'report/report_common.dart';
+export 'report/report_cupertino.dart';
+export 'report/report_material.dart';

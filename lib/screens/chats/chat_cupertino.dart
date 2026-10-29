@@ -36,6 +36,8 @@ import 'pin_scope_cupertino.dart';
 import 'scheduled_messages_cupertino.dart';
 import 'system_notice_common.dart';
 import 'voice_recorder.dart';
+import '../report/report_common.dart';
+import '../report/report_cupertino.dart';
 
 /// Окно чата (iOS): шапка с аватаром и «печатает…», лента пузырей, поле ввода
 /// с markdown-ярлыками и скрепкой; в канале вместо поля — «Выключить звук».
@@ -980,6 +982,9 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
             : action(t.closeComments, CupertinoIcons.lock, () async {
                 if (await confirmCloseComments(context)) await _cubit.setCommentsClosed(message, true);
               }, destructive: true),
+      if (!message.outgoing && !message.service)
+        if (ReportTarget.fromChat(chat, messages: [message]) case final report?)
+          action(context.t.report.title, CupertinoIcons.flag, () => showReportCupertino(context, report), destructive: true),
       action(t.select, CupertinoIcons.checkmark_circle, () => _cubit.startSelection(message)),
     ];
   }

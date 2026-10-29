@@ -175,6 +175,8 @@ enum MessageType {
   // опрос), AUTH_QR_CONFIRM — телефон подтверждает. См. qr_login_v1.proto.
   AUTH_QR = 95;
   AUTH_QR_CONFIRM = 96;
+  // Жалоба модерации (пользователь, чат, сообщения). См. reports_v1.proto.
+  REPORT = 97;
 }
 
 service Iperon {

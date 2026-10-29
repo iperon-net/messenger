@@ -22,6 +22,8 @@ import '../chats/chat_ttl.dart';
 import '../chats/secret_chat_common.dart';
 import '../home/contacts_add_material.dart';
 import 'profile_common.dart';
+import '../report/report_common.dart';
+import '../report/report_material.dart';
 
 /// Профиль пользователя (Android) — один экран, откуда бы его ни открыли:
 /// Контакты, Звонки, участник группы, упоминание или шапка личного чата
@@ -230,6 +232,11 @@ class _ProfileViewState extends State<_ProfileView> {
         onTap: () => Navigator.of(sheetContext).pop('hide'),
       ),
       ListTile(
+        leading: Icon(Icons.flag_outlined, color: error),
+        title: Text(t.report.title, style: TextStyle(color: error)),
+        onTap: () => Navigator.of(sheetContext).pop('report'),
+      ),
+      ListTile(
         leading: Icon(Icons.block, color: profile.blocked ? null : error),
         title: Text(
           profile.blocked ? t.screenProfile.unblock : t.screenProfile.block,
@@ -254,6 +261,8 @@ class _ProfileViewState extends State<_ProfileView> {
         await setChatNoForwards(context, context.read<ChatCubit>(), !chat!.noForwards);
       case 'hide':
         await context.push('${profileRoute(context, profileHex(profile.userID))}/hide');
+      case 'report':
+        await showReportMaterial(context, ReportTarget.user(profile.userID));
       case 'block':
         await _setBlocked(context, profile, !profile.blocked);
       case 'delete':

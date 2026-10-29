@@ -22,3 +22,4 @@ export './protos/cloud_password_v1.pb.dart';
 export './protos/passkey_v1.pb.dart';
 export './protos/yandex_v1.pb.dart';
 export './protos/qr_login_v1.pb.dart';
+export './protos/reports_v1.pb.dart';

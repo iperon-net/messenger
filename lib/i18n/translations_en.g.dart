@@ -92,6 +92,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$qrLogin$en qrLogin = Translations$qrLogin$en.internal(_root);
 	late final Translations$auth$en auth = Translations$auth$en.internal(_root);
 	late final Translations$screenAuthBlocked$en screenAuthBlocked = Translations$screenAuthBlocked$en.internal(_root);
+	late final Translations$report$en report = Translations$report$en.internal(_root);
 }
 
 // Path: common
@@ -5097,6 +5098,41 @@ class Translations$screenAuthBlocked$en {
 	late final Translations$screenAuthBlocked$reasons$en reasons = Translations$screenAuthBlocked$reasons$en.internal(_root);
 }
 
+// Path: report
+class Translations$report$en {
+	Translations$report$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Report'
+	String get title => 'Report';
+
+	/// en: 'What's wrong? Moderators will see the reason and comment; the reported person won't know who reported them.'
+	String get question => 'What\'s wrong? Moderators will see the reason and comment; the reported person won\'t know who reported them.';
+
+	/// en: 'Comment (optional)'
+	String get comment => 'Comment (optional)';
+
+	/// en: 'Send'
+	String get send => 'Send';
+
+	/// en: 'Thank you! Moderators will review the report.'
+	String get thanks => 'Thank you! Moderators will review the report.';
+
+	/// en: 'No connection — the report was not sent.'
+	String get offline => 'No connection — the report was not sent.';
+
+	/// en: 'Too many reports in a row. Please try later.'
+	String get flood => 'Too many reports in a row. Please try later.';
+
+	/// en: 'Could not send the report. Please try again.'
+	String get failed => 'Could not send the report. Please try again.';
+
+	late final Translations$report$reasons$en reasons = Translations$report$reasons$en.internal(_root);
+}
+
 // Path: screenAuthBlocked.reasons
 class Translations$screenAuthBlocked$reasons$en {
 	Translations$screenAuthBlocked$reasons$en.internal(this._root);
@@ -5119,6 +5155,42 @@ class Translations$screenAuthBlocked$reasons$en {
 
 	/// en: 'rules violation'
 	String get rules => 'rules violation';
+}
+
+// Path: report.reasons
+class Translations$report$reasons$en {
+	Translations$report$reasons$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Spam'
+	String get spam => 'Spam';
+
+	/// en: 'Violence and threats'
+	String get violence => 'Violence and threats';
+
+	/// en: 'Pornography'
+	String get pornography => 'Pornography';
+
+	/// en: 'Child abuse'
+	String get childAbuse => 'Child abuse';
+
+	/// en: 'Drugs'
+	String get drugs => 'Drugs';
+
+	/// en: 'Someone else's personal data'
+	String get personalData => 'Someone else\'s personal data';
+
+	/// en: 'Fake or impersonation'
+	String get fake => 'Fake or impersonation';
+
+	/// en: 'Copyright infringement'
+	String get copyright => 'Copyright infringement';
+
+	/// en: 'Other'
+	String get other => 'Other';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -6623,6 +6695,23 @@ extension on Translations {
 			'screenAuthBlocked.reasons.abuse' => 'abuse and threats',
 			'screenAuthBlocked.reasons.illegal' => 'illegal content',
 			'screenAuthBlocked.reasons.rules' => 'rules violation',
+			'report.title' => 'Report',
+			'report.question' => 'What\'s wrong? Moderators will see the reason and comment; the reported person won\'t know who reported them.',
+			'report.comment' => 'Comment (optional)',
+			'report.send' => 'Send',
+			'report.thanks' => 'Thank you! Moderators will review the report.',
+			'report.offline' => 'No connection — the report was not sent.',
+			'report.flood' => 'Too many reports in a row. Please try later.',
+			'report.failed' => 'Could not send the report. Please try again.',
+			'report.reasons.spam' => 'Spam',
+			'report.reasons.violence' => 'Violence and threats',
+			'report.reasons.pornography' => 'Pornography',
+			'report.reasons.childAbuse' => 'Child abuse',
+			'report.reasons.drugs' => 'Drugs',
+			'report.reasons.personalData' => 'Someone else\'s personal data',
+			'report.reasons.fake' => 'Fake or impersonation',
+			'report.reasons.copyright' => 'Copyright infringement',
+			'report.reasons.other' => 'Other',
 			_ => null,
 		};
 	}

@@ -1646,3 +1646,23 @@ dateTime:
     "abuse": "abuse and threats"
     "illegal": "illegal content"
     "rules": "rules violation"
+
+"report":
+  "title": "Report"
+  "question": "What's wrong? Moderators will see the reason and comment; the reported person won't know who reported them."
+  "comment": "Comment (optional)"
+  "send": "Send"
+  "thanks": "Thank you! Moderators will review the report."
+  "offline": "No connection — the report was not sent."
+  "flood": "Too many reports in a row. Please try later."
+  "failed": "Could not send the report. Please try again."
+  "reasons":
+    "spam": "Spam"
+    "violence": "Violence and threats"
+    "pornography": "Pornography"
+    "childAbuse": "Child abuse"
+    "drugs": "Drugs"
+    "personalData": "Someone else's personal data"
+    "fake": "Fake or impersonation"
+    "copyright": "Copyright infringement"
+    "other": "Other"

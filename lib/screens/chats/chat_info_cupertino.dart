@@ -32,6 +32,8 @@ import 'community_common.dart';
 import 'community_cupertino.dart';
 import 'chat_actions_cupertino.dart';
 import '../profile/profile_cupertino.dart';
+import '../report/report_common.dart';
+import '../report/report_cupertino.dart';
 
 /// Профиль чата (iOS) — тап по шапке окна чата. Результат — что сделать в
 /// чате: поиск или переход к сообщению.
@@ -176,6 +178,13 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
           title: chatNoForwardsActionLabel(t, noForwards: chat.noForwards, mine: chat.noForwardsMine),
           icon: chat.noForwards ? CupertinoIcons.lock_open : CupertinoIcons.lock_shield,
           onTap: () => setChatNoForwards(context, context.read<ChatCubit>(), !chat.noForwards),
+        ),
+      if (ReportTarget.fromChat(chat) case final report?)
+        ChatInfoMoreItem(
+          title: t.report.title,
+          icon: CupertinoIcons.flag,
+          destructive: true,
+          onTap: () => showReportCupertino(context, report),
         ),
       if (!chat.announcements)
         ChatInfoMoreItem(

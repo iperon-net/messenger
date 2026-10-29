@@ -41,6 +41,8 @@ import 'pin_scope_material.dart';
 import 'scheduled_messages_material.dart';
 import 'system_notice_common.dart';
 import 'voice_recorder.dart';
+import '../report/report_common.dart';
+import '../report/report_material.dart';
 
 /// Окно чата (Android): шапка с аватаром и «печатает…», лента пузырей, поле
 /// ввода с markdown-ярлыками и скрепкой; в канале вместо поля — «Выключить
@@ -1054,6 +1056,12 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
                         title: Text(t.closeComments, style: TextStyle(color: error)),
                         onTap: () => Navigator.of(sheetContext).pop('closeComments'),
                       ),
+              if (!message.outgoing && !message.service && ReportTarget.fromChat(chat, messages: [message]) != null)
+                ListTile(
+                  leading: Icon(Icons.flag_outlined, color: error),
+                  title: Text(context.t.report.title, style: TextStyle(color: error)),
+                  onTap: () => Navigator.of(sheetContext).pop('report'),
+                ),
               ListTile(
                 leading: const Icon(Icons.check_circle_outline),
                 title: Text(t.select),
@@ -1110,6 +1118,9 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
         await showReactionsList(context, _cubit, message);
       case 'select':
         _cubit.startSelection(message);
+      case 'report':
+        final report = ReportTarget.fromChat(chat, messages: [message]);
+        if (report != null) await showReportMaterial(context, report);
       case 'delete':
         final forEveryone = await _askDelete(context, chat, 1);
         if (forEveryone != null && context.mounted) {

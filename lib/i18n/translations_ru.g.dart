@@ -90,6 +90,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$qrLogin$ru qrLogin = _Translations$qrLogin$ru._(_root);
 	@override late final _Translations$auth$ru auth = _Translations$auth$ru._(_root);
 	@override late final _Translations$screenAuthBlocked$ru screenAuthBlocked = _Translations$screenAuthBlocked$ru._(_root);
+	@override late final _Translations$report$ru report = _Translations$report$ru._(_root);
 }
 
 // Path: common
@@ -2175,6 +2176,24 @@ class _Translations$screenAuthBlocked$ru extends Translations$screenAuthBlocked$
 	@override late final _Translations$screenAuthBlocked$reasons$ru reasons = _Translations$screenAuthBlocked$reasons$ru._(_root);
 }
 
+// Path: report
+class _Translations$report$ru extends Translations$report$en {
+	_Translations$report$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Пожаловаться';
+	@override String get question => 'Что не так? Модераторы увидят причину и комментарий, нарушитель не узнает, кто пожаловался.';
+	@override String get comment => 'Комментарий (необязательно)';
+	@override String get send => 'Отправить';
+	@override String get thanks => 'Спасибо! Модераторы рассмотрят жалобу.';
+	@override String get offline => 'Нет соединения — жалоба не отправлена.';
+	@override String get flood => 'Слишком много жалоб подряд. Попробуйте позже.';
+	@override String get failed => 'Не удалось отправить жалобу. Попробуйте ещё раз.';
+	@override late final _Translations$report$reasons$ru reasons = _Translations$report$reasons$ru._(_root);
+}
+
 // Path: screenAuthBlocked.reasons
 class _Translations$screenAuthBlocked$reasons$ru extends Translations$screenAuthBlocked$reasons$en {
 	_Translations$screenAuthBlocked$reasons$ru._(TranslationsRu root) : this._root = root, super.internal(root);
@@ -2187,6 +2206,24 @@ class _Translations$screenAuthBlocked$reasons$ru extends Translations$screenAuth
 	@override String get abuse => 'оскорбления и угрозы';
 	@override String get illegal => 'незаконный контент';
 	@override String get rules => 'нарушение правил';
+}
+
+// Path: report.reasons
+class _Translations$report$reasons$ru extends Translations$report$reasons$en {
+	_Translations$report$reasons$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get spam => 'Спам';
+	@override String get violence => 'Насилие и угрозы';
+	@override String get pornography => 'Порнография';
+	@override String get childAbuse => 'Насилие над детьми';
+	@override String get drugs => 'Наркотики';
+	@override String get personalData => 'Чужие личные данные';
+	@override String get fake => 'Фейк или выдаёт себя за другого';
+	@override String get copyright => 'Нарушение авторских прав';
+	@override String get other => 'Другое';
 }
 
 /// The flat map containing all translations for locale <ru>.
@@ -3691,6 +3728,23 @@ extension on TranslationsRu {
 			'screenAuthBlocked.reasons.abuse' => 'оскорбления и угрозы',
 			'screenAuthBlocked.reasons.illegal' => 'незаконный контент',
 			'screenAuthBlocked.reasons.rules' => 'нарушение правил',
+			'report.title' => 'Пожаловаться',
+			'report.question' => 'Что не так? Модераторы увидят причину и комментарий, нарушитель не узнает, кто пожаловался.',
+			'report.comment' => 'Комментарий (необязательно)',
+			'report.send' => 'Отправить',
+			'report.thanks' => 'Спасибо! Модераторы рассмотрят жалобу.',
+			'report.offline' => 'Нет соединения — жалоба не отправлена.',
+			'report.flood' => 'Слишком много жалоб подряд. Попробуйте позже.',
+			'report.failed' => 'Не удалось отправить жалобу. Попробуйте ещё раз.',
+			'report.reasons.spam' => 'Спам',
+			'report.reasons.violence' => 'Насилие и угрозы',
+			'report.reasons.pornography' => 'Порнография',
+			'report.reasons.childAbuse' => 'Насилие над детьми',
+			'report.reasons.drugs' => 'Наркотики',
+			'report.reasons.personalData' => 'Чужие личные данные',
+			'report.reasons.fake' => 'Фейк или выдаёт себя за другого',
+			'report.reasons.copyright' => 'Нарушение авторских прав',
+			'report.reasons.other' => 'Другое',
 			_ => null,
 		};
 	}

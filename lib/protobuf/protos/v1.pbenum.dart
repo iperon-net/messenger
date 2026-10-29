@@ -211,6 +211,9 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType AUTH_QR = MessageType._(95, _omitEnumNames ? '' : 'AUTH_QR');
   static const MessageType AUTH_QR_CONFIRM = MessageType._(96, _omitEnumNames ? '' : 'AUTH_QR_CONFIRM');
 
+  /// Жалоба модерации (пользователь, чат, сообщения). См. reports_v1.proto.
+  static const MessageType REPORT = MessageType._(97, _omitEnumNames ? '' : 'REPORT');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -305,9 +308,10 @@ class MessageType extends $pb.ProtobufEnum {
     CRASH_REPORT,
     AUTH_QR,
     AUTH_QR_CONFIRM,
+    REPORT,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 96);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 97);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);
