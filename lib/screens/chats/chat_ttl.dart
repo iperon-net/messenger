@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart' as m;
 import '../../chats/chats_sync.dart';
 import '../../components/chats/message_bubble.dart' show chatTTLDay, chatTTLLabel;
 import '../../cubit.dart';
+import '../../components/actions_sheet_material.dart';
 import '../../i18n/translations.g.dart';
 import 'chat_common.dart';
 
@@ -63,9 +64,8 @@ List<Widget> chatTTLMenuCupertino(BuildContext context, int current, ValueChange
 Future<int?> pickChatTTLMaterial(BuildContext context, int current) async {
   final t = context.t;
   const other = -1;
-  final picked = await m.showModalBottomSheet<int>(
+  final picked = await showActionsMaterial<int>(
     context: context,
-    showDragHandle: true,
     builder: (sheetContext) {
       Widget option(int period, String label) => m.ListTile(
         leading: m.Icon(period == 0 ? m.Icons.timer_off_outlined : m.Icons.timer_outlined),

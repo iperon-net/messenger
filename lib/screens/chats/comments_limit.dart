@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart' as m;
 
+import '../../components/actions_sheet_material.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 
@@ -98,9 +99,8 @@ Future<T?> _pick<T>(
   required String Function(T value) label,
   required IconData Function(T value) icon,
 }) {
-  return m.showModalBottomSheet<T>(
+  return showActionsMaterial<T>(
     context: context,
-    showDragHandle: true,
     isScrollControlled: true,
     builder: (sheetContext) => SafeArea(
       child: SingleChildScrollView(

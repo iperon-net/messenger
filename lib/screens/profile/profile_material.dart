@@ -174,9 +174,8 @@ class _ProfileViewState extends State<_ProfileView> {
     final error = Theme.of(context).colorScheme.error;
     // «Iperon» — только удалить чат (новое уведомление вернёт его).
     final system = profileIsSystem(profile.userID);
-    final action = await showModalBottomSheet<String>(
+    final action = await showActionsMaterial<String>(
       context: context,
-      showDragHandle: true,
       builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,

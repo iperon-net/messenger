@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart' as m;
 
+import '../../components/actions_sheet_material.dart';
 import '../../i18n/translations.g.dart';
 
 /// «Заглушить на…»: на сколько выключить уведомления чата.
@@ -56,9 +57,8 @@ Future<ChatMuteFor?> pickChatMute(BuildContext context) {
       ),
     );
   }
-  return m.showModalBottomSheet<ChatMuteFor>(
+  return showActionsMaterial<ChatMuteFor>(
     context: context,
-    showDragHandle: true,
     builder: (sheetContext) => SafeArea(
       child: Column(
         mainAxisSize: MainAxisSize.min,

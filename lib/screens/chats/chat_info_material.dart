@@ -135,9 +135,8 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
   Future<void> _more(BuildContext context, models.Chat chat) async {
     final t = context.t;
     final error = Theme.of(context).colorScheme.error;
-    final action = await showModalBottomSheet<String>(
+    final action = await showActionsMaterial<String>(
       context: context,
-      showDragHandle: true,
       builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -260,9 +259,8 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
     final manage = roles && canRestrictMember(chat, members, member);
     final promote = roles && canPromoteMember(chat, members, member);
     final ban = roles && canBanMember(chat, members, member);
-    final action = await showModalBottomSheet<String>(
+    final action = await showActionsMaterial<String>(
       context: context,
-      showDragHandle: true,
       builder: (sheetContext) {
         Widget item(List<List<dynamic>> icon, String title, String value, {bool destructive = false}) => ListTile(
           leading: HugeIcon(icon: icon, color: destructive ? error : null),

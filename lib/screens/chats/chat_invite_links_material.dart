@@ -68,9 +68,8 @@ class ChatInviteLinksMaterial extends StatelessWidget {
       title: Text(title, style: destructive ? TextStyle(color: error) : null),
       onTap: () => Navigator.of(sheetContext).pop(value),
     );
-    final action = await showModalBottomSheet<String>(
+    final action = await showActionsMaterial<String>(
       context: context,
-      showDragHandle: true,
       builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,

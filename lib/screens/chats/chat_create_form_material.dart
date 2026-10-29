@@ -82,9 +82,8 @@ class _ChatCreateFormMaterial extends State<ChatCreateFormMaterial> {
     final cubit = context.read<ChatCreateCubit>();
     if (state.avatarPath.isNotEmpty) {
       final t = context.t.screenNewChat;
-      final action = await showModalBottomSheet<String>(
+      final action = await showActionsMaterial<String>(
         context: context,
-        showDragHandle: true,
         builder: (sheetContext) => SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
