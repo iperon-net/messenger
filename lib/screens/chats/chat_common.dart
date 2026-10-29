@@ -20,6 +20,7 @@ import '../../chats/media_prepare.dart';
 import '../../chats/member_badge.dart';
 import '../../chats/message_formatting.dart';
 import '../../chats/message_quote.dart';
+import '../../chats/photo_edit.dart';
 import '../../chats/newcomer.dart';
 import '../../chats/read_receipts.dart';
 import '../../chats/slow_mode.dart';
@@ -757,16 +758,26 @@ class SlowModeCountdown extends StatelessWidget {
   }
 }
 
-/// Выбранное вложение до отправки: путь, тип (фото / видео / файл) и, для
-/// видео, правки из редактора.
+/// Выбранное вложение до отправки: путь, тип (фото / видео / файл) и правки
+/// из редактора видео или фото.
 class AttachmentDraft {
-  final String path;
+  /// Исходный файл.
+  final String source;
   final models.MessageKind kind;
+
+  /// Что отправлять: [source] или фото с правками из редактора.
+  String path;
 
   /// Обрезка / без звука / обложка / кадрирование (редактор видео); `null` — как есть.
   ChatVideoEdit? edit;
 
-  AttachmentDraft(this.path, this.kind);
+  /// Рисунок / кадрирование / поворот (редактор фото); `null` — как есть.
+  ChatPhotoEdit? photoEdit;
+
+  AttachmentDraft(String path, this.kind) : source = path, path = path;
+
+  /// Фото открывается в редакторе (GIF — нет: анимация потерялась бы).
+  bool get isEditablePhoto => kind == models.MessageKind.photo && p.extension(source).toLowerCase() != '.gif';
 
   bool get isMedia => kind == models.MessageKind.photo || kind == models.MessageKind.video;
 
@@ -1247,7 +1258,19 @@ class AttachmentThumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Widget child = switch (item.kind) {
-      models.MessageKind.photo => Image.file(File(item.path), fit: BoxFit.cover, cacheWidth: (size * 3).round()),
+      models.MessageKind.photo => Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.file(File(item.path), fit: BoxFit.cover, cacheWidth: (size * 3).round(), gaplessPlayback: true),
+          // Карандаш — как у видео: по нажатию открывается редактор.
+          if (item.isEditablePhoto)
+            const Positioned(
+              top: 5,
+              right: 5,
+              child: _ThumbBadge(child: FaIcon(FontAwesomeIcons.pen, size: 10, color: Color(0xFFFFFFFF))),
+            ),
+        ],
+      ),
       models.MessageKind.video => _VideoDraftThumb(item: item, size: size),
       _ => ColoredBox(
         color: const Color(0xFF3A3A3C),
@@ -1293,6 +1316,16 @@ Future<bool> editVideoDraft(BuildContext context, AttachmentDraft item, {require
   final result = await showChatVideoEditor(context, path: item.path, initial: item.edit, accent: accent, onAccent: onAccent);
   if (result == null) return false;
   item.edit = result.edit;
+  return true;
+}
+
+/// Открывает редактор фото [item] (нажатие на миниатюру в листе подписи);
+/// `true` — правки изменились, миниатюру нужно перерисовать.
+Future<bool> editPhotoDraft(BuildContext context, AttachmentDraft item, {required Color accent, required Color onAccent}) async {
+  final result = await showChatPhotoEditor(context, path: item.source, initial: item.photoEdit, accent: accent, onAccent: onAccent);
+  if (result == null) return false;
+  item.photoEdit = result.edit;
+  item.path = result.path ?? item.source;
   return true;
 }
 

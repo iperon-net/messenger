@@ -858,6 +858,9 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get videoAspectOriginal => 'Исходное';
 	@override String get videoAspectSquare => 'Квадрат';
 	@override String get videoEditFailed => 'Не удалось открыть видео';
+	@override String get photoDraw => 'Рисовать';
+	@override String get photoUndo => 'Отменить';
+	@override String get photoEditFailed => 'Не удалось открыть фото';
 	@override String get format => 'Форматирование';
 	@override String get formatBold => 'Жирный';
 	@override String get formatItalic => 'Курсив';
@@ -2850,6 +2853,9 @@ extension on TranslationsRu {
 			'screenChat.videoAspectOriginal' => 'Исходное',
 			'screenChat.videoAspectSquare' => 'Квадрат',
 			'screenChat.videoEditFailed' => 'Не удалось открыть видео',
+			'screenChat.photoDraw' => 'Рисовать',
+			'screenChat.photoUndo' => 'Отменить',
+			'screenChat.photoEditFailed' => 'Не удалось открыть фото',
 			'screenChat.format' => 'Форматирование',
 			'screenChat.formatBold' => 'Жирный',
 			'screenChat.formatItalic' => 'Курсив',
@@ -3281,11 +3287,11 @@ extension on TranslationsRu {
 			'cloudPassword.repeatPasswordPlaceholder' => 'Повторите пароль',
 			'cloudPassword.currentPasswordPlaceholder' => 'Текущий пароль',
 			'cloudPassword.resetPassword' => 'Сбросить пароль',
+			_ => null,
+		} ?? switch (path) {
 			'cloudPassword.reset' => 'Сбросить',
 			'cloudPassword.attemptsLeft' => ({required Object count}) => 'Осталось попыток: ${count}',
 			'cloudPassword.attemptsLeftInline' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'осталось ${n} попытка', few: 'осталось ${n} попытки', many: 'осталось ${n} попыток', ), 
-			_ => null,
-		} ?? switch (path) {
 			'cloudPassword.setPassword' => 'Установить пароль',
 			'cloudPassword.newPasswordTitle' => 'Новый пароль',
 			'cloudPassword.newPasswordDescription' => 'Задайте облачный пароль. Его запросят при входе с нового устройства.',

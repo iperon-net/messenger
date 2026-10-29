@@ -2015,6 +2015,15 @@ class Translations$screenChat$en {
 	/// en: 'Couldn't open the video'
 	String get videoEditFailed => 'Couldn\'t open the video';
 
+	/// en: 'Draw'
+	String get photoDraw => 'Draw';
+
+	/// en: 'Undo'
+	String get photoUndo => 'Undo';
+
+	/// en: 'Couldn't open the photo'
+	String get photoEditFailed => 'Couldn\'t open the photo';
+
 	/// en: 'Formatting'
 	String get format => 'Formatting';
 
@@ -5845,6 +5854,9 @@ extension on Translations {
 			'screenChat.videoAspectOriginal' => 'Original',
 			'screenChat.videoAspectSquare' => 'Square',
 			'screenChat.videoEditFailed' => 'Couldn\'t open the video',
+			'screenChat.photoDraw' => 'Draw',
+			'screenChat.photoUndo' => 'Undo',
+			'screenChat.photoEditFailed' => 'Couldn\'t open the photo',
 			'screenChat.format' => 'Formatting',
 			'screenChat.formatBold' => 'Bold',
 			'screenChat.formatItalic' => 'Italic',
@@ -6276,11 +6288,11 @@ extension on Translations {
 			'cloudPassword.repeatPasswordPlaceholder' => 'Repeat password',
 			'cloudPassword.currentPasswordPlaceholder' => 'Current password',
 			'cloudPassword.resetPassword' => 'Reset password',
+			_ => null,
+		} ?? switch (path) {
 			'cloudPassword.reset' => 'Reset',
 			'cloudPassword.attemptsLeft' => ({required Object count}) => 'Attempts left: ${count}',
 			'cloudPassword.attemptsLeftInline' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} attempt left', other: '${n} attempts left', ), 
-			_ => null,
-		} ?? switch (path) {
 			'cloudPassword.setPassword' => 'Set password',
 			'cloudPassword.newPasswordTitle' => 'New password',
 			'cloudPassword.newPasswordDescription' => 'Set a cloud password. You\'ll be asked for it when signing in on a new device.',

@@ -46,17 +46,21 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
     super.dispose();
   }
 
-  /// Миниатюра; видео — по нажатию в редактор (обрезка, звук, обложка).
+  /// Миниатюра; видео и фото — по нажатию в редактор (видео: обрезка, звук,
+  /// обложка; фото: карандаш, кадрирование).
   Widget _thumb(AttachmentDraft item, Color accent) {
     final thumb = AttachmentThumb(item: item, size: 96, spoiler: _spoiler);
-    if (!item.isVideo) return thumb;
+    if (!item.isVideo && !item.isEditablePhoto) return thumb;
     return GestureDetector(
       // Сама миниатюра под IgnorePointer — без opaque нажатие до детектора не доходит.
       behavior: HitTestBehavior.opaque,
       onTap: () async {
         FocusScope.of(context).unfocus();
         final onAccent = Theme.of(context).colorScheme.onPrimary;
-        if (await editVideoDraft(context, item, accent: accent, onAccent: onAccent) && mounted) setState(() {});
+        final changed = item.isVideo
+            ? await editVideoDraft(context, item, accent: accent, onAccent: onAccent)
+            : await editPhotoDraft(context, item, accent: accent, onAccent: onAccent);
+        if (changed && mounted) setState(() {});
       },
       child: thumb,
     );
