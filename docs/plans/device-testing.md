@@ -250,9 +250,8 @@
    Использование:
 
    ```
-   # конфиг стенда (~/docker/staging-iperon/), только стенд:
-   testAccounts:
-     - {phoneNumber: "79990000001", verificationCode: "…"}
+   # тестовые аккаунты — в админке: /admin/ops/test-accounts (с 2026-10-29;
+   # раньше testAccounts в конфиге стенда)
    # бот (из репозитория сервера):
    go run ./cmd/testpeer login -as anna -phone 79990000001 -code … -first-name Анна -last-name Бот
    go run ./cmd/testpeer call -as anna -to <userID телефона | номер> -ring 30s
