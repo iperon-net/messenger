@@ -55,8 +55,20 @@ echo "==> flutter build macos $BUILD_NAME ($BUILD_NUMBER)"
 flutter build macos --release --build-name="$BUILD_NAME" --build-number="$BUILD_NUMBER"
 lipo -archs "$APP/Contents/MacOS/Iperon"
 
+# Повтор codesign: сервер меток времени Apple (`--timestamp`) иногда
+# отвечает «The timestamp service is not available» — через полминуты проходит.
+codesign_retry() {
+  local attempt
+  for attempt in 1 2 3 4 5; do
+    codesign "$@" && return 0
+    [ "$attempt" = 5 ] && return 1
+    echo "    codesign: попытка $attempt не удалась, повтор через 30 с"
+    sleep 30
+  done
+}
+
 sign() {
-  codesign --force --timestamp --options runtime --sign "$MACOS_SIGN_IDENTITY" "$@"
+  codesign_retry --force --timestamp --options runtime --sign "$MACOS_SIGN_IDENTITY" "$@"
 }
 
 # notarize <файл .zip/.dmg>: отправить и дождаться ответа Apple; не Accepted —
@@ -125,7 +137,7 @@ ln -s /Applications "$STAGE/Applications"
 hdiutil create -volname "Iperon" -srcfolder "$STAGE" -fs HFS+ -format UDZO -ov "$DMG"
 
 if [ -n "${MACOS_SIGN_IDENTITY:-}" ]; then
-  codesign --force --timestamp --sign "$MACOS_SIGN_IDENTITY" "$DMG"
+  codesign_retry --force --timestamp --sign "$MACOS_SIGN_IDENTITY" "$DMG"
   if [ "$NOTARIZED" = 1 ]; then
     notarize "$DMG"
     xcrun stapler staple "$DMG"
