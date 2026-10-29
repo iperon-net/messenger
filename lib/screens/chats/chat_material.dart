@@ -12,6 +12,7 @@ import '../../split_layout.dart';
 import '../../chats/edit_media.dart';
 import '../../chats/media_files.dart';
 import '../../chats/message_formatting.dart';
+import '../../components/chats/desktop_emoji_button.dart';
 import '../../components/chats/emoji_panel.dart';
 import '../../chats/reactions.dart';
 import '../../chats/read_receipts.dart';
@@ -104,6 +105,9 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
   );
   final _focus = FocusNode();
   late final _emoji = EmojiPanelController(focus: _focus);
+
+  /// Десктоп: окошко эмодзи у кнопки справа в поле (вместо панели снизу).
+  final _emojiPopup = OverlayPortalController();
   final _scroll = ScrollController();
   final _searchInput = TextEditingController();
 
@@ -507,6 +511,11 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
 
   /// Esc (десктоп): отменить ответ / правку / пересылку.
   bool _cancelComposeByKey() {
+    if (_emojiPopup.isShowing) {
+      _emojiPopup.hide();
+      setState(() {});
+      return true;
+    }
     final state = _cubit.state;
     if (state.reply == null && state.editing == null && state.forwarding.isEmpty) return false;
     _cubit.cancelCompose();
@@ -880,6 +889,7 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
                                       recorder: _recorder,
                                       focus: _focus,
                                       emoji: _emoji,
+                                      emojiPopup: _emojiPopup,
                                       state: state,
                                       onSend: _send,
                                       onSendOptions: () => _sendOptions(context),
@@ -1246,6 +1256,9 @@ class _ComposeBar extends StatelessWidget {
 
   /// Панель эмодзи вместо клавиатуры.
   final EmojiPanelController emoji;
+
+  /// Десктоп: окошко эмодзи у кнопки справа ([DesktopEmojiButton]).
+  final OverlayPortalController emojiPopup;
   final ChatState state;
   final VoidCallback onSend;
 
@@ -1262,6 +1275,7 @@ class _ComposeBar extends StatelessWidget {
     required this.recorder,
     required this.focus,
     required this.emoji,
+    required this.emojiPopup,
     required this.state,
     required this.onSend,
     required this.onSendOptions,
@@ -1424,16 +1438,33 @@ class _ComposeBar extends StatelessWidget {
                               textCapitalization: TextCapitalization.sentences,
                               decoration: InputDecoration(
                                 hintText: t.screenChat.message,
-                                // Эмодзи ↔ клавиатура (как в Telegram).
-                                prefixIcon: ListenableBuilder(
-                                  listenable: emoji,
-                                  builder: (context, _) => IconButton(
-                                    icon: Icon(emoji.open ? Icons.keyboard_outlined : Icons.emoji_emotions_outlined),
-                                    color: scheme.onSurfaceVariant,
-                                    tooltip: emoji.open ? t.screenChat.keyboard : t.screenChat.emoji,
-                                    onPressed: emoji.toggle,
-                                  ),
-                                ),
+                                // Эмодзи ↔ клавиатура (как в Telegram); на десктопе —
+                                // окошко у кнопки справа, как в Telegram Desktop.
+                                suffixIcon: AppPlatform.isDesktop
+                                    ? DesktopEmojiButton(
+                                        controller: emojiPopup,
+                                        input: input,
+                                        tooltip: t.screenChat.emoji,
+                                        style: EmojiPanelStyle(
+                                          background: scheme.surfaceContainerLow,
+                                          icon: scheme.onSurfaceVariant,
+                                          accent: scheme.primary,
+                                          text: scheme.onSurface,
+                                          cupertino: false,
+                                        ),
+                                      )
+                                    : null,
+                                prefixIcon: AppPlatform.isDesktop
+                                    ? null
+                                    : ListenableBuilder(
+                                        listenable: emoji,
+                                        builder: (context, _) => IconButton(
+                                          icon: Icon(emoji.open ? Icons.keyboard_outlined : Icons.emoji_emotions_outlined),
+                                          color: scheme.onSurfaceVariant,
+                                          tooltip: emoji.open ? t.screenChat.keyboard : t.screenChat.emoji,
+                                          onPressed: emoji.toggle,
+                                        ),
+                                      ),
                                 filled: true,
                                 fillColor: scheme.surfaceContainerHighest,
                                 isDense: true,

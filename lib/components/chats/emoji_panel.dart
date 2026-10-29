@@ -13,7 +13,6 @@ import '../../chats/animated_emoji.dart';
 import '../../chats/emoji_filter.dart';
 import '../../device_performance.dart';
 import '../../i18n/translations.g.dart';
-import '../../platform.dart';
 
 /// Панель эмодзи вместо клавиатуры (как в Telegram): кнопка в поле ввода
 /// переключает клавиатуру ↔ панель. Высота панели — последней высоты
@@ -83,16 +82,9 @@ class EmojiPanelController extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   /// Закрыть панель и открыть клавиатуру (место держим до её появления).
-  /// На десктопе экранной клавиатуры нет — ждать нечего: панель сразу
-  /// уезжает (плавно, см. [EmojiPanel]), фокус — в поле ввода.
   void showKeyboard() {
     if (!_open) return;
     _open = false;
-    if (AppPlatform.isDesktop) {
-      notifyListeners();
-      if (!focus.hasFocus) focus.requestFocus();
-      return;
-    }
     _toKeyboard = true;
     _toKeyboardTimeout?.cancel();
     _toKeyboardTimeout = Timer(const Duration(milliseconds: 600), _endToKeyboard);
@@ -179,98 +171,94 @@ class EmojiPanel extends StatelessWidget {
           // Поиск: своя высота (результаты + поле) над клавиатурой. Тот же
           // SizedBox (height: null) — состояние панели (открытый поиск) не
           // теряется при смене.
-          child: _desktopResize(
-            SizedBox(height: controller.searching ? null : height, child: controller.open ? _picker(context, controller.height) : null),
+          child: SizedBox(
+            height: controller.searching ? null : height,
+            child: controller.open ? _picker(context, controller.height) : null,
           ),
         );
       },
     );
   }
 
-  /// Десктоп: высота меняется плавно — на телефоне её ведёт клавиатура
-  /// ([EmojiPanelController.reserved]), а тут клавиатуры нет, и панель
-  /// пропадала бы рывком.
-  Widget _desktopResize(Widget child) {
-    if (!AppPlatform.isDesktop) return child;
-    return ClipRect(
-      child: AnimatedSize(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOutCubic,
-        alignment: Alignment.topCenter,
-        child: child,
-      ),
-    );
-  }
+  Widget _picker(BuildContext context, double height) => emojiPickerView(context, input: input, style: style, height: height);
+}
 
-  Widget _picker(BuildContext context, double height) {
-    final locale = LocaleSettings.currentLocale.languageCode;
-    // Значки групп в полосе — помельче (полоса ниже).
-    return IconTheme.merge(
-      data: const IconThemeData(size: 21),
-      child: EmojiPicker(
-        textEditingController: input,
-        // Своя сетка: отклик на нажатие и предпросмотр по удержанию.
-        customWidget: (config, state, showSearchBar) => _PanelEmojiView(config, state, showSearchBar, style: style),
-        onBackspacePressed: () => HapticFeedback.selectionClick(),
-        config: Config(
-          height: height,
-          locale: Locale(locale),
-          // Без ЛГБТ-флагов и однополых пар / семей (см. isHiddenEmoji).
-          emojiSet: filteredEmojiSet,
-          checkPlatformCompatibility: true,
-          emojiViewConfig: EmojiViewConfig(
-            // На телефоне 8, на iPad / планшете — по ширине, а не 8 огромных.
-            columns: math.max(8, MediaQuery.sizeOf(context).width ~/ 50),
-            // https://github.com/flutter/flutter/issues/28894 — на iOS глифы мельче.
-            emojiSizeMax: 28 * (defaultTargetPlatform == TargetPlatform.iOS ? 1.2 : 1.0),
-            backgroundColor: style.background,
-            buttonMode: style.cupertino ? ButtonMode.CUPERTINO : ButtonMode.MATERIAL,
-            recentsLimit: 32,
-            noRecents: const SizedBox.shrink(),
-          ),
-          skinToneConfig: SkinToneConfig(dialogBackgroundColor: style.background, indicatorColor: style.icon, rememberSkinTone: true),
-          categoryViewConfig: CategoryViewConfig(
-            // Полоса групп ниже и без разделительной линии.
-            tabBarHeight: 36,
-            dividerColor: const Color(0x00000000),
-            backgroundColor: style.background,
-            indicatorColor: style.accent,
-            iconColor: style.icon,
-            iconColorSelected: style.accent,
-            backspaceColor: style.accent,
-          ),
-          bottomActionBarConfig: BottomActionBarConfig(
-            backgroundColor: style.background,
-            buttonColor: style.background,
-            buttonIconColor: style.icon,
-            // Лупа и «стереть» — не у самого края: отступ от углов и над
-            // полоской «домой» (панель доходит до низа экрана).
-            customBottomActionBar: (config, state, showSearchView) => ColoredBox(
-              color: style.background,
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(16, 0, 16, MediaQuery.paddingOf(context).bottom),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SearchButton(config, showSearchView, style.icon),
-                    BackspaceButton(config, state.onBackspacePressed, state.onBackspaceLongPressed, style.icon),
-                  ],
-                ),
+/// Сетка эмодзи с группами, поиском и «стереть»; вставляет в [input] у
+/// курсора. [columns] — столбцов (по умолчанию по ширине экрана, не меньше 8).
+Widget emojiPickerView(
+  BuildContext context, {
+  required TextEditingController input,
+  required EmojiPanelStyle style,
+  required double height,
+  int? columns,
+}) {
+  final locale = LocaleSettings.currentLocale.languageCode;
+  // Значки групп в полосе — помельче (полоса ниже).
+  return IconTheme.merge(
+    data: const IconThemeData(size: 21),
+    child: EmojiPicker(
+      textEditingController: input,
+      // Своя сетка: отклик на нажатие и предпросмотр по удержанию.
+      customWidget: (config, state, showSearchBar) => _PanelEmojiView(config, state, showSearchBar, style: style),
+      onBackspacePressed: () => HapticFeedback.selectionClick(),
+      config: Config(
+        height: height,
+        locale: Locale(locale),
+        // Без ЛГБТ-флагов и однополых пар / семей (см. isHiddenEmoji).
+        emojiSet: filteredEmojiSet,
+        checkPlatformCompatibility: true,
+        emojiViewConfig: EmojiViewConfig(
+          // На телефоне 8, на iPad / планшете — по ширине, а не 8 огромных.
+          columns: columns ?? math.max(8, MediaQuery.sizeOf(context).width ~/ 50),
+          // https://github.com/flutter/flutter/issues/28894 — на iOS глифы мельче.
+          emojiSizeMax: 28 * (defaultTargetPlatform == TargetPlatform.iOS ? 1.2 : 1.0),
+          backgroundColor: style.background,
+          buttonMode: style.cupertino ? ButtonMode.CUPERTINO : ButtonMode.MATERIAL,
+          recentsLimit: 32,
+          noRecents: const SizedBox.shrink(),
+        ),
+        skinToneConfig: SkinToneConfig(dialogBackgroundColor: style.background, indicatorColor: style.icon, rememberSkinTone: true),
+        categoryViewConfig: CategoryViewConfig(
+          // Полоса групп ниже и без разделительной линии.
+          tabBarHeight: 36,
+          dividerColor: const Color(0x00000000),
+          backgroundColor: style.background,
+          indicatorColor: style.accent,
+          iconColor: style.icon,
+          iconColorSelected: style.accent,
+          backspaceColor: style.accent,
+        ),
+        bottomActionBarConfig: BottomActionBarConfig(
+          backgroundColor: style.background,
+          buttonColor: style.background,
+          buttonIconColor: style.icon,
+          // Лупа и «стереть» — не у самого края: отступ от углов и над
+          // полоской «домой» (панель доходит до низа экрана).
+          customBottomActionBar: (config, state, showSearchView) => ColoredBox(
+            color: style.background,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(16, 0, 16, MediaQuery.paddingOf(context).bottom),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SearchButton(config, showSearchView, style.icon),
+                  BackspaceButton(config, state.onBackspacePressed, state.onBackspaceLongPressed, style.icon),
+                ],
               ),
             ),
           ),
-          searchViewConfig: SearchViewConfig(
-            backgroundColor: style.background,
-            buttonIconColor: style.icon,
-            hintText: context.t.screenChat.emojiSearch,
-            inputTextStyle: TextStyle(color: style.text, fontSize: 16),
-            hintTextStyle: TextStyle(color: style.icon, fontSize: 16),
-            customSearchView: (config, state, showEmojiView) => _PanelSearchView(config, state, showEmojiView, style: style),
-          ),
+        ),
+        searchViewConfig: SearchViewConfig(
+          backgroundColor: style.background,
+          buttonIconColor: style.icon,
+          hintText: context.t.screenChat.emojiSearch,
+          inputTextStyle: TextStyle(color: style.text, fontSize: 16),
+          hintTextStyle: TextStyle(color: style.icon, fontSize: 16),
+          customSearchView: (config, state, showEmojiView) => _PanelSearchView(config, state, showEmojiView, style: style),
         ),
       ),
-    );
-  }
+    ),
+  );
 }
 
 /// Поиск в панели: результаты сеткой до [_rows] строк (в стандартном — одна
