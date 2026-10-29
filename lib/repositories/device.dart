@@ -13,6 +13,7 @@ class DeviceRepositories {
   late final SqliteDatabase db;
   late final SettingsDevice settingsDevice;
   late final Accounts accounts;
+  late final ClientConfigCache clientConfig;
 
   /// `accountID` активного слота на старте.
   late final String activeAccountID;
@@ -127,6 +128,7 @@ class DeviceRepositories {
 
     settingsDevice = SettingsDevice(logger: logger, db: db);
     accounts = Accounts(logger: logger, db: db);
+    clientConfig = ClientConfigCache(db: db);
     await accounts.ensureActive(slot);
     activeAccountID = slot;
     final abandoned = _abandonedSlot;
@@ -360,6 +362,12 @@ class DeviceDatabase {
           for (final column in ['speakerId', 'speakerName']) {
             await tx.execute("ALTER TABLE settingsDevice ADD COLUMN $column TEXT NOT NULL DEFAULT '';");
           }
+        }),
+      )
+      ..add(
+        SqliteMigration(7, (tx) async {
+          // Настройки приложения с сервера (ClientConfig) — lib/client_config.dart.
+          await tx.execute(ClientConfigCache.schema);
         }),
       );
   }

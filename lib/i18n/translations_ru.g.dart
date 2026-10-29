@@ -89,6 +89,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$deviceLink$ru deviceLink = _Translations$deviceLink$ru._(_root);
 	@override late final _Translations$qrLogin$ru qrLogin = _Translations$qrLogin$ru._(_root);
 	@override late final _Translations$auth$ru auth = _Translations$auth$ru._(_root);
+	@override late final _Translations$appUpdate$ru appUpdate = _Translations$appUpdate$ru._(_root);
 	@override late final _Translations$screenAuthBlocked$ru screenAuthBlocked = _Translations$screenAuthBlocked$ru._(_root);
 	@override late final _Translations$report$ru report = _Translations$report$ru._(_root);
 }
@@ -1060,6 +1061,11 @@ class _Translations$screenDeveloper$ru extends Translations$screenDeveloper$en {
 	@override String testPushError({required Object error}) => 'Не удалось отправить: ${error}';
 	@override String get testPushEncrypted => 'Тестовое уведомление (шифрованное)';
 	@override String get testPushQueued => 'Поставлено в очередь сервера. На Android придёт «Шифрованное тестовое уведомление: расшифровка работает», на iPhone пока — «Новое уведомление» (расшифровка на iOS появится позже).';
+	@override String get serverConfig => 'Обновить настройки с сервера';
+	@override String get serverConfigHint => 'Флаги из админки («Настройки»)';
+	@override String get serverConfigUpdated => 'Новые настройки применены.';
+	@override String get serverConfigUnchanged => 'Изменений нет — настройки уже актуальные.';
+	@override String get serverConfigError => 'Не удалось загрузить настройки с сервера.';
 	@override String get remoteConfig => 'Обновить Remote Config';
 	@override String remoteConfigFetched({required Object time}) => 'Загружено ${time}';
 	@override String get remoteConfigNever => 'Ещё не загружался';
@@ -2164,6 +2170,19 @@ class _Translations$auth$ru extends Translations$auth$en {
 	@override String get accountBlocked => 'Аккаунт заблокирован';
 }
 
+// Path: appUpdate
+class _Translations$appUpdate$ru extends Translations$appUpdate$en {
+	_Translations$appUpdate$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Обновите приложение';
+	@override String get text => 'Эта версия Iperon устарела и больше не поддерживается. Установите новую, чтобы продолжить.';
+	@override String get button => 'Обновить';
+	@override String version({required Object current, required Object minimal}) => 'Установлена ${current}, нужна ${minimal} или новее.';
+}
+
 // Path: screenAuthBlocked
 class _Translations$screenAuthBlocked$ru extends Translations$screenAuthBlocked$en {
 	_Translations$screenAuthBlocked$ru._(TranslationsRu root) : this._root = root, super.internal(root);
@@ -2989,6 +3008,11 @@ extension on TranslationsRu {
 			'screenDeveloper.testPushError' => ({required Object error}) => 'Не удалось отправить: ${error}',
 			'screenDeveloper.testPushEncrypted' => 'Тестовое уведомление (шифрованное)',
 			'screenDeveloper.testPushQueued' => 'Поставлено в очередь сервера. На Android придёт «Шифрованное тестовое уведомление: расшифровка работает», на iPhone пока — «Новое уведомление» (расшифровка на iOS появится позже).',
+			'screenDeveloper.serverConfig' => 'Обновить настройки с сервера',
+			'screenDeveloper.serverConfigHint' => 'Флаги из админки («Настройки»)',
+			'screenDeveloper.serverConfigUpdated' => 'Новые настройки применены.',
+			'screenDeveloper.serverConfigUnchanged' => 'Изменений нет — настройки уже актуальные.',
+			'screenDeveloper.serverConfigError' => 'Не удалось загрузить настройки с сервера.',
 			'screenDeveloper.remoteConfig' => 'Обновить Remote Config',
 			'screenDeveloper.remoteConfigFetched' => ({required Object time}) => 'Загружено ${time}',
 			'screenDeveloper.remoteConfigNever' => 'Ещё не загружался',
@@ -3260,13 +3284,13 @@ extension on TranslationsRu {
 			'cloudPassword.reset' => 'Сбросить',
 			'cloudPassword.attemptsLeft' => ({required Object count}) => 'Осталось попыток: ${count}',
 			'cloudPassword.attemptsLeftInline' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'осталось ${n} попытка', few: 'осталось ${n} попытки', many: 'осталось ${n} попыток', ), 
+			_ => null,
+		} ?? switch (path) {
 			'cloudPassword.setPassword' => 'Установить пароль',
 			'cloudPassword.newPasswordTitle' => 'Новый пароль',
 			'cloudPassword.newPasswordDescription' => 'Задайте облачный пароль. Его запросят при входе с нового устройства.',
 			'cloudPassword.changePassword' => 'Изменить пароль',
 			'cloudPassword.email' => 'Email',
-			_ => null,
-		} ?? switch (path) {
 			'cloudPassword.emailPlaceholder' => 'Email',
 			'cloudPassword.emailNotSet' => 'Не задан',
 			'cloudPassword.emailCodeSent' => 'Мы отправили код подтверждения на ваш email.',
@@ -3726,6 +3750,10 @@ extension on TranslationsRu {
 			'deviceLink.cameraDenied' => 'Нет доступа к камере. Разрешите его в настройках.',
 			'qrLogin.expired' => 'QR-код устарел — отсканируйте новый на компьютере',
 			'auth.accountBlocked' => 'Аккаунт заблокирован',
+			'appUpdate.title' => 'Обновите приложение',
+			'appUpdate.text' => 'Эта версия Iperon устарела и больше не поддерживается. Установите новую, чтобы продолжить.',
+			'appUpdate.button' => 'Обновить',
+			'appUpdate.version' => ({required Object current, required Object minimal}) => 'Установлена ${current}, нужна ${minimal} или новее.',
 			'screenAuthBlocked.title' => 'Аккаунт заблокирован',
 			'screenAuthBlocked.text' => 'Войти в этот аккаунт сейчас нельзя: он заблокирован за нарушение правил Iperon.',
 			'screenAuthBlocked.reason' => ({required Object reason}) => 'Причина: ${reason}',

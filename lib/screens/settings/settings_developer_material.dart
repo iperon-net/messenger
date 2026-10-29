@@ -124,6 +124,22 @@ class SettingsDeveloperMaterial extends StatelessWidget {
                     },
                     isTrailing: false,
                   ),
+                  // Настройки приложения с сервера (админка) — не дожидаясь
+                  // пуша или перезапуска.
+                  MaterialListTileIcon(
+                    title: Text(context.t.screenDeveloper.serverConfig),
+                    subtitle: Text(context.t.screenDeveloper.serverConfigHint),
+                    color: const Color(0xFF34C759),
+                    icon: FontAwesomeIcons.arrowsRotate,
+                    onTab: () async {
+                      final message = await refreshServerConfig(context.t);
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(SnackBar(content: Text(message)));
+                    },
+                    isTrailing: false,
+                  ),
                   // Remote Config мимо интервала 24 ч — чтобы проверить флаг,
                   // только что изменённый в консоли Firebase (на десктопе его нет).
                   if (AppPlatform.hasFirebase)

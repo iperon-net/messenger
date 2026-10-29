@@ -10,6 +10,7 @@ import '../../components.dart';
 import '../../components/calls/call_view.dart' show startGroupCall;
 import '../../cubit.dart';
 import '../../di.dart';
+import '../../settings.dart';
 import '../../extensions.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
@@ -74,22 +75,28 @@ class _CallsMaterialState extends State<CallsMaterial> with WidgetsBindingObserv
         backgroundColor: background,
         title: Text(context.t.screenCalls.title),
         actions: [
-          if (getIt.get<Calls>().groupCallsEnabled)
-            PopupMenuButton<bool>(
-              icon: const HugeIcon(icon: HugeIcons.strokeRoundedCallAdd),
-              tooltip: context.t.screenCalls.newCall,
-              onSelected: (video) => startGroupCall(context, video: video),
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: false,
-                  child: ListTile(leading: const Icon(Icons.call_outlined), title: Text(context.t.screenCalls.groupAudio)),
-                ),
-                PopupMenuItem(
-                  value: true,
-                  child: ListTile(leading: const Icon(Icons.videocam_outlined), title: Text(context.t.screenCalls.groupVideo)),
-                ),
-              ],
-            ),
+          // Групповые звонки включают в админке — кнопка появляется без
+          // перезапуска.
+          ListenableBuilder(
+            listenable: getIt.get<Settings>(),
+            builder: (context, _) => !getIt.get<Calls>().groupCallsEnabled
+                ? const SizedBox.shrink()
+                : PopupMenuButton<bool>(
+                    icon: const HugeIcon(icon: HugeIcons.strokeRoundedCallAdd),
+                    tooltip: context.t.screenCalls.newCall,
+                    onSelected: (video) => startGroupCall(context, video: video),
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: false,
+                        child: ListTile(leading: const Icon(Icons.call_outlined), title: Text(context.t.screenCalls.groupAudio)),
+                      ),
+                      PopupMenuItem(
+                        value: true,
+                        child: ListTile(leading: const Icon(Icons.videocam_outlined), title: Text(context.t.screenCalls.groupVideo)),
+                      ),
+                    ],
+                  ),
+          ),
           BlocSelector<CallsCubit, CallsState, bool>(
             selector: (state) => state.calls.isNotEmpty,
             builder: (context, hasCalls) {

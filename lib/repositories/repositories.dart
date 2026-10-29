@@ -39,6 +39,7 @@ part "chats.dart";
 part "secret_chats.dart";
 part "spoiler_reveals.dart";
 part "device.dart";
+part "client_config.dart";
 part "account_files.dart";
 part "data_usage.dart";
 

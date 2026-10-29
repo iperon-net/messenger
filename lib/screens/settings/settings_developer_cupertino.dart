@@ -146,6 +146,28 @@ class SettingsDeveloperCupertino extends StatelessWidget {
                   },
                   isTrailing: false,
                 ),
+                // Настройки приложения с сервера (админка) — не дожидаясь
+                // пуша или перезапуска.
+                CupertinoListTileIcon(
+                  title: Text(context.t.screenDeveloper.serverConfig),
+                  subtitle: Text(context.t.screenDeveloper.serverConfigHint),
+                  color: const Color(0xFF34C759),
+                  icon: FontAwesomeIcons.arrowsRotate,
+                  onTab: () async {
+                    final message = await refreshServerConfig(context.t);
+                    if (!context.mounted) return;
+                    await showCupertinoDialog<void>(
+                      context: context,
+                      builder: (dialogContext) => CupertinoAlertDialog(
+                        content: Text(message),
+                        actions: [
+                          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.ok)),
+                        ],
+                      ),
+                    );
+                  },
+                  isTrailing: false,
+                ),
                 // Remote Config мимо интервала 24 ч — чтобы проверить флаг,
                 // только что изменённый в консоли Firebase.
                 StatefulBuilder(

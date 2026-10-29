@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 
+import '../../client_config.dart';
 import '../../di.dart';
 import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
@@ -14,6 +15,17 @@ String remoteConfigFetchedText(Translations t) {
   final remoteConfig = getIt.get<Settings>().remoteConfig;
   if (remoteConfig.lastFetchStatus == RemoteConfigFetchStatus.noFetchYet) return t.screenDeveloper.remoteConfigNever;
   return t.screenDeveloper.remoteConfigFetched(time: remoteConfig.lastFetchTime.relativeFormat(t));
+}
+
+/// Перезагружает настройки приложения с сервера (`CLIENT_CONFIG`) и
+/// возвращает текст итога для показа.
+Future<String> refreshServerConfig(Translations t) async {
+  if (!await getIt.get<Utils>().hasNetwork()) return t.common.noConnectionTitle;
+  return switch (await ClientConfigSync.fetch()) {
+    true => t.screenDeveloper.serverConfigUpdated,
+    false => t.screenDeveloper.serverConfigUnchanged,
+    null => t.screenDeveloper.serverConfigError,
+  };
 }
 
 /// Загружает Remote Config мимо интервала и возвращает текст итога для показа

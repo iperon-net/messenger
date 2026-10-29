@@ -10,6 +10,7 @@ import '../../components.dart';
 import '../../components/calls/call_view.dart' show startGroupCall;
 import '../../cubit.dart';
 import '../../di.dart';
+import '../../settings.dart';
 import '../../extensions.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
@@ -63,7 +64,14 @@ class _CallsCupertinoState extends State<CallsCupertino> with SearchHideOnScroll
                   );
                 },
               ),
-              if (getIt.get<Calls>().groupCallsEnabled) ...[const SizedBox(width: 8), const _NewCallButton()],
+              // Групповые звонки включают в админке — кнопка появляется без
+              // перезапуска.
+              ListenableBuilder(
+                listenable: getIt.get<Settings>(),
+                builder: (context, _) => getIt.get<Calls>().groupCallsEnabled
+                    ? const Row(mainAxisSize: MainAxisSize.min, children: [SizedBox(width: 8), _NewCallButton()])
+                    : const SizedBox.shrink(),
+              ),
             ],
           ),
         ),

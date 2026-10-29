@@ -5,12 +5,29 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'di.dart';
 import 'logger.dart';
 import 'platform.dart';
+import 'protobuf.dart';
 
-class Settings {
+/// Настройки приложения. Флаги поведения (секретные чаты, звонки, эмодзи,
+/// Яндекс, минимальная версия) берутся по цепочке: `.env` (debug) → настройки
+/// с сервера ([serverConfig], `ClientConfig` из админки, этап 5б
+/// docs/plans/admin-panel.md) → Remote Config (переходный период) →
+/// [_defaults]. Новый [serverConfig] — [notifyListeners].
+class Settings extends ChangeNotifier {
   /// Remote Config — только где есть Firebase ([AppPlatform.hasFirebase]); на
   /// десктопе значения берутся из [_defaults] (и `.env`).
   FirebaseRemoteConfig get remoteConfig => FirebaseRemoteConfig.instance;
   final logger = getIt.get<Logger>();
+
+  ClientConfig_Response? _serverConfig;
+
+  /// Последние настройки с сервера (null — ещё не было ни ответа, ни кэша).
+  /// Ставит [ClientConfigSync].
+  ClientConfig_Response? get serverConfig => _serverConfig;
+
+  set serverConfig(ClientConfig_Response? config) {
+    _serverConfig = config;
+    notifyListeners();
+  }
 
   static const _defaults = <String, Object>{
     "PUBLIC_KEY_EDDSA_FINGERPRINT": "7abfc2a7e8ea09ae384bdeb855cfeae24d60bfac3646046e754fddc8d5ab604d",
@@ -30,7 +47,7 @@ class Settings {
     "SECRET_CHATS_ENABLED": false,
     "SECRET_CHATS_PREMIUM_ONLY": false,
     // Групповые звонки: «Добавить участника» и «Позвонить нескольким». На
-    // старте выключены (только 1-на-1); сервер дублирует — livekit.groupCalls.
+    // старте выключены (только 1-на-1); сервер дублирует — calls.groupEnabled.
     "GROUP_CALLS_ENABLED": false,
   };
 
@@ -89,13 +106,45 @@ class Settings {
   bool get isDeleteDatabase => dotenv.getBool('IS_DELETE_DATABASE', fallback: false);
   int get databaseVersion => dotenv.getInt('DATABASE_VERSION', fallback: 1);
   String get publicKeyEDDSAFingerprint => _getString("PUBLIC_KEY_EDDSA_FINGERPRINT");
-  String get yandexOauthClientID => _getString("YANDEX_OAUTH_CLIENT_ID");
+
+  /// Флаг: `.env` (только debug) → сервер → Remote Config / [_defaults].
+  bool _flag(String key, bool Function(ClientConfig_Response config) server) {
+    if (kDebugMode && (dotenv.maybeGet(key) ?? '').isNotEmpty) return dotenv.getBool(key);
+    final config = _serverConfig;
+    if (config != null) return server(config);
+    return _getBool(key);
+  }
+
+  /// Число: `.env` → сервер → Remote Config / [_defaults] → [fallback]; ноль
+  /// и меньше — «не задано».
+  int _number(String key, int server, int fallback) {
+    final env = dotenv.getInt(key, fallback: 0);
+    if (env > 0) return env;
+    if (server > 0) return server;
+    final rc = _getInt(key);
+    return rc > 0 ? rc : fallback;
+  }
+
+  /// Яндекс ID: client_id с сервера (по нему он и сверяет токен), иначе из
+  /// сборки. Нативная часть (URL-схема `yx<id>`, manifestPlaceholders) — в
+  /// сборке, поэтому id должен совпадать.
+  String get yandexOauthClientID {
+    final server = _serverConfig?.yandexClientId ?? '';
+    if (server.isNotEmpty) return server;
+    return _getString("YANDEX_OAUTH_CLIENT_ID");
+  }
+
+  /// Сборка старше этой версии («0.0.570») должна обновиться; '' — без
+  /// ограничения. Только с сервера.
+  String get minimalVersion => _serverConfig?.minimalVersion ?? '';
 
   /// Откуда докачивать анимированные эмодзи, которых нет в приложении
   /// (`<url><имя>.json`, имена — как в пакете animated_emoji).
   String get animatedEmojiUrl {
     final res = dotenv.get('ANIMATED_EMOJI_URL', fallback: "");
     if (res.isNotEmpty) return res;
+    final server = _serverConfig?.animatedEmojiUrl ?? '';
+    if (server.isNotEmpty) return server;
     return _getString("ANIMATED_EMOJI_URL");
   }
 
@@ -137,55 +186,28 @@ class Settings {
     return _getBool("PHONE_NUMBER_MODERATION_APPLICATION_STORE_ENABLE");
   }
 
-  /// Показывать «Начать секретный чат» (Remote Config; в debug — `.env.development`).
-  bool get secretChatsEnabled {
-    if (kDebugMode) return dotenv.getBool('SECRET_CHATS_ENABLED', fallback: false);
-    return _getBool("SECRET_CHATS_ENABLED");
-  }
+  /// Показывать «Начать секретный чат».
+  bool get secretChatsEnabled => _flag('SECRET_CHATS_ENABLED', (config) => config.secretChatsEnabled);
 
-  /// Групповые звонки (Remote Config; в debug — `.env.development`). Выключены —
-  /// нет «Добавить участника» и «Позвонить нескольким»; приглашения в чужой
-  /// групповой звонок по-прежнему принимаются.
-  bool get groupCallsEnabled {
-    if (kDebugMode) return dotenv.getBool('GROUP_CALLS_ENABLED', fallback: false);
-    return _getBool("GROUP_CALLS_ENABLED");
-  }
+  /// Групповые звонки. Выключены — нет «Добавить участника» и «Позвонить
+  /// нескольким»; приглашения в чужой групповой звонок по-прежнему принимаются.
+  bool get groupCallsEnabled => _flag('GROUP_CALLS_ENABLED', (config) => config.groupCallsEnabled);
 
   /// Создавать секретные чаты может только Premium (принять — любой).
-  bool get secretChatsPremiumOnly {
-    if (kDebugMode) return dotenv.getBool('SECRET_CHATS_PREMIUM_ONLY', fallback: false);
-    return _getBool("SECRET_CHATS_PREMIUM_ONLY");
-  }
+  bool get secretChatsPremiumOnly => _flag('SECRET_CHATS_PREMIUM_ONLY', (config) => config.secretChatsPremiumOnly);
 
   /// Сколько раз пробовать начальный connect к комнате LiveKit перед провалом
-  /// звонка (см. `Calls._connectRoom`). `dotenv` перекрывает Remote Config; при
-  /// невалидном/нулевом значении откатываемся на 3.
-  int get callConnectMaxAttempts {
-    final res = dotenv.getInt('CALL_CONNECT_MAX_ATTEMPTS', fallback: 0);
-    if (res > 0) return res;
-    final rc = _getInt("CALL_CONNECT_MAX_ATTEMPTS");
-    return rc > 0 ? rc : 3;
-  }
+  /// звонка (см. `Calls._connectRoom`).
+  int get callConnectMaxAttempts => _number('CALL_CONNECT_MAX_ATTEMPTS', _serverConfig?.callConnectMaxAttempts ?? 0, 3);
 
   /// Таймаут установления PeerConnection (ICE) для connect к комнате LiveKit, в
   /// секундах. Укорочен относительно дефолтных 10 с SDK ради живых повторов.
-  /// `dotenv` перекрывает Remote Config; при невалидном/нулевом — откат на 7.
-  int get callPeerConnectionTimeoutSeconds {
-    final res = dotenv.getInt('CALL_PEER_CONNECTION_TIMEOUT_SECONDS', fallback: 0);
-    if (res > 0) return res;
-    final rc = _getInt("CALL_PEER_CONNECTION_TIMEOUT_SECONDS");
-    return rc > 0 ? rc : 7;
-  }
+  int get callPeerConnectionTimeoutSeconds =>
+      _number('CALL_PEER_CONNECTION_TIMEOUT_SECONDS', _serverConfig?.callPeerConnectionTimeoutSeconds ?? 0, 7);
 
   /// Сколько секунд звоним абоненту, прежде чем автоматически отменить исходящий
   /// недозвон (звонящий шлёт `CALL_HANGUP` → сервер снимает у абонента баннер
   /// входящего cancel-пушем). Без этого баннер у абонента висит, пока звонящий
-  /// не нажмёт отбой вручную. `dotenv` перекрывает Remote Config; при
-  /// невалидном/нулевом — откат на 45.
-  int get callRingTimeoutSeconds {
-    final res = dotenv.getInt('CALL_RING_TIMEOUT_SECONDS', fallback: 0);
-    if (res > 0) return res;
-    final rc = _getInt("CALL_RING_TIMEOUT_SECONDS");
-    return rc > 0 ? rc : 45;
-  }
+  /// не нажмёт отбой вручную.
+  int get callRingTimeoutSeconds => _number('CALL_RING_TIMEOUT_SECONDS', _serverConfig?.callRingTimeoutSeconds ?? 0, 45);
 }

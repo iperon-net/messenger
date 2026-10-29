@@ -12,6 +12,7 @@ import 'calls.dart';
 import 'chats/chats_sync.dart';
 import 'chats/media_prepare.dart' show avatarThumbhash;
 import 'chats/secret/secret_chats_sync.dart';
+import 'client_config.dart';
 import 'models.dart' as models;
 import 'utils.dart';
 import 'crypto.dart';
@@ -924,6 +925,16 @@ class API {
           break;
         }
         await cacheProfile(payload);
+
+      case MessageType.SUBSCRIBE:
+        // Подписка открыта: в ответе — настройки приложения (старый сервер
+        // их не шлёт).
+        final payload = Subscribe_Response.fromBuffer(message.payload);
+        if (payload.hasClientConfig()) await ClientConfigSync.apply(payload.clientConfig.writeToBuffer());
+
+      case MessageType.CLIENT_CONFIG:
+        // Настройки приложения поменяли в админке.
+        await ClientConfigSync.apply(message.payload);
 
       case MessageType.LOGOUT:
         // Сервер принудительно отзывает сессии (например, разлогин с другого

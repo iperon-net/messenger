@@ -833,6 +833,11 @@
   "testPushError": "Не удалось отправить: {error}"
   "testPushEncrypted": "Тестовое уведомление (шифрованное)"
   "testPushQueued": "Поставлено в очередь сервера. На Android придёт «Шифрованное тестовое уведомление: расшифровка работает», на iPhone пока — «Новое уведомление» (расшифровка на iOS появится позже)."
+  "serverConfig": "Обновить настройки с сервера"
+  "serverConfigHint": "Флаги из админки («Настройки»)"
+  "serverConfigUpdated": "Новые настройки применены."
+  "serverConfigUnchanged": "Изменений нет — настройки уже актуальные."
+  "serverConfigError": "Не удалось загрузить настройки с сервера."
   "remoteConfig": "Обновить Remote Config"
   "remoteConfigFetched": "Загружено {time}"
   "remoteConfigNever": "Ещё не загружался"
@@ -1688,6 +1693,12 @@ dateTime:
 
 "auth":
   "accountBlocked": "Аккаунт заблокирован"
+"appUpdate":
+  "title": "Обновите приложение"
+  "text": "Эта версия Iperon устарела и больше не поддерживается. Установите новую, чтобы продолжить."
+  "button": "Обновить"
+  "version": "Установлена {current}, нужна {minimal} или новее."
+
 "screenAuthBlocked":
   "title": "Аккаунт заблокирован"
   "text": "Войти в этот аккаунт сейчас нельзя: он заблокирован за нарушение правил Iperon."

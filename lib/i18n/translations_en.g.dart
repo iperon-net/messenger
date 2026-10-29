@@ -91,6 +91,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$deviceLink$en deviceLink = Translations$deviceLink$en.internal(_root);
 	late final Translations$qrLogin$en qrLogin = Translations$qrLogin$en.internal(_root);
 	late final Translations$auth$en auth = Translations$auth$en.internal(_root);
+	late final Translations$appUpdate$en appUpdate = Translations$appUpdate$en.internal(_root);
 	late final Translations$screenAuthBlocked$en screenAuthBlocked = Translations$screenAuthBlocked$en.internal(_root);
 	late final Translations$report$en report = Translations$report$en.internal(_root);
 }
@@ -2532,6 +2533,21 @@ class Translations$screenDeveloper$en {
 
 	/// en: 'Queued on the server. Android shows "Encrypted test notification: decryption works"; iPhone shows "New notification" for now (iOS decryption comes later).'
 	String get testPushQueued => 'Queued on the server. Android shows "Encrypted test notification: decryption works"; iPhone shows "New notification" for now (iOS decryption comes later).';
+
+	/// en: 'Refresh server settings'
+	String get serverConfig => 'Refresh server settings';
+
+	/// en: 'Flags from the admin panel («Settings»)'
+	String get serverConfigHint => 'Flags from the admin panel («Settings»)';
+
+	/// en: 'New settings applied.'
+	String get serverConfigUpdated => 'New settings applied.';
+
+	/// en: 'No changes — the settings are already up to date.'
+	String get serverConfigUnchanged => 'No changes — the settings are already up to date.';
+
+	/// en: 'Could not load the settings from the server.'
+	String get serverConfigError => 'Could not load the settings from the server.';
 
 	/// en: 'Refresh Remote Config'
 	String get remoteConfig => 'Refresh Remote Config';
@@ -5081,6 +5097,27 @@ class Translations$auth$en {
 	String get accountBlocked => 'Account blocked';
 }
 
+// Path: appUpdate
+class Translations$appUpdate$en {
+	Translations$appUpdate$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Update the app'
+	String get title => 'Update the app';
+
+	/// en: 'This version of Iperon is out of date and no longer supported. Install the new one to continue.'
+	String get text => 'This version of Iperon is out of date and no longer supported. Install the new one to continue.';
+
+	/// en: 'Update'
+	String get button => 'Update';
+
+	/// en: 'Installed {current}, {minimal} or newer is required.'
+	String version({required Object current, required Object minimal}) => 'Installed ${current}, ${minimal} or newer is required.';
+}
+
 // Path: screenAuthBlocked
 class Translations$screenAuthBlocked$en {
 	Translations$screenAuthBlocked$en.internal(this._root);
@@ -5966,6 +6003,11 @@ extension on Translations {
 			'screenDeveloper.testPushError' => ({required Object error}) => 'Failed to send: ${error}',
 			'screenDeveloper.testPushEncrypted' => 'Test notification (encrypted)',
 			'screenDeveloper.testPushQueued' => 'Queued on the server. Android shows "Encrypted test notification: decryption works"; iPhone shows "New notification" for now (iOS decryption comes later).',
+			'screenDeveloper.serverConfig' => 'Refresh server settings',
+			'screenDeveloper.serverConfigHint' => 'Flags from the admin panel («Settings»)',
+			'screenDeveloper.serverConfigUpdated' => 'New settings applied.',
+			'screenDeveloper.serverConfigUnchanged' => 'No changes — the settings are already up to date.',
+			'screenDeveloper.serverConfigError' => 'Could not load the settings from the server.',
 			'screenDeveloper.remoteConfig' => 'Refresh Remote Config',
 			'screenDeveloper.remoteConfigFetched' => ({required Object time}) => 'Fetched ${time}',
 			'screenDeveloper.remoteConfigNever' => 'Not fetched yet',
@@ -6237,13 +6279,13 @@ extension on Translations {
 			'cloudPassword.reset' => 'Reset',
 			'cloudPassword.attemptsLeft' => ({required Object count}) => 'Attempts left: ${count}',
 			'cloudPassword.attemptsLeftInline' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} attempt left', other: '${n} attempts left', ), 
+			_ => null,
+		} ?? switch (path) {
 			'cloudPassword.setPassword' => 'Set password',
 			'cloudPassword.newPasswordTitle' => 'New password',
 			'cloudPassword.newPasswordDescription' => 'Set a cloud password. You\'ll be asked for it when signing in on a new device.',
 			'cloudPassword.changePassword' => 'Change password',
 			'cloudPassword.email' => 'Email',
-			_ => null,
-		} ?? switch (path) {
 			'cloudPassword.emailPlaceholder' => 'Email',
 			'cloudPassword.emailNotSet' => 'Not set',
 			'cloudPassword.emailCodeSent' => 'We sent a verification code to your email.',
@@ -6703,6 +6745,10 @@ extension on Translations {
 			'deviceLink.cameraDenied' => 'No camera access. Allow it in settings.',
 			'qrLogin.expired' => 'The QR code has expired — scan a new one on your computer',
 			'auth.accountBlocked' => 'Account blocked',
+			'appUpdate.title' => 'Update the app',
+			'appUpdate.text' => 'This version of Iperon is out of date and no longer supported. Install the new one to continue.',
+			'appUpdate.button' => 'Update',
+			'appUpdate.version' => ({required Object current, required Object minimal}) => 'Installed ${current}, ${minimal} or newer is required.',
 			'screenAuthBlocked.title' => 'Account blocked',
 			'screenAuthBlocked.text' => 'You can\'t sign in to this account right now: it has been blocked for violating the Iperon rules.',
 			'screenAuthBlocked.reason' => ({required Object reason}) => 'Reason: ${reason}',

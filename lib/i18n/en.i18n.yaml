@@ -807,6 +807,11 @@
   "testPushError": "Failed to send: {error}"
   "testPushEncrypted": "Test notification (encrypted)"
   "testPushQueued": "Queued on the server. Android shows \"Encrypted test notification: decryption works\"; iPhone shows \"New notification\" for now (iOS decryption comes later)."
+  "serverConfig": "Refresh server settings"
+  "serverConfigHint": "Flags from the admin panel («Settings»)"
+  "serverConfigUpdated": "New settings applied."
+  "serverConfigUnchanged": "No changes — the settings are already up to date."
+  "serverConfigError": "Could not load the settings from the server."
   "remoteConfig": "Refresh Remote Config"
   "remoteConfigFetched": "Fetched {time}"
   "remoteConfigNever": "Not fetched yet"
@@ -1637,6 +1642,12 @@ dateTime:
 
 "auth":
   "accountBlocked": "Account blocked"
+"appUpdate":
+  "title": "Update the app"
+  "text": "This version of Iperon is out of date and no longer supported. Install the new one to continue."
+  "button": "Update"
+  "version": "Installed {current}, {minimal} or newer is required."
+
 "screenAuthBlocked":
   "title": "Account blocked"
   "text": "You can't sign in to this account right now: it has been blocked for violating the Iperon rules."

@@ -9,6 +9,7 @@ import 'package:messenger/repositories/repositories.dart';
 import 'account_scope.dart';
 import 'accounts.dart';
 import 'chats/spoiler_reveals.dart';
+import 'client_config.dart';
 import 'logger.dart';
 import 'platform.dart';
 import 'routers.dart';
@@ -48,6 +49,8 @@ Future<void> registerCommonDependencies() async {
     getIt.registerSingletonAsync<DeviceRepositories>(() async => DeviceRepositories.initialization(), dependsOn: [Settings]);
   }
   await getIt.allReady();
+  // Настройки приложения с прошлого ответа сервера — до первого экрана.
+  if (getIt.get<Settings>().serverConfig == null) await ClientConfigSync.loadCached();
 
   if (!getIt.hasScope(_accountScopeName)) await openAccount(getIt.get<DeviceRepositories>().activeAccountID);
 }
@@ -96,6 +99,9 @@ Future<void> closeAccount() async {
 /// Запуск фоновой работы аккаунта после [openAccount]: регистрация пуш-
 /// токенов, мост call-пушей, раскрытые спойлеры.
 Future<void> startAccountServices() async {
+  // Свежие настройки приложения (до входа тоже; после входа их обновляет
+  // стрим). Не ждём — экран не задерживаем, пока есть кэш.
+  unawaited(ClientConfigSync.fetch());
   final settingsDevice = await getIt.get<DeviceRepositories>().settingsDevice.getAll();
   // Само-гейтится на авторизацию; VoIP-токен iOS синхронизирует CallPush. См.
   // docs/plans/push-notifications.md.
