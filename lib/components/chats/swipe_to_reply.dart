@@ -9,7 +9,8 @@ import '../full_swipe_back.dart';
 /// Свайп сообщения влево — ответить (как в Telegram): пузырь уезжает за
 /// пальцем, справа проявляется значок ↩; за порогом — лёгкая вибрация, и
 /// при отпускании вызывается [onReply]. Вправо не тянется и жест не
-/// забирает — свайп вправо закрывает чат (см. [FullSwipeBackPage]).
+/// забирает — свайп вправо закрывает чат (см. [FullSwipeBackPage]). Тянуть
+/// можно за всю строку, и за пустое место рядом с пузырём.
 class SwipeToReply extends StatefulWidget {
   final Widget child;
 
@@ -75,6 +76,8 @@ class _SwipeToReplyState extends State<SwipeToReply> with SingleTickerProviderSt
     final enabled = widget.onReply != null;
     // Принимает только движение влево: вправо — жест «назад» страницы.
     return RawGestureDetector(
+      // Строка пузыря — во всю ширину (Row): ловим и мимо пузыря, как в Telegram.
+      behavior: HitTestBehavior.translucent,
       gestures: {
         if (enabled)
           DirectionalDragGestureRecognizer: GestureRecognizerFactoryWithHandlers<DirectionalDragGestureRecognizer>(
