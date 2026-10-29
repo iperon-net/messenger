@@ -440,6 +440,10 @@
   "online": "в сети"
   "lastSeenRecently": "был(а) недавно"
   "accountBlocked": "Аккаунт заблокирован"
+  "moderationBlocked": "заблокирован за нарушение правил"
+  "moderationBlockedGroup": "Группа заблокирована"
+  "moderationBlockedChannel": "Канал заблокирован"
+  "moderationBlockedText": "Модераторы Iperon заблокировали этот чат за нарушение правил. Читать, писать и вступать в него нельзя."
   "members(plural)":
     one: "{count} участник"
     few: "{count} участника"
@@ -1476,6 +1480,7 @@ dateTime:
   "rankInvalid": "Звание — не длиннее 16 символов."
   "membersLimit": "В группе уже максимальное число участников."
   "chatWriteForbidden": "В этой группе вы можете только читать."
+  "chatBlocked": "Чат заблокирован модерацией за нарушение правил."
   "passwordInvalid": "Неверный облачный пароль."
   "permissionDenied": "Недостаточно прав для этого действия."
   "banned": "Вы заблокированы в этой группе."

@@ -623,6 +623,10 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get online => 'в сети';
 	@override String get lastSeenRecently => 'был(а) недавно';
 	@override String get accountBlocked => 'Аккаунт заблокирован';
+	@override String get moderationBlocked => 'заблокирован за нарушение правил';
+	@override String get moderationBlockedGroup => 'Группа заблокирована';
+	@override String get moderationBlockedChannel => 'Канал заблокирован';
+	@override String get moderationBlockedText => 'Модераторы Iperon заблокировали этот чат за нарушение правил. Читать, писать и вступать в него нельзя.';
 	@override String members({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
 		one: '${count} участник',
 		few: '${count} участника',
@@ -1885,6 +1889,7 @@ class _Translations$chatAction$ru extends Translations$chatAction$en {
 	@override String get rankInvalid => 'Звание — не длиннее 16 символов.';
 	@override String get membersLimit => 'В группе уже максимальное число участников.';
 	@override String get chatWriteForbidden => 'В этой группе вы можете только читать.';
+	@override String get chatBlocked => 'Чат заблокирован модерацией за нарушение правил.';
 	@override String get passwordInvalid => 'Неверный облачный пароль.';
 	@override String get permissionDenied => 'Недостаточно прав для этого действия.';
 	@override String get banned => 'Вы заблокированы в этой группе.';
@@ -2635,6 +2640,10 @@ extension on TranslationsRu {
 			'screenChat.online' => 'в сети',
 			'screenChat.lastSeenRecently' => 'был(а) недавно',
 			'screenChat.accountBlocked' => 'Аккаунт заблокирован',
+			'screenChat.moderationBlocked' => 'заблокирован за нарушение правил',
+			'screenChat.moderationBlockedGroup' => 'Группа заблокирована',
+			'screenChat.moderationBlockedChannel' => 'Канал заблокирован',
+			'screenChat.moderationBlockedText' => 'Модераторы Iperon заблокировали этот чат за нарушение правил. Читать, писать и вступать в него нельзя.',
 			'screenChat.members' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} участник', few: '${count} участника', many: '${count} участников', other: '${count} участника', ), 
 			'screenChat.subscribers' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} подписчик', few: '${count} подписчика', many: '${count} подписчиков', other: '${count} подписчика', ), 
 			'screenChat.comments' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${count} комментарий', few: '${count} комментария', many: '${count} комментариев', other: '${count} комментария', ), 
@@ -2742,12 +2751,12 @@ extension on TranslationsRu {
 			'screenChat.selected' => ({required Object n}) => 'Выбрано: ${n}',
 			'screenChat.search' => 'Поиск',
 			'screenChat.searchNoResults' => 'Нет результатов',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.searchLoading' => 'Поиск…',
 			'screenChat.searchOffline' => 'Нет соединения — показаны только сообщения на устройстве',
 			'screenChat.unreadMessages' => 'Непрочитанные сообщения',
 			'screenChat.select' => 'Выбрать',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.videoCompressing' => 'Сжатие видео',
 			'screenChat.pin' => 'Закрепить',
 			'screenChat.unpin' => 'Открепить',
@@ -3256,12 +3265,12 @@ extension on TranslationsRu {
 			'cloudPassword.newPasswordDescription' => 'Задайте облачный пароль. Его запросят при входе с нового устройства.',
 			'cloudPassword.changePassword' => 'Изменить пароль',
 			'cloudPassword.email' => 'Email',
+			_ => null,
+		} ?? switch (path) {
 			'cloudPassword.emailPlaceholder' => 'Email',
 			'cloudPassword.emailNotSet' => 'Не задан',
 			'cloudPassword.emailCodeSent' => 'Мы отправили код подтверждения на ваш email.',
 			'cloudPassword.verifyEmail' => 'Подтвердить email',
-			_ => null,
-		} ?? switch (path) {
 			'cloudPassword.disable' => 'Отключить пароль',
 			'cloudPassword.loadError' => 'Не удалось загрузить настройки облачного пароля',
 			'cloudPassword.retry' => 'Повторить',
@@ -3561,6 +3570,7 @@ extension on TranslationsRu {
 			'chatAction.rankInvalid' => 'Звание — не длиннее 16 символов.',
 			'chatAction.membersLimit' => 'В группе уже максимальное число участников.',
 			'chatAction.chatWriteForbidden' => 'В этой группе вы можете только читать.',
+			'chatAction.chatBlocked' => 'Чат заблокирован модерацией за нарушение правил.',
 			'chatAction.passwordInvalid' => 'Неверный облачный пароль.',
 			'chatAction.permissionDenied' => 'Недостаточно прав для этого действия.',
 			'chatAction.banned' => 'Вы заблокированы в этой группе.',

@@ -411,6 +411,13 @@ class Chat with ChatMappable {
   /// писать нельзя.
   final bool accountBlocked;
 
+  /// Группа / канал заблокированы модерацией (`ChatInfo.moderationBlocked`):
+  /// вместо ленты — заглушка, писать и вступать нельзя.
+  final bool moderationBlocked;
+
+  /// Подтверждённый чат (`ChatInfo.verified`) — галочка у названия.
+  final bool verified;
+
   /// Обложка сообщества — фон шапки его страницы (локальный файл, как
   /// [avatarPath]). Пусто — генеративный фон.
   final String coverPath;
@@ -562,6 +569,8 @@ class Chat with ChatMappable {
     this.avatarPath = '',
     this.avatarThumbhash = '',
     this.accountBlocked = false,
+    this.moderationBlocked = false,
+    this.verified = false,
     this.coverPath = '',
     this.phone = '',
     this.address = '',
@@ -651,5 +660,6 @@ class Chat with ChatMappable {
       isMember &&
       !isSystem &&
       !accountBlocked &&
+      !moderationBlocked &&
       (type != ChatType.channel || myRole == ChatRole.owner || (myRole == ChatRole.admin && (myRights == null || myRights!.postMessages)));
 }

@@ -49,6 +49,7 @@ export '../../components/chats/chat_toast.dart' show showChatToast;
   if (chat.typing.isNotEmpty) return (text: ChatTileContent.typing(t, chat), active: true);
   // Комментарии к посту — название канала под «Комментарии».
   if (chat.isThread) return (text: chat.title, active: false);
+  if (chat.moderationBlocked) return (text: t.screenChat.moderationBlocked, active: false);
   final seed = chat.id.hashCode.abs();
   final count = chat.membersCount > 0 ? chat.membersCount : (chat.type == models.ChatType.channel ? 1200 + seed % 90000 : 3 + seed % 60);
   return switch (chat.type) {
@@ -499,6 +500,7 @@ String chatsFailedText(Translations translations, String error) {
     'rankInvalid' => t.rankInvalid,
     'membersLimit' => t.membersLimit,
     'chatWriteForbidden' => t.chatWriteForbidden,
+    'chatBlocked' => t.chatBlocked,
     'passwordInvalid' => t.passwordInvalid,
     'permissionDenied' => t.permissionDenied,
     'banned' => t.banned,
@@ -2288,4 +2290,40 @@ List<String> visibleMessageIDs(ScrollController scroll, List<models.Message> mes
 double _overlap(RenderBox box, double top, double bottom) {
   final y = box.localToGlobal(Offset.zero).dy;
   return math.min(bottom, y + box.size.height) - math.max(top, y);
+}
+
+/// Лента группы / канала, заблокированных модерацией: вместо сообщений —
+/// объяснение (как «этот канал недоступен» в Telegram).
+class ChatModerationBlockedView extends StatelessWidget {
+  final models.Chat chat;
+  final Color color;
+
+  const ChatModerationBlockedView({super.key, required this.chat, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t.screenChat;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 12,
+          children: [
+            FaIcon(FontAwesomeIcons.ban, size: 40, color: color),
+            Text(
+              chat.type == models.ChatType.channel ? t.moderationBlockedChannel : t.moderationBlockedGroup,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.w600, color: color),
+            ),
+            Text(
+              t.moderationBlockedText,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: color),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

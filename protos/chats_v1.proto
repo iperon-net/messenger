@@ -145,6 +145,11 @@ message ChatInfo {
   // ThumbHash аватара (base64): размытое превью до скачивания (как
   // Profile.Response.avatarThumbhash). Хранится вместе с avatarCdnID.
   string avatarThumbhash = 30;
+  // Модерация (админка): чат заблокирован — вступить и писать нельзя,
+  // клиент показывает заглушку вместо ленты; verified — галочка
+  // подтверждённого чата.
+  bool moderationBlocked = 31;
+  bool verified = 32;
 }
 
 // Ссылка-приглашение (как chatInviteExported в Telegram). Путь ссылки —

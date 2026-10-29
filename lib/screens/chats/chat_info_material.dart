@@ -464,10 +464,18 @@ class _ChatInfoMaterialState extends State<ChatInfoMaterial> {
                           const SizedBox(height: 12),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: Text(
-                              ChatTileContent.title(t, chat),
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.headlineSmall,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    ChatTileContent.title(t, chat),
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context).textTheme.headlineSmall,
+                                  ),
+                                ),
+                                if (chat.verified) VerifiedBadge(color: scheme.primary, size: 20),
+                              ],
                             ),
                           ),
                           if (subtitle != null && subtitle.text.isNotEmpty)

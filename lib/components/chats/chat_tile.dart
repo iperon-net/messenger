@@ -1,4 +1,4 @@
-import 'dart:ui' show Color;
+import 'package:flutter/widgets.dart';
 
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -145,4 +145,18 @@ abstract final class ChatTileContent {
   }
 
   static String badge(int count) => count > 999 ? '999+' : '$count';
+}
+
+/// Галочка подтверждённого чата (`Chat.verified`) у названия.
+class VerifiedBadge extends StatelessWidget {
+  final Color color;
+  final double size;
+
+  const VerifiedBadge({super.key, required this.color, this.size = 13});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(left: 4),
+    child: FaIcon(FontAwesomeIcons.solidCircleCheck, size: size, color: color),
+  );
 }

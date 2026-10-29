@@ -112,6 +112,7 @@ class _ChatTileCupertinoState extends State<ChatTileCupertino> {
                                   ),
                                 ),
                               ),
+                              if (chat.verified) VerifiedBadge(color: primary),
                               if (chat.muted) ...[const SizedBox(width: 4), FaIcon(FontAwesomeIcons.bellSlash, size: 11, color: secondary)],
                             ],
                           ),

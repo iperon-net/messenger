@@ -401,10 +401,18 @@ class _ChatInfoCupertinoState extends State<ChatInfoCupertino> {
                 const SizedBox(height: 12),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Text(
-                    ChatTileContent.title(t, chat),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: label),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          ChatTileContent.title(t, chat),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: label),
+                        ),
+                      ),
+                      if (chat.verified) VerifiedBadge(color: primary, size: 20),
+                    ],
                   ),
                 ),
                 if (subtitle != null && subtitle.text.isNotEmpty)

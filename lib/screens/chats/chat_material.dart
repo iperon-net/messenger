@@ -722,7 +722,9 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
                                         ),
                                       ),
                                     ),
-                                    state.messages.isEmpty
+                                    chat.moderationBlocked
+                                        ? ChatModerationBlockedView(chat: chat, color: Theme.of(context).colorScheme.onSurfaceVariant)
+                                        : state.messages.isEmpty
                                         ? Center(child: Text(t.screenChat.empty))
                                         : ChatMessagesView(
                                             messages: state.messages,
@@ -1200,7 +1202,19 @@ class _Header extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(ChatTileContent.title(t, chat), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 18)),
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      ChatTileContent.title(t, chat),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 18),
+                    ),
+                  ),
+                  if (chat.verified) VerifiedBadge(color: scheme.primary, size: 15),
+                ],
+              ),
               if (subtitle.text.isNotEmpty)
                 // «печатает…» — с бегущими точками.
                 chat.typing.isNotEmpty

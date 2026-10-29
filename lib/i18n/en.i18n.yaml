@@ -432,6 +432,10 @@
   "online": "online"
   "lastSeenRecently": "last seen recently"
   "accountBlocked": "Account blocked"
+  "moderationBlocked": "blocked for violating the rules"
+  "moderationBlockedGroup": "Group blocked"
+  "moderationBlockedChannel": "Channel blocked"
+  "moderationBlockedText": "Iperon moderators blocked this chat for violating the rules. It can't be read, written to or joined."
   "members(plural)":
     one: "{count} member"
     other: "{count} members"
@@ -1443,6 +1447,7 @@ dateTime:
   "rankInvalid": "The title must be 16 characters or fewer."
   "membersLimit": "The group has reached the member limit."
   "chatWriteForbidden": "You can only read this group."
+  "chatBlocked": "This chat is blocked by moderation for violating the rules."
   "passwordInvalid": "Wrong cloud password."
   "permissionDenied": "You don't have permission for this action."
   "banned": "You are banned from this group."

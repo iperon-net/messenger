@@ -390,6 +390,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
             about: group.info.about,
             avatarPath: await _groupAvatar(group.info),
             avatarThumbhash: group.info.avatarThumbhash,
+            moderationBlocked: group.info.moderationBlocked,
+            verified: group.info.verified,
             membersCount: group.info.membersCount,
             myRole: browsing ? models.ChatRole.reader : roleFromPb(group.role),
             // Права — у админа (владельцу — все, см. myChatRights).
@@ -1290,6 +1292,8 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       about: info.about,
       avatarPath: await _groupAvatar(info),
       avatarThumbhash: info.avatarThumbhash,
+      moderationBlocked: info.moderationBlocked,
+      verified: info.verified,
       membersCount: info.membersCount,
       myRole: roleFromPb(info.defaultRole),
       defaultRole: roleFromPb(info.defaultRole),

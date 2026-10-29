@@ -1910,6 +1910,20 @@ class ChatMapper extends ClassMapperBase<Chat> {
     opt: true,
     def: false,
   );
+  static bool _$moderationBlocked(Chat v) => v.moderationBlocked;
+  static const Field<Chat, bool> _f$moderationBlocked = Field(
+    'moderationBlocked',
+    _$moderationBlocked,
+    opt: true,
+    def: false,
+  );
+  static bool _$verified(Chat v) => v.verified;
+  static const Field<Chat, bool> _f$verified = Field(
+    'verified',
+    _$verified,
+    opt: true,
+    def: false,
+  );
   static String _$coverPath(Chat v) => v.coverPath;
   static const Field<Chat, String> _f$coverPath = Field(
     'coverPath',
@@ -2174,6 +2188,8 @@ class ChatMapper extends ClassMapperBase<Chat> {
     #avatarPath: _f$avatarPath,
     #avatarThumbhash: _f$avatarThumbhash,
     #accountBlocked: _f$accountBlocked,
+    #moderationBlocked: _f$moderationBlocked,
+    #verified: _f$verified,
     #coverPath: _f$coverPath,
     #phone: _f$phone,
     #address: _f$address,
@@ -2243,6 +2259,8 @@ class ChatMapper extends ClassMapperBase<Chat> {
       avatarPath: data.dec(_f$avatarPath),
       avatarThumbhash: data.dec(_f$avatarThumbhash),
       accountBlocked: data.dec(_f$accountBlocked),
+      moderationBlocked: data.dec(_f$moderationBlocked),
+      verified: data.dec(_f$verified),
       coverPath: data.dec(_f$coverPath),
       phone: data.dec(_f$phone),
       address: data.dec(_f$address),
@@ -2370,6 +2388,8 @@ abstract class ChatCopyWith<$R, $In extends Chat, $Out>
     String? avatarPath,
     String? avatarThumbhash,
     bool? accountBlocked,
+    bool? moderationBlocked,
+    bool? verified,
     String? coverPath,
     String? phone,
     String? address,
@@ -2479,6 +2499,8 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     String? avatarPath,
     String? avatarThumbhash,
     bool? accountBlocked,
+    bool? moderationBlocked,
+    bool? verified,
     String? coverPath,
     String? phone,
     String? address,
@@ -2546,6 +2568,8 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
       if (avatarPath != null) #avatarPath: avatarPath,
       if (avatarThumbhash != null) #avatarThumbhash: avatarThumbhash,
       if (accountBlocked != null) #accountBlocked: accountBlocked,
+      if (moderationBlocked != null) #moderationBlocked: moderationBlocked,
+      if (verified != null) #verified: verified,
       if (coverPath != null) #coverPath: coverPath,
       if (phone != null) #phone: phone,
       if (address != null) #address: address,
@@ -2616,6 +2640,11 @@ class _ChatCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, Chat, $Out>
     avatarPath: data.get(#avatarPath, or: $value.avatarPath),
     avatarThumbhash: data.get(#avatarThumbhash, or: $value.avatarThumbhash),
     accountBlocked: data.get(#accountBlocked, or: $value.accountBlocked),
+    moderationBlocked: data.get(
+      #moderationBlocked,
+      or: $value.moderationBlocked,
+    ),
+    verified: data.get(#verified, or: $value.verified),
     coverPath: data.get(#coverPath, or: $value.coverPath),
     phone: data.get(#phone, or: $value.phone),
     address: data.get(#address, or: $value.address),

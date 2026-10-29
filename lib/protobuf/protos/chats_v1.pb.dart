@@ -59,6 +59,8 @@ class ChatInfo extends $pb.GeneratedMessage {
     $fixnum.Int64? postID,
     $fixnum.Int64? commentsCloseDate,
     $core.String? avatarThumbhash,
+    $core.bool? moderationBlocked,
+    $core.bool? verified,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
@@ -91,6 +93,8 @@ class ChatInfo extends $pb.GeneratedMessage {
     if (postID != null) result.postID = postID;
     if (commentsCloseDate != null) result.commentsCloseDate = commentsCloseDate;
     if (avatarThumbhash != null) result.avatarThumbhash = avatarThumbhash;
+    if (moderationBlocked != null) result.moderationBlocked = moderationBlocked;
+    if (verified != null) result.verified = verified;
     return result;
   }
 
@@ -133,6 +137,8 @@ class ChatInfo extends $pb.GeneratedMessage {
     ..aInt64(28, _omitFieldNames ? '' : 'postID', protoName: 'postID')
     ..aInt64(29, _omitFieldNames ? '' : 'commentsCloseDate', protoName: 'commentsCloseDate')
     ..aOS(30, _omitFieldNames ? '' : 'avatarThumbhash', protoName: 'avatarThumbhash')
+    ..aOB(31, _omitFieldNames ? '' : 'moderationBlocked', protoName: 'moderationBlocked')
+    ..aOB(32, _omitFieldNames ? '' : 'verified')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -454,6 +460,27 @@ class ChatInfo extends $pb.GeneratedMessage {
   $core.bool hasAvatarThumbhash() => $_has(29);
   @$pb.TagNumber(30)
   void clearAvatarThumbhash() => $_clearField(30);
+
+  /// Модерация (админка): чат заблокирован — вступить и писать нельзя,
+  /// клиент показывает заглушку вместо ленты; verified — галочка
+  /// подтверждённого чата.
+  @$pb.TagNumber(31)
+  $core.bool get moderationBlocked => $_getBF(30);
+  @$pb.TagNumber(31)
+  set moderationBlocked($core.bool value) => $_setBool(30, value);
+  @$pb.TagNumber(31)
+  $core.bool hasModerationBlocked() => $_has(30);
+  @$pb.TagNumber(31)
+  void clearModerationBlocked() => $_clearField(31);
+
+  @$pb.TagNumber(32)
+  $core.bool get verified => $_getBF(31);
+  @$pb.TagNumber(32)
+  set verified($core.bool value) => $_setBool(31, value);
+  @$pb.TagNumber(32)
+  $core.bool hasVerified() => $_has(31);
+  @$pb.TagNumber(32)
+  void clearVerified() => $_clearField(32);
 }
 
 /// Ссылка-приглашение (как chatInviteExported в Telegram). Путь ссылки —

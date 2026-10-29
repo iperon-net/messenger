@@ -934,6 +934,8 @@ models.Chat? foundChatFromPb(pb.Chats_FoundChat found, {String avatarPath = ''})
     about: info.about,
     avatarPath: avatarPath,
     avatarThumbhash: info.avatarThumbhash,
+    moderationBlocked: info.moderationBlocked,
+    verified: info.verified,
     membersCount: info.membersCount,
     joinMode: joinModeFromPb(info.joinMode),
     username: info.username,

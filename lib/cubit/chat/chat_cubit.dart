@@ -1427,6 +1427,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
 
   /// Ключи отказов сервера, у которых есть свой текст (`showChatsFailed`).
   static const _knownErrors = {
+    'chatBlocked',
     'rightsTooWide',
     'rankInvalid',
     'chatWriteForbidden',
@@ -1444,6 +1445,7 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
 
   /// Отказы при отправке из outbox, которые объясняем ([ChatsSync.sendRejected]).
   static const _sendErrors = {
+    'chatBlocked',
     'newcomerRestricted',
     'pollForward',
     'chatWriteForbidden',

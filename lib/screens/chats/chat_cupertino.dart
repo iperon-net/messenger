@@ -652,7 +652,12 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
                                   Expanded(
                                     child: Stack(
                                       children: [
-                                        state.messages.isEmpty
+                                        chat.moderationBlocked
+                                            ? ChatModerationBlockedView(
+                                                chat: chat,
+                                                color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                                              )
+                                            : state.messages.isEmpty
                                             ? Center(
                                                 child: Text(
                                                   t.screenChat.empty,
@@ -1009,7 +1014,13 @@ class _Header extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(ChatTileContent.title(t, chat), maxLines: 1, overflow: TextOverflow.ellipsis),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(child: Text(ChatTileContent.title(t, chat), maxLines: 1, overflow: TextOverflow.ellipsis)),
+            if (chat.verified) VerifiedBadge(color: CupertinoTheme.of(context).primaryColor),
+          ],
+        ),
         if (subtitle.text.isNotEmpty)
           Builder(
             builder: (context) {

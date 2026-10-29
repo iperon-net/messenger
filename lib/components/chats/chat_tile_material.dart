@@ -85,6 +85,7 @@ class ChatTileMaterial extends StatelessWidget {
                                   ),
                                 ),
                               ),
+                              if (chat.verified) VerifiedBadge(color: scheme.primary),
                               if (chat.muted) ...[const SizedBox(width: 4), FaIcon(FontAwesomeIcons.bellSlash, size: 11, color: secondary)],
                             ],
                           ),

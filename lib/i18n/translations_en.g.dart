@@ -1420,6 +1420,18 @@ class Translations$screenChat$en {
 	/// en: 'Account blocked'
 	String get accountBlocked => 'Account blocked';
 
+	/// en: 'blocked for violating the rules'
+	String get moderationBlocked => 'blocked for violating the rules';
+
+	/// en: 'Group blocked'
+	String get moderationBlockedGroup => 'Group blocked';
+
+	/// en: 'Channel blocked'
+	String get moderationBlockedChannel => 'Channel blocked';
+
+	/// en: 'Iperon moderators blocked this chat for violating the rules. It can't be read, written to or joined.'
+	String get moderationBlockedText => 'Iperon moderators blocked this chat for violating the rules. It can\'t be read, written to or joined.';
+
 	/// en: '(one) {{count} member} (other) {{count} members}'
 	String members({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
 		one: '${count} member',
@@ -4501,6 +4513,9 @@ class Translations$chatAction$en {
 	/// en: 'You can only read this group.'
 	String get chatWriteForbidden => 'You can only read this group.';
 
+	/// en: 'This chat is blocked by moderation for violating the rules.'
+	String get chatBlocked => 'This chat is blocked by moderation for violating the rules.';
+
 	/// en: 'Wrong cloud password.'
 	String get passwordInvalid => 'Wrong cloud password.';
 
@@ -5602,6 +5617,10 @@ extension on Translations {
 			'screenChat.online' => 'online',
 			'screenChat.lastSeenRecently' => 'last seen recently',
 			'screenChat.accountBlocked' => 'Account blocked',
+			'screenChat.moderationBlocked' => 'blocked for violating the rules',
+			'screenChat.moderationBlockedGroup' => 'Group blocked',
+			'screenChat.moderationBlockedChannel' => 'Channel blocked',
+			'screenChat.moderationBlockedText' => 'Iperon moderators blocked this chat for violating the rules. It can\'t be read, written to or joined.',
 			'screenChat.members' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} member', other: '${count} members', ), 
 			'screenChat.subscribers' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} subscriber', other: '${count} subscribers', ), 
 			'screenChat.comments' => ({required num n, required Object count}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${count} comment', other: '${count} comments', ), 
@@ -5709,12 +5728,12 @@ extension on Translations {
 			'screenChat.selected' => ({required Object n}) => 'Selected: ${n}',
 			'screenChat.search' => 'Search',
 			'screenChat.searchNoResults' => 'No results',
+			_ => null,
+		} ?? switch (path) {
 			'screenChat.searchLoading' => 'Searching…',
 			'screenChat.searchOffline' => 'No connection — showing only messages on this device',
 			'screenChat.unreadMessages' => 'Unread messages',
 			'screenChat.select' => 'Select',
-			_ => null,
-		} ?? switch (path) {
 			'screenChat.videoCompressing' => 'Compressing video',
 			'screenChat.pin' => 'Pin',
 			'screenChat.unpin' => 'Unpin',
@@ -6223,12 +6242,12 @@ extension on Translations {
 			'cloudPassword.newPasswordDescription' => 'Set a cloud password. You\'ll be asked for it when signing in on a new device.',
 			'cloudPassword.changePassword' => 'Change password',
 			'cloudPassword.email' => 'Email',
+			_ => null,
+		} ?? switch (path) {
 			'cloudPassword.emailPlaceholder' => 'Email',
 			'cloudPassword.emailNotSet' => 'Not set',
 			'cloudPassword.emailCodeSent' => 'We sent a verification code to your email.',
 			'cloudPassword.verifyEmail' => 'Verify email',
-			_ => null,
-		} ?? switch (path) {
 			'cloudPassword.disable' => 'Disable password',
 			'cloudPassword.loadError' => 'Couldn\'t load cloud password settings',
 			'cloudPassword.retry' => 'Retry',
@@ -6528,6 +6547,7 @@ extension on Translations {
 			'chatAction.rankInvalid' => 'The title must be 16 characters or fewer.',
 			'chatAction.membersLimit' => 'The group has reached the member limit.',
 			'chatAction.chatWriteForbidden' => 'You can only read this group.',
+			'chatAction.chatBlocked' => 'This chat is blocked by moderation for violating the rules.',
 			'chatAction.passwordInvalid' => 'Wrong cloud password.',
 			'chatAction.permissionDenied' => 'You don\'t have permission for this action.',
 			'chatAction.banned' => 'You are banned from this group.',

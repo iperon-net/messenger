@@ -149,6 +149,8 @@ const ChatInfo$json = {
     {'1': 'postID', '3': 28, '4': 1, '5': 3, '10': 'postID'},
     {'1': 'commentsCloseDate', '3': 29, '4': 1, '5': 3, '10': 'commentsCloseDate'},
     {'1': 'avatarThumbhash', '3': 30, '4': 1, '5': 9, '10': 'avatarThumbhash'},
+    {'1': 'moderationBlocked', '3': 31, '4': 1, '5': 8, '10': 'moderationBlocked'},
+    {'1': 'verified', '3': 32, '4': 1, '5': 8, '10': 'verified'},
   ],
 };
 
@@ -174,7 +176,9 @@ final $typed_data.Uint8List chatInfoDescriptor =
         '1lbnRzV2hvEjgKF2NvbW1lbnRzTWluU3Vic2NyaXB0aW9uGBogASgFUhdjb21tZW50c01pblN1'
         'YnNjcmlwdGlvbhIiCgxwYXJlbnRDaGF0SUQYGyABKAxSDHBhcmVudENoYXRJRBIWCgZwb3N0SU'
         'QYHCABKANSBnBvc3RJRBIsChFjb21tZW50c0Nsb3NlRGF0ZRgdIAEoA1IRY29tbWVudHNDbG9z'
-        'ZURhdGUSKAoPYXZhdGFyVGh1bWJoYXNoGB4gASgJUg9hdmF0YXJUaHVtYmhhc2g=');
+        'ZURhdGUSKAoPYXZhdGFyVGh1bWJoYXNoGB4gASgJUg9hdmF0YXJUaHVtYmhhc2gSLAoRbW9kZX'
+        'JhdGlvbkJsb2NrZWQYHyABKAhSEW1vZGVyYXRpb25CbG9ja2VkEhoKCHZlcmlmaWVkGCAgASgI'
+        'Ugh2ZXJpZmllZA==');
 
 @$core.Deprecated('Use chatInviteLinkDescriptor instead')
 const ChatInviteLink$json = {
