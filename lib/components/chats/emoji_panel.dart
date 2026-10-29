@@ -13,6 +13,7 @@ import '../../chats/animated_emoji.dart';
 import '../../chats/emoji_filter.dart';
 import '../../device_performance.dart';
 import '../../i18n/translations.g.dart';
+import '../../platform.dart';
 
 /// Панель эмодзи вместо клавиатуры (как в Telegram): кнопка в поле ввода
 /// переключает клавиатуру ↔ панель. Высота панели — последней высоты
@@ -82,9 +83,16 @@ class EmojiPanelController extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   /// Закрыть панель и открыть клавиатуру (место держим до её появления).
+  /// На десктопе экранной клавиатуры нет — ждать нечего: панель сразу
+  /// уезжает (плавно, см. [EmojiPanel]), фокус — в поле ввода.
   void showKeyboard() {
     if (!_open) return;
     _open = false;
+    if (AppPlatform.isDesktop) {
+      notifyListeners();
+      if (!focus.hasFocus) focus.requestFocus();
+      return;
+    }
     _toKeyboard = true;
     _toKeyboardTimeout?.cancel();
     _toKeyboardTimeout = Timer(const Duration(milliseconds: 600), _endToKeyboard);
@@ -171,12 +179,26 @@ class EmojiPanel extends StatelessWidget {
           // Поиск: своя высота (результаты + поле) над клавиатурой. Тот же
           // SizedBox (height: null) — состояние панели (открытый поиск) не
           // теряется при смене.
-          child: SizedBox(
-            height: controller.searching ? null : height,
-            child: controller.open ? _picker(context, controller.height) : null,
+          child: _desktopResize(
+            SizedBox(height: controller.searching ? null : height, child: controller.open ? _picker(context, controller.height) : null),
           ),
         );
       },
+    );
+  }
+
+  /// Десктоп: высота меняется плавно — на телефоне её ведёт клавиатура
+  /// ([EmojiPanelController.reserved]), а тут клавиатуры нет, и панель
+  /// пропадала бы рывком.
+  Widget _desktopResize(Widget child) {
+    if (!AppPlatform.isDesktop) return child;
+    return ClipRect(
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        alignment: Alignment.topCenter,
+        child: child,
+      ),
     );
   }
 
