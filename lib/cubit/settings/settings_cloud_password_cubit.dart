@@ -1,8 +1,8 @@
 import 'package:bloc/bloc.dart';
 
 import '../../api.dart';
+import '../../cloud_password.dart';
 import '../../constants.dart';
-import '../../crypto.dart';
 import '../../di.dart';
 import '../../logger.dart';
 import '../../utils.dart';
@@ -10,13 +10,15 @@ import '../../protobuf.dart';
 import 'settings_cloud_password_state.dart';
 
 /// Настройки облачного пароля (двухшаговая проверка) — пошаговый полноэкранный
-/// flow (без диалогов). Authenticated: `api.unaryEncoded[WithResponse]`. Клиент
-/// шлёт pre-hash пароля (`cloudPasswordHash`), не plaintext.
+/// flow (без диалогов). Authenticated: `api.unaryEncoded[WithResponse]`. Пароль
+/// проверяется и задаётся по OPAQUE ([CloudPassword]) — на сервер не уходит.
 ///
 /// Flow:
 /// - не задан: email → код → пароль (одно поле) → включено;
-/// - задан: ввод текущего пароля («разблокировка») → меню; «Забыли пароль?» →
-///   код на сохранённый email → код + новый пароль (email при этом очищается).
+/// - задан: ввод текущего пароля («разблокировка», token на действия) → меню;
+///   «Забыли пароль?» → код на сохранённый email → код + новый пароль.
+/// После установки / смены пароля token гаснет — разблокируемся новым паролем
+/// сами, чтобы меню продолжало работать.
 class SettingsCloudPasswordCubit extends Cubit<SettingsCloudPasswordState> {
   SettingsCloudPasswordCubit() : super(const SettingsCloudPasswordState());
 
@@ -97,7 +99,7 @@ class SettingsCloudPasswordCubit extends Cubit<SettingsCloudPasswordState> {
       case SettingsCloudPasswordStep.changeEmail:
         emit(state.copyWith(step: SettingsCloudPasswordStep.menu, error: ""));
       case SettingsCloudPasswordStep.recoveryConfirm:
-        emit(state.copyWith(step: SettingsCloudPasswordStep.unlock, error: ""));
+        emit(state.copyWith(step: SettingsCloudPasswordStep.unlock, heldToken: const [], error: ""));
       default:
         break;
     }
@@ -122,14 +124,8 @@ class SettingsCloudPasswordCubit extends Cubit<SettingsCloudPasswordState> {
     if (!await _guard()) return;
 
     _busy();
-    final newPwHash = await cloudPasswordHash(password);
-    final status = await api.unaryEncoded(
-      MessageType.CLOUD_PASSWORD_SET,
-      CloudPasswordSet_Request(currentPwHash: state.heldPwHash, newPwHash: newPwHash).writeToBuffer(),
-    );
-    if (!_ok(status)) return;
+    if (!await _registerAndUnlock(password, const [])) return;
 
-    emit(state.copyWith(heldPwHash: newPwHash));
     await _loadInfo();
     emit(state.copyWith(step: SettingsCloudPasswordStep.menu, networkStatus: Status.success, error: ""));
   }
@@ -141,11 +137,10 @@ class SettingsCloudPasswordCubit extends Cubit<SettingsCloudPasswordState> {
     if (!await _guard()) return;
 
     _busy();
-    final pwHash = await cloudPasswordHash(password);
-    final status = await api.unaryEncoded(MessageType.CLOUD_PASSWORD_VERIFY, CloudPasswordVerify_Request(pwHash: pwHash).writeToBuffer());
-    if (!_ok(status)) return;
+    final unlocked = await CloudPassword.unlock(api, password);
+    if (unlocked.error.isNotEmpty) return _fail(unlocked.error);
 
-    emit(state.copyWith(heldPwHash: pwHash, step: SettingsCloudPasswordStep.menu, networkStatus: Status.success, error: ""));
+    emit(state.copyWith(heldToken: unlocked.token, step: SettingsCloudPasswordStep.menu, networkStatus: Status.success, error: ""));
   }
 
   // ── Меню: смена пароля / email / отключение ─────────────────────────────
@@ -155,14 +150,9 @@ class SettingsCloudPasswordCubit extends Cubit<SettingsCloudPasswordState> {
     if (!await _guard()) return;
 
     _busy();
-    final newPwHash = await cloudPasswordHash(password);
-    final status = await api.unaryEncoded(
-      MessageType.CLOUD_PASSWORD_SET,
-      CloudPasswordSet_Request(currentPwHash: state.heldPwHash, newPwHash: newPwHash).writeToBuffer(),
-    );
-    if (!_ok(status)) return;
+    if (!await _registerAndUnlock(password, state.heldToken)) return;
 
-    emit(state.copyWith(heldPwHash: newPwHash, step: SettingsCloudPasswordStep.menu, networkStatus: Status.success, error: ""));
+    emit(state.copyWith(step: SettingsCloudPasswordStep.menu, networkStatus: Status.success, error: ""));
   }
 
   Future<void> submitChangeEmail(String email) => _setEmail(email, next: SettingsCloudPasswordStep.changeEmailVerify);
@@ -180,7 +170,7 @@ class SettingsCloudPasswordCubit extends Cubit<SettingsCloudPasswordState> {
     _busy();
     final status = await api.unaryEncoded(
       MessageType.CLOUD_PASSWORD_DISABLE,
-      CloudPasswordDisable_Request(currentPwHash: state.heldPwHash).writeToBuffer(),
+      CloudPasswordDisable_Request(token: state.heldToken).writeToBuffer(),
     );
     if (!_ok(status)) return false;
 
@@ -219,24 +209,28 @@ class SettingsCloudPasswordCubit extends Cubit<SettingsCloudPasswordState> {
     if (!await _guard()) return;
 
     _busy();
-    final newPwHash = await cloudPasswordHash(newPassword);
-    final status = await api.unaryEncoded(
-      MessageType.CLOUD_PASSWORD_RESET,
-      CloudPasswordReset_Request(code: code, newPwHash: newPwHash).writeToBuffer(),
-    );
-    if (!_ok(status)) return;
+    // Код меняется на token сброса один раз: повтор после сбоя регистрации
+    // (сеть) идёт с уже полученным token'ом — код сервер уже погасил.
+    if (state.heldToken.isEmpty) {
+      final (status, payload) = await api.unaryEncodedWithResponse(
+        MessageType.CLOUD_PASSWORD_RESET,
+        CloudPasswordReset_Request(code: code).writeToBuffer(),
+      );
+      if (!_ok(status)) return;
+      if (payload == null) return _fail("grpcError.internalServerError");
+      emit(state.copyWith(heldToken: CloudPasswordReset_Response.fromBuffer(payload).token));
+    }
+    if (!await _registerAndUnlock(newPassword, state.heldToken)) return;
 
-    // Пароль сброшен — держим новый пароль, идём в меню. Привязанный email
-    // сохраняется (сервер его больше не очищает), _loadInfo подтянет актуальный.
-    emit(state.copyWith(heldPwHash: newPwHash));
+    // Привязанный email сохраняется, _loadInfo подтянет актуальный.
     await _loadInfo();
     emit(state.copyWith(step: SettingsCloudPasswordStep.menu, networkStatus: Status.success, error: ""));
   }
 
   // ── Общие помощники ─────────────────────────────────────────────────────
 
-  /// Привязка/смена email + переход к вводу кода. currentPwHash берётся из
-  /// heldPwHash (пусто при первичной установке — сервер это допускает).
+  /// Привязка/смена email + переход к вводу кода. token — heldToken (пусто при
+  /// первичной установке — сервер это допускает).
   Future<void> _setEmail(String email, {required SettingsCloudPasswordStep next}) async {
     if (email.isEmpty) return _fail("cloudPassword.emailRequired");
     if (!await _guard()) return;
@@ -244,11 +238,31 @@ class SettingsCloudPasswordCubit extends Cubit<SettingsCloudPasswordState> {
     _busy();
     final status = await api.unaryEncoded(
       MessageType.CLOUD_PASSWORD_EMAIL_SET,
-      CloudPasswordEmailSet_Request(currentPwHash: state.heldPwHash, email: email).writeToBuffer(),
+      CloudPasswordEmailSet_Request(token: state.heldToken, email: email).writeToBuffer(),
     );
     if (!_ok(status)) return;
 
     emit(state.copyWith(pendingEmail: email, step: next, networkStatus: Status.success, error: ""));
+  }
+
+  /// Регистрация пароля [password] (с [token], если пароль уже есть) и сразу
+  /// разблокировка им же: прежний token сервер погасил. false — ошибка в state.
+  Future<bool> _registerAndUnlock(String password, List<int> token) async {
+    final error = await CloudPassword.register(api, password, token);
+    if (error.isNotEmpty) {
+      _failAction(error);
+      return false;
+    }
+    final unlocked = await CloudPassword.unlock(api, password);
+    if (unlocked.error.isNotEmpty) {
+      // Пароль уже новый — меню без token'а не работает: на разблокировку.
+      emit(
+        state.copyWith(step: SettingsCloudPasswordStep.unlock, heldToken: const [], networkStatus: Status.success, error: unlocked.error),
+      );
+      return false;
+    }
+    emit(state.copyWith(heldToken: unlocked.token));
+    return true;
   }
 
   Future<bool> _verifyEmail(String code) async {
@@ -292,10 +306,20 @@ class SettingsCloudPasswordCubit extends Cubit<SettingsCloudPasswordState> {
 
   void _fail(String key) => emit(state.copyWith(networkStatus: Status.success, error: key));
 
+  /// Ошибка действия меню: token истёк (`cloudPassword.unlockRequired`) — назад
+  /// на разблокировку с объяснением; прочее — на текущем шаге.
+  void _failAction(String key) {
+    if (key == "cloudPassword.unlockRequired") {
+      emit(state.copyWith(step: SettingsCloudPasswordStep.unlock, heldToken: const [], networkStatus: Status.success, error: key));
+      return;
+    }
+    _fail(key);
+  }
+
   /// true — успех; иначе выставляет ошибку из статуса и возвращает false.
   bool _ok(APICallStatus status) {
     if (status.status == APIStatus.success) return true;
-    _fail(status.error.isNotEmpty ? status.error : "grpcError.internalServerError");
+    _failAction(status.error.isNotEmpty ? status.error : "grpcError.internalServerError");
     return false;
   }
 }

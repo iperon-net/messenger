@@ -1169,6 +1169,10 @@
   "notSet": "Cloud password is not set"
   "invalidEmail": "Invalid email"
   "sessionExpired": "Session expired. Please start again."
+  "handshakeExpired": "Password check was interrupted. Please try again."
+  "unlockRequired": "Please confirm your cloud password again."
+  "recoveryRequired": "Confirm the code from the email first."
+  "invalidMessage": "Could not check the password. Please try again."
 
 "screenMyProfile":
   "myprofile": "My profile"

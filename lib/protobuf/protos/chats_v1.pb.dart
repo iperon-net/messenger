@@ -10825,20 +10825,21 @@ class Chats_RemoveAdminResult extends $pb.GeneratedMessage {
 }
 
 /// Передать владение участнику userID (только владелец): он — OWNER, я —
-/// ADMIN со всеми правами. Подтверждение облачным паролем — pwHash как в
-/// CloudPasswordVerify; облачного пароля нет — FAILED_PRECONDITION
-/// «cloudPasswordRequired», неверный — PERMISSION_DENIED «passwordInvalid».
+/// ADMIN со всеми правами. Подтверждение облачным паролем — token из
+/// CloudPasswordAuthFinish (cloud_password_v1.proto); облачного пароля нет —
+/// FAILED_PRECONDITION «cloudPasswordRequired», token неверный или истёк —
+/// PERMISSION_DENIED «passwordInvalid» (проверить пароль заново).
 /// Служебное OWNER_CHANGED, всем — chatInfo и chatMembers.updated.
 class Chats_TransferOwnership extends $pb.GeneratedMessage {
   factory Chats_TransferOwnership({
     $core.List<$core.int>? chatID,
     $core.List<$core.int>? userID,
-    $core.List<$core.int>? pwHash,
+    $core.List<$core.int>? token,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
     if (userID != null) result.userID = userID;
-    if (pwHash != null) result.pwHash = pwHash;
+    if (token != null) result.token = token;
     return result;
   }
 
@@ -10853,7 +10854,7 @@ class Chats_TransferOwnership extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
     ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'userID', $pb.PbFieldType.OY, protoName: 'userID')
-    ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'pwHash', $pb.PbFieldType.OY, protoName: 'pwHash')
+    ..a<$core.List<$core.int>>(4, _omitFieldNames ? '' : 'token', $pb.PbFieldType.OY)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -10891,14 +10892,14 @@ class Chats_TransferOwnership extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearUserID() => $_clearField(2);
 
-  @$pb.TagNumber(3)
-  $core.List<$core.int> get pwHash => $_getN(2);
-  @$pb.TagNumber(3)
-  set pwHash($core.List<$core.int> value) => $_setBytes(2, value);
-  @$pb.TagNumber(3)
-  $core.bool hasPwHash() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearPwHash() => $_clearField(3);
+  @$pb.TagNumber(4)
+  $core.List<$core.int> get token => $_getN(2);
+  @$pb.TagNumber(4)
+  set token($core.List<$core.int> value) => $_setBytes(2, value);
+  @$pb.TagNumber(4)
+  $core.bool hasToken() => $_has(2);
+  @$pb.TagNumber(4)
+  void clearToken() => $_clearField(4);
 }
 
 class Chats_TransferOwnershipResult extends $pb.GeneratedMessage {

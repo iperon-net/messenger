@@ -95,24 +95,13 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType PRIVACY_LAST_SEEN_UPDATE = MessageType._(45, _omitEnumNames ? '' : 'PRIVACY_LAST_SEEN_UPDATE');
   static const MessageType PRIVACY_LAST_SEEN_ALLOW_UPDATE = MessageType._(46, _omitEnumNames ? '' : 'PRIVACY_LAST_SEEN_ALLOW_UPDATE');
   static const MessageType PRIVACY_LAST_SEEN_DENY_UPDATE = MessageType._(47, _omitEnumNames ? '' : 'PRIVACY_LAST_SEEN_DENY_UPDATE');
-
-  /// Облачный пароль (двухшаговая проверка) + email восстановления. Pre-auth
-  /// (вход/восстановление) — unary до сессии; остальные — authenticated через
-  /// exchangeEncrypted. Клиент шлёт pre-hash пароля, не plaintext. См.
-  /// cloud_password_v1.proto.
-  static const MessageType AUTH_CLOUD_PASSWORD = MessageType._(49, _omitEnumNames ? '' : 'AUTH_CLOUD_PASSWORD');
   static const MessageType AUTH_CLOUD_PASSWORD_RECOVERY = MessageType._(50, _omitEnumNames ? '' : 'AUTH_CLOUD_PASSWORD_RECOVERY');
   static const MessageType AUTH_CLOUD_PASSWORD_RECOVERY_CONFIRM =
       MessageType._(51, _omitEnumNames ? '' : 'AUTH_CLOUD_PASSWORD_RECOVERY_CONFIRM');
   static const MessageType CLOUD_PASSWORD_INFO = MessageType._(52, _omitEnumNames ? '' : 'CLOUD_PASSWORD_INFO');
-  static const MessageType CLOUD_PASSWORD_SET = MessageType._(53, _omitEnumNames ? '' : 'CLOUD_PASSWORD_SET');
   static const MessageType CLOUD_PASSWORD_DISABLE = MessageType._(54, _omitEnumNames ? '' : 'CLOUD_PASSWORD_DISABLE');
   static const MessageType CLOUD_PASSWORD_EMAIL_SET = MessageType._(55, _omitEnumNames ? '' : 'CLOUD_PASSWORD_EMAIL_SET');
   static const MessageType CLOUD_PASSWORD_EMAIL_VERIFY = MessageType._(56, _omitEnumNames ? '' : 'CLOUD_PASSWORD_EMAIL_VERIFY');
-
-  /// Настройки: разблокировка меню (проверка пароля), восстановление по email и
-  /// сброс пароля по коду. См. cloud_password_v1.proto.
-  static const MessageType CLOUD_PASSWORD_VERIFY = MessageType._(57, _omitEnumNames ? '' : 'CLOUD_PASSWORD_VERIFY');
   static const MessageType CLOUD_PASSWORD_RECOVERY_SEND = MessageType._(58, _omitEnumNames ? '' : 'CLOUD_PASSWORD_RECOVERY_SEND');
   static const MessageType CLOUD_PASSWORD_RESET = MessageType._(59, _omitEnumNames ? '' : 'CLOUD_PASSWORD_RESET');
 
@@ -218,6 +207,20 @@ class MessageType extends $pb.ProtobufEnum {
   /// пуш по стриму при изменении в админке. См. client_config_v1.proto.
   static const MessageType CLIENT_CONFIG = MessageType._(98, _omitEnumNames ? '' : 'CLIENT_CONFIG');
 
+  /// Облачный пароль по OPAQUE: вход (KE1/KE3), новый пароль при входе после
+  /// восстановления, проверка и регистрация пароля в настройках. См.
+  /// cloud_password_v1.proto.
+  static const MessageType AUTH_CLOUD_PASSWORD_START = MessageType._(99, _omitEnumNames ? '' : 'AUTH_CLOUD_PASSWORD_START');
+  static const MessageType AUTH_CLOUD_PASSWORD_FINISH = MessageType._(100, _omitEnumNames ? '' : 'AUTH_CLOUD_PASSWORD_FINISH');
+  static const MessageType AUTH_CLOUD_PASSWORD_REGISTER_START =
+      MessageType._(101, _omitEnumNames ? '' : 'AUTH_CLOUD_PASSWORD_REGISTER_START');
+  static const MessageType AUTH_CLOUD_PASSWORD_REGISTER_FINISH =
+      MessageType._(102, _omitEnumNames ? '' : 'AUTH_CLOUD_PASSWORD_REGISTER_FINISH');
+  static const MessageType CLOUD_PASSWORD_AUTH_START = MessageType._(103, _omitEnumNames ? '' : 'CLOUD_PASSWORD_AUTH_START');
+  static const MessageType CLOUD_PASSWORD_AUTH_FINISH = MessageType._(104, _omitEnumNames ? '' : 'CLOUD_PASSWORD_AUTH_FINISH');
+  static const MessageType CLOUD_PASSWORD_REGISTER_START = MessageType._(105, _omitEnumNames ? '' : 'CLOUD_PASSWORD_REGISTER_START');
+  static const MessageType CLOUD_PASSWORD_REGISTER_FINISH = MessageType._(106, _omitEnumNames ? '' : 'CLOUD_PASSWORD_REGISTER_FINISH');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -264,15 +267,12 @@ class MessageType extends $pb.ProtobufEnum {
     PRIVACY_LAST_SEEN_UPDATE,
     PRIVACY_LAST_SEEN_ALLOW_UPDATE,
     PRIVACY_LAST_SEEN_DENY_UPDATE,
-    AUTH_CLOUD_PASSWORD,
     AUTH_CLOUD_PASSWORD_RECOVERY,
     AUTH_CLOUD_PASSWORD_RECOVERY_CONFIRM,
     CLOUD_PASSWORD_INFO,
-    CLOUD_PASSWORD_SET,
     CLOUD_PASSWORD_DISABLE,
     CLOUD_PASSWORD_EMAIL_SET,
     CLOUD_PASSWORD_EMAIL_VERIFY,
-    CLOUD_PASSWORD_VERIFY,
     CLOUD_PASSWORD_RECOVERY_SEND,
     CLOUD_PASSWORD_RESET,
     PASSKEY_REGISTER_BEGIN,
@@ -314,9 +314,17 @@ class MessageType extends $pb.ProtobufEnum {
     AUTH_QR_CONFIRM,
     REPORT,
     CLIENT_CONFIG,
+    AUTH_CLOUD_PASSWORD_START,
+    AUTH_CLOUD_PASSWORD_FINISH,
+    AUTH_CLOUD_PASSWORD_REGISTER_START,
+    AUTH_CLOUD_PASSWORD_REGISTER_FINISH,
+    CLOUD_PASSWORD_AUTH_START,
+    CLOUD_PASSWORD_AUTH_FINISH,
+    CLOUD_PASSWORD_REGISTER_START,
+    CLOUD_PASSWORD_REGISTER_FINISH,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 98);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 106);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

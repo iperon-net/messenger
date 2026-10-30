@@ -1569,14 +1569,17 @@ message Chats {
   }
 
   // Передать владение участнику userID (только владелец): он — OWNER, я —
-  // ADMIN со всеми правами. Подтверждение облачным паролем — pwHash как в
-  // CloudPasswordVerify; облачного пароля нет — FAILED_PRECONDITION
-  // «cloudPasswordRequired», неверный — PERMISSION_DENIED «passwordInvalid».
+  // ADMIN со всеми правами. Подтверждение облачным паролем — token из
+  // CloudPasswordAuthFinish (cloud_password_v1.proto); облачного пароля нет —
+  // FAILED_PRECONDITION «cloudPasswordRequired», token неверный или истёк —
+  // PERMISSION_DENIED «passwordInvalid» (проверить пароль заново).
   // Служебное OWNER_CHANGED, всем — chatInfo и chatMembers.updated.
   message TransferOwnership {
     bytes chatID = 1;
     bytes userID = 2;
-    bytes pwHash = 3;
+    // 3 — pwHash (до OPAQUE).
+    reserved 3;
+    bytes token = 4;
   }
 
   message TransferOwnershipResult {

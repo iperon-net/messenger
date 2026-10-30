@@ -11,7 +11,7 @@ import 'package:path/path.dart' as p;
 import '../api.dart';
 import '../auth.dart';
 import '../cdn.dart';
-import '../crypto/cloud_password.dart';
+import '../cloud_password.dart';
 import '../di.dart';
 import '../utils.dart';
 import '../logger.dart';
@@ -2026,14 +2026,26 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     (response) => response.removeAdmin.updates,
   );
 
-  /// Пароль уходит pre-hash'ем, как в CloudPasswordVerify ([cloudPasswordHash]).
+  /// Пароль проверяется по OPAQUE ([CloudPassword.unlock]) — на сервер уходит
+  /// только token. Нет облачного пароля — «cloudPasswordRequired», неверный —
+  /// «passwordInvalid» (как отвечает сервер на сам TransferOwnership).
   @override
   Future<void> transferOwnership(String chatID, String userID, {String password = ''}) async {
     await _requireNetwork();
-    final pwHash = password.isEmpty ? Uint8List(0) : await cloudPasswordHash(password);
+    final unlocked = await CloudPassword.unlock(getIt.get<API>(), password);
+    switch (unlocked.error) {
+      case '':
+        break;
+      case 'cloudPassword.notSet':
+        throw const ChatsRequestException('cloudPasswordRequired', StatusCode.failedPrecondition);
+      case 'cloudPassword.wrongPassword':
+        throw const ChatsRequestException('passwordInvalid', StatusCode.permissionDenied);
+      default:
+        throw ChatsRequestException(unlocked.error, StatusCode.unknown);
+    }
     await _memberAction(
       pb.Chats_Request(
-        transferOwnership: pb.Chats_TransferOwnership(chatID: idBytes(chatID), userID: idBytes(userID), pwHash: pwHash),
+        transferOwnership: pb.Chats_TransferOwnership(chatID: idBytes(chatID), userID: idBytes(userID), token: unlocked.token),
       ),
       (response) => response.transferOwnership.updates,
     );

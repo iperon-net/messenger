@@ -89,6 +89,15 @@ class AuthCloudPasswordStateMapper
     opt: true,
     def: "",
   );
+  static bool _$recoveryCodeAccepted(AuthCloudPasswordState v) =>
+      v.recoveryCodeAccepted;
+  static const Field<AuthCloudPasswordState, bool> _f$recoveryCodeAccepted =
+      Field(
+        'recoveryCodeAccepted',
+        _$recoveryCodeAccepted,
+        opt: true,
+        def: false,
+      );
 
   @override
   final MappableFields<AuthCloudPasswordState> fields = const {
@@ -101,6 +110,7 @@ class AuthCloudPasswordStateMapper
     #attemptsLeft: _f$attemptsLeft,
     #maskedEmail: _f$maskedEmail,
     #pendingEmail: _f$pendingEmail,
+    #recoveryCodeAccepted: _f$recoveryCodeAccepted,
   };
 
   static AuthCloudPasswordState _instantiate(DecodingData data) {
@@ -114,6 +124,7 @@ class AuthCloudPasswordStateMapper
       attemptsLeft: data.dec(_f$attemptsLeft),
       maskedEmail: data.dec(_f$maskedEmail),
       pendingEmail: data.dec(_f$pendingEmail),
+      recoveryCodeAccepted: data.dec(_f$recoveryCodeAccepted),
     );
   }
 
@@ -198,6 +209,7 @@ abstract class AuthCloudPasswordStateCopyWith<
     int? attemptsLeft,
     String? maskedEmail,
     String? pendingEmail,
+    bool? recoveryCodeAccepted,
   });
   AuthCloudPasswordStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -231,6 +243,7 @@ class _AuthCloudPasswordStateCopyWithImpl<$R, $Out>
     int? attemptsLeft,
     String? maskedEmail,
     String? pendingEmail,
+    bool? recoveryCodeAccepted,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
@@ -243,6 +256,8 @@ class _AuthCloudPasswordStateCopyWithImpl<$R, $Out>
       if (attemptsLeft != null) #attemptsLeft: attemptsLeft,
       if (maskedEmail != null) #maskedEmail: maskedEmail,
       if (pendingEmail != null) #pendingEmail: pendingEmail,
+      if (recoveryCodeAccepted != null)
+        #recoveryCodeAccepted: recoveryCodeAccepted,
     }),
   );
   @override
@@ -259,6 +274,10 @@ class _AuthCloudPasswordStateCopyWithImpl<$R, $Out>
     attemptsLeft: data.get(#attemptsLeft, or: $value.attemptsLeft),
     maskedEmail: data.get(#maskedEmail, or: $value.maskedEmail),
     pendingEmail: data.get(#pendingEmail, or: $value.pendingEmail),
+    recoveryCodeAccepted: data.get(
+      #recoveryCodeAccepted,
+      or: $value.recoveryCodeAccepted,
+    ),
   );
 
   @override

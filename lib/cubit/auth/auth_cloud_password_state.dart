@@ -27,6 +27,9 @@ class AuthCloudPasswordState with AuthCloudPasswordStateMappable {
   // Email, введённый пользователем на шаге восстановления (для показа в подсказке
   // «код отправлен на …»). Не раскрывает чужие адреса — это то, что ввёл сам юзер.
   final String pendingEmail;
+  // Код восстановления уже принят сервером (он одноразовый): повтор после сбоя
+  // регистрации нового пароля идёт без него.
+  final bool recoveryCodeAccepted;
 
   const AuthCloudPasswordState({
     this.status = Status.initialization,
@@ -38,5 +41,6 @@ class AuthCloudPasswordState with AuthCloudPasswordStateMappable {
     this.attemptsLeft = -1,
     this.maskedEmail = "",
     this.pendingEmail = "",
+    this.recoveryCodeAccepted = false,
   });
 }

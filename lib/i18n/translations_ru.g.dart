@@ -1479,6 +1479,10 @@ class _Translations$cloudPassword$ru extends Translations$cloudPassword$en {
 	@override String get notSet => 'Облачный пароль не установлен';
 	@override String get invalidEmail => 'Некорректный email';
 	@override String get sessionExpired => 'Сессия истекла. Начните заново.';
+	@override String get handshakeExpired => 'Проверка пароля прервалась. Попробуйте ещё раз.';
+	@override String get unlockRequired => 'Подтвердите облачный пароль ещё раз.';
+	@override String get recoveryRequired => 'Сначала подтвердите код из письма.';
+	@override String get invalidMessage => 'Не удалось проверить пароль. Попробуйте ещё раз.';
 }
 
 // Path: screenMyProfile
@@ -3391,6 +3395,10 @@ extension on TranslationsRu {
 			'cloudPassword.notSet' => 'Облачный пароль не установлен',
 			'cloudPassword.invalidEmail' => 'Некорректный email',
 			'cloudPassword.sessionExpired' => 'Сессия истекла. Начните заново.',
+			'cloudPassword.handshakeExpired' => 'Проверка пароля прервалась. Попробуйте ещё раз.',
+			'cloudPassword.unlockRequired' => 'Подтвердите облачный пароль ещё раз.',
+			'cloudPassword.recoveryRequired' => 'Сначала подтвердите код из письма.',
+			'cloudPassword.invalidMessage' => 'Не удалось проверить пароль. Попробуйте ещё раз.',
 			'screenMyProfile.myprofile' => 'Мой профиль',
 			'screenMyProfile.firstName' => 'Имя',
 			'screenMyProfile.lastName' => 'Фамилия',
@@ -3840,12 +3848,12 @@ extension on TranslationsRu {
 			'screenAuthBlocked.text' => 'Войти в этот аккаунт сейчас нельзя: он заблокирован за нарушение правил Iperon.',
 			'screenAuthBlocked.reason' => ({required Object reason}) => 'Причина: ${reason}',
 			'screenAuthBlocked.until' => ({required Object date}) => 'Блокировка действует до ${date}.',
+			_ => null,
+		} ?? switch (path) {
 			'screenAuthBlocked.forever' => 'Блокировка бессрочная.',
 			'screenAuthBlocked.support' => 'Если вы считаете, что это ошибка, напишите в поддержку:',
 			'screenAuthBlocked.back' => 'Назад',
 			'screenAuthBlocked.reasons.spam' => 'спам',
-			_ => null,
-		} ?? switch (path) {
 			'screenAuthBlocked.reasons.fraud' => 'мошенничество',
 			'screenAuthBlocked.reasons.abuse' => 'оскорбления и угрозы',
 			'screenAuthBlocked.reasons.illegal' => 'незаконный контент',

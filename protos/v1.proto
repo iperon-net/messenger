@@ -80,21 +80,18 @@ enum MessageType {
   PRIVACY_LAST_SEEN_UPDATE = 45;
   PRIVACY_LAST_SEEN_ALLOW_UPDATE = 46;
   PRIVACY_LAST_SEEN_DENY_UPDATE = 47;
-  // Облачный пароль (двухшаговая проверка) + email восстановления. Pre-auth
-  // (вход/восстановление) — unary до сессии; остальные — authenticated через
-  // exchangeEncrypted. Клиент шлёт pre-hash пароля, не plaintext. См.
-  // cloud_password_v1.proto.
-  AUTH_CLOUD_PASSWORD = 49;
+  // Облачный пароль (двухшаговая проверка, OPAQUE) + email восстановления.
+  // Pre-auth (вход/восстановление) — unary до сессии; остальные —
+  // authenticated через exchangeEncrypted. См. cloud_password_v1.proto.
+  // 49, 53, 57 — AUTH_CLOUD_PASSWORD / CLOUD_PASSWORD_SET / CLOUD_PASSWORD_VERIFY
+  // (pre-hash пароля до OPAQUE); номера не переиспользовать.
+  reserved 49, 53, 57;
   AUTH_CLOUD_PASSWORD_RECOVERY = 50;
   AUTH_CLOUD_PASSWORD_RECOVERY_CONFIRM = 51;
   CLOUD_PASSWORD_INFO = 52;
-  CLOUD_PASSWORD_SET = 53;
   CLOUD_PASSWORD_DISABLE = 54;
   CLOUD_PASSWORD_EMAIL_SET = 55;
   CLOUD_PASSWORD_EMAIL_VERIFY = 56;
-  // Настройки: разблокировка меню (проверка пароля), восстановление по email и
-  // сброс пароля по коду. См. cloud_password_v1.proto.
-  CLOUD_PASSWORD_VERIFY = 57;
   CLOUD_PASSWORD_RECOVERY_SEND = 58;
   CLOUD_PASSWORD_RESET = 59;
   // Passkeys (WebAuthn / FIDO2) — беспарольный вход по ключу доступа. REGISTER/
@@ -180,6 +177,17 @@ enum MessageType {
   // Настройки приложения с сервера (вместо Remote Config): pre-auth unary и
   // пуш по стриму при изменении в админке. См. client_config_v1.proto.
   CLIENT_CONFIG = 98;
+  // Облачный пароль по OPAQUE: вход (KE1/KE3), новый пароль при входе после
+  // восстановления, проверка и регистрация пароля в настройках. См.
+  // cloud_password_v1.proto.
+  AUTH_CLOUD_PASSWORD_START = 99;
+  AUTH_CLOUD_PASSWORD_FINISH = 100;
+  AUTH_CLOUD_PASSWORD_REGISTER_START = 101;
+  AUTH_CLOUD_PASSWORD_REGISTER_FINISH = 102;
+  CLOUD_PASSWORD_AUTH_START = 103;
+  CLOUD_PASSWORD_AUTH_FINISH = 104;
+  CLOUD_PASSWORD_REGISTER_START = 105;
+  CLOUD_PASSWORD_REGISTER_FINISH = 106;
 }
 
 service Iperon {

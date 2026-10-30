@@ -1,22 +1,20 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
+import 'crypto.dart';
 
-/// Домен-сепаратор клиентского pre-hash облачного пароля. Нужен, чтобы
-/// транслируемое значение не совпадало ни с чужими rainbow-таблицами, ни с любым
-/// другим местом, где мог бы хэшироваться пароль.
-const _cloudPasswordDomain = 'iperon-cloud-pw-v1';
+/// Облачный пароль по OPAQUE-3DH (RFC 9807): на сервер не уходит ни пароль, ни
+/// что-либо ему равноценное. Конфигурация общая с сервером
+/// (`internal/crypto/opaque.go` в iperon) и **неизменна навсегда**: другой
+/// context или параметры KSF — и все установленные пароли перестанут подходить.
+const cloudPasswordContext = 'iperon-cloud-password-v1';
 
-/// Клиентский pre-hash облачного пароля: `SHA-256(domain ‖ password)` (32 байта).
-///
-/// По проводу уходит ИМЕННО этот хэш, а не сам пароль — сервер поверх него считает
-/// argon2id (см. серверный `crypto.HashPassword`). Плейнтекст пароля клиент никуда
-/// не отправляет. Функция должна давать одинаковый результат во всех точках —
-/// вход, установка, смена, восстановление, — иначе введённые пароли не совпадут.
-/// См. docs/plans/hidden-toasting-mountain.md.
-Future<Uint8List> cloudPasswordHash(String password) async {
-  final data = utf8.encode('$_cloudPasswordDomain$password');
-  final hash = await Sha256().hash(data);
-  return Uint8List.fromList(hash.bytes);
-}
+/// KSF — Argon2id, 64 MiB, 3 прохода, 4 потока: замедляет офлайн-перебор, если
+/// утекут и база, и ключ сервера.
+const cloudPasswordKsf = OpaqueKsf.argon2id(iterations: 3, memory: 64 * 1024, parallelism: 4);
+
+/// Клиент OPAQUE облачного пароля (новый на каждый обмен).
+OpaqueClient cloudPasswordClient() => OpaqueClient(context: Uint8List.fromList(utf8.encode(cloudPasswordContext)), ksf: cloudPasswordKsf);
+
+/// Пароль байтами для OPAQUE.
+Uint8List cloudPasswordBytes(String password) => Uint8List.fromList(utf8.encode(password));

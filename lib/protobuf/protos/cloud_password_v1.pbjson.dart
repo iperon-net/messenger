@@ -15,42 +15,70 @@ import 'dart:convert' as $convert;
 import 'dart:core' as $core;
 import 'dart:typed_data' as $typed_data;
 
-@$core.Deprecated('Use authCloudPasswordDescriptor instead')
-const AuthCloudPassword$json = {
-  '1': 'AuthCloudPassword',
-  '3': [AuthCloudPassword_Request$json, AuthCloudPassword_Response$json],
+@$core.Deprecated('Use authCloudPasswordStartDescriptor instead')
+const AuthCloudPasswordStart$json = {
+  '1': 'AuthCloudPasswordStart',
+  '3': [AuthCloudPasswordStart_Request$json, AuthCloudPasswordStart_Response$json],
 };
 
-@$core.Deprecated('Use authCloudPasswordDescriptor instead')
-const AuthCloudPassword_Request$json = {
+@$core.Deprecated('Use authCloudPasswordStartDescriptor instead')
+const AuthCloudPasswordStart_Request$json = {
   '1': 'Request',
   '2': [
     {'1': 'confirmationSession', '3': 1, '4': 1, '5': 12, '10': 'confirmationSession'},
-    {'1': 'pwHash', '3': 2, '4': 1, '5': 12, '10': 'pwHash'},
+    {'1': 'ke1', '3': 2, '4': 1, '5': 12, '10': 'ke1'},
   ],
 };
 
-@$core.Deprecated('Use authCloudPasswordDescriptor instead')
-const AuthCloudPassword_Response$json = {
+@$core.Deprecated('Use authCloudPasswordStartDescriptor instead')
+const AuthCloudPasswordStart_Response$json = {
+  '1': 'Response',
+  '2': [
+    {'1': 'ke2', '3': 1, '4': 1, '5': 12, '10': 'ke2'},
+    {'1': 'attemptsLeft', '3': 2, '4': 1, '5': 5, '10': 'attemptsLeft'},
+  ],
+};
+
+/// Descriptor for `AuthCloudPasswordStart`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List authCloudPasswordStartDescriptor =
+    $convert.base64Decode('ChZBdXRoQ2xvdWRQYXNzd29yZFN0YXJ0Gk0KB1JlcXVlc3QSMAoTY29uZmlybWF0aW9uU2Vzc2'
+        'lvbhgBIAEoDFITY29uZmlybWF0aW9uU2Vzc2lvbhIQCgNrZTEYAiABKAxSA2tlMRpACghSZXNw'
+        'b25zZRIQCgNrZTIYASABKAxSA2tlMhIiCgxhdHRlbXB0c0xlZnQYAiABKAVSDGF0dGVtcHRzTG'
+        'VmdA==');
+
+@$core.Deprecated('Use authCloudPasswordFinishDescriptor instead')
+const AuthCloudPasswordFinish$json = {
+  '1': 'AuthCloudPasswordFinish',
+  '3': [AuthCloudPasswordFinish_Request$json, AuthCloudPasswordFinish_Response$json],
+};
+
+@$core.Deprecated('Use authCloudPasswordFinishDescriptor instead')
+const AuthCloudPasswordFinish_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'confirmationSession', '3': 1, '4': 1, '5': 12, '10': 'confirmationSession'},
+    {'1': 'ke3', '3': 2, '4': 1, '5': 12, '10': 'ke3'},
+  ],
+};
+
+@$core.Deprecated('Use authCloudPasswordFinishDescriptor instead')
+const AuthCloudPasswordFinish_Response$json = {
   '1': 'Response',
   '2': [
     {'1': 'success', '3': 1, '4': 1, '5': 8, '10': 'success'},
     {'1': 'error', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'error', '17': true},
-    {'1': 'attemptsLeft', '3': 3, '4': 1, '5': 5, '9': 1, '10': 'attemptsLeft', '17': true},
   ],
   '8': [
     {'1': '_error'},
-    {'1': '_attemptsLeft'},
   ],
 };
 
-/// Descriptor for `AuthCloudPassword`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List authCloudPasswordDescriptor =
-    $convert.base64Decode('ChFBdXRoQ2xvdWRQYXNzd29yZBpTCgdSZXF1ZXN0EjAKE2NvbmZpcm1hdGlvblNlc3Npb24YAS'
-        'ABKAxSE2NvbmZpcm1hdGlvblNlc3Npb24SFgoGcHdIYXNoGAIgASgMUgZwd0hhc2gagwEKCFJl'
-        'c3BvbnNlEhgKB3N1Y2Nlc3MYASABKAhSB3N1Y2Nlc3MSGQoFZXJyb3IYAiABKAlIAFIFZXJyb3'
-        'KIAQESJwoMYXR0ZW1wdHNMZWZ0GAMgASgFSAFSDGF0dGVtcHRzTGVmdIgBAUIICgZfZXJyb3JC'
-        'DwoNX2F0dGVtcHRzTGVmdA==');
+/// Descriptor for `AuthCloudPasswordFinish`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List authCloudPasswordFinishDescriptor =
+    $convert.base64Decode('ChdBdXRoQ2xvdWRQYXNzd29yZEZpbmlzaBpNCgdSZXF1ZXN0EjAKE2NvbmZpcm1hdGlvblNlc3'
+        'Npb24YASABKAxSE2NvbmZpcm1hdGlvblNlc3Npb24SEAoDa2UzGAIgASgMUgNrZTMaSQoIUmVz'
+        'cG9uc2USGAoHc3VjY2VzcxgBIAEoCFIHc3VjY2VzcxIZCgVlcnJvchgCIAEoCUgAUgVlcnJvco'
+        'gBAUIICgZfZXJyb3I=');
 
 @$core.Deprecated('Use authCloudPasswordRecoveryDescriptor instead')
 const AuthCloudPasswordRecovery$json = {
@@ -98,7 +126,9 @@ const AuthCloudPasswordRecoveryConfirm_Request$json = {
   '2': [
     {'1': 'confirmationSession', '3': 1, '4': 1, '5': 12, '10': 'confirmationSession'},
     {'1': 'code', '3': 2, '4': 1, '5': 9, '10': 'code'},
-    {'1': 'newPwHash', '3': 3, '4': 1, '5': 12, '10': 'newPwHash'},
+  ],
+  '9': [
+    {'1': 3, '2': 4},
   ],
 };
 
@@ -116,10 +146,74 @@ const AuthCloudPasswordRecoveryConfirm_Response$json = {
 
 /// Descriptor for `AuthCloudPasswordRecoveryConfirm`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List authCloudPasswordRecoveryConfirmDescriptor =
-    $convert.base64Decode('CiBBdXRoQ2xvdWRQYXNzd29yZFJlY292ZXJ5Q29uZmlybRptCgdSZXF1ZXN0EjAKE2NvbmZpcm'
+    $convert.base64Decode('CiBBdXRoQ2xvdWRQYXNzd29yZFJlY292ZXJ5Q29uZmlybRpVCgdSZXF1ZXN0EjAKE2NvbmZpcm'
         '1hdGlvblNlc3Npb24YASABKAxSE2NvbmZpcm1hdGlvblNlc3Npb24SEgoEY29kZRgCIAEoCVIE'
-        'Y29kZRIcCgluZXdQd0hhc2gYAyABKAxSCW5ld1B3SGFzaBpJCghSZXNwb25zZRIYCgdzdWNjZX'
-        'NzGAEgASgIUgdzdWNjZXNzEhkKBWVycm9yGAIgASgJSABSBWVycm9yiAEBQggKBl9lcnJvcg==');
+        'Y29kZUoECAMQBBpJCghSZXNwb25zZRIYCgdzdWNjZXNzGAEgASgIUgdzdWNjZXNzEhkKBWVycm'
+        '9yGAIgASgJSABSBWVycm9yiAEBQggKBl9lcnJvcg==');
+
+@$core.Deprecated('Use authCloudPasswordRegisterStartDescriptor instead')
+const AuthCloudPasswordRegisterStart$json = {
+  '1': 'AuthCloudPasswordRegisterStart',
+  '3': [AuthCloudPasswordRegisterStart_Request$json, AuthCloudPasswordRegisterStart_Response$json],
+};
+
+@$core.Deprecated('Use authCloudPasswordRegisterStartDescriptor instead')
+const AuthCloudPasswordRegisterStart_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'confirmationSession', '3': 1, '4': 1, '5': 12, '10': 'confirmationSession'},
+    {'1': 'registrationRequest', '3': 2, '4': 1, '5': 12, '10': 'registrationRequest'},
+  ],
+};
+
+@$core.Deprecated('Use authCloudPasswordRegisterStartDescriptor instead')
+const AuthCloudPasswordRegisterStart_Response$json = {
+  '1': 'Response',
+  '2': [
+    {'1': 'registrationResponse', '3': 1, '4': 1, '5': 12, '10': 'registrationResponse'},
+  ],
+};
+
+/// Descriptor for `AuthCloudPasswordRegisterStart`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List authCloudPasswordRegisterStartDescriptor =
+    $convert.base64Decode('Ch5BdXRoQ2xvdWRQYXNzd29yZFJlZ2lzdGVyU3RhcnQabQoHUmVxdWVzdBIwChNjb25maXJtYX'
+        'Rpb25TZXNzaW9uGAEgASgMUhNjb25maXJtYXRpb25TZXNzaW9uEjAKE3JlZ2lzdHJhdGlvblJl'
+        'cXVlc3QYAiABKAxSE3JlZ2lzdHJhdGlvblJlcXVlc3QaPgoIUmVzcG9uc2USMgoUcmVnaXN0cm'
+        'F0aW9uUmVzcG9uc2UYASABKAxSFHJlZ2lzdHJhdGlvblJlc3BvbnNl');
+
+@$core.Deprecated('Use authCloudPasswordRegisterFinishDescriptor instead')
+const AuthCloudPasswordRegisterFinish$json = {
+  '1': 'AuthCloudPasswordRegisterFinish',
+  '3': [AuthCloudPasswordRegisterFinish_Request$json, AuthCloudPasswordRegisterFinish_Response$json],
+};
+
+@$core.Deprecated('Use authCloudPasswordRegisterFinishDescriptor instead')
+const AuthCloudPasswordRegisterFinish_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'confirmationSession', '3': 1, '4': 1, '5': 12, '10': 'confirmationSession'},
+    {'1': 'record', '3': 2, '4': 1, '5': 12, '10': 'record'},
+  ],
+};
+
+@$core.Deprecated('Use authCloudPasswordRegisterFinishDescriptor instead')
+const AuthCloudPasswordRegisterFinish_Response$json = {
+  '1': 'Response',
+  '2': [
+    {'1': 'success', '3': 1, '4': 1, '5': 8, '10': 'success'},
+    {'1': 'error', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'error', '17': true},
+  ],
+  '8': [
+    {'1': '_error'},
+  ],
+};
+
+/// Descriptor for `AuthCloudPasswordRegisterFinish`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List authCloudPasswordRegisterFinishDescriptor =
+    $convert.base64Decode('Ch9BdXRoQ2xvdWRQYXNzd29yZFJlZ2lzdGVyRmluaXNoGlMKB1JlcXVlc3QSMAoTY29uZmlybW'
+        'F0aW9uU2Vzc2lvbhgBIAEoDFITY29uZmlybWF0aW9uU2Vzc2lvbhIWCgZyZWNvcmQYAiABKAxS'
+        'BnJlY29yZBpJCghSZXNwb25zZRIYCgdzdWNjZXNzGAEgASgIUgdzdWNjZXNzEhkKBWVycm9yGA'
+        'IgASgJSABSBWVycm9yiAEBQggKBl9lcnJvcg==');
 
 @$core.Deprecated('Use cloudPasswordInfoDescriptor instead')
 const CloudPasswordInfo$json = {
@@ -148,23 +242,107 @@ final $typed_data.Uint8List cloudPasswordInfoDescriptor =
         'gBIAEoCFIJaXNFbmFibGVkEiAKC21hc2tlZEVtYWlsGAIgASgJUgttYXNrZWRFbWFpbBIoCg9p'
         'c0VtYWlsVmVyaWZpZWQYAyABKAhSD2lzRW1haWxWZXJpZmllZA==');
 
-@$core.Deprecated('Use cloudPasswordSetDescriptor instead')
-const CloudPasswordSet$json = {
-  '1': 'CloudPasswordSet',
-  '3': [CloudPasswordSet_Request$json, CloudPasswordSet_Response$json],
+@$core.Deprecated('Use cloudPasswordAuthStartDescriptor instead')
+const CloudPasswordAuthStart$json = {
+  '1': 'CloudPasswordAuthStart',
+  '3': [CloudPasswordAuthStart_Request$json, CloudPasswordAuthStart_Response$json],
 };
 
-@$core.Deprecated('Use cloudPasswordSetDescriptor instead')
-const CloudPasswordSet_Request$json = {
+@$core.Deprecated('Use cloudPasswordAuthStartDescriptor instead')
+const CloudPasswordAuthStart_Request$json = {
   '1': 'Request',
   '2': [
-    {'1': 'currentPwHash', '3': 1, '4': 1, '5': 12, '10': 'currentPwHash'},
-    {'1': 'newPwHash', '3': 2, '4': 1, '5': 12, '10': 'newPwHash'},
+    {'1': 'ke1', '3': 1, '4': 1, '5': 12, '10': 'ke1'},
   ],
 };
 
-@$core.Deprecated('Use cloudPasswordSetDescriptor instead')
-const CloudPasswordSet_Response$json = {
+@$core.Deprecated('Use cloudPasswordAuthStartDescriptor instead')
+const CloudPasswordAuthStart_Response$json = {
+  '1': 'Response',
+  '2': [
+    {'1': 'ke2', '3': 1, '4': 1, '5': 12, '10': 'ke2'},
+  ],
+};
+
+/// Descriptor for `CloudPasswordAuthStart`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List cloudPasswordAuthStartDescriptor =
+    $convert.base64Decode('ChZDbG91ZFBhc3N3b3JkQXV0aFN0YXJ0GhsKB1JlcXVlc3QSEAoDa2UxGAEgASgMUgNrZTEaHA'
+        'oIUmVzcG9uc2USEAoDa2UyGAEgASgMUgNrZTI=');
+
+@$core.Deprecated('Use cloudPasswordAuthFinishDescriptor instead')
+const CloudPasswordAuthFinish$json = {
+  '1': 'CloudPasswordAuthFinish',
+  '3': [CloudPasswordAuthFinish_Request$json, CloudPasswordAuthFinish_Response$json],
+};
+
+@$core.Deprecated('Use cloudPasswordAuthFinishDescriptor instead')
+const CloudPasswordAuthFinish_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'ke3', '3': 1, '4': 1, '5': 12, '10': 'ke3'},
+  ],
+};
+
+@$core.Deprecated('Use cloudPasswordAuthFinishDescriptor instead')
+const CloudPasswordAuthFinish_Response$json = {
+  '1': 'Response',
+  '2': [
+    {'1': 'token', '3': 1, '4': 1, '5': 12, '10': 'token'},
+  ],
+};
+
+/// Descriptor for `CloudPasswordAuthFinish`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List cloudPasswordAuthFinishDescriptor =
+    $convert.base64Decode('ChdDbG91ZFBhc3N3b3JkQXV0aEZpbmlzaBobCgdSZXF1ZXN0EhAKA2tlMxgBIAEoDFIDa2UzGi'
+        'AKCFJlc3BvbnNlEhQKBXRva2VuGAEgASgMUgV0b2tlbg==');
+
+@$core.Deprecated('Use cloudPasswordRegisterStartDescriptor instead')
+const CloudPasswordRegisterStart$json = {
+  '1': 'CloudPasswordRegisterStart',
+  '3': [CloudPasswordRegisterStart_Request$json, CloudPasswordRegisterStart_Response$json],
+};
+
+@$core.Deprecated('Use cloudPasswordRegisterStartDescriptor instead')
+const CloudPasswordRegisterStart_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'token', '3': 1, '4': 1, '5': 12, '10': 'token'},
+    {'1': 'registrationRequest', '3': 2, '4': 1, '5': 12, '10': 'registrationRequest'},
+  ],
+};
+
+@$core.Deprecated('Use cloudPasswordRegisterStartDescriptor instead')
+const CloudPasswordRegisterStart_Response$json = {
+  '1': 'Response',
+  '2': [
+    {'1': 'registrationResponse', '3': 1, '4': 1, '5': 12, '10': 'registrationResponse'},
+  ],
+};
+
+/// Descriptor for `CloudPasswordRegisterStart`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List cloudPasswordRegisterStartDescriptor =
+    $convert.base64Decode('ChpDbG91ZFBhc3N3b3JkUmVnaXN0ZXJTdGFydBpRCgdSZXF1ZXN0EhQKBXRva2VuGAEgASgMUg'
+        'V0b2tlbhIwChNyZWdpc3RyYXRpb25SZXF1ZXN0GAIgASgMUhNyZWdpc3RyYXRpb25SZXF1ZXN0'
+        'Gj4KCFJlc3BvbnNlEjIKFHJlZ2lzdHJhdGlvblJlc3BvbnNlGAEgASgMUhRyZWdpc3RyYXRpb2'
+        '5SZXNwb25zZQ==');
+
+@$core.Deprecated('Use cloudPasswordRegisterFinishDescriptor instead')
+const CloudPasswordRegisterFinish$json = {
+  '1': 'CloudPasswordRegisterFinish',
+  '3': [CloudPasswordRegisterFinish_Request$json, CloudPasswordRegisterFinish_Response$json],
+};
+
+@$core.Deprecated('Use cloudPasswordRegisterFinishDescriptor instead')
+const CloudPasswordRegisterFinish_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'token', '3': 1, '4': 1, '5': 12, '10': 'token'},
+    {'1': 'record', '3': 2, '4': 1, '5': 12, '10': 'record'},
+  ],
+};
+
+@$core.Deprecated('Use cloudPasswordRegisterFinishDescriptor instead')
+const CloudPasswordRegisterFinish_Response$json = {
   '1': 'Response',
   '2': [
     {'1': 'success', '3': 1, '4': 1, '5': 8, '10': 'success'},
@@ -175,12 +353,11 @@ const CloudPasswordSet_Response$json = {
   ],
 };
 
-/// Descriptor for `CloudPasswordSet`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List cloudPasswordSetDescriptor =
-    $convert.base64Decode('ChBDbG91ZFBhc3N3b3JkU2V0Gk0KB1JlcXVlc3QSJAoNY3VycmVudFB3SGFzaBgBIAEoDFINY3'
-        'VycmVudFB3SGFzaBIcCgluZXdQd0hhc2gYAiABKAxSCW5ld1B3SGFzaBpJCghSZXNwb25zZRIY'
-        'CgdzdWNjZXNzGAEgASgIUgdzdWNjZXNzEhkKBWVycm9yGAIgASgJSABSBWVycm9yiAEBQggKBl'
-        '9lcnJvcg==');
+/// Descriptor for `CloudPasswordRegisterFinish`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List cloudPasswordRegisterFinishDescriptor =
+    $convert.base64Decode('ChtDbG91ZFBhc3N3b3JkUmVnaXN0ZXJGaW5pc2gaNwoHUmVxdWVzdBIUCgV0b2tlbhgBIAEoDF'
+        'IFdG9rZW4SFgoGcmVjb3JkGAIgASgMUgZyZWNvcmQaSQoIUmVzcG9uc2USGAoHc3VjY2VzcxgB'
+        'IAEoCFIHc3VjY2VzcxIZCgVlcnJvchgCIAEoCUgAUgVlcnJvcogBAUIICgZfZXJyb3I=');
 
 @$core.Deprecated('Use cloudPasswordDisableDescriptor instead')
 const CloudPasswordDisable$json = {
@@ -192,7 +369,10 @@ const CloudPasswordDisable$json = {
 const CloudPasswordDisable_Request$json = {
   '1': 'Request',
   '2': [
-    {'1': 'currentPwHash', '3': 1, '4': 1, '5': 12, '10': 'currentPwHash'},
+    {'1': 'token', '3': 2, '4': 1, '5': 12, '10': 'token'},
+  ],
+  '9': [
+    {'1': 1, '2': 2},
   ],
 };
 
@@ -210,9 +390,9 @@ const CloudPasswordDisable_Response$json = {
 
 /// Descriptor for `CloudPasswordDisable`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List cloudPasswordDisableDescriptor =
-    $convert.base64Decode('ChRDbG91ZFBhc3N3b3JkRGlzYWJsZRovCgdSZXF1ZXN0EiQKDWN1cnJlbnRQd0hhc2gYASABKA'
-        'xSDWN1cnJlbnRQd0hhc2gaSQoIUmVzcG9uc2USGAoHc3VjY2VzcxgBIAEoCFIHc3VjY2VzcxIZ'
-        'CgVlcnJvchgCIAEoCUgAUgVlcnJvcogBAUIICgZfZXJyb3I=');
+    $convert.base64Decode('ChRDbG91ZFBhc3N3b3JkRGlzYWJsZRolCgdSZXF1ZXN0EhQKBXRva2VuGAIgASgMUgV0b2tlbk'
+        'oECAEQAhpJCghSZXNwb25zZRIYCgdzdWNjZXNzGAEgASgIUgdzdWNjZXNzEhkKBWVycm9yGAIg'
+        'ASgJSABSBWVycm9yiAEBQggKBl9lcnJvcg==');
 
 @$core.Deprecated('Use cloudPasswordEmailSetDescriptor instead')
 const CloudPasswordEmailSet$json = {
@@ -224,8 +404,11 @@ const CloudPasswordEmailSet$json = {
 const CloudPasswordEmailSet_Request$json = {
   '1': 'Request',
   '2': [
-    {'1': 'currentPwHash', '3': 1, '4': 1, '5': 12, '10': 'currentPwHash'},
     {'1': 'email', '3': 2, '4': 1, '5': 9, '10': 'email'},
+    {'1': 'token', '3': 3, '4': 1, '5': 12, '10': 'token'},
+  ],
+  '9': [
+    {'1': 1, '2': 2},
   ],
 };
 
@@ -243,10 +426,9 @@ const CloudPasswordEmailSet_Response$json = {
 
 /// Descriptor for `CloudPasswordEmailSet`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List cloudPasswordEmailSetDescriptor =
-    $convert.base64Decode('ChVDbG91ZFBhc3N3b3JkRW1haWxTZXQaRQoHUmVxdWVzdBIkCg1jdXJyZW50UHdIYXNoGAEgAS'
-        'gMUg1jdXJyZW50UHdIYXNoEhQKBWVtYWlsGAIgASgJUgVlbWFpbBpJCghSZXNwb25zZRIYCgdz'
-        'dWNjZXNzGAEgASgIUgdzdWNjZXNzEhkKBWVycm9yGAIgASgJSABSBWVycm9yiAEBQggKBl9lcn'
-        'Jvcg==');
+    $convert.base64Decode('ChVDbG91ZFBhc3N3b3JkRW1haWxTZXQaOwoHUmVxdWVzdBIUCgVlbWFpbBgCIAEoCVIFZW1haW'
+        'wSFAoFdG9rZW4YAyABKAxSBXRva2VuSgQIARACGkkKCFJlc3BvbnNlEhgKB3N1Y2Nlc3MYASAB'
+        'KAhSB3N1Y2Nlc3MSGQoFZXJyb3IYAiABKAlIAFIFZXJyb3KIAQFCCAoGX2Vycm9y');
 
 @$core.Deprecated('Use cloudPasswordEmailVerifyDescriptor instead')
 const CloudPasswordEmailVerify$json = {
@@ -279,38 +461,6 @@ final $typed_data.Uint8List cloudPasswordEmailVerifyDescriptor =
     $convert.base64Decode('ChhDbG91ZFBhc3N3b3JkRW1haWxWZXJpZnkaHQoHUmVxdWVzdBISCgRjb2RlGAEgASgJUgRjb2'
         'RlGkkKCFJlc3BvbnNlEhgKB3N1Y2Nlc3MYASABKAhSB3N1Y2Nlc3MSGQoFZXJyb3IYAiABKAlI'
         'AFIFZXJyb3KIAQFCCAoGX2Vycm9y');
-
-@$core.Deprecated('Use cloudPasswordVerifyDescriptor instead')
-const CloudPasswordVerify$json = {
-  '1': 'CloudPasswordVerify',
-  '3': [CloudPasswordVerify_Request$json, CloudPasswordVerify_Response$json],
-};
-
-@$core.Deprecated('Use cloudPasswordVerifyDescriptor instead')
-const CloudPasswordVerify_Request$json = {
-  '1': 'Request',
-  '2': [
-    {'1': 'pwHash', '3': 1, '4': 1, '5': 12, '10': 'pwHash'},
-  ],
-};
-
-@$core.Deprecated('Use cloudPasswordVerifyDescriptor instead')
-const CloudPasswordVerify_Response$json = {
-  '1': 'Response',
-  '2': [
-    {'1': 'success', '3': 1, '4': 1, '5': 8, '10': 'success'},
-    {'1': 'error', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'error', '17': true},
-  ],
-  '8': [
-    {'1': '_error'},
-  ],
-};
-
-/// Descriptor for `CloudPasswordVerify`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List cloudPasswordVerifyDescriptor =
-    $convert.base64Decode('ChNDbG91ZFBhc3N3b3JkVmVyaWZ5GiEKB1JlcXVlc3QSFgoGcHdIYXNoGAEgASgMUgZwd0hhc2'
-        'gaSQoIUmVzcG9uc2USGAoHc3VjY2VzcxgBIAEoCFIHc3VjY2VzcxIZCgVlcnJvchgCIAEoCUgA'
-        'UgVlcnJvcogBAUIICgZfZXJyb3I=');
 
 @$core.Deprecated('Use cloudPasswordRecoverySendDescriptor instead')
 const CloudPasswordRecoverySend$json = {
@@ -352,7 +502,9 @@ const CloudPasswordReset_Request$json = {
   '1': 'Request',
   '2': [
     {'1': 'code', '3': 1, '4': 1, '5': 9, '10': 'code'},
-    {'1': 'newPwHash', '3': 2, '4': 1, '5': 12, '10': 'newPwHash'},
+  ],
+  '9': [
+    {'1': 2, '2': 3},
   ],
 };
 
@@ -362,6 +514,7 @@ const CloudPasswordReset_Response$json = {
   '2': [
     {'1': 'success', '3': 1, '4': 1, '5': 8, '10': 'success'},
     {'1': 'error', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'error', '17': true},
+    {'1': 'token', '3': 3, '4': 1, '5': 12, '10': 'token'},
   ],
   '8': [
     {'1': '_error'},
@@ -370,6 +523,6 @@ const CloudPasswordReset_Response$json = {
 
 /// Descriptor for `CloudPasswordReset`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List cloudPasswordResetDescriptor =
-    $convert.base64Decode('ChJDbG91ZFBhc3N3b3JkUmVzZXQaOwoHUmVxdWVzdBISCgRjb2RlGAEgASgJUgRjb2RlEhwKCW'
-        '5ld1B3SGFzaBgCIAEoDFIJbmV3UHdIYXNoGkkKCFJlc3BvbnNlEhgKB3N1Y2Nlc3MYASABKAhS'
-        'B3N1Y2Nlc3MSGQoFZXJyb3IYAiABKAlIAFIFZXJyb3KIAQFCCAoGX2Vycm9y');
+    $convert.base64Decode('ChJDbG91ZFBhc3N3b3JkUmVzZXQaIwoHUmVxdWVzdBISCgRjb2RlGAEgASgJUgRjb2RlSgQIAh'
+        'ADGl8KCFJlc3BvbnNlEhgKB3N1Y2Nlc3MYASABKAhSB3N1Y2Nlc3MSGQoFZXJyb3IYAiABKAlI'
+        'AFIFZXJyb3KIAQESFAoFdG9rZW4YAyABKAxSBXRva2VuQggKBl9lcnJvcg==');

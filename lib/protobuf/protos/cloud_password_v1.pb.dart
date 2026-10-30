@@ -16,48 +16,48 @@ import 'package:protobuf/protobuf.dart' as $pb;
 
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
-class AuthCloudPassword_Request extends $pb.GeneratedMessage {
-  factory AuthCloudPassword_Request({
+class AuthCloudPasswordStart_Request extends $pb.GeneratedMessage {
+  factory AuthCloudPasswordStart_Request({
     $core.List<$core.int>? confirmationSession,
-    $core.List<$core.int>? pwHash,
+    $core.List<$core.int>? ke1,
   }) {
     final result = create();
     if (confirmationSession != null) result.confirmationSession = confirmationSession;
-    if (pwHash != null) result.pwHash = pwHash;
+    if (ke1 != null) result.ke1 = ke1;
     return result;
   }
 
-  AuthCloudPassword_Request._();
+  AuthCloudPasswordStart_Request._();
 
-  factory AuthCloudPassword_Request.fromBuffer($core.List<$core.int> data,
+  factory AuthCloudPasswordStart_Request.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory AuthCloudPassword_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory AuthCloudPasswordStart_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCloudPassword.Request',
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCloudPasswordStart.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'confirmationSession', $pb.PbFieldType.OY, protoName: 'confirmationSession')
-    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'pwHash', $pb.PbFieldType.OY, protoName: 'pwHash')
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'ke1', $pb.PbFieldType.OY)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthCloudPassword_Request clone() => deepCopy();
+  AuthCloudPasswordStart_Request clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthCloudPassword_Request copyWith(void Function(AuthCloudPassword_Request) updates) =>
-      super.copyWith((message) => updates(message as AuthCloudPassword_Request)) as AuthCloudPassword_Request;
+  AuthCloudPasswordStart_Request copyWith(void Function(AuthCloudPasswordStart_Request) updates) =>
+      super.copyWith((message) => updates(message as AuthCloudPasswordStart_Request)) as AuthCloudPasswordStart_Request;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static AuthCloudPassword_Request create() => AuthCloudPassword_Request._();
+  static AuthCloudPasswordStart_Request create() => AuthCloudPasswordStart_Request._();
   @$core.override
-  AuthCloudPassword_Request createEmptyInstance() => create();
+  AuthCloudPasswordStart_Request createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static AuthCloudPassword_Request getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCloudPassword_Request>(create);
-  static AuthCloudPassword_Request? _defaultInstance;
+  static AuthCloudPasswordStart_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCloudPasswordStart_Request>(create);
+  static AuthCloudPasswordStart_Request? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.List<$core.int> get confirmationSession => $_getN(0);
@@ -69,60 +69,216 @@ class AuthCloudPassword_Request extends $pb.GeneratedMessage {
   void clearConfirmationSession() => $_clearField(1);
 
   @$pb.TagNumber(2)
-  $core.List<$core.int> get pwHash => $_getN(1);
+  $core.List<$core.int> get ke1 => $_getN(1);
   @$pb.TagNumber(2)
-  set pwHash($core.List<$core.int> value) => $_setBytes(1, value);
+  set ke1($core.List<$core.int> value) => $_setBytes(1, value);
   @$pb.TagNumber(2)
-  $core.bool hasPwHash() => $_has(1);
+  $core.bool hasKe1() => $_has(1);
   @$pb.TagNumber(2)
-  void clearPwHash() => $_clearField(2);
+  void clearKe1() => $_clearField(2);
 }
 
-class AuthCloudPassword_Response extends $pb.GeneratedMessage {
-  factory AuthCloudPassword_Response({
-    $core.bool? success,
-    $core.String? error,
+class AuthCloudPasswordStart_Response extends $pb.GeneratedMessage {
+  factory AuthCloudPasswordStart_Response({
+    $core.List<$core.int>? ke2,
     $core.int? attemptsLeft,
   }) {
     final result = create();
-    if (success != null) result.success = success;
-    if (error != null) result.error = error;
+    if (ke2 != null) result.ke2 = ke2;
     if (attemptsLeft != null) result.attemptsLeft = attemptsLeft;
     return result;
   }
 
-  AuthCloudPassword_Response._();
+  AuthCloudPasswordStart_Response._();
 
-  factory AuthCloudPassword_Response.fromBuffer($core.List<$core.int> data,
+  factory AuthCloudPasswordStart_Response.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory AuthCloudPassword_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory AuthCloudPasswordStart_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCloudPassword.Response',
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCloudPasswordStart.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..aOB(1, _omitFieldNames ? '' : 'success')
-    ..aOS(2, _omitFieldNames ? '' : 'error')
-    ..aI(3, _omitFieldNames ? '' : 'attemptsLeft', protoName: 'attemptsLeft')
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'ke2', $pb.PbFieldType.OY)
+    ..aI(2, _omitFieldNames ? '' : 'attemptsLeft', protoName: 'attemptsLeft')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthCloudPassword_Response clone() => deepCopy();
+  AuthCloudPasswordStart_Response clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthCloudPassword_Response copyWith(void Function(AuthCloudPassword_Response) updates) =>
-      super.copyWith((message) => updates(message as AuthCloudPassword_Response)) as AuthCloudPassword_Response;
+  AuthCloudPasswordStart_Response copyWith(void Function(AuthCloudPasswordStart_Response) updates) =>
+      super.copyWith((message) => updates(message as AuthCloudPasswordStart_Response)) as AuthCloudPasswordStart_Response;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static AuthCloudPassword_Response create() => AuthCloudPassword_Response._();
+  static AuthCloudPasswordStart_Response create() => AuthCloudPasswordStart_Response._();
   @$core.override
-  AuthCloudPassword_Response createEmptyInstance() => create();
+  AuthCloudPasswordStart_Response createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static AuthCloudPassword_Response getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCloudPassword_Response>(create);
-  static AuthCloudPassword_Response? _defaultInstance;
+  static AuthCloudPasswordStart_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCloudPasswordStart_Response>(create);
+  static AuthCloudPasswordStart_Response? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get ke2 => $_getN(0);
+  @$pb.TagNumber(1)
+  set ke2($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasKe2() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearKe2() => $_clearField(1);
+
+  /// Сколько попыток останется, если эта окажется неверной.
+  @$pb.TagNumber(2)
+  $core.int get attemptsLeft => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set attemptsLeft($core.int value) => $_setSignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasAttemptsLeft() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearAttemptsLeft() => $_clearField(2);
+}
+
+/// Вход, шаг 1: KE1 → KE2. Каждый вызов — попытка (не больше 5 на
+/// confirmationSession, плюс лимит на аккаунт).
+class AuthCloudPasswordStart extends $pb.GeneratedMessage {
+  factory AuthCloudPasswordStart() => create();
+
+  AuthCloudPasswordStart._();
+
+  factory AuthCloudPasswordStart.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AuthCloudPasswordStart.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCloudPasswordStart',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthCloudPasswordStart clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthCloudPasswordStart copyWith(void Function(AuthCloudPasswordStart) updates) =>
+      super.copyWith((message) => updates(message as AuthCloudPasswordStart)) as AuthCloudPasswordStart;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AuthCloudPasswordStart create() => AuthCloudPasswordStart._();
+  @$core.override
+  AuthCloudPasswordStart createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AuthCloudPasswordStart getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCloudPasswordStart>(create);
+  static AuthCloudPasswordStart? _defaultInstance;
+}
+
+class AuthCloudPasswordFinish_Request extends $pb.GeneratedMessage {
+  factory AuthCloudPasswordFinish_Request({
+    $core.List<$core.int>? confirmationSession,
+    $core.List<$core.int>? ke3,
+  }) {
+    final result = create();
+    if (confirmationSession != null) result.confirmationSession = confirmationSession;
+    if (ke3 != null) result.ke3 = ke3;
+    return result;
+  }
+
+  AuthCloudPasswordFinish_Request._();
+
+  factory AuthCloudPasswordFinish_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AuthCloudPasswordFinish_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCloudPasswordFinish.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'confirmationSession', $pb.PbFieldType.OY, protoName: 'confirmationSession')
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'ke3', $pb.PbFieldType.OY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthCloudPasswordFinish_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthCloudPasswordFinish_Request copyWith(void Function(AuthCloudPasswordFinish_Request) updates) =>
+      super.copyWith((message) => updates(message as AuthCloudPasswordFinish_Request)) as AuthCloudPasswordFinish_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AuthCloudPasswordFinish_Request create() => AuthCloudPasswordFinish_Request._();
+  @$core.override
+  AuthCloudPasswordFinish_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AuthCloudPasswordFinish_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCloudPasswordFinish_Request>(create);
+  static AuthCloudPasswordFinish_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get confirmationSession => $_getN(0);
+  @$pb.TagNumber(1)
+  set confirmationSession($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasConfirmationSession() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearConfirmationSession() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get ke3 => $_getN(1);
+  @$pb.TagNumber(2)
+  set ke3($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasKe3() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearKe3() => $_clearField(2);
+}
+
+class AuthCloudPasswordFinish_Response extends $pb.GeneratedMessage {
+  factory AuthCloudPasswordFinish_Response({
+    $core.bool? success,
+    $core.String? error,
+  }) {
+    final result = create();
+    if (success != null) result.success = success;
+    if (error != null) result.error = error;
+    return result;
+  }
+
+  AuthCloudPasswordFinish_Response._();
+
+  factory AuthCloudPasswordFinish_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AuthCloudPasswordFinish_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCloudPasswordFinish.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'success')
+    ..aOS(2, _omitFieldNames ? '' : 'error')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthCloudPasswordFinish_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthCloudPasswordFinish_Response copyWith(void Function(AuthCloudPasswordFinish_Response) updates) =>
+      super.copyWith((message) => updates(message as AuthCloudPasswordFinish_Response)) as AuthCloudPasswordFinish_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AuthCloudPasswordFinish_Response create() => AuthCloudPasswordFinish_Response._();
+  @$core.override
+  AuthCloudPasswordFinish_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AuthCloudPasswordFinish_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCloudPasswordFinish_Response>(create);
+  static AuthCloudPasswordFinish_Response? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.bool get success => $_getBF(0);
@@ -141,49 +297,40 @@ class AuthCloudPassword_Response extends $pb.GeneratedMessage {
   $core.bool hasError() => $_has(1);
   @$pb.TagNumber(2)
   void clearError() => $_clearField(2);
-
-  /// Сколько попыток осталось до инвалидации confirmationSession.
-  @$pb.TagNumber(3)
-  $core.int get attemptsLeft => $_getIZ(2);
-  @$pb.TagNumber(3)
-  set attemptsLeft($core.int value) => $_setSignedInt32(2, value);
-  @$pb.TagNumber(3)
-  $core.bool hasAttemptsLeft() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearAttemptsLeft() => $_clearField(3);
 }
 
-/// Второй шаг входа: проверка облачного пароля по confirmationSession.
-class AuthCloudPassword extends $pb.GeneratedMessage {
-  factory AuthCloudPassword() => create();
+/// Вход, шаг 2: KE3. Успех помечает confirmationSession пройденной — дальше
+/// AUTH_CONFIRMATION.
+class AuthCloudPasswordFinish extends $pb.GeneratedMessage {
+  factory AuthCloudPasswordFinish() => create();
 
-  AuthCloudPassword._();
+  AuthCloudPasswordFinish._();
 
-  factory AuthCloudPassword.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory AuthCloudPasswordFinish.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory AuthCloudPassword.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory AuthCloudPasswordFinish.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCloudPassword',
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCloudPasswordFinish',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthCloudPassword clone() => deepCopy();
+  AuthCloudPasswordFinish clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  AuthCloudPassword copyWith(void Function(AuthCloudPassword) updates) =>
-      super.copyWith((message) => updates(message as AuthCloudPassword)) as AuthCloudPassword;
+  AuthCloudPasswordFinish copyWith(void Function(AuthCloudPasswordFinish) updates) =>
+      super.copyWith((message) => updates(message as AuthCloudPasswordFinish)) as AuthCloudPasswordFinish;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static AuthCloudPassword create() => AuthCloudPassword._();
+  static AuthCloudPasswordFinish create() => AuthCloudPasswordFinish._();
   @$core.override
-  AuthCloudPassword createEmptyInstance() => create();
+  AuthCloudPasswordFinish createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static AuthCloudPassword getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCloudPassword>(create);
-  static AuthCloudPassword? _defaultInstance;
+  static AuthCloudPasswordFinish getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCloudPasswordFinish>(create);
+  static AuthCloudPasswordFinish? _defaultInstance;
 }
 
 class AuthCloudPasswordRecovery_Request extends $pb.GeneratedMessage {
@@ -294,7 +441,7 @@ class AuthCloudPasswordRecovery_Response extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCloudPasswordRecovery_Response>(create);
   static AuthCloudPasswordRecovery_Response? _defaultInstance;
 
-  /// Маскированный email (напр. "k***@gmail.com") для показа пользователю.
+  /// Не заполняется (раньше — маскированный email).
   @$pb.TagNumber(1)
   $core.String get maskedEmail => $_getSZ(0);
   @$pb.TagNumber(1)
@@ -353,12 +500,10 @@ class AuthCloudPasswordRecoveryConfirm_Request extends $pb.GeneratedMessage {
   factory AuthCloudPasswordRecoveryConfirm_Request({
     $core.List<$core.int>? confirmationSession,
     $core.String? code,
-    $core.List<$core.int>? newPwHash,
   }) {
     final result = create();
     if (confirmationSession != null) result.confirmationSession = confirmationSession;
     if (code != null) result.code = code;
-    if (newPwHash != null) result.newPwHash = newPwHash;
     return result;
   }
 
@@ -375,7 +520,6 @@ class AuthCloudPasswordRecoveryConfirm_Request extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'confirmationSession', $pb.PbFieldType.OY, protoName: 'confirmationSession')
     ..aOS(2, _omitFieldNames ? '' : 'code')
-    ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'newPwHash', $pb.PbFieldType.OY, protoName: 'newPwHash')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -413,15 +557,6 @@ class AuthCloudPasswordRecoveryConfirm_Request extends $pb.GeneratedMessage {
   $core.bool hasCode() => $_has(1);
   @$pb.TagNumber(2)
   void clearCode() => $_clearField(2);
-
-  @$pb.TagNumber(3)
-  $core.List<$core.int> get newPwHash => $_getN(2);
-  @$pb.TagNumber(3)
-  set newPwHash($core.List<$core.int> value) => $_setBytes(2, value);
-  @$pb.TagNumber(3)
-  $core.bool hasNewPwHash() => $_has(2);
-  @$pb.TagNumber(3)
-  void clearNewPwHash() => $_clearField(3);
 }
 
 class AuthCloudPasswordRecoveryConfirm_Response extends $pb.GeneratedMessage {
@@ -488,7 +623,8 @@ class AuthCloudPasswordRecoveryConfirm_Response extends $pb.GeneratedMessage {
   void clearError() => $_clearField(2);
 }
 
-/// Подтверждение восстановления: код из письма + новый пароль (pre-hash).
+/// Подтверждение восстановления кодом из письма. Успех открывает регистрацию
+/// нового пароля по этой confirmationSession (AuthCloudPasswordRegister*).
 class AuthCloudPasswordRecoveryConfirm extends $pb.GeneratedMessage {
   factory AuthCloudPasswordRecoveryConfirm() => create();
 
@@ -521,6 +657,317 @@ class AuthCloudPasswordRecoveryConfirm extends $pb.GeneratedMessage {
   static AuthCloudPasswordRecoveryConfirm getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCloudPasswordRecoveryConfirm>(create);
   static AuthCloudPasswordRecoveryConfirm? _defaultInstance;
+}
+
+class AuthCloudPasswordRegisterStart_Request extends $pb.GeneratedMessage {
+  factory AuthCloudPasswordRegisterStart_Request({
+    $core.List<$core.int>? confirmationSession,
+    $core.List<$core.int>? registrationRequest,
+  }) {
+    final result = create();
+    if (confirmationSession != null) result.confirmationSession = confirmationSession;
+    if (registrationRequest != null) result.registrationRequest = registrationRequest;
+    return result;
+  }
+
+  AuthCloudPasswordRegisterStart_Request._();
+
+  factory AuthCloudPasswordRegisterStart_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AuthCloudPasswordRegisterStart_Request.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCloudPasswordRegisterStart.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'confirmationSession', $pb.PbFieldType.OY, protoName: 'confirmationSession')
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'registrationRequest', $pb.PbFieldType.OY, protoName: 'registrationRequest')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthCloudPasswordRegisterStart_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthCloudPasswordRegisterStart_Request copyWith(void Function(AuthCloudPasswordRegisterStart_Request) updates) =>
+      super.copyWith((message) => updates(message as AuthCloudPasswordRegisterStart_Request)) as AuthCloudPasswordRegisterStart_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AuthCloudPasswordRegisterStart_Request create() => AuthCloudPasswordRegisterStart_Request._();
+  @$core.override
+  AuthCloudPasswordRegisterStart_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AuthCloudPasswordRegisterStart_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCloudPasswordRegisterStart_Request>(create);
+  static AuthCloudPasswordRegisterStart_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get confirmationSession => $_getN(0);
+  @$pb.TagNumber(1)
+  set confirmationSession($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasConfirmationSession() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearConfirmationSession() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get registrationRequest => $_getN(1);
+  @$pb.TagNumber(2)
+  set registrationRequest($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasRegistrationRequest() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRegistrationRequest() => $_clearField(2);
+}
+
+class AuthCloudPasswordRegisterStart_Response extends $pb.GeneratedMessage {
+  factory AuthCloudPasswordRegisterStart_Response({
+    $core.List<$core.int>? registrationResponse,
+  }) {
+    final result = create();
+    if (registrationResponse != null) result.registrationResponse = registrationResponse;
+    return result;
+  }
+
+  AuthCloudPasswordRegisterStart_Response._();
+
+  factory AuthCloudPasswordRegisterStart_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AuthCloudPasswordRegisterStart_Response.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCloudPasswordRegisterStart.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'registrationResponse', $pb.PbFieldType.OY, protoName: 'registrationResponse')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthCloudPasswordRegisterStart_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthCloudPasswordRegisterStart_Response copyWith(void Function(AuthCloudPasswordRegisterStart_Response) updates) =>
+      super.copyWith((message) => updates(message as AuthCloudPasswordRegisterStart_Response)) as AuthCloudPasswordRegisterStart_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AuthCloudPasswordRegisterStart_Response create() => AuthCloudPasswordRegisterStart_Response._();
+  @$core.override
+  AuthCloudPasswordRegisterStart_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AuthCloudPasswordRegisterStart_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCloudPasswordRegisterStart_Response>(create);
+  static AuthCloudPasswordRegisterStart_Response? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get registrationResponse => $_getN(0);
+  @$pb.TagNumber(1)
+  set registrationResponse($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasRegistrationResponse() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearRegistrationResponse() => $_clearField(1);
+}
+
+/// Новый пароль при входе (после AuthCloudPasswordRecoveryConfirm), шаг 1.
+class AuthCloudPasswordRegisterStart extends $pb.GeneratedMessage {
+  factory AuthCloudPasswordRegisterStart() => create();
+
+  AuthCloudPasswordRegisterStart._();
+
+  factory AuthCloudPasswordRegisterStart.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AuthCloudPasswordRegisterStart.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCloudPasswordRegisterStart',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthCloudPasswordRegisterStart clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthCloudPasswordRegisterStart copyWith(void Function(AuthCloudPasswordRegisterStart) updates) =>
+      super.copyWith((message) => updates(message as AuthCloudPasswordRegisterStart)) as AuthCloudPasswordRegisterStart;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AuthCloudPasswordRegisterStart create() => AuthCloudPasswordRegisterStart._();
+  @$core.override
+  AuthCloudPasswordRegisterStart createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AuthCloudPasswordRegisterStart getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCloudPasswordRegisterStart>(create);
+  static AuthCloudPasswordRegisterStart? _defaultInstance;
+}
+
+class AuthCloudPasswordRegisterFinish_Request extends $pb.GeneratedMessage {
+  factory AuthCloudPasswordRegisterFinish_Request({
+    $core.List<$core.int>? confirmationSession,
+    $core.List<$core.int>? record,
+  }) {
+    final result = create();
+    if (confirmationSession != null) result.confirmationSession = confirmationSession;
+    if (record != null) result.record = record;
+    return result;
+  }
+
+  AuthCloudPasswordRegisterFinish_Request._();
+
+  factory AuthCloudPasswordRegisterFinish_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AuthCloudPasswordRegisterFinish_Request.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCloudPasswordRegisterFinish.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'confirmationSession', $pb.PbFieldType.OY, protoName: 'confirmationSession')
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'record', $pb.PbFieldType.OY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthCloudPasswordRegisterFinish_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthCloudPasswordRegisterFinish_Request copyWith(void Function(AuthCloudPasswordRegisterFinish_Request) updates) =>
+      super.copyWith((message) => updates(message as AuthCloudPasswordRegisterFinish_Request)) as AuthCloudPasswordRegisterFinish_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AuthCloudPasswordRegisterFinish_Request create() => AuthCloudPasswordRegisterFinish_Request._();
+  @$core.override
+  AuthCloudPasswordRegisterFinish_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AuthCloudPasswordRegisterFinish_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCloudPasswordRegisterFinish_Request>(create);
+  static AuthCloudPasswordRegisterFinish_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get confirmationSession => $_getN(0);
+  @$pb.TagNumber(1)
+  set confirmationSession($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasConfirmationSession() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearConfirmationSession() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get record => $_getN(1);
+  @$pb.TagNumber(2)
+  set record($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasRecord() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRecord() => $_clearField(2);
+}
+
+class AuthCloudPasswordRegisterFinish_Response extends $pb.GeneratedMessage {
+  factory AuthCloudPasswordRegisterFinish_Response({
+    $core.bool? success,
+    $core.String? error,
+  }) {
+    final result = create();
+    if (success != null) result.success = success;
+    if (error != null) result.error = error;
+    return result;
+  }
+
+  AuthCloudPasswordRegisterFinish_Response._();
+
+  factory AuthCloudPasswordRegisterFinish_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AuthCloudPasswordRegisterFinish_Response.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCloudPasswordRegisterFinish.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOB(1, _omitFieldNames ? '' : 'success')
+    ..aOS(2, _omitFieldNames ? '' : 'error')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthCloudPasswordRegisterFinish_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthCloudPasswordRegisterFinish_Response copyWith(void Function(AuthCloudPasswordRegisterFinish_Response) updates) =>
+      super.copyWith((message) => updates(message as AuthCloudPasswordRegisterFinish_Response)) as AuthCloudPasswordRegisterFinish_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AuthCloudPasswordRegisterFinish_Response create() => AuthCloudPasswordRegisterFinish_Response._();
+  @$core.override
+  AuthCloudPasswordRegisterFinish_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AuthCloudPasswordRegisterFinish_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCloudPasswordRegisterFinish_Response>(create);
+  static AuthCloudPasswordRegisterFinish_Response? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.bool get success => $_getBF(0);
+  @$pb.TagNumber(1)
+  set success($core.bool value) => $_setBool(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasSuccess() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSuccess() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get error => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set error($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasError() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearError() => $_clearField(2);
+}
+
+/// Новый пароль при входе, шаг 2: запись сохраняется, confirmationSession
+/// помечается пройденной — дальше AUTH_CONFIRMATION.
+class AuthCloudPasswordRegisterFinish extends $pb.GeneratedMessage {
+  factory AuthCloudPasswordRegisterFinish() => create();
+
+  AuthCloudPasswordRegisterFinish._();
+
+  factory AuthCloudPasswordRegisterFinish.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory AuthCloudPasswordRegisterFinish.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AuthCloudPasswordRegisterFinish',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthCloudPasswordRegisterFinish clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  AuthCloudPasswordRegisterFinish copyWith(void Function(AuthCloudPasswordRegisterFinish) updates) =>
+      super.copyWith((message) => updates(message as AuthCloudPasswordRegisterFinish)) as AuthCloudPasswordRegisterFinish;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static AuthCloudPasswordRegisterFinish create() => AuthCloudPasswordRegisterFinish._();
+  @$core.override
+  AuthCloudPasswordRegisterFinish createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static AuthCloudPasswordRegisterFinish getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AuthCloudPasswordRegisterFinish>(create);
+  static AuthCloudPasswordRegisterFinish? _defaultInstance;
 }
 
 class CloudPasswordInfo_Request extends $pb.GeneratedMessage {
@@ -664,68 +1111,484 @@ class CloudPasswordInfo extends $pb.GeneratedMessage {
   static CloudPasswordInfo? _defaultInstance;
 }
 
-class CloudPasswordSet_Request extends $pb.GeneratedMessage {
-  factory CloudPasswordSet_Request({
-    $core.List<$core.int>? currentPwHash,
-    $core.List<$core.int>? newPwHash,
+class CloudPasswordAuthStart_Request extends $pb.GeneratedMessage {
+  factory CloudPasswordAuthStart_Request({
+    $core.List<$core.int>? ke1,
   }) {
     final result = create();
-    if (currentPwHash != null) result.currentPwHash = currentPwHash;
-    if (newPwHash != null) result.newPwHash = newPwHash;
+    if (ke1 != null) result.ke1 = ke1;
     return result;
   }
 
-  CloudPasswordSet_Request._();
+  CloudPasswordAuthStart_Request._();
 
-  factory CloudPasswordSet_Request.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory CloudPasswordAuthStart_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory CloudPasswordSet_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory CloudPasswordAuthStart_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordSet.Request',
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordAuthStart.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'currentPwHash', $pb.PbFieldType.OY, protoName: 'currentPwHash')
-    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'newPwHash', $pb.PbFieldType.OY, protoName: 'newPwHash')
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'ke1', $pb.PbFieldType.OY)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  CloudPasswordSet_Request clone() => deepCopy();
+  CloudPasswordAuthStart_Request clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  CloudPasswordSet_Request copyWith(void Function(CloudPasswordSet_Request) updates) =>
-      super.copyWith((message) => updates(message as CloudPasswordSet_Request)) as CloudPasswordSet_Request;
+  CloudPasswordAuthStart_Request copyWith(void Function(CloudPasswordAuthStart_Request) updates) =>
+      super.copyWith((message) => updates(message as CloudPasswordAuthStart_Request)) as CloudPasswordAuthStart_Request;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static CloudPasswordSet_Request create() => CloudPasswordSet_Request._();
+  static CloudPasswordAuthStart_Request create() => CloudPasswordAuthStart_Request._();
   @$core.override
-  CloudPasswordSet_Request createEmptyInstance() => create();
+  CloudPasswordAuthStart_Request createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static CloudPasswordSet_Request getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CloudPasswordSet_Request>(create);
-  static CloudPasswordSet_Request? _defaultInstance;
+  static CloudPasswordAuthStart_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CloudPasswordAuthStart_Request>(create);
+  static CloudPasswordAuthStart_Request? _defaultInstance;
 
   @$pb.TagNumber(1)
-  $core.List<$core.int> get currentPwHash => $_getN(0);
+  $core.List<$core.int> get ke1 => $_getN(0);
   @$pb.TagNumber(1)
-  set currentPwHash($core.List<$core.int> value) => $_setBytes(0, value);
+  set ke1($core.List<$core.int> value) => $_setBytes(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasCurrentPwHash() => $_has(0);
+  $core.bool hasKe1() => $_has(0);
   @$pb.TagNumber(1)
-  void clearCurrentPwHash() => $_clearField(1);
-
-  @$pb.TagNumber(2)
-  $core.List<$core.int> get newPwHash => $_getN(1);
-  @$pb.TagNumber(2)
-  set newPwHash($core.List<$core.int> value) => $_setBytes(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasNewPwHash() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearNewPwHash() => $_clearField(2);
+  void clearKe1() => $_clearField(1);
 }
 
-class CloudPasswordSet_Response extends $pb.GeneratedMessage {
-  factory CloudPasswordSet_Response({
+class CloudPasswordAuthStart_Response extends $pb.GeneratedMessage {
+  factory CloudPasswordAuthStart_Response({
+    $core.List<$core.int>? ke2,
+  }) {
+    final result = create();
+    if (ke2 != null) result.ke2 = ke2;
+    return result;
+  }
+
+  CloudPasswordAuthStart_Response._();
+
+  factory CloudPasswordAuthStart_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory CloudPasswordAuthStart_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordAuthStart.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'ke2', $pb.PbFieldType.OY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CloudPasswordAuthStart_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CloudPasswordAuthStart_Response copyWith(void Function(CloudPasswordAuthStart_Response) updates) =>
+      super.copyWith((message) => updates(message as CloudPasswordAuthStart_Response)) as CloudPasswordAuthStart_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static CloudPasswordAuthStart_Response create() => CloudPasswordAuthStart_Response._();
+  @$core.override
+  CloudPasswordAuthStart_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static CloudPasswordAuthStart_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CloudPasswordAuthStart_Response>(create);
+  static CloudPasswordAuthStart_Response? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get ke2 => $_getN(0);
+  @$pb.TagNumber(1)
+  set ke2($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasKe2() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearKe2() => $_clearField(1);
+}
+
+/// Проверка пароля в настройках («разблокировка»), шаг 1: KE1 → KE2.
+class CloudPasswordAuthStart extends $pb.GeneratedMessage {
+  factory CloudPasswordAuthStart() => create();
+
+  CloudPasswordAuthStart._();
+
+  factory CloudPasswordAuthStart.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory CloudPasswordAuthStart.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordAuthStart',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CloudPasswordAuthStart clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CloudPasswordAuthStart copyWith(void Function(CloudPasswordAuthStart) updates) =>
+      super.copyWith((message) => updates(message as CloudPasswordAuthStart)) as CloudPasswordAuthStart;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static CloudPasswordAuthStart create() => CloudPasswordAuthStart._();
+  @$core.override
+  CloudPasswordAuthStart createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static CloudPasswordAuthStart getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CloudPasswordAuthStart>(create);
+  static CloudPasswordAuthStart? _defaultInstance;
+}
+
+class CloudPasswordAuthFinish_Request extends $pb.GeneratedMessage {
+  factory CloudPasswordAuthFinish_Request({
+    $core.List<$core.int>? ke3,
+  }) {
+    final result = create();
+    if (ke3 != null) result.ke3 = ke3;
+    return result;
+  }
+
+  CloudPasswordAuthFinish_Request._();
+
+  factory CloudPasswordAuthFinish_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory CloudPasswordAuthFinish_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordAuthFinish.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'ke3', $pb.PbFieldType.OY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CloudPasswordAuthFinish_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CloudPasswordAuthFinish_Request copyWith(void Function(CloudPasswordAuthFinish_Request) updates) =>
+      super.copyWith((message) => updates(message as CloudPasswordAuthFinish_Request)) as CloudPasswordAuthFinish_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static CloudPasswordAuthFinish_Request create() => CloudPasswordAuthFinish_Request._();
+  @$core.override
+  CloudPasswordAuthFinish_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static CloudPasswordAuthFinish_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CloudPasswordAuthFinish_Request>(create);
+  static CloudPasswordAuthFinish_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get ke3 => $_getN(0);
+  @$pb.TagNumber(1)
+  set ke3($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasKe3() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearKe3() => $_clearField(1);
+}
+
+class CloudPasswordAuthFinish_Response extends $pb.GeneratedMessage {
+  factory CloudPasswordAuthFinish_Response({
+    $core.List<$core.int>? token,
+  }) {
+    final result = create();
+    if (token != null) result.token = token;
+    return result;
+  }
+
+  CloudPasswordAuthFinish_Response._();
+
+  factory CloudPasswordAuthFinish_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory CloudPasswordAuthFinish_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordAuthFinish.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'token', $pb.PbFieldType.OY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CloudPasswordAuthFinish_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CloudPasswordAuthFinish_Response copyWith(void Function(CloudPasswordAuthFinish_Response) updates) =>
+      super.copyWith((message) => updates(message as CloudPasswordAuthFinish_Response)) as CloudPasswordAuthFinish_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static CloudPasswordAuthFinish_Response create() => CloudPasswordAuthFinish_Response._();
+  @$core.override
+  CloudPasswordAuthFinish_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static CloudPasswordAuthFinish_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CloudPasswordAuthFinish_Response>(create);
+  static CloudPasswordAuthFinish_Response? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get token => $_getN(0);
+  @$pb.TagNumber(1)
+  set token($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasToken() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearToken() => $_clearField(1);
+}
+
+/// Проверка пароля в настройках, шаг 2: KE3 → token для действий.
+class CloudPasswordAuthFinish extends $pb.GeneratedMessage {
+  factory CloudPasswordAuthFinish() => create();
+
+  CloudPasswordAuthFinish._();
+
+  factory CloudPasswordAuthFinish.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory CloudPasswordAuthFinish.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordAuthFinish',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CloudPasswordAuthFinish clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CloudPasswordAuthFinish copyWith(void Function(CloudPasswordAuthFinish) updates) =>
+      super.copyWith((message) => updates(message as CloudPasswordAuthFinish)) as CloudPasswordAuthFinish;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static CloudPasswordAuthFinish create() => CloudPasswordAuthFinish._();
+  @$core.override
+  CloudPasswordAuthFinish createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static CloudPasswordAuthFinish getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CloudPasswordAuthFinish>(create);
+  static CloudPasswordAuthFinish? _defaultInstance;
+}
+
+class CloudPasswordRegisterStart_Request extends $pb.GeneratedMessage {
+  factory CloudPasswordRegisterStart_Request({
+    $core.List<$core.int>? token,
+    $core.List<$core.int>? registrationRequest,
+  }) {
+    final result = create();
+    if (token != null) result.token = token;
+    if (registrationRequest != null) result.registrationRequest = registrationRequest;
+    return result;
+  }
+
+  CloudPasswordRegisterStart_Request._();
+
+  factory CloudPasswordRegisterStart_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory CloudPasswordRegisterStart_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordRegisterStart.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'token', $pb.PbFieldType.OY)
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'registrationRequest', $pb.PbFieldType.OY, protoName: 'registrationRequest')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CloudPasswordRegisterStart_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CloudPasswordRegisterStart_Request copyWith(void Function(CloudPasswordRegisterStart_Request) updates) =>
+      super.copyWith((message) => updates(message as CloudPasswordRegisterStart_Request)) as CloudPasswordRegisterStart_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static CloudPasswordRegisterStart_Request create() => CloudPasswordRegisterStart_Request._();
+  @$core.override
+  CloudPasswordRegisterStart_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static CloudPasswordRegisterStart_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CloudPasswordRegisterStart_Request>(create);
+  static CloudPasswordRegisterStart_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get token => $_getN(0);
+  @$pb.TagNumber(1)
+  set token($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasToken() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearToken() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get registrationRequest => $_getN(1);
+  @$pb.TagNumber(2)
+  set registrationRequest($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasRegistrationRequest() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRegistrationRequest() => $_clearField(2);
+}
+
+class CloudPasswordRegisterStart_Response extends $pb.GeneratedMessage {
+  factory CloudPasswordRegisterStart_Response({
+    $core.List<$core.int>? registrationResponse,
+  }) {
+    final result = create();
+    if (registrationResponse != null) result.registrationResponse = registrationResponse;
+    return result;
+  }
+
+  CloudPasswordRegisterStart_Response._();
+
+  factory CloudPasswordRegisterStart_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory CloudPasswordRegisterStart_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordRegisterStart.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'registrationResponse', $pb.PbFieldType.OY, protoName: 'registrationResponse')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CloudPasswordRegisterStart_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CloudPasswordRegisterStart_Response copyWith(void Function(CloudPasswordRegisterStart_Response) updates) =>
+      super.copyWith((message) => updates(message as CloudPasswordRegisterStart_Response)) as CloudPasswordRegisterStart_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static CloudPasswordRegisterStart_Response create() => CloudPasswordRegisterStart_Response._();
+  @$core.override
+  CloudPasswordRegisterStart_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static CloudPasswordRegisterStart_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CloudPasswordRegisterStart_Response>(create);
+  static CloudPasswordRegisterStart_Response? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get registrationResponse => $_getN(0);
+  @$pb.TagNumber(1)
+  set registrationResponse($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasRegistrationResponse() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearRegistrationResponse() => $_clearField(1);
+}
+
+/// Установка / смена / сброс пароля, шаг 1. token не нужен, только если
+/// пароля ещё нет.
+class CloudPasswordRegisterStart extends $pb.GeneratedMessage {
+  factory CloudPasswordRegisterStart() => create();
+
+  CloudPasswordRegisterStart._();
+
+  factory CloudPasswordRegisterStart.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory CloudPasswordRegisterStart.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordRegisterStart',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CloudPasswordRegisterStart clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CloudPasswordRegisterStart copyWith(void Function(CloudPasswordRegisterStart) updates) =>
+      super.copyWith((message) => updates(message as CloudPasswordRegisterStart)) as CloudPasswordRegisterStart;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static CloudPasswordRegisterStart create() => CloudPasswordRegisterStart._();
+  @$core.override
+  CloudPasswordRegisterStart createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static CloudPasswordRegisterStart getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CloudPasswordRegisterStart>(create);
+  static CloudPasswordRegisterStart? _defaultInstance;
+}
+
+class CloudPasswordRegisterFinish_Request extends $pb.GeneratedMessage {
+  factory CloudPasswordRegisterFinish_Request({
+    $core.List<$core.int>? token,
+    $core.List<$core.int>? record,
+  }) {
+    final result = create();
+    if (token != null) result.token = token;
+    if (record != null) result.record = record;
+    return result;
+  }
+
+  CloudPasswordRegisterFinish_Request._();
+
+  factory CloudPasswordRegisterFinish_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory CloudPasswordRegisterFinish_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordRegisterFinish.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'token', $pb.PbFieldType.OY)
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'record', $pb.PbFieldType.OY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CloudPasswordRegisterFinish_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  CloudPasswordRegisterFinish_Request copyWith(void Function(CloudPasswordRegisterFinish_Request) updates) =>
+      super.copyWith((message) => updates(message as CloudPasswordRegisterFinish_Request)) as CloudPasswordRegisterFinish_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static CloudPasswordRegisterFinish_Request create() => CloudPasswordRegisterFinish_Request._();
+  @$core.override
+  CloudPasswordRegisterFinish_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static CloudPasswordRegisterFinish_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CloudPasswordRegisterFinish_Request>(create);
+  static CloudPasswordRegisterFinish_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.List<$core.int> get token => $_getN(0);
+  @$pb.TagNumber(1)
+  set token($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasToken() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearToken() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get record => $_getN(1);
+  @$pb.TagNumber(2)
+  set record($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasRecord() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearRecord() => $_clearField(2);
+}
+
+class CloudPasswordRegisterFinish_Response extends $pb.GeneratedMessage {
+  factory CloudPasswordRegisterFinish_Response({
     $core.bool? success,
     $core.String? error,
   }) {
@@ -735,37 +1598,38 @@ class CloudPasswordSet_Response extends $pb.GeneratedMessage {
     return result;
   }
 
-  CloudPasswordSet_Response._();
+  CloudPasswordRegisterFinish_Response._();
 
-  factory CloudPasswordSet_Response.fromBuffer($core.List<$core.int> data,
+  factory CloudPasswordRegisterFinish_Response.fromBuffer($core.List<$core.int> data,
           [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory CloudPasswordSet_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory CloudPasswordRegisterFinish_Response.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordSet.Response',
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordRegisterFinish.Response',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'success')
     ..aOS(2, _omitFieldNames ? '' : 'error')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  CloudPasswordSet_Response clone() => deepCopy();
+  CloudPasswordRegisterFinish_Response clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  CloudPasswordSet_Response copyWith(void Function(CloudPasswordSet_Response) updates) =>
-      super.copyWith((message) => updates(message as CloudPasswordSet_Response)) as CloudPasswordSet_Response;
+  CloudPasswordRegisterFinish_Response copyWith(void Function(CloudPasswordRegisterFinish_Response) updates) =>
+      super.copyWith((message) => updates(message as CloudPasswordRegisterFinish_Response)) as CloudPasswordRegisterFinish_Response;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static CloudPasswordSet_Response create() => CloudPasswordSet_Response._();
+  static CloudPasswordRegisterFinish_Response create() => CloudPasswordRegisterFinish_Response._();
   @$core.override
-  CloudPasswordSet_Response createEmptyInstance() => create();
+  CloudPasswordRegisterFinish_Response createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static CloudPasswordSet_Response getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CloudPasswordSet_Response>(create);
-  static CloudPasswordSet_Response? _defaultInstance;
+  static CloudPasswordRegisterFinish_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CloudPasswordRegisterFinish_Response>(create);
+  static CloudPasswordRegisterFinish_Response? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.bool get success => $_getBF(0);
@@ -786,45 +1650,48 @@ class CloudPasswordSet_Response extends $pb.GeneratedMessage {
   void clearError() => $_clearField(2);
 }
 
-/// Установка/смена пароля. currentPwHash пуст при первичной установке.
-class CloudPasswordSet extends $pb.GeneratedMessage {
-  factory CloudPasswordSet() => create();
+/// Установка / смена / сброс пароля, шаг 2. После смены выданные token'ы
+/// больше не действуют.
+class CloudPasswordRegisterFinish extends $pb.GeneratedMessage {
+  factory CloudPasswordRegisterFinish() => create();
 
-  CloudPasswordSet._();
+  CloudPasswordRegisterFinish._();
 
-  factory CloudPasswordSet.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory CloudPasswordRegisterFinish.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(data, registry);
-  factory CloudPasswordSet.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+  factory CloudPasswordRegisterFinish.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromJson(json, registry);
 
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordSet',
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordRegisterFinish',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  CloudPasswordSet clone() => deepCopy();
+  CloudPasswordRegisterFinish clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  CloudPasswordSet copyWith(void Function(CloudPasswordSet) updates) =>
-      super.copyWith((message) => updates(message as CloudPasswordSet)) as CloudPasswordSet;
+  CloudPasswordRegisterFinish copyWith(void Function(CloudPasswordRegisterFinish) updates) =>
+      super.copyWith((message) => updates(message as CloudPasswordRegisterFinish)) as CloudPasswordRegisterFinish;
 
   @$core.override
   $pb.BuilderInfo get info_ => _i;
 
   @$core.pragma('dart2js:noInline')
-  static CloudPasswordSet create() => CloudPasswordSet._();
+  static CloudPasswordRegisterFinish create() => CloudPasswordRegisterFinish._();
   @$core.override
-  CloudPasswordSet createEmptyInstance() => create();
+  CloudPasswordRegisterFinish createEmptyInstance() => create();
   @$core.pragma('dart2js:noInline')
-  static CloudPasswordSet getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CloudPasswordSet>(create);
-  static CloudPasswordSet? _defaultInstance;
+  static CloudPasswordRegisterFinish getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CloudPasswordRegisterFinish>(create);
+  static CloudPasswordRegisterFinish? _defaultInstance;
 }
 
 class CloudPasswordDisable_Request extends $pb.GeneratedMessage {
   factory CloudPasswordDisable_Request({
-    $core.List<$core.int>? currentPwHash,
+    $core.List<$core.int>? token,
   }) {
     final result = create();
-    if (currentPwHash != null) result.currentPwHash = currentPwHash;
+    if (token != null) result.token = token;
     return result;
   }
 
@@ -838,7 +1705,7 @@ class CloudPasswordDisable_Request extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordDisable.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'currentPwHash', $pb.PbFieldType.OY, protoName: 'currentPwHash')
+    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'token', $pb.PbFieldType.OY)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -859,14 +1726,14 @@ class CloudPasswordDisable_Request extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CloudPasswordDisable_Request>(create);
   static CloudPasswordDisable_Request? _defaultInstance;
 
-  @$pb.TagNumber(1)
-  $core.List<$core.int> get currentPwHash => $_getN(0);
-  @$pb.TagNumber(1)
-  set currentPwHash($core.List<$core.int> value) => $_setBytes(0, value);
-  @$pb.TagNumber(1)
-  $core.bool hasCurrentPwHash() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearCurrentPwHash() => $_clearField(1);
+  @$pb.TagNumber(2)
+  $core.List<$core.int> get token => $_getN(0);
+  @$pb.TagNumber(2)
+  set token($core.List<$core.int> value) => $_setBytes(0, value);
+  @$pb.TagNumber(2)
+  $core.bool hasToken() => $_has(0);
+  @$pb.TagNumber(2)
+  void clearToken() => $_clearField(2);
 }
 
 class CloudPasswordDisable_Response extends $pb.GeneratedMessage {
@@ -931,7 +1798,7 @@ class CloudPasswordDisable_Response extends $pb.GeneratedMessage {
   void clearError() => $_clearField(2);
 }
 
-/// Отключение облачного пароля (с проверкой текущего).
+/// Отключение облачного пароля.
 class CloudPasswordDisable extends $pb.GeneratedMessage {
   factory CloudPasswordDisable() => create();
 
@@ -966,12 +1833,12 @@ class CloudPasswordDisable extends $pb.GeneratedMessage {
 
 class CloudPasswordEmailSet_Request extends $pb.GeneratedMessage {
   factory CloudPasswordEmailSet_Request({
-    $core.List<$core.int>? currentPwHash,
     $core.String? email,
+    $core.List<$core.int>? token,
   }) {
     final result = create();
-    if (currentPwHash != null) result.currentPwHash = currentPwHash;
     if (email != null) result.email = email;
+    if (token != null) result.token = token;
     return result;
   }
 
@@ -985,8 +1852,8 @@ class CloudPasswordEmailSet_Request extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordEmailSet.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'currentPwHash', $pb.PbFieldType.OY, protoName: 'currentPwHash')
     ..aOS(2, _omitFieldNames ? '' : 'email')
+    ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'token', $pb.PbFieldType.OY)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1007,23 +1874,23 @@ class CloudPasswordEmailSet_Request extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CloudPasswordEmailSet_Request>(create);
   static CloudPasswordEmailSet_Request? _defaultInstance;
 
-  @$pb.TagNumber(1)
-  $core.List<$core.int> get currentPwHash => $_getN(0);
-  @$pb.TagNumber(1)
-  set currentPwHash($core.List<$core.int> value) => $_setBytes(0, value);
-  @$pb.TagNumber(1)
-  $core.bool hasCurrentPwHash() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearCurrentPwHash() => $_clearField(1);
-
   @$pb.TagNumber(2)
-  $core.String get email => $_getSZ(1);
+  $core.String get email => $_getSZ(0);
   @$pb.TagNumber(2)
-  set email($core.String value) => $_setString(1, value);
+  set email($core.String value) => $_setString(0, value);
   @$pb.TagNumber(2)
-  $core.bool hasEmail() => $_has(1);
+  $core.bool hasEmail() => $_has(0);
   @$pb.TagNumber(2)
   void clearEmail() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.List<$core.int> get token => $_getN(1);
+  @$pb.TagNumber(3)
+  set token($core.List<$core.int> value) => $_setBytes(1, value);
+  @$pb.TagNumber(3)
+  $core.bool hasToken() => $_has(1);
+  @$pb.TagNumber(3)
+  void clearToken() => $_clearField(3);
 }
 
 class CloudPasswordEmailSet_Response extends $pb.GeneratedMessage {
@@ -1088,7 +1955,8 @@ class CloudPasswordEmailSet_Response extends $pb.GeneratedMessage {
   void clearError() => $_clearField(2);
 }
 
-/// Привязка/смена email: шлёт код верификации на новый адрес.
+/// Привязка/смена email: шлёт код верификации на новый адрес. token нужен, если
+/// пароль установлен (email можно привязать и до пароля).
 class CloudPasswordEmailSet extends $pb.GeneratedMessage {
   factory CloudPasswordEmailSet() => create();
 
@@ -1266,152 +2134,6 @@ class CloudPasswordEmailVerify extends $pb.GeneratedMessage {
   static CloudPasswordEmailVerify? _defaultInstance;
 }
 
-class CloudPasswordVerify_Request extends $pb.GeneratedMessage {
-  factory CloudPasswordVerify_Request({
-    $core.List<$core.int>? pwHash,
-  }) {
-    final result = create();
-    if (pwHash != null) result.pwHash = pwHash;
-    return result;
-  }
-
-  CloudPasswordVerify_Request._();
-
-  factory CloudPasswordVerify_Request.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory CloudPasswordVerify_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
-
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordVerify.Request',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'pwHash', $pb.PbFieldType.OY, protoName: 'pwHash')
-    ..hasRequiredFields = false;
-
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  CloudPasswordVerify_Request clone() => deepCopy();
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  CloudPasswordVerify_Request copyWith(void Function(CloudPasswordVerify_Request) updates) =>
-      super.copyWith((message) => updates(message as CloudPasswordVerify_Request)) as CloudPasswordVerify_Request;
-
-  @$core.override
-  $pb.BuilderInfo get info_ => _i;
-
-  @$core.pragma('dart2js:noInline')
-  static CloudPasswordVerify_Request create() => CloudPasswordVerify_Request._();
-  @$core.override
-  CloudPasswordVerify_Request createEmptyInstance() => create();
-  @$core.pragma('dart2js:noInline')
-  static CloudPasswordVerify_Request getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CloudPasswordVerify_Request>(create);
-  static CloudPasswordVerify_Request? _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.List<$core.int> get pwHash => $_getN(0);
-  @$pb.TagNumber(1)
-  set pwHash($core.List<$core.int> value) => $_setBytes(0, value);
-  @$pb.TagNumber(1)
-  $core.bool hasPwHash() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearPwHash() => $_clearField(1);
-}
-
-class CloudPasswordVerify_Response extends $pb.GeneratedMessage {
-  factory CloudPasswordVerify_Response({
-    $core.bool? success,
-    $core.String? error,
-  }) {
-    final result = create();
-    if (success != null) result.success = success;
-    if (error != null) result.error = error;
-    return result;
-  }
-
-  CloudPasswordVerify_Response._();
-
-  factory CloudPasswordVerify_Response.fromBuffer($core.List<$core.int> data,
-          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory CloudPasswordVerify_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
-
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordVerify.Response',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..aOB(1, _omitFieldNames ? '' : 'success')
-    ..aOS(2, _omitFieldNames ? '' : 'error')
-    ..hasRequiredFields = false;
-
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  CloudPasswordVerify_Response clone() => deepCopy();
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  CloudPasswordVerify_Response copyWith(void Function(CloudPasswordVerify_Response) updates) =>
-      super.copyWith((message) => updates(message as CloudPasswordVerify_Response)) as CloudPasswordVerify_Response;
-
-  @$core.override
-  $pb.BuilderInfo get info_ => _i;
-
-  @$core.pragma('dart2js:noInline')
-  static CloudPasswordVerify_Response create() => CloudPasswordVerify_Response._();
-  @$core.override
-  CloudPasswordVerify_Response createEmptyInstance() => create();
-  @$core.pragma('dart2js:noInline')
-  static CloudPasswordVerify_Response getDefault() =>
-      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CloudPasswordVerify_Response>(create);
-  static CloudPasswordVerify_Response? _defaultInstance;
-
-  @$pb.TagNumber(1)
-  $core.bool get success => $_getBF(0);
-  @$pb.TagNumber(1)
-  set success($core.bool value) => $_setBool(0, value);
-  @$pb.TagNumber(1)
-  $core.bool hasSuccess() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearSuccess() => $_clearField(1);
-
-  @$pb.TagNumber(2)
-  $core.String get error => $_getSZ(1);
-  @$pb.TagNumber(2)
-  set error($core.String value) => $_setString(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasError() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearError() => $_clearField(2);
-}
-
-/// Проверка текущего пароля для «разблокировки» раздела настроек (когда пароль
-/// установлен). Успех открывает меню; неверный — ошибка.
-class CloudPasswordVerify extends $pb.GeneratedMessage {
-  factory CloudPasswordVerify() => create();
-
-  CloudPasswordVerify._();
-
-  factory CloudPasswordVerify.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromBuffer(data, registry);
-  factory CloudPasswordVerify.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
-      create()..mergeFromJson(json, registry);
-
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordVerify',
-      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..hasRequiredFields = false;
-
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  CloudPasswordVerify clone() => deepCopy();
-  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  CloudPasswordVerify copyWith(void Function(CloudPasswordVerify) updates) =>
-      super.copyWith((message) => updates(message as CloudPasswordVerify)) as CloudPasswordVerify;
-
-  @$core.override
-  $pb.BuilderInfo get info_ => _i;
-
-  @$core.pragma('dart2js:noInline')
-  static CloudPasswordVerify create() => CloudPasswordVerify._();
-  @$core.override
-  CloudPasswordVerify createEmptyInstance() => create();
-  @$core.pragma('dart2js:noInline')
-  static CloudPasswordVerify getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CloudPasswordVerify>(create);
-  static CloudPasswordVerify? _defaultInstance;
-}
-
 class CloudPasswordRecoverySend_Request extends $pb.GeneratedMessage {
   factory CloudPasswordRecoverySend_Request() => create();
 
@@ -1547,11 +2269,9 @@ class CloudPasswordRecoverySend extends $pb.GeneratedMessage {
 class CloudPasswordReset_Request extends $pb.GeneratedMessage {
   factory CloudPasswordReset_Request({
     $core.String? code,
-    $core.List<$core.int>? newPwHash,
   }) {
     final result = create();
     if (code != null) result.code = code;
-    if (newPwHash != null) result.newPwHash = newPwHash;
     return result;
   }
 
@@ -1566,7 +2286,6 @@ class CloudPasswordReset_Request extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'CloudPasswordReset.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOS(1, _omitFieldNames ? '' : 'code')
-    ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'newPwHash', $pb.PbFieldType.OY, protoName: 'newPwHash')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1595,25 +2314,18 @@ class CloudPasswordReset_Request extends $pb.GeneratedMessage {
   $core.bool hasCode() => $_has(0);
   @$pb.TagNumber(1)
   void clearCode() => $_clearField(1);
-
-  @$pb.TagNumber(2)
-  $core.List<$core.int> get newPwHash => $_getN(1);
-  @$pb.TagNumber(2)
-  set newPwHash($core.List<$core.int> value) => $_setBytes(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasNewPwHash() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearNewPwHash() => $_clearField(2);
 }
 
 class CloudPasswordReset_Response extends $pb.GeneratedMessage {
   factory CloudPasswordReset_Response({
     $core.bool? success,
     $core.String? error,
+    $core.List<$core.int>? token,
   }) {
     final result = create();
     if (success != null) result.success = success;
     if (error != null) result.error = error;
+    if (token != null) result.token = token;
     return result;
   }
 
@@ -1629,6 +2341,7 @@ class CloudPasswordReset_Response extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..aOB(1, _omitFieldNames ? '' : 'success')
     ..aOS(2, _omitFieldNames ? '' : 'error')
+    ..a<$core.List<$core.int>>(3, _omitFieldNames ? '' : 'token', $pb.PbFieldType.OY)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1666,10 +2379,20 @@ class CloudPasswordReset_Response extends $pb.GeneratedMessage {
   $core.bool hasError() => $_has(1);
   @$pb.TagNumber(2)
   void clearError() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.List<$core.int> get token => $_getN(2);
+  @$pb.TagNumber(3)
+  set token($core.List<$core.int> value) => $_setBytes(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasToken() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearToken() => $_clearField(3);
 }
 
-/// Сброс пароля по коду из письма (после CloudPasswordRecoverySend). Ставит новый
-/// пароль без знания старого и ОЧИЩАЕТ email (его нужно привязать заново).
+/// Сброс пароля по коду из письма (после CloudPasswordRecoverySend): выдаёт
+/// token, годный только для CloudPasswordRegister* (новый пароль без старого).
+/// Привязанный email сохраняется.
 class CloudPasswordReset extends $pb.GeneratedMessage {
   factory CloudPasswordReset() => create();
 

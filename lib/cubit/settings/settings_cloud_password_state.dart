@@ -38,10 +38,11 @@ class SettingsCloudPasswordState with SettingsCloudPasswordStateMappable {
 
   final String error;
 
-  // Текущий пароль, введённый при разблокировке/установке — держим в памяти, чтобы
-  // действия меню (сменить пароль/email/отключить) не переспрашивали его. Никуда
-  // не персистится.
-  final List<int> heldPwHash;
+  // Token проверки пароля (CloudPasswordAuthFinish, на сервере живёт 10 минут) —
+  // действия меню (сменить пароль/email/отключить) идут с ним, не переспрашивая
+  // пароль; истёк — снова разблокировка. На шаге восстановления — token сброса
+  // по коду из письма. Только в памяти.
+  final List<int> heldToken;
   // Email, ожидающий подтверждения (показывается на экране ввода кода).
   final String pendingEmail;
 
@@ -54,7 +55,7 @@ class SettingsCloudPasswordState with SettingsCloudPasswordStateMappable {
     this.maskedEmail = "",
     this.isEmailVerified = false,
     this.error = "",
-    this.heldPwHash = const [],
+    this.heldToken = const [],
     this.pendingEmail = "",
   });
 

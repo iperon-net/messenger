@@ -3585,6 +3585,18 @@ class Translations$cloudPassword$en {
 
 	/// en: 'Session expired. Please start again.'
 	String get sessionExpired => 'Session expired. Please start again.';
+
+	/// en: 'Password check was interrupted. Please try again.'
+	String get handshakeExpired => 'Password check was interrupted. Please try again.';
+
+	/// en: 'Please confirm your cloud password again.'
+	String get unlockRequired => 'Please confirm your cloud password again.';
+
+	/// en: 'Confirm the code from the email first.'
+	String get recoveryRequired => 'Confirm the code from the email first.';
+
+	/// en: 'Could not check the password. Please try again.'
+	String get invalidMessage => 'Could not check the password. Please try again.';
 }
 
 // Path: screenMyProfile
@@ -6459,6 +6471,10 @@ extension on Translations {
 			'cloudPassword.notSet' => 'Cloud password is not set',
 			'cloudPassword.invalidEmail' => 'Invalid email',
 			'cloudPassword.sessionExpired' => 'Session expired. Please start again.',
+			'cloudPassword.handshakeExpired' => 'Password check was interrupted. Please try again.',
+			'cloudPassword.unlockRequired' => 'Please confirm your cloud password again.',
+			'cloudPassword.recoveryRequired' => 'Confirm the code from the email first.',
+			'cloudPassword.invalidMessage' => 'Could not check the password. Please try again.',
 			'screenMyProfile.myprofile' => 'My profile',
 			'screenMyProfile.firstName' => 'First name',
 			'screenMyProfile.lastName' => 'Last name',
@@ -6908,12 +6924,12 @@ extension on Translations {
 			'screenAuthBlocked.text' => 'You can\'t sign in to this account right now: it has been blocked for violating the Iperon rules.',
 			'screenAuthBlocked.reason' => ({required Object reason}) => 'Reason: ${reason}',
 			'screenAuthBlocked.until' => ({required Object date}) => 'The block lasts until ${date}.',
+			_ => null,
+		} ?? switch (path) {
 			'screenAuthBlocked.forever' => 'The block is permanent.',
 			'screenAuthBlocked.support' => 'If you think this is a mistake, contact support:',
 			'screenAuthBlocked.back' => 'Back',
 			'screenAuthBlocked.reasons.spam' => 'spam',
-			_ => null,
-		} ?? switch (path) {
 			'screenAuthBlocked.reasons.fraud' => 'fraud',
 			'screenAuthBlocked.reasons.abuse' => 'abuse and threats',
 			'screenAuthBlocked.reasons.illegal' => 'illegal content',

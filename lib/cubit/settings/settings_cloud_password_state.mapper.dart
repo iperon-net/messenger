@@ -82,9 +82,9 @@ class SettingsCloudPasswordStateMapper
     opt: true,
     def: "",
   );
-  static List<int> _$heldPwHash(SettingsCloudPasswordState v) => v.heldPwHash;
-  static const Field<SettingsCloudPasswordState, List<int>> _f$heldPwHash =
-      Field('heldPwHash', _$heldPwHash, opt: true, def: const []);
+  static List<int> _$heldToken(SettingsCloudPasswordState v) => v.heldToken;
+  static const Field<SettingsCloudPasswordState, List<int>> _f$heldToken =
+      Field('heldToken', _$heldToken, opt: true, def: const []);
   static String _$pendingEmail(SettingsCloudPasswordState v) => v.pendingEmail;
   static const Field<SettingsCloudPasswordState, String> _f$pendingEmail =
       Field('pendingEmail', _$pendingEmail, opt: true, def: "");
@@ -99,7 +99,7 @@ class SettingsCloudPasswordStateMapper
     #maskedEmail: _f$maskedEmail,
     #isEmailVerified: _f$isEmailVerified,
     #error: _f$error,
-    #heldPwHash: _f$heldPwHash,
+    #heldToken: _f$heldToken,
     #pendingEmail: _f$pendingEmail,
   };
 
@@ -113,7 +113,7 @@ class SettingsCloudPasswordStateMapper
       maskedEmail: data.dec(_f$maskedEmail),
       isEmailVerified: data.dec(_f$isEmailVerified),
       error: data.dec(_f$error),
-      heldPwHash: data.dec(_f$heldPwHash),
+      heldToken: data.dec(_f$heldToken),
       pendingEmail: data.dec(_f$pendingEmail),
     );
   }
@@ -192,7 +192,7 @@ abstract class SettingsCloudPasswordStateCopyWith<
   $Out
 >
     implements ClassCopyWith<$R, $In, $Out> {
-  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get heldPwHash;
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get heldToken;
   $R call({
     SettingsCloudPasswordStep? step,
     Status? networkStatus,
@@ -202,7 +202,7 @@ abstract class SettingsCloudPasswordStateCopyWith<
     String? maskedEmail,
     bool? isEmailVerified,
     String? error,
-    List<int>? heldPwHash,
+    List<int>? heldToken,
     String? pendingEmail,
   });
   SettingsCloudPasswordStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
@@ -224,11 +224,11 @@ class _SettingsCloudPasswordStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<SettingsCloudPasswordState> $mapper =
       SettingsCloudPasswordStateMapper.ensureInitialized();
   @override
-  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get heldPwHash =>
+  ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get heldToken =>
       ListCopyWith(
-        $value.heldPwHash,
+        $value.heldToken,
         (v, t) => ObjectCopyWith(v, $identity, t),
-        (v) => call(heldPwHash: v),
+        (v) => call(heldToken: v),
       );
   @override
   $R call({
@@ -240,7 +240,7 @@ class _SettingsCloudPasswordStateCopyWithImpl<$R, $Out>
     String? maskedEmail,
     bool? isEmailVerified,
     String? error,
-    List<int>? heldPwHash,
+    List<int>? heldToken,
     String? pendingEmail,
   }) => $apply(
     FieldCopyWithData({
@@ -252,7 +252,7 @@ class _SettingsCloudPasswordStateCopyWithImpl<$R, $Out>
       if (maskedEmail != null) #maskedEmail: maskedEmail,
       if (isEmailVerified != null) #isEmailVerified: isEmailVerified,
       if (error != null) #error: error,
-      if (heldPwHash != null) #heldPwHash: heldPwHash,
+      if (heldToken != null) #heldToken: heldToken,
       if (pendingEmail != null) #pendingEmail: pendingEmail,
     }),
   );
@@ -267,7 +267,7 @@ class _SettingsCloudPasswordStateCopyWithImpl<$R, $Out>
         maskedEmail: data.get(#maskedEmail, or: $value.maskedEmail),
         isEmailVerified: data.get(#isEmailVerified, or: $value.isEmailVerified),
         error: data.get(#error, or: $value.error),
-        heldPwHash: data.get(#heldPwHash, or: $value.heldPwHash),
+        heldToken: data.get(#heldToken, or: $value.heldToken),
         pendingEmail: data.get(#pendingEmail, or: $value.pendingEmail),
       );
 
