@@ -11,7 +11,6 @@ import 'package:material_ui/material_ui.dart';
 import '../../split_layout.dart';
 import '../../chats/edit_media.dart';
 import '../../chats/media_files.dart';
-import '../../chats/message_formatting.dart';
 import '../../components/chats/desktop_emoji_button.dart';
 import '../../components/chats/emoji_panel.dart';
 import '../../chats/reactions.dart';
@@ -33,6 +32,7 @@ import 'chat_no_forwards.dart';
 import 'chat_info_common.dart';
 import 'comments_limit.dart';
 import 'chat_drop_target.dart';
+import 'compose_controller.dart';
 import 'compose_desktop_keys.dart';
 import 'compose_format_menu.dart';
 import 'forward_picker.dart';
@@ -90,7 +90,7 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
   @override
   String get unreadChatID => context.read<ChatCubit>().chatID;
 
-  final _input = TextEditingController();
+  final _input = ComposeController();
   late final _mentions = ComposeMentions(_input);
   late final _formatMenu = ComposeFormatMenu(
     _input,
@@ -198,25 +198,23 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
     if (text == _typedText) return;
     _typedText = text;
     // Подставленный черновик — не набор.
-    if (text.isNotEmpty && text == _shownDraft) return;
+    if (text.isNotEmpty && _input.markdown == _shownDraft) return;
     _cubit.composeChanged(text);
   }
 
   /// Подставить черновик [draft], если поле не трогали и не правим сообщение.
   void _applyDraft(String draft) {
-    if (_cubit.state.editing != null || _input.text != _shownDraft || draft == _shownDraft) return;
-    _shownDraft = draft;
-    _input.value = TextEditingValue(
-      text: draft,
-      selection: TextSelection.collapsed(offset: draft.length),
-    );
+    if (_cubit.state.editing != null || _input.markdown != _shownDraft || draft == _shownDraft) return;
+    _input.markdown = draft;
+    // Разобранный и записанный обратно (ярлыки могли лечь иначе).
+    _shownDraft = _input.markdown;
   }
 
   @override
   void dispose() {
     _dustSubscription?.cancel();
     // Поле не трогали — черновик прежний (или пришёл с другого устройства).
-    if (_input.text != _shownDraft) _cubit.saveDraft(_input.text);
+    if (_input.markdown != _shownDraft) _cubit.saveDraft(_input.markdown);
     _formatMenu.dispose();
     _recorder.dispose();
     VoicePlayer.instance.stop();
@@ -473,7 +471,7 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
   GlobalKey _keyFor(String messageID) => _messageKeys.putIfAbsent(messageID, GlobalKey.new);
 
   void _send({bool silent = false, DateTime? scheduleDate}) {
-    final text = _input.text;
+    final text = _input.markdown;
     final editing = _cubit.state.editing;
     // Пересылка уходит и без текста, подпись вложений при правке — пустой.
     if (text.trim().isEmpty && _cubit.state.forwarding.isEmpty && !editCaptionMayBeEmpty(_cubit.state)) return;
@@ -621,7 +619,7 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
               // Только при смене редактируемого (слушатель срабатывает и на поиск).
               if (editing != null && editing.id != _editingID) {
                 _editingID = editing.id;
-                _input.text = toMarkdownShortcuts(editing.text, editing.entities);
+                _input.setFormatted(editing.text, editing.entities);
                 _focus.requestFocus();
               }
             },
@@ -1249,7 +1247,7 @@ class _Header extends StatelessWidget {
 EdgeInsets get _bottomGap => AppPlatform.isDesktop ? const EdgeInsets.only(bottom: 5) : EdgeInsets.zero;
 
 class _ComposeBar extends StatelessWidget {
-  final TextEditingController input;
+  final ComposeController input;
   final ComposeFormatMenu formatMenu;
   final VoiceRecorder recorder;
   final FocusNode focus;

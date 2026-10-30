@@ -34,6 +34,7 @@ import '../../platform.dart';
 import 'chat_create_common.dart';
 import 'chat_info_common.dart';
 import 'comments_limit.dart';
+import 'compose_controller.dart';
 import 'media_caption_cupertino.dart';
 import 'media_caption_material.dart';
 import 'poll_create_cupertino.dart';
@@ -948,7 +949,10 @@ Future<({String caption, List<models.MessageMedia> media, List<AttachmentDraft> 
   VoidCallback Function()? onCompressing,
 }) async {
   if (items.isEmpty || !context.mounted) return null;
-  final initial = input?.text ?? '';
+  final initial = switch (input) {
+    final ComposeController input => input.markdown,
+    _ => input?.text ?? '',
+  };
   final sheet = Platform.isIOS
       ? await showMediaCaptionCupertino(context, items, initialCaption: initial)
       : await showMediaCaptionMaterial(context, items, initialCaption: initial);

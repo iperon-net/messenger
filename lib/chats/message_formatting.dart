@@ -199,7 +199,7 @@ String toMarkdownShortcuts(String text, List<models.MessageEntity> entities) {
   final opens = <int, List<String>>{};
   final closes = <int, List<String>>{};
   final quoteLines = <int, String>{};
-  for (final e in entities) {
+  for (final e in normalizeComposeEntities(text, entities)) {
     if (e.type == models.MessageEntityType.blockquote) {
       final marker = e.expandable ? '>> ' : '> ';
       quoteLines[e.offset] = marker;
@@ -230,206 +230,303 @@ String toMarkdownShortcuts(String text, List<models.MessageEntity> entities) {
 /// Пункты меню форматирования выделенного текста в поле ввода.
 enum ComposeFormat { bold, italic, underline, strike, spoiler, code, pre, link, mention, quote, quoteExpandable, plain }
 
-/// Поле ввода с выделением [start]..[end].
-typedef ComposeEdit = ({String text, int start, int end});
+/// Поле ввода: плоский текст, его разметка и выделение [start]..[end].
+typedef ComposeEdit = ({String text, List<models.MessageEntity> entities, int start, int end});
 
-const _formatMarkers = {
-  ComposeFormat.bold: '**',
-  ComposeFormat.italic: '__',
-  ComposeFormat.underline: '++',
-  ComposeFormat.strike: '~~',
-  ComposeFormat.spoiler: '||',
-  ComposeFormat.code: '`',
+/// Разметка, которую поле ввода хранит и показывает (как в Telegram — сразу
+/// жирным, курсивом и т. д., без ярлыков); ссылки, @упоминания и хэштеги в
+/// тексте и так видны — они авто ([detectAutoEntities]).
+const composeEntityTypes = {
+  models.MessageEntityType.bold,
+  models.MessageEntityType.italic,
+  models.MessageEntityType.underline,
+  models.MessageEntityType.strike,
+  models.MessageEntityType.spoiler,
+  models.MessageEntityType.code,
+  models.MessageEntityType.pre,
+  models.MessageEntityType.textUrl,
+  models.MessageEntityType.mentionName,
+  models.MessageEntityType.blockquote,
 };
 
-/// Применить [format] к выделению: обернуть markdown-ярлыками, а если формат
-/// уже стоит ([activeComposeFormats]) — снять только его; для
-/// [ComposeFormat.link] — `[текст](url)`, для [ComposeFormat.mention] —
-/// `[текст](mention:userID)` ([userID]), для цитат — `> ` / `>> ` в начале
-/// строк, [ComposeFormat.plain] — убрать всю разметку. Поле хранит ярлыки, в
-/// entities они превращаются при отправке ([parseMarkdownShortcuts]).
-ComposeEdit applyComposeFormat(ComposeEdit value, ComposeFormat format, {String url = '', String userID = ''}) {
-  final (:text, :start, :end) = value;
-  if (start < 0 || end <= start || end > text.length) return value;
-  final selected = text.substring(start, end);
-  switch (format) {
-    case ComposeFormat.link || ComposeFormat.mention:
-      final target = format == ComposeFormat.link ? _linkTarget : _mentionTarget;
-      final unwrapped = _unwrapLink(value, target);
-      if (unwrapped != null) return unwrapped;
-      final address = format == ComposeFormat.link ? url : (userID.isEmpty ? '' : 'mention:$userID');
-      if (address.isEmpty) return value;
-      final link = '[$selected]($address)';
-      return (text: text.replaceRange(start, end, link), start: start + 1, end: start + 1 + selected.length);
-    case ComposeFormat.quote || ComposeFormat.quoteExpandable:
-      return _toggleQuote(value, expandable: format == ComposeFormat.quoteExpandable);
-    case ComposeFormat.plain:
-      var edit = value;
-      // Сначала снаружи (выделили текст без ярлыков), потом внутри.
-      for (final marker in [..._formatMarkers.values, '```\n']) {
-        edit = _unwrapAround(edit, marker, close: marker == '```\n' ? '```' : null) ?? edit;
-      }
-      edit = _unwrapLink(edit, _linkTarget) ?? _unwrapLink(edit, _mentionTarget) ?? edit;
-      final plain = parseMarkdownShortcuts(edit.text.substring(edit.start, edit.end)).$1;
-      return (text: edit.text.replaceRange(edit.start, edit.end, plain), start: edit.start, end: edit.start + plain.length);
-    case ComposeFormat.pre:
-      // Перевод строки после ``` — пустой язык.
-      final unwrapped = _unwrapAround(value, '```\n', close: '```') ?? _unwrapPreInside(value);
-      if (unwrapped != null) return unwrapped;
-      return _wrap(value, '```\n', '```');
-    case ComposeFormat.code when selected.contains('\n'):
-      // Многострочный моноширинный — блок кода.
-      return applyComposeFormat(value, ComposeFormat.pre);
-    default:
-      final marker = _formatMarkers[format]!;
-      return _unwrapNested(value, marker) ?? _unwrapInside(value, marker) ?? _wrap(value, marker, marker);
+const _inlineFormats = {
+  ComposeFormat.bold: models.MessageEntityType.bold,
+  ComposeFormat.italic: models.MessageEntityType.italic,
+  ComposeFormat.underline: models.MessageEntityType.underline,
+  ComposeFormat.strike: models.MessageEntityType.strike,
+  ComposeFormat.spoiler: models.MessageEntityType.spoiler,
+};
+
+/// Ссылка и упоминание по имени.
+const _links = {models.MessageEntityType.textUrl, models.MessageEntityType.mentionName};
+
+/// Правка текста поля [oldText] → [newText] (каретка — [caret], `-1` —
+/// неизвестна): сдвигает [entities]. Формат — только на том, что выделяли:
+/// напечатанное внутри него — в нём же, а у краёв (сразу до или после) —
+/// уже без него; заменённое выделение берёт формат его начала; удалённое
+/// целиком — пропадает.
+List<models.MessageEntity> shiftComposeEntities(String oldText, String newText, List<models.MessageEntity> entities, {int caret = -1}) {
+  if (entities.isEmpty || oldText == newText) return entities;
+  final (a, b, n) = _textDiff(oldText, newText, caret);
+  final result = <models.MessageEntity>[];
+  for (final e in entities) {
+    final o = e.offset, end = e.end;
+    final start = o < a || (o == a && b > a) ? o : (o >= b ? o - (b - a) + n : a + n);
+    final int stop;
+    if (end > b || (end == b && b > a)) {
+      stop = end - (b - a) + n;
+    } else if (end < a) {
+      stop = end;
+    } else if (end == a) {
+      stop = a;
+    } else {
+      stop = a + n;
+    }
+    if (stop > start) result.add(e.copyWith(offset: start, length: stop - start));
   }
+  return result;
+}
+
+/// Что поменялось: в старом тексте заменён кусок [a, b) на [n] новых символов.
+/// Каретка уточняет место при повторах (`аа` → `ааа`).
+(int, int, int) _textDiff(String oldText, String newText, int caret) {
+  final delta = newText.length - oldText.length;
+  var p = 0;
+  final shortest = oldText.length < newText.length ? oldText.length : newText.length;
+  while (p < shortest && oldText.codeUnitAt(p) == newText.codeUnitAt(p)) {
+    p++;
+  }
+  if (caret >= 0) {
+    // Вставка, кончающаяся у каретки, / удаление от каретки.
+    final a = delta > 0 ? caret - delta : caret;
+    if (delta != 0 && a >= 0 && a <= p) {
+      final removed = delta < 0 ? -delta : 0;
+      if (a + removed <= oldText.length && newText.substring(a + (delta > 0 ? delta : 0)) == oldText.substring(a + removed)) {
+        return (a, a + removed, delta > 0 ? delta : 0);
+      }
+    }
+  }
+  var s = 0;
+  while (s < shortest - p && oldText.codeUnitAt(oldText.length - 1 - s) == newText.codeUnitAt(newText.length - 1 - s)) {
+    s++;
+  }
+  return (p, oldText.length - s, newText.length - s - p);
 }
 
 /// Какие форматы уже стоят на выделении — галочки в меню; повторный выбор
 /// снимает только этот формат.
 Set<ComposeFormat> activeComposeFormats(ComposeEdit value) {
-  final (:text, :start, :end) = value;
+  final (:text, :entities, :start, :end) = value;
   if (start < 0 || end <= start || end > text.length) return const {};
-  final result = <ComposeFormat>{};
-  final pre = _unwrapAround(value, '```\n', close: '```') != null || _unwrapPreInside(value) != null;
-  if (pre) result.add(ComposeFormat.pre);
-  for (final MapEntry(key: format, value: marker) in _formatMarkers.entries) {
-    if (pre && format == ComposeFormat.code) continue;
-    if (_unwrapNested(value, marker) != null || _unwrapInside(value, marker) != null) result.add(format);
-  }
-  if (_unwrapLink(value, _linkTarget) != null) result.add(ComposeFormat.link);
-  if (_unwrapLink(value, _mentionTarget) != null) result.add(ComposeFormat.mention);
-  final lines = _quoteBlock(text, start, end).lines;
-  for (final kind in [ComposeFormat.quote, ComposeFormat.quoteExpandable]) {
-    if (lines.every((l) => quoteKind(l) == kind)) result.add(kind);
-  }
-  return result;
+  final (from, to) = _lines(text, start, end);
+  return {
+    for (final MapEntry(key: format, value: type) in _inlineFormats.entries)
+      if (_covered(entities, start, end, (e) => e.type == type)) format,
+    if (_covered(entities, start, end, (e) => e.type == models.MessageEntityType.code)) ComposeFormat.code,
+    if (_covered(entities, start, end, (e) => e.type == models.MessageEntityType.pre)) ComposeFormat.pre,
+    if (entities.any((e) => e.type == models.MessageEntityType.textUrl && e.offset < end && start < e.end)) ComposeFormat.link,
+    if (entities.any((e) => e.type == models.MessageEntityType.mentionName && e.offset < end && start < e.end)) ComposeFormat.mention,
+    if (_covered(entities, from, to, (e) => e.type == models.MessageEntityType.blockquote && !e.expandable)) ComposeFormat.quote,
+    if (_covered(entities, from, to, (e) => e.type == models.MessageEntityType.blockquote && e.expandable)) ComposeFormat.quoteExpandable,
+  };
 }
 
-/// Адрес в ярлыке ссылки `[текст](https://…)` / упоминания `[текст](mention:id)`.
-final _linkTarget = RegExp(r'^\]\((https?://[^)\s]+)\)');
-final _mentionTarget = RegExp(r'^\]\((mention:[\w-]+)\)');
+/// Применить [format] к выделению: поставить, а если он уже стоит
+/// ([activeComposeFormats]) — снять только его; для [ComposeFormat.link] —
+/// ссылка на [url], для [ComposeFormat.mention] — упоминание [userID],
+/// цитаты — на целые строки, [ComposeFormat.plain] — убрать всю разметку.
+/// Текст не меняется — только разметка (и выделение у цитат).
+ComposeEdit applyComposeFormat(ComposeEdit value, ComposeFormat format, {String url = '', String userID = ''}) {
+  final (:text, :entities, :start, :end) = value;
+  if (start < 0 || end <= start || end > text.length) return value;
+  final active = activeComposeFormats(value).contains(format);
+  ComposeEdit result(List<models.MessageEntity> entities, [int? from, int? to]) =>
+      (text: text, entities: _sorted(entities), start: from ?? start, end: to ?? end);
+  final selected = text.substring(start, end);
+  switch (format) {
+    case ComposeFormat.link || ComposeFormat.mention:
+      final type = format == ComposeFormat.link ? models.MessageEntityType.textUrl : models.MessageEntityType.mentionName;
+      bool isLink(models.MessageEntity e) => _links.contains(e.type) && e.offset < end && start < e.end;
+      if (active) {
+        return result([
+          for (final e in entities)
+            if (!(e.type == type && isLink(e))) e,
+        ]);
+      }
+      final address = format == ComposeFormat.link ? url : userID;
+      // В ярлыке `[текст](адрес)` текст без `]` и переводов строки.
+      if (address.isEmpty || selected.contains(RegExp(r'[\]\n]'))) return value;
+      return result([
+        for (final e in entities)
+          if (!isLink(e)) e,
+        models.MessageEntity(
+          type: type,
+          offset: start,
+          length: end - start,
+          url: type == models.MessageEntityType.textUrl ? address : '',
+          userID: type == models.MessageEntityType.mentionName ? address : '',
+        ),
+      ]);
+    case ComposeFormat.quote || ComposeFormat.quoteExpandable:
+      final (from, to) = _lines(text, start, end);
+      bool isQuote(models.MessageEntity e) => e.type == models.MessageEntityType.blockquote;
+      final rest = _remove(entities, from, to, isQuote);
+      if (active || to <= from) return result(rest, from, to);
+      return result(
+        [
+          ...rest,
+          models.MessageEntity(
+            type: models.MessageEntityType.blockquote,
+            offset: from,
+            length: to - from,
+            expandable: format == ComposeFormat.quoteExpandable,
+          ),
+        ],
+        from,
+        to,
+      );
+    case ComposeFormat.plain:
+      return result(_remove(entities, start, end, (e) => true));
+    case ComposeFormat.code when selected.contains('\n'):
+      // Многострочный моноширинный — блок кода.
+      return applyComposeFormat(value, ComposeFormat.pre);
+    case ComposeFormat.code || ComposeFormat.pre:
+      final type = format == ComposeFormat.code ? models.MessageEntityType.code : models.MessageEntityType.pre;
+      if (active) return result(_remove(entities, start, end, (e) => e.type == type));
+      // Код — как есть: другой разметки внутри нет.
+      final rest = _remove(entities, start, end, (e) => e.type != models.MessageEntityType.blockquote);
+      return result([...rest, models.MessageEntity(type: type, offset: start, length: end - start)]);
+    default:
+      final type = _inlineFormats[format]!;
+      if (active) return result(_remove(entities, start, end, (e) => e.type == type));
+      var next = _merge([...entities, models.MessageEntity(type: type, offset: start, length: end - start)], type);
+      // Внутри кода разметки нет: код, захваченный не целиком, — без формата.
+      for (final code in entities.where(_isCode)) {
+        if (code.offset < end && start < code.end && (code.offset < start || code.end > end)) {
+          next = _remove(next, code.offset, code.end, (e) => e.type == type);
+        }
+      }
+      return result(next);
+  }
+}
 
-/// Снять ссылку / упоминание: выделен текст внутри `[текст](адрес)` или весь
-/// ярлык целиком → остаётся `текст`.
-ComposeEdit? _unwrapLink(ComposeEdit value, RegExp target) {
-  final (:text, :start, :end) = value;
-  // Выделен текст внутри: `[` перед ним, `](адрес)` после.
-  if (start > 0 && text[start - 1] == '[') {
-    final after = target.firstMatch(text.substring(end));
-    if (after != null) {
-      final inner = text.substring(start, end);
-      return (text: text.replaceRange(start - 1, end + after.end, inner), start: start - 1, end: start - 1 + inner.length);
+bool _isCode(models.MessageEntity e) => e.type == models.MessageEntityType.code || e.type == models.MessageEntityType.pre;
+
+/// Целые строки, которых касается выделение [start]..[end]: от начала первой
+/// до конца последней (без перевода строки).
+(int, int) _lines(String text, int start, int end) {
+  final from = start == 0 ? 0 : text.lastIndexOf('\n', start - 1) + 1;
+  final newline = text.indexOf('\n', end > start ? end - 1 : end);
+  return (from, newline < 0 ? text.length : (newline < from ? from : newline));
+}
+
+/// [start]..[end] целиком под entities, подходящими под [test].
+bool _covered(List<models.MessageEntity> entities, int start, int end, bool Function(models.MessageEntity) test) {
+  final ranges = [
+    for (final e in entities)
+      if (test(e) && e.offset < end && start < e.end) e,
+  ]..sort((a, b) => a.offset.compareTo(b.offset));
+  var at = start;
+  for (final e in ranges) {
+    if (e.offset > at) return false;
+    if (e.end > at) at = e.end;
+    if (at >= end) return true;
+  }
+  return at >= end && ranges.isNotEmpty;
+}
+
+/// Убрать [start]..[end] из entities, подходящих под [test] (их края
+/// остаются отдельными кусками).
+List<models.MessageEntity> _remove(List<models.MessageEntity> entities, int start, int end, bool Function(models.MessageEntity) test) => [
+  for (final e in entities)
+    if (!test(e) || e.end <= start || e.offset >= end)
+      e
+    else ...[
+      if (e.offset < start) e.copyWith(length: start - e.offset),
+      if (e.end > end) e.copyWith(offset: end, length: e.end - end),
+    ],
+];
+
+/// Пересекающиеся и соседние entities [type] — одной.
+List<models.MessageEntity> _merge(List<models.MessageEntity> entities, models.MessageEntityType type) {
+  final same = [
+    for (final e in entities)
+      if (e.type == type) e,
+  ]..sort((a, b) => a.offset.compareTo(b.offset));
+  final merged = <models.MessageEntity>[];
+  for (final e in same) {
+    final last = merged.lastOrNull;
+    if (last != null && e.offset <= last.end) {
+      if (e.end > last.end) merged[merged.length - 1] = last.copyWith(length: e.end - last.offset);
+    } else {
+      merged.add(e);
     }
   }
-  // Выделен весь ярлык.
-  final selected = text.substring(start, end);
-  final whole = RegExp(r'^\[([^\]\n]+)').firstMatch(selected);
-  if (whole != null) {
-    final rest = selected.substring(whole.end);
-    final match = target.firstMatch(rest);
-    if (match != null && match.end == rest.length) {
-      final inner = whole.group(1)!;
-      return (text: text.replaceRange(start, end, inner), start: start, end: start + inner.length);
+  return [
+    for (final e in entities)
+      if (e.type != type) e,
+    ...merged,
+  ];
+}
+
+/// Внешние раньше вложенных: по началу, длинные первыми, код — внутри всего.
+List<models.MessageEntity> _sorted(List<models.MessageEntity> entities) => [...entities]
+  ..sort((a, b) {
+    if (a.offset != b.offset) return a.offset.compareTo(b.offset);
+    if (a.length != b.length) return b.length.compareTo(a.length);
+    return (_isCode(a) ? 1 : 0) - (_isCode(b) ? 1 : 0);
+  });
+
+/// Разметка поля ввода, которую можно записать ярлыками ([toMarkdownShortcuts])
+/// и прочитать обратно без потерь: только [composeEntityTypes] в пределах
+/// текста; цитаты — на целые строки; внутри кода другой разметки нет;
+/// пересекающиеся — разрезаны, чтобы вкладывались; ссылки — без `]` и
+/// переводов строки; код с переводом строки — блок кода.
+List<models.MessageEntity> normalizeComposeEntities(String text, List<models.MessageEntity> entities) {
+  var result = <models.MessageEntity>[];
+  for (var e in entities) {
+    if (!composeEntityTypes.contains(e.type)) continue;
+    if (e.type == models.MessageEntityType.mentionName && e.userID.isEmpty) continue;
+    final start = e.offset.clamp(0, text.length), end = e.end.clamp(0, text.length);
+    e = e.copyWith(offset: start, length: end - start);
+    if (e.type == models.MessageEntityType.blockquote) {
+      final (from, to) = _lines(text, start, end);
+      e = e.copyWith(offset: from, length: to - from);
+      if (result.any((q) => q.type == models.MessageEntityType.blockquote && q.offset < e.end && e.offset < q.end)) continue;
     }
+    if (_links.contains(e.type) && text.substring(e.offset, e.end).contains(RegExp(r'[\]\n]'))) continue;
+    if (e.type == models.MessageEntityType.code && text.substring(e.offset, e.end).contains('\n')) {
+      e = e.copyWith(type: models.MessageEntityType.pre);
+    }
+    if (e.length > 0) result.add(e);
   }
-  return null;
-}
-
-/// Выделен весь блок кода вместе с ярлыками: ```` ```\nкод``` ```` → `код`.
-ComposeEdit? _unwrapPreInside(ComposeEdit value) {
-  final (:text, :start, :end) = value;
-  final selected = text.substring(start, end);
-  if (selected.length <= 7 || !selected.startsWith('```\n') || !selected.endsWith('```')) return null;
-  final inner = selected.substring(4, selected.length - 3);
-  return (text: text.replaceRange(start, end, inner), start: start, end: start + inner.length);
-}
-
-ComposeEdit _wrap(ComposeEdit value, String open, String close) {
-  final (:text, :start, :end) = value;
-  return (
-    text: '${text.substring(0, start)}$open${text.substring(start, end)}$close${text.substring(end)}',
-    start: start + open.length,
-    end: end + open.length,
-  );
-}
-
-/// `**[выделение]**` → `[выделение]`.
-ComposeEdit? _unwrapAround(ComposeEdit value, String open, {String? close}) {
-  close ??= open;
-  final (:text, :start, :end) = value;
-  if (start < open.length || end + close.length > text.length) return null;
-  if (text.substring(start - open.length, start) != open || text.substring(end, end + close.length) != close) return null;
-  return (
-    text: text.replaceRange(end, end + close.length, '').replaceRange(start - open.length, start, ''),
-    start: start - open.length,
-    end: end - open.length,
-  );
-}
-
-/// Как [_unwrapAround], но [marker] может стоять не вплотную, а за другими
-/// ярлыками на той же глубине: `**__[выделение]__**` → снять `**` →
-/// `__[выделение]__`.
-ComposeEdit? _unwrapNested(ComposeEdit value, String marker) {
-  final (:text, :start, :end) = value;
-  final markers = _formatMarkers.values.toList();
-  // Ярлыки вплотную слева (изнутри наружу) и справа.
-  final left = <(int, String)>[];
-  for (var i = start; ;) {
-    final m = markers.where((m) => i >= m.length && text.startsWith(m, i - m.length)).firstOrNull;
-    if (m == null) break;
-    i -= m.length;
-    left.add((i, m));
-  }
-  final right = <(int, String)>[];
-  for (var i = end; ;) {
-    final m = markers.where((m) => text.startsWith(m, i)).firstOrNull;
-    if (m == null) break;
-    right.add((i, m));
-    i += m.length;
-  }
-  for (var k = 0; k < left.length && k < right.length; k++) {
-    if (left[k].$2 != marker || right[k].$2 != marker) continue;
-    final (l, _) = left[k];
-    final (r, _) = right[k];
-    return (
-      text: text.replaceRange(r, r + marker.length, '').replaceRange(l, l + marker.length, ''),
-      start: start - marker.length,
-      end: end - marker.length,
+  for (final code in result.where(_isCode).toList()) {
+    result = _remove(
+      result,
+      code.offset,
+      code.end,
+      (e) => e != code && e.type != models.MessageEntityType.blockquote && !(e.offset <= code.offset && e.end >= code.end && !_isCode(e)),
     );
   }
-  return null;
-}
-
-/// `[**выделение**]` → `[выделение]`.
-ComposeEdit? _unwrapInside(ComposeEdit value, String marker) {
-  final (:text, :start, :end) = value;
-  final selected = text.substring(start, end);
-  if (selected.length <= marker.length * 2 || !selected.startsWith(marker) || !selected.endsWith(marker)) return null;
-  final inner = selected.substring(marker.length, selected.length - marker.length);
-  return (text: text.replaceRange(start, end, inner), start: start, end: start + inner.length);
-}
-
-/// Целые строки, которых касается выделение: границы и сами строки.
-({int from, int to, List<String> lines}) _quoteBlock(String text, int start, int end) {
-  final from = start == 0 ? 0 : text.lastIndexOf('\n', start - 1) + 1;
-  final newline = text.indexOf('\n', end);
-  final to = newline < 0 ? text.length : newline;
-  return (from: from, to: to, lines: text.substring(from, to).split('\n'));
-}
-
-/// Цитата — на целые строки: все уже этого вида — снять, иначе поставить
-/// `> ` ([expandable] — `>> `) вместо прежнего маркера.
-ComposeEdit _toggleQuote(ComposeEdit value, {required bool expandable}) {
-  final (:text, :start, :end) = value;
-  final (:from, :to, :lines) = _quoteBlock(text, start, end);
-  final kind = expandable ? ComposeFormat.quoteExpandable : ComposeFormat.quote;
-  final quoted = lines.every((l) => quoteKind(l) == kind);
-  final block = [
-    for (final l in lines) quoted ? l.substring(quoteMarkerLength(l)) : '${expandable ? '>> ' : '> '}${l.substring(quoteMarkerLength(l))}',
-  ].join('\n');
-  return (text: text.replaceRange(from, to, block), start: from, end: from + block.length);
+  // Пересечения (`**a __b** c__`) — режем позднего по краю раннего.
+  for (var changed = true; changed;) {
+    changed = false;
+    result = _sorted(result);
+    for (final x in result) {
+      if (x.type == models.MessageEntityType.blockquote) continue;
+      final y = result
+          .where((y) => y.type != models.MessageEntityType.blockquote && x.offset < y.offset && y.offset < x.end && x.end < y.end)
+          .firstOrNull;
+      if (y == null) continue;
+      result = [
+        for (final e in result)
+          if (identical(e, y)) ...[y.copyWith(length: x.end - y.offset), y.copyWith(offset: x.end, length: y.end - x.end)] else e,
+      ];
+      changed = true;
+      break;
+    }
+  }
+  return _sorted(result);
 }
 
 /// Упоминания по имени (без @username), выбранные в подсказке «@»: каждое имя

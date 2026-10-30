@@ -13,21 +13,21 @@ import '../../chats/media_files.dart';
 import '../../chats/message_formatting.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import 'compose_controller.dart';
 
 /// Меню форматирования по выделению в поле ввода (как в Telegram): к обычным
 /// «Вырезать / Скопировать / Вставить» добавляется «Форматирование», оно открывает
 /// второе меню — вертикальный список со значками ([_FormatList]): жирный,
 /// курсив, подчёркнутый, зачёркнутый, спойлер, моноширинный, блок кода,
 /// ссылка, упомянуть (в группе), цитата, сворачиваемая цитата, обычный; у
-/// уже стоящих — галочка, повторный выбор снимает только этот формат. Поле
-/// хранит markdown-ярлыки ([applyComposeFormat]), в entities они
-/// превращаются при отправке.
+/// уже стоящих — галочка, повторный выбор снимает только этот формат. Формат
+/// виден в поле сразу ([ComposeController]), без ярлыков в тексте.
 ///
 /// Подключение: `contextMenuBuilder: menu.builder` у `CupertinoTextField` /
 /// `TextField` с тем же [input]; горячие клавиши (⌘/Ctrl + B, I, U, K) —
 /// [shortcuts] вокруг поля.
 class ComposeFormatMenu {
-  final TextEditingController input;
+  final ComposeController input;
 
   /// Участники чата для «Упомянуть» (пусто — пункта нет: личный чат, канал).
   final List<models.ChatMember> Function()? members;
@@ -93,7 +93,7 @@ class ComposeFormatMenu {
     if (_formats && selection.isValid && !selection.isCollapsed) {
       return _FormatList(
         anchors: editable.contextMenuAnchors,
-        active: activeComposeFormats((text: input.text, start: selection.start, end: selection.end)),
+        active: input.activeFormats,
         mention: _members.isNotEmpty,
         onSelected: (format) => _apply(context, editable, format),
       );
@@ -161,8 +161,8 @@ class ComposeFormatMenu {
     final selection = input.selection;
     if (!selection.isValid || selection.isCollapsed) return;
     editable?.hideToolbar();
-    final value = (text: input.text, start: selection.start, end: selection.end);
-    final adding = !activeComposeFormats(value).contains(format);
+    final text = input.text;
+    final adding = !input.activeFormats.contains(format);
     var url = '';
     var userID = '';
     if (format == ComposeFormat.link && adding) {
@@ -176,12 +176,9 @@ class ComposeFormatMenu {
       if (userID.isEmpty) return;
     }
     // Пока спрашивали, текст могли поменять — применяем к прежнему выделению.
-    if (input.text != value.text) return;
-    final edit = applyComposeFormat(value, format, url: url, userID: userID);
-    input.value = TextEditingValue(
-      text: edit.text,
-      selection: TextSelection(baseOffset: edit.start, extentOffset: edit.end),
-    );
+    if (input.text != text) return;
+    input.selection = selection;
+    input.applyFormat(format, url: url, userID: userID);
   }
 
   /// «Упомянуть»: выбор участника чата (iOS — лист снизу, Android — шторка).

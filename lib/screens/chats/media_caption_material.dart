@@ -5,6 +5,7 @@ import '../../models.dart' as models;
 import '../../platform.dart';
 import 'chat_common.dart';
 import 'compose_desktop_keys.dart';
+import 'compose_controller.dart';
 import 'compose_format_menu.dart';
 
 /// Превью выбранных вложений с полем подписи (Android): лента миниатюр,
@@ -40,7 +41,7 @@ class _MediaCaptionSheet extends StatefulWidget {
 }
 
 class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
-  late final _caption = TextEditingController(text: widget.initialCaption);
+  late final _caption = ComposeController(markdown: widget.initialCaption);
   late final _formatMenu = ComposeFormatMenu(_caption);
   bool _spoiler = false;
   bool _hd = false;
@@ -48,7 +49,7 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
   bool get _hasMedia => widget.items.any((i) => i.isMedia);
   bool get _hasVideo => widget.items.any((i) => i.kind == models.MessageKind.video);
 
-  void _send() => Navigator.of(context).pop((caption: _caption.text, spoiler: _spoiler && _hasMedia, hd: _hd && _hasVideo));
+  void _send() => Navigator.of(context).pop((caption: _caption.markdown, spoiler: _spoiler && _hasMedia, hd: _hd && _hasVideo));
 
   @override
   void dispose() {
