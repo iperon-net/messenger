@@ -340,45 +340,51 @@ class ChatMessagesView extends StatelessWidget {
                             // Снимок для «пыли» при удалении — пузырь без
                             // подсветки выделения и кружка.
                             child: DustSource(
-                              child: SwipeToReply(
-                                onReply: onReply == null ? null : () => onReply!(m),
-                                background: style.pill,
-                                iconColor: style.pillText,
-                                child: MessageBubble(
-                                  key: ValueKey(m.id),
-                                  message: m,
-                                  style: style,
-                                  tail: !groupedWithNewer,
-                                  showSender: group && !m.outgoing && !groupedWithOlder,
-                                  senderBadge: senderBadges[m.senderUserID] ?? '',
-                                  avatar: group && !m.outgoing
-                                      ? (groupedWithNewer
-                                            ? const SizedBox(width: 34)
-                                            : _SenderAvatar(
-                                                // Без автора (шапка ветки — пост канала) — плейсхолдер по источнику.
-                                                name: m.senderName.isNotEmpty ? m.senderName : (m.forward?.name ?? ''),
-                                                userID: m.senderUserID,
-                                                path: m.senderAvatarPath,
-                                              ))
-                                      : null,
-                                  onLongPress: () => onLongPress(m),
-                                  onMediaTap: onMediaTap == null ? null : (index) => onMediaTap!(m, index),
-                                  highlight: highlight,
-                                  focused: m.id == focusedID,
-                                  mark: m.id == flashID ? flashRange : null,
-                                  onCancelUpload: onCancelUpload == null ? null : () => onCancelUpload!(m),
-                                  onReaction: onReaction == null ? null : (emoji) => onReaction!(m, emoji),
-                                  onReactionLongPress: onReactionLongPress == null ? null : (emoji) => onReactionLongPress!(m, emoji),
-                                  onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(m),
-                                  onReplyTap: onReplyTap == null ? null : () => onReplyTap!(m),
-                                  onForwardTap: onForwardTap == null ? null : () => onForwardTap!(m),
-                                  menuWrapper: menuWrapper == null ? null : (bubble, preview) => menuWrapper!(m, bubble, preview),
-                                  onCommentsTap: onCommentsTap == null ? null : () => onCommentsTap!(m),
-                                  commentsClosed: commentsClosedIDs.contains(m.id),
-                                  onPollVote: onPollVote == null ? null : (options) => onPollVote!(m, options),
-                                  onPollVoters: onPollVoters == null ? null : () => onPollVoters!(m),
-                                  onCallTap: onCallTap == null ? null : () => onCallTap!(m),
-                                  actions: actionsFor?.call(m) ?? const [],
+                              // Двойной тап — и мимо пузыря, по всей строке.
+                              child: MessageDoubleTap(
+                                messageID: m.id,
+                                onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(m),
+                                behavior: HitTestBehavior.translucent,
+                                child: SwipeToReply(
+                                  onReply: onReply == null ? null : () => onReply!(m),
+                                  background: style.pill,
+                                  iconColor: style.pillText,
+                                  child: MessageBubble(
+                                    key: ValueKey(m.id),
+                                    message: m,
+                                    style: style,
+                                    tail: !groupedWithNewer,
+                                    showSender: group && !m.outgoing && !groupedWithOlder,
+                                    senderBadge: senderBadges[m.senderUserID] ?? '',
+                                    avatar: group && !m.outgoing
+                                        ? (groupedWithNewer
+                                              ? const SizedBox(width: 34)
+                                              : _SenderAvatar(
+                                                  // Без автора (шапка ветки — пост канала) — плейсхолдер по источнику.
+                                                  name: m.senderName.isNotEmpty ? m.senderName : (m.forward?.name ?? ''),
+                                                  userID: m.senderUserID,
+                                                  path: m.senderAvatarPath,
+                                                ))
+                                        : null,
+                                    onLongPress: () => onLongPress(m),
+                                    onMediaTap: onMediaTap == null ? null : (index) => onMediaTap!(m, index),
+                                    highlight: highlight,
+                                    focused: m.id == focusedID,
+                                    mark: m.id == flashID ? flashRange : null,
+                                    onCancelUpload: onCancelUpload == null ? null : () => onCancelUpload!(m),
+                                    onReaction: onReaction == null ? null : (emoji) => onReaction!(m, emoji),
+                                    onReactionLongPress: onReactionLongPress == null ? null : (emoji) => onReactionLongPress!(m, emoji),
+                                    onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(m),
+                                    onReplyTap: onReplyTap == null ? null : () => onReplyTap!(m),
+                                    onForwardTap: onForwardTap == null ? null : () => onForwardTap!(m),
+                                    menuWrapper: menuWrapper == null ? null : (bubble, preview) => menuWrapper!(m, bubble, preview),
+                                    onCommentsTap: onCommentsTap == null ? null : () => onCommentsTap!(m),
+                                    commentsClosed: commentsClosedIDs.contains(m.id),
+                                    onPollVote: onPollVote == null ? null : (options) => onPollVote!(m, options),
+                                    onPollVoters: onPollVoters == null ? null : () => onPollVoters!(m),
+                                    onCallTap: onCallTap == null ? null : () => onCallTap!(m),
+                                    actions: actionsFor?.call(m) ?? const [],
+                                  ),
                                 ),
                               ),
                             ),

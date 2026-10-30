@@ -11,18 +11,24 @@ import 'package:flutter/widgets.dart';
 /// не участвует — одиночные тапы не ждут 300 мс), а второе забирает арену сразу
 /// на касании, раньше, чем меню начнёт «нажатие» (через 100 мс). Если оно всё
 /// же началось с первого касания — его гасит [MessageMenuPress].
+///
+/// Стоит и на пузыре, и на всей строке ленты ([behavior] translucent — ловит
+/// пустое место рядом с пузырём, как в Telegram): касание, уже распознанное
+/// вложенным, внешний пропускает.
 class MessageDoubleTap extends StatelessWidget {
   final String messageID;
   final VoidCallback? onDoubleTap;
+  final HitTestBehavior? behavior;
   final Widget child;
 
-  const MessageDoubleTap({super.key, required this.messageID, required this.onDoubleTap, required this.child});
+  const MessageDoubleTap({super.key, required this.messageID, required this.onDoubleTap, this.behavior, required this.child});
 
   @override
   Widget build(BuildContext context) {
     final onDoubleTap = this.onDoubleTap;
     if (onDoubleTap == null) return child;
     return RawGestureDetector(
+      behavior: behavior,
       gestures: {
         _DoubleTapRecognizer: GestureRecognizerFactoryWithHandlers<_DoubleTapRecognizer>(
           () => _DoubleTapRecognizer(debugOwner: this),
@@ -64,17 +70,23 @@ class _DoubleTapRecognizer extends OneSequenceGestureRecognizer {
   /// может прийти в копию пузыря в оверлее меню, а не в тот же пузырь.
   static ({String messageID, Duration at, Offset position})? _last;
 
+  /// Второе касание, уже распознанное (вложенным) экземпляром: внешний не
+  /// должен запомнить его как новый первый тап.
+  static int? _consumed;
+
   /// Первые касания, за которыми следим без арены.
   final _observed = <int, PointerRoute>{};
 
   @override
   void addAllowedPointer(PointerDownEvent event) {
+    if (event.pointer == _consumed) return;
     final last = _last;
     if (last != null &&
         last.messageID == messageID &&
         event.timeStamp - last.at <= kDoubleTapTimeout &&
         (event.position - last.position).distance <= kDoubleTapSlop) {
       _last = null;
+      _consumed = event.pointer;
       startTrackingPointer(event.pointer, event.transform);
       resolve(GestureDisposition.accepted);
       if (onDoubleTap case final onDoubleTap?) invokeCallback<void>('onDoubleTap', onDoubleTap);
