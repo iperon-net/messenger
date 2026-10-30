@@ -9,9 +9,10 @@ import 'crypto.dart';
 /// context или параметры KSF — и все установленные пароли перестанут подходить.
 const cloudPasswordContext = 'iperon-cloud-password-v1';
 
-/// KSF — Argon2id, 64 MiB, 3 прохода, 4 потока: замедляет офлайн-перебор, если
-/// утекут и база, и ключ сервера.
-const cloudPasswordKsf = OpaqueKsf.argon2id(iterations: 3, memory: 64 * 1024, parallelism: 4);
+/// KSF — Argon2id, 32 MiB, 2 прохода, 4 потока: замедляет офлайн-перебор, если
+/// утекут и база, и ключ сервера. 64 MiB / 3 прохода считались ~1,4 с на Pixel 9
+/// (pure-Dart Argon2id) — на слабых Android это несколько секунд на каждый ввод.
+const cloudPasswordKsf = OpaqueKsf.argon2id(iterations: 2, memory: 32 * 1024, parallelism: 4);
 
 /// Клиент OPAQUE облачного пароля (новый на каждый обмен).
 OpaqueClient cloudPasswordClient() => OpaqueClient(context: Uint8List.fromList(utf8.encode(cloudPasswordContext)), ksf: cloudPasswordKsf);
