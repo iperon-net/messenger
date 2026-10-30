@@ -5,7 +5,9 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart' show DartArgon2id, DartHmac, DartSha512;
 import 'package:cryptography/helpers.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:pqcrypto/pqcrypto.dart' show PqcKem;
 import 'package:ristretto255/ristretto255.dart';
 
@@ -17,6 +19,7 @@ import '../utils.dart';
 part 'syncer.dart';
 part 'file_encryptor.dart';
 part 'oprf.dart';
+part 'opaque.dart';
 part 'call_keys.dart';
 part 'secret_chat.dart';
 part 'secret_chat_state.dart';
