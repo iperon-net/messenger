@@ -1030,7 +1030,7 @@ class _Translations$screenSettingsData$ru extends Translations$screenSettingsDat
 	@override String get forever => 'Всегда';
 	@override String get maxCache => 'Максимальный размер кэша';
 	@override String get maxCacheNote => 'Когда кэш станет больше, удалятся файлы, которые дольше всего не открывали.';
-	@override String get unlimited => 'Без ограничений';
+	@override String get unlimited => '∞';
 	@override String get chats => 'Чаты';
 	@override String get otherChats => 'Другие чаты';
 	@override String clearChatTitle({required Object title}) => 'Очистить файлы «${title}»?';
@@ -3053,7 +3053,7 @@ extension on TranslationsRu {
 			'screenSettingsData.forever' => 'Всегда',
 			'screenSettingsData.maxCache' => 'Максимальный размер кэша',
 			'screenSettingsData.maxCacheNote' => 'Когда кэш станет больше, удалятся файлы, которые дольше всего не открывали.',
-			'screenSettingsData.unlimited' => 'Без ограничений',
+			'screenSettingsData.unlimited' => '∞',
 			'screenSettingsData.chats' => 'Чаты',
 			'screenSettingsData.otherChats' => 'Другие чаты',
 			'screenSettingsData.clearChatTitle' => ({required Object title}) => 'Очистить файлы «${title}»?',

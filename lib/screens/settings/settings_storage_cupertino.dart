@@ -99,6 +99,9 @@ class SettingsStorageCupertino extends StatelessWidget {
       trailing: CupertinoMenuAnchor(
         builder: (context, controller, child) => CupertinoButton(
           padding: EdgeInsets.zero,
+          // Короткое значение («∞») — по правому краю, как остальные, а не по
+          // центру минимальной ширины кнопки.
+          alignment: Alignment.centerRight,
           onPressed: () => controller.isOpen ? controller.close() : controller.open(),
           child: Text(label(value), style: TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
         ),

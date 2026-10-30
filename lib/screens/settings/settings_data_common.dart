@@ -64,7 +64,7 @@ String keepMediaLabel(Translations t, int days) => switch (days) {
   _ => t.screenSettingsData.forever,
 };
 
-/// Предел кэша: «5 ГБ» / «Без ограничений» (варианты — целые гигабайты).
+/// Предел кэша: «5 ГБ» / «∞» (без ограничений; варианты — целые гигабайты).
 String maxCacheLabel(BuildContext context, int mb) =>
     mb == 0 ? context.t.screenSettingsData.unlimited : '${mb ~/ 1024} ${context.t.screenChat.gb}';
 

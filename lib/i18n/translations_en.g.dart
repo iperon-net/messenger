@@ -2458,8 +2458,8 @@ class Translations$screenSettingsData$en {
 	/// en: 'When the cache grows larger, the files you haven't opened the longest will be removed.'
 	String get maxCacheNote => 'When the cache grows larger, the files you haven\'t opened the longest will be removed.';
 
-	/// en: 'No limit'
-	String get unlimited => 'No limit';
+	/// en: '∞'
+	String get unlimited => '∞';
 
 	/// en: 'Chats'
 	String get chats => 'Chats';
@@ -6129,7 +6129,7 @@ extension on Translations {
 			'screenSettingsData.forever' => 'Forever',
 			'screenSettingsData.maxCache' => 'Maximum cache size',
 			'screenSettingsData.maxCacheNote' => 'When the cache grows larger, the files you haven\'t opened the longest will be removed.',
-			'screenSettingsData.unlimited' => 'No limit',
+			'screenSettingsData.unlimited' => '∞',
 			'screenSettingsData.chats' => 'Chats',
 			'screenSettingsData.otherChats' => 'Other chats',
 			'screenSettingsData.clearChatTitle' => ({required Object title}) => 'Clear files of “${title}”?',

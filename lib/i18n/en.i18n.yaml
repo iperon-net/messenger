@@ -801,7 +801,7 @@
   "forever": "Forever"
   "maxCache": "Maximum cache size"
   "maxCacheNote": "When the cache grows larger, the files you haven't opened the longest will be removed."
-  "unlimited": "No limit"
+  "unlimited": "∞"
   "chats": "Chats"
   "otherChats": "Other chats"
   "clearChatTitle": "Clear files of “{title}”?"
