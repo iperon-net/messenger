@@ -74,7 +74,6 @@ dependencies:
   pin_code_fields: ^10.0.0
   cryptography: ^2.9.0
   cryptography_flutter: ^2.3.4
-  ristretto255: ^1.0.2
   native_workmanager: ^1.4.3
   flutter_callkit_incoming: ^3.1.6
   talker_grpc_logger: ^5.1.19
@@ -144,6 +143,12 @@ dependencies:
   qr_flutter: ^4.1.0
   mobile_scanner: ^7.4.2
   crop_your_image: ^2.0.1
+  # libsodium (собирается из исходников build-хуком пакета): нативная
+  # ristretto255 для OPAQUE облачного пароля и OPRF поиска контактов — чистый
+  # Dart (пакет ristretto255) считал умножение точки ~140 мс. См.
+  # lib/crypto/ristretto.dart.
+  sodium: 4.1.2
+  ffi: ^2.2.0
 
 dev_dependencies:
   flutter_test:

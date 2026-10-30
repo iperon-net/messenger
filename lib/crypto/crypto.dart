@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ffi' show AllocatorAlloc, Pointer, Uint8, Uint8Pointer, UnsignedChar;
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
@@ -7,9 +8,10 @@ import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart' show DartArgon2id, DartHmac, DartSha512;
 import 'package:cryptography/helpers.dart';
+import 'package:ffi/ffi.dart' show calloc;
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:pqcrypto/pqcrypto.dart' show PqcKem;
-import 'package:ristretto255/ristretto255.dart';
+import 'package:sodium/sodium.ffi.dart' show LibSodiumFFI;
 
 import '../di.dart';
 import '../logger.dart';
@@ -20,6 +22,7 @@ part 'syncer.dart';
 part 'file_encryptor.dart';
 part 'oprf.dart';
 part 'opaque.dart';
+part 'ristretto.dart';
 part 'call_keys.dart';
 part 'secret_chat.dart';
 part 'secret_chat_state.dart';

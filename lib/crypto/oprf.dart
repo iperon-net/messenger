@@ -37,12 +37,12 @@ class Oprf {
   /// запрос использовал свежий случайный blind.
   Future<(Uint8List blind, Uint8List blindedElement)> blind(List<int> input, {Uint8List? fixedBlind}) async {
     final p = await _hashToGroup(input);
-    final blindScalar = fixedBlind != null ? (Scalar()..decode(fixedBlind)) : _randomScalar();
+    final blindScalar = fixedBlind ?? _randomScalar();
 
-    final blinded = Element.newElement();
-    blinded.scalarMult(blindScalar, p);
+    final blinded = Ristretto255.mul(blindScalar, p);
+    if (blinded == null) throw Exception('oprf: input maps to identity');
 
-    return (Uint8List.fromList(blindScalar.encode()), Uint8List.fromList(blinded.encode()));
+    return (Uint8List.fromList(blindScalar), blinded);
   }
 
   /// Ослепляет пачку входов в фоновом изоляте — тяжёлые ristretto-умножения и
@@ -85,30 +85,25 @@ class Oprf {
   Future<Uint8List> finalize({required List<int> input, required Uint8List blind, required Uint8List evaluation}) async {
     final evaluated = _firstEvaluatedElement(evaluation);
 
-    final blindScalar = Scalar()..decode(blind);
-    final inverse = Scalar()..invert(blindScalar);
+    final inverse = Ristretto255.invert(blind);
+    final unblinded = inverse == null ? null : Ristretto255.mul(inverse, evaluated);
+    if (unblinded == null) throw Exception('oprf: cannot unblind');
 
-    final unblinded = Element.newElement();
-    unblinded.scalarMult(inverse, evaluated);
-
-    return _finalizeHash(input, unblinded.encode());
+    return _finalizeHash(input, unblinded);
   }
 
   /// Отображает вход в элемент группы ristretto255 через
   /// expand_message_xmd(SHA-512, ..., 64) + FromUniformBytes.
-  Future<Element> _hashToGroup(List<int> input) async {
+  Future<Uint8List> _hashToGroup(List<int> input) async {
     final uniform = await _expandMessageXmd(input, _hashToGroupDst, 64);
 
-    final element = Element.newElement();
-    element.fromUniformBytes(Uint8List.fromList(uniform));
-
-    return element;
+    return Ristretto255.fromUniform(uniform);
   }
 
   /// Разбирает сериализованную `Evaluation`
   /// (`I2OSP(ne,2) || I2OSP(lp,2) || elements... || proofC || proofS`) и
   /// возвращает первый вычисленный элемент. Пруф игнорируется.
-  Element _firstEvaluatedElement(Uint8List evaluation) {
+  Uint8List _firstEvaluatedElement(Uint8List evaluation) {
     if (evaluation.length < 4) {
       throw Exception('oprf: evaluation too short');
     }
@@ -120,8 +115,8 @@ class Oprf {
       throw Exception('oprf: invalid evaluation header');
     }
 
-    final element = Element.newElement();
-    element.decode(Uint8List.fromList(evaluation.sublist(4, 4 + lp)));
+    final element = Uint8List.fromList(evaluation.sublist(4, 4 + lp));
+    if (!Ristretto255.isValidElement(element)) throw Exception('oprf: invalid evaluated element');
 
     return element;
   }
@@ -141,14 +136,12 @@ class Oprf {
     return Uint8List.fromList(digest.bytes);
   }
 
-  Scalar _randomScalar() {
+  Uint8List _randomScalar() {
     final random = Random.secure();
-    final bytes = Uint8List(64);
-    for (var i = 0; i < 64; i++) {
-      bytes[i] = random.nextInt(256);
+    while (true) {
+      final scalar = Ristretto255.reduce(List<int>.generate(64, (_) => random.nextInt(256)));
+      if (!Ristretto255.isZero(scalar)) return scalar;
     }
-
-    return Scalar()..setUniformBytes(bytes);
   }
 
   /// RFC 9380 §5.3.1 expand_message_xmd для SHA-512 (b_in_bytes=64, s_in_bytes=128).

@@ -77,7 +77,7 @@ class _Argon2idKsf extends OpaqueKsf {
 /// Состояние между `RegistrationRequest` и `RegistrationResponse`.
 class OpaqueRegistrationState {
   final Uint8List _password;
-  final Scalar _blind;
+  final Uint8List _blind;
 
   OpaqueRegistrationState._(this._password, this._blind);
 }
@@ -93,8 +93,8 @@ class OpaqueRegistrationResult {
 /// Состояние между `KE1` и `KE2`.
 class OpaqueLoginState {
   final Uint8List _password;
-  final Scalar _blind;
-  final Scalar _clientSecret;
+  final Uint8List _blind;
+  final Uint8List _clientSecret;
   final Uint8List _ke1;
 
   OpaqueLoginState._(this._password, this._blind, this._clientSecret, this._ke1);
@@ -273,55 +273,55 @@ class OpaqueClient {
 
   // ── OPRF (RFC 9497, modeOPRF) ─────────────────────────────────────────────
 
-  (Scalar, Uint8List) _blind(Uint8List password, Uint8List? fixedBlind) {
+  (Uint8List, Uint8List) _blind(Uint8List password, Uint8List? fixedBlind) {
     final input = _hashToGroup(password);
-    if (_isIdentity(input)) {
+    final blind = fixedBlind ?? _randomScalar();
+    final blinded = Ristretto255.mul(blind, input);
+    if (blinded == null) {
       throw const OpaqueException(OpaqueError.invalidMessage, 'password maps to identity');
     }
-    final blind = fixedBlind != null ? (Scalar()..setCanonicalBytes(fixedBlind)) : _randomScalar();
-    final blinded = Element.newElement()..scalarMult(blind, input);
-    return (blind, Uint8List.fromList(blinded.encode()));
+    return (blind, blinded);
   }
 
   /// `Extract("", oprf_output || Stretch(oprf_output))`.
-  Future<Uint8List> _randomizedPassword(Uint8List password, Scalar blind, Element evaluated) async {
-    final unblinded = Element.newElement()..scalarMult(Scalar()..invert(blind), evaluated);
-    final encoded = unblinded.encode();
+  Future<Uint8List> _randomizedPassword(Uint8List password, Uint8List blind, Uint8List evaluated) async {
+    final inverse = Ristretto255.invert(blind);
+    final unblinded = inverse == null ? null : Ristretto255.mul(inverse, evaluated);
+    if (unblinded == null) {
+      throw const OpaqueException(OpaqueError.invalidMessage, 'cannot unblind');
+    }
     final oprfOutput = _hash([
       ..._i2osp2(password.length),
       ...password,
-      ..._i2osp2(encoded.length),
-      ...encoded,
+      ..._i2osp2(unblinded.length),
+      ...unblinded,
       ...utf8.encode('Finalize'),
     ]);
     final stretched = await ksf.stretch(oprfOutput);
     return _extract(const [], [...oprfOutput, ...stretched]);
   }
 
-  Element _hashToGroup(List<int> input) {
-    final element = Element.newElement();
-    element.setUniformBytes(_expandMessageXmd(input, _hashToGroupDst, 64));
-    return element;
-  }
+  Uint8List _hashToGroup(List<int> input) => Ristretto255.fromUniform(_expandMessageXmd(input, _hashToGroupDst, 64));
 
   /// `DeriveKeyPair(seed, "OPAQUE-DeriveDiffieHellmanKeyPair")` (RFC 9497 §3.2).
-  (Scalar, Uint8List) _deriveDiffieHellmanKeyPair(List<int> seed) {
+  (Uint8List, Uint8List) _deriveDiffieHellmanKeyPair(List<int> seed) {
     final info = utf8.encode('OPAQUE-DeriveDiffieHellmanKeyPair');
     final deriveInput = [...seed, ..._i2osp2(info.length), ...info];
-    final zero = Scalar();
     for (var counter = 0; counter <= 255; counter++) {
-      final sk = Scalar()..setUniformBytes(_expandMessageXmd([...deriveInput, counter], _deriveKeyPairDst, 64));
-      if (sk.equal(zero) == 0) {
-        final pk = Element.newElement()..scalarBaseMult(sk);
-        return (sk, Uint8List.fromList(pk.encode()));
-      }
+      final sk = Ristretto255.reduce(_expandMessageXmd([...deriveInput, counter], _deriveKeyPairDst, 64));
+      final pk = Ristretto255.mulBase(sk);
+      if (pk != null) return (sk, pk);
     }
     throw const OpaqueException(OpaqueError.invalidMessage, 'DeriveKeyPair failed');
   }
 
   // ── 3DH (§6.4) ────────────────────────────────────────────────────────────
 
-  Uint8List _dh(Scalar k, Element b) => Uint8List.fromList((Element.newElement()..scalarMult(k, b)).encode());
+  Uint8List _dh(Uint8List k, Uint8List b) {
+    final shared = Ristretto255.mul(k, b);
+    if (shared == null) throw const OpaqueException(OpaqueError.invalidMessage, 'degenerate Diffie-Hellman');
+    return shared;
+  }
 
   /// `server_public_key || len‖server_identity || len‖client_identity`.
   Uint8List _cleartextCredentials(Uint8List serverPublicKey, Uint8List clientPublicKey) {
@@ -372,20 +372,13 @@ class OpaqueClient {
 
   // ── Примитивы ─────────────────────────────────────────────────────────────
 
-  Element _decodeElement(List<int> bytes) {
-    final element = Element.newElement();
-    try {
-      element.setCanonicalBytes(Uint8List.fromList(bytes));
-    } catch (_) {
+  /// Проверенная кодировка точки (каноническая, не нейтральный элемент).
+  Uint8List _decodeElement(List<int> bytes) {
+    if (!Ristretto255.isValidElement(bytes)) {
       throw const OpaqueException(OpaqueError.invalidMessage, 'invalid group element');
     }
-    if (_isIdentity(element)) {
-      throw const OpaqueException(OpaqueError.invalidMessage, 'identity element');
-    }
-    return element;
+    return Uint8List.fromList(bytes);
   }
-
-  bool _isIdentity(Element e) => e.equal(Element.newIdentityElement()) == 1;
 
   Uint8List _hash(List<int> data) => Uint8List.fromList(_sha512.hashSync(data).bytes);
 
@@ -424,11 +417,10 @@ class OpaqueClient {
     return Uint8List.sublistView(out.toBytes(), 0, lenInBytes);
   }
 
-  Scalar _randomScalar() {
-    final zero = Scalar();
+  Uint8List _randomScalar() {
     while (true) {
-      final s = Scalar()..setUniformBytes(_random(64));
-      if (s.equal(zero) == 0) return s;
+      final s = Ristretto255.reduce(_random(64));
+      if (!Ristretto255.isZero(s)) return s;
     }
   }
 
