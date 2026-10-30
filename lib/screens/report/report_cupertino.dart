@@ -63,13 +63,20 @@ class _ReportSheetState extends State<_ReportSheet> {
     final t = context.t;
     final label = CupertinoColors.label.resolveFrom(context);
     final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
-    final accent = ThemesCupertino.actionColor(context);
+    // Отметка выбора — акцент темы (в тёмной — светлый тон цвета оформления),
+    // как в других списках выбора; actionColor в тёмной теме белый.
+    final accent = CupertinoTheme.of(context).primaryColor;
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final keyboard = MediaQuery.viewInsetsOf(context).bottom;
+    // Над клавиатурой лист не выше свободного места под статус-баром: шапка
+    // («Отмена» / «Отправить») всегда на экране, список прокручивается.
+    final available = screenHeight - keyboard - MediaQuery.paddingOf(context).top - 8;
 
     return Padding(
       // Лист поднимается над клавиатурой.
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      padding: EdgeInsets.only(bottom: keyboard),
       child: Container(
-        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.85),
+        constraints: BoxConstraints(maxHeight: available < screenHeight * 0.85 ? available : screenHeight * 0.85),
         decoration: BoxDecoration(
           color: ThemesCupertino.groupedBackground.resolveFrom(context),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
@@ -106,12 +113,24 @@ class _ReportSheetState extends State<_ReportSheet> {
               Flexible(
                 child: ListView(
                   shrinkWrap: true,
+                  // Без автоматического отступа под статус-бар: лист снизу.
+                  padding: EdgeInsets.zero,
                   children: [
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
                       child: Text(t.report.question, style: TextStyle(color: secondary)),
                     ),
                     CupertinoListSection.insetGrouped(
+                      // Цвета темы (в тёмной — синие), а не системные серые.
+                      backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                      decoration: BoxDecoration(
+                        color: ThemesCupertino.groupedCard.resolveFrom(context),
+                        borderRadius: const BorderRadius.all(Radius.circular(10)),
+                      ),
+                      // Разделитель на всю ширину карточки, от левого края.
+                      hasLeading: false,
+                      dividerMargin: 0,
+                      additionalDividerMargin: 0,
                       children: [
                         for (final reason in reportReasons)
                           CupertinoListTile(
