@@ -874,6 +874,7 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get formatPre => 'Блок кода';
 	@override String get formatMention => 'Упомянуть';
 	@override String get formatQuoteExpandable => 'Сворачиваемая цитата';
+	@override late final _Translations$screenChat$textMenu$ru textMenu = _Translations$screenChat$textMenu$ru._(_root);
 	@override String get mentionPickTitle => 'Кого упомянуть';
 	@override String get linkTitle => 'Добавить ссылку';
 	@override String get linkAdd => 'Добавить';
@@ -2227,6 +2228,33 @@ class _Translations$report$ru extends Translations$report$en {
 	@override late final _Translations$report$reasons$ru reasons = _Translations$report$reasons$ru._(_root);
 }
 
+// Path: screenChat.textMenu
+class _Translations$screenChat$textMenu$ru extends Translations$screenChat$textMenu$en {
+	_Translations$screenChat$textMenu$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String lookUp({required Object text}) => 'Найти «${text}»';
+	@override String get searchGoogle => 'Искать в Google';
+	@override String get cut => 'Вырезать';
+	@override String get copy => 'Скопировать';
+	@override String get paste => 'Вставить';
+	@override String get share => 'Поделиться';
+	@override String get spelling => 'Правописание и грамматика';
+	@override String get checkNow => 'Проверить документ сейчас';
+	@override String get learnSpelling => 'Запомнить написание';
+	@override String get ignoreSpelling => 'Пропустить написание';
+	@override String get noGuesses => 'Нет вариантов';
+	@override String get transformations => 'Преобразования';
+	@override String get upper => 'Сделать заглавными';
+	@override String get lower => 'Сделать строчными';
+	@override String get capitalize => 'Каждое слово с заглавной';
+	@override String get speech => 'Речь';
+	@override String get startSpeaking => 'Начать говорить';
+	@override String get stopSpeaking => 'Прекратить говорить';
+}
+
 // Path: screenAuthBlocked.reasons
 class _Translations$screenAuthBlocked$reasons$ru extends Translations$screenAuthBlocked$reasons$en {
 	_Translations$screenAuthBlocked$reasons$ru._(TranslationsRu root) : this._root = root, super.internal(root);
@@ -2875,6 +2903,24 @@ extension on TranslationsRu {
 			'screenChat.formatPre' => 'Блок кода',
 			'screenChat.formatMention' => 'Упомянуть',
 			'screenChat.formatQuoteExpandable' => 'Сворачиваемая цитата',
+			'screenChat.textMenu.lookUp' => ({required Object text}) => 'Найти «${text}»',
+			'screenChat.textMenu.searchGoogle' => 'Искать в Google',
+			'screenChat.textMenu.cut' => 'Вырезать',
+			'screenChat.textMenu.copy' => 'Скопировать',
+			'screenChat.textMenu.paste' => 'Вставить',
+			'screenChat.textMenu.share' => 'Поделиться',
+			'screenChat.textMenu.spelling' => 'Правописание и грамматика',
+			'screenChat.textMenu.checkNow' => 'Проверить документ сейчас',
+			'screenChat.textMenu.learnSpelling' => 'Запомнить написание',
+			'screenChat.textMenu.ignoreSpelling' => 'Пропустить написание',
+			'screenChat.textMenu.noGuesses' => 'Нет вариантов',
+			'screenChat.textMenu.transformations' => 'Преобразования',
+			'screenChat.textMenu.upper' => 'Сделать заглавными',
+			'screenChat.textMenu.lower' => 'Сделать строчными',
+			'screenChat.textMenu.capitalize' => 'Каждое слово с заглавной',
+			'screenChat.textMenu.speech' => 'Речь',
+			'screenChat.textMenu.startSpeaking' => 'Начать говорить',
+			'screenChat.textMenu.stopSpeaking' => 'Прекратить говорить',
 			'screenChat.mentionPickTitle' => 'Кого упомянуть',
 			'screenChat.linkTitle' => 'Добавить ссылку',
 			'screenChat.linkAdd' => 'Добавить',
@@ -3275,6 +3321,8 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.blockedEmpty' => 'Вы никого не заблокировали',
 			'sessionsPrivacyAndSecurity.blockedNotFound' => 'Никого не найдено',
 			'sessionsPrivacyAndSecurity.blockedNote' => 'Заблокированные не могут писать вам и звонить, не видят ваше время захода, фото, «О себе» и день рождения. Заблокировать можно и в профиле пользователя.',
+			_ => null,
+		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.unblock' => 'Разблокировать',
 			'sessionsPrivacyAndSecurity.unknownUser' => 'Пользователь',
 			'sessionsPrivacyAndSecurity.blockUser' => 'Заблокировать пользователя',
@@ -3293,8 +3341,6 @@ extension on TranslationsRu {
 			'cloudPassword.next' => 'Далее',
 			'cloudPassword.forgotPassword' => 'Забыли пароль?',
 			'cloudPassword.recoveryHint' => ({required Object email}) => 'Мы отправили код восстановления на ${email}',
-			_ => null,
-		} ?? switch (path) {
 			'cloudPassword.recoveryEmailHint' => 'Укажите email, привязанный к аккаунту. Если он совпадёт, мы отправим на него код восстановления.',
 			'cloudPassword.codePlaceholder' => 'Код из письма',
 			'cloudPassword.newPasswordPlaceholder' => 'Новый пароль',
@@ -3789,6 +3835,8 @@ extension on TranslationsRu {
 			'report.comment' => 'Комментарий (необязательно)',
 			'report.send' => 'Отправить',
 			'report.thanks' => 'Спасибо! Модераторы рассмотрят жалобу.',
+			_ => null,
+		} ?? switch (path) {
 			'report.offline' => 'Нет соединения — жалоба не отправлена.',
 			'report.flood' => 'Слишком много жалоб подряд. Попробуйте позже.',
 			'report.failed' => 'Не удалось отправить жалобу. Попробуйте ещё раз.',

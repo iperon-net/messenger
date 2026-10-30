@@ -137,6 +137,50 @@ abstract final class Desktop {
   /// отказа можно только там.
   static Future<void> openPrivacySettings(MediaKind kind) => _invoke<void>('openPrivacySettings', {'kind': kind.name});
 
+  /// Контекстное меню поля ввода — системное `NSMenu`, как у `NSTextView`
+  /// (macOS). [items] — пункты приложения (вырезать / скопировать / вставить,
+  /// «Форматирование»), [extra] — после «Правописания»; «Найти», «Искать в
+  /// Google», «Поделиться», «Речь» и правописание натив собирает сам по
+  /// выделенному [selected] и всему тексту [text] (выделение — [selection]).
+  /// Ответ: выбранный пункт приложения, замена выделения (вариант исправления)
+  /// или что выделить (найденная ошибка); `null` — закрыли / сделал натив.
+  static Future<DesktopTextMenuChoice?> showTextMenu({
+    required List<DesktopMenuItem> items,
+    List<DesktopMenuItem> extra = const [],
+    required String selected,
+    required String text,
+    required TextSelection selection,
+  }) async {
+    final t = LocaleSettings.instance.currentTranslations.screenChat.textMenu;
+    final answer = await _invoke<Map<Object?, Object?>>('showTextMenu', {
+      'items': [for (final item in items) item.toMap()],
+      'extra': [for (final item in extra) item.toMap()],
+      'selected': selected,
+      'text': text,
+      'selection': [selection.start, selection.end],
+      'titles': {
+        'lookUp': t.lookUp(text: '{text}'),
+        'searchGoogle': t.searchGoogle,
+        'share': t.share,
+        'spelling': t.spelling,
+        'checkNow': t.checkNow,
+        'learnSpelling': t.learnSpelling,
+        'ignoreSpelling': t.ignoreSpelling,
+        'noGuesses': t.noGuesses,
+        'speech': t.speech,
+        'startSpeaking': t.startSpeaking,
+        'stopSpeaking': t.stopSpeaking,
+      },
+    });
+    if (answer == null) return null;
+    final select = answer['select'];
+    return (
+      id: answer['id'] as String?,
+      replace: answer['replace'] as String?,
+      select: select is List && select.length == 2 ? TextSelection(baseOffset: select[0] as int, extentOffset: select[1] as int) : null,
+    );
+  }
+
   static Future<T?> _invoke<T>(String method, [Map<String, Object?>? arguments]) async {
     if (!AppPlatform.isDesktop) return null;
     try {
@@ -146,6 +190,49 @@ abstract final class Desktop {
       return null;
     }
   }
+}
+
+/// Выбор в [Desktop.showTextMenu]: пункт приложения [id], замена выделения
+/// [replace] или новое выделение [select].
+typedef DesktopTextMenuChoice = ({String? id, String? replace, TextSelection? select});
+
+/// Пункт приложения в системном меню [Desktop.showTextMenu]: [icon] — SF Symbol
+/// (видно с macOS 26), [key] — ⌘-сочетание (только подпись), [children] —
+/// подменю.
+class DesktopMenuItem {
+  final String id;
+  final String title;
+  final bool enabled;
+  final bool checked;
+  final String icon;
+  final String key;
+  final List<DesktopMenuItem>? children;
+  final bool _separator;
+
+  const DesktopMenuItem(this.id, this.title, {this.enabled = true, this.checked = false, this.icon = '', this.key = '', this.children})
+    : _separator = false;
+
+  const DesktopMenuItem.separator()
+    : id = '',
+      title = '',
+      enabled = false,
+      checked = false,
+      icon = '',
+      key = '',
+      children = null,
+      _separator = true;
+
+  Map<String, Object?> toMap() => _separator
+      ? {'separator': true}
+      : {
+          'id': id,
+          'title': title,
+          'enabled': enabled,
+          'checked': checked,
+          if (icon.isNotEmpty) 'icon': icon,
+          'key': key,
+          if (children case final children?) 'children': [for (final child in children) child.toMap()],
+        };
 }
 
 enum MediaKind { camera, microphone }

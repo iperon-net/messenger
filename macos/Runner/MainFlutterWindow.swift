@@ -2,6 +2,7 @@ import AVFoundation
 import Cocoa
 import CoreAudio
 import FlutterMacOS
+import NaturalLanguage
 import ServiceManagement
 import Sparkle
 import UserNotifications
@@ -178,6 +179,7 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
   private var attentionRequest = 0
   /// Проверка динамика (`playTestSound`) — держим, пока играет.
   private var testPlayer: AVPlayer?
+  private lazy var textMenu = TextMenu(window: window)
 
   init(messenger: FlutterBinaryMessenger, window: NSWindow) {
     channel = FlutterMethodChannel(name: "net.iperon.messenger/desktop", binaryMessenger: messenger)
@@ -290,6 +292,8 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
         NSWorkspace.shared.open(url)
       }
       result(nil)
+    case "showTextMenu":
+      textMenu.show(args, result: result)
     case "launchAtLogin":
       result(SMAppService.mainApp.status == .enabled)
     case "setLaunchAtLogin":
@@ -395,5 +399,195 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
       channel.invokeMethod("notificationTap", arguments: ["route": route])
     }
     completionHandler()
+  }
+}
+
+/// Контекстное меню поля ввода (`showTextMenu`, lib/desktop.dart) — настоящее
+/// `NSMenu`, как у `NSTextView` в Telegram для macOS: варианты исправления
+/// слова с ошибкой, «Найти», «Искать в Google», пункты приложения (вырезать /
+/// скопировать / вставить, «Форматирование»), «Поделиться», «Правописание и
+/// грамматика», «Преобразования», «Речь». Поле рисует Flutter, поэтому
+/// системное меню само не появляется: пункты приложения приходят из Dart, их
+/// выбор уходит обратно (`id`), остальное делаем здесь. Ответ: `{id}` —
+/// пункт приложения, `{replace}` — заменить выделение, `{select: [start,
+/// end]}` — выделить (UTF-16), `nil` — закрыли или сделано здесь.
+final class TextMenu: NSObject {
+  private weak var window: NSWindow?
+  /// Ответ выбранного пункта (до конца показа меню).
+  private var answer: [String: Any]?
+  /// «Поделиться» работает после закрытия меню — держим.
+  private var sharePicker: NSSharingServicePicker?
+  private let speech = AVSpeechSynthesizer()
+  /// «Пропустить написание» — на время работы приложения.
+  private let spellTag = NSSpellChecker.uniqueSpellDocumentTag()
+
+  init(window: NSWindow?) {
+    self.window = window
+  }
+
+  func show(_ args: [String: Any], result: @escaping FlutterResult) {
+    guard let window, let view = window.contentViewController?.view else { return result(nil) }
+    let titles = args["titles"] as? [String: String] ?? [:]
+    let selected = args["selected"] as? String ?? ""
+    let text = args["text"] as? String ?? ""
+    let range = args["selection"] as? [Int] ?? [0, 0]
+    let point = view.convert(window.mouseLocationOutsideOfEventStream, from: nil)
+    answer = nil
+    let menu = NSMenu()
+    menu.autoenablesItems = false
+
+    // Слово с ошибкой — варианты сверху, как в NSTextView.
+    let word = selected.trimmingCharacters(in: .whitespacesAndNewlines)
+    if !word.isEmpty, !word.contains(where: \.isWhitespace) {
+      let checker = NSSpellChecker.shared
+      let wrong = checker.checkSpelling(of: word, startingAt: 0, language: nil, wrap: false, inSpellDocumentWithTag: spellTag, wordCount: nil)
+      if wrong.location != NSNotFound {
+        let guesses = checker.guesses(forWordRange: wrong, in: word, language: nil, inSpellDocumentWithTag: spellTag) ?? []
+        if guesses.isEmpty {
+          menu.addItem(item(titles["noGuesses"], enabled: false))
+        }
+        for guess in guesses.prefix(8) {
+          menu.addItem(item(guess, font: .boldSystemFont(ofSize: NSFont.systemFontSize)) { [weak self] in self?.answer = ["replace": guess] })
+        }
+        menu.addItem(.separator())
+        menu.addItem(item(titles["learnSpelling"]) { checker.learnWord(word) })
+        menu.addItem(item(titles["ignoreSpelling"]) { [spellTag] in checker.ignoreWord(word, inSpellDocumentWithTag: spellTag) })
+        menu.addItem(.separator())
+      }
+    }
+
+    if !word.isEmpty {
+      let short = word.count > 24 ? String(word.prefix(24)) + "…" : word
+      let lookUp = (titles["lookUp"] ?? "Look Up “{text}”").replacingOccurrences(of: "{text}", with: short.replacingOccurrences(of: "\n", with: " "))
+      menu.addItem(item(lookUp, icon: "character.book.closed") { [weak view] in
+        view?.showDefinition(for: NSAttributedString(string: selected), at: point)
+      })
+      menu.addItem(item(titles["searchGoogle"], icon: "magnifyingglass") {
+        var query = URLComponents(string: "https://www.google.com/search")!
+        query.queryItems = [URLQueryItem(name: "q", value: selected)]
+        if let url = query.url { NSWorkspace.shared.open(url) }
+      })
+      menu.addItem(.separator())
+    }
+
+    for entry in args["items"] as? [[String: Any]] ?? [] {
+      menu.addItem(appItem(entry))
+    }
+
+    if !word.isEmpty {
+      menu.addItem(.separator())
+      let picker = NSSharingServicePicker(items: [selected])
+      sharePicker = picker
+      let share = picker.standardShareMenuItem
+      if let title = titles["share"] { share.title = title }
+      menu.addItem(share)
+    }
+
+    menu.addItem(.separator())
+    let spelling = item(titles["spelling"], icon: "textformat.abc")
+    spelling.submenu = NSMenu()
+    spelling.submenu?.addItem(item(titles["checkNow"]) { [weak self] in
+      self?.answer = self?.check(text, from: range.count > 1 ? range[1] : 0).map { ["select": [$0.location, $0.location + $0.length]] }
+    })
+    menu.addItem(spelling)
+    for entry in args["extra"] as? [[String: Any]] ?? [] {
+      menu.addItem(appItem(entry))
+    }
+    let speak = item(titles["speech"], icon: "speaker.wave.2")
+    speak.submenu = NSMenu()
+    let spoken = word.isEmpty ? text : selected
+    speak.submenu?.addItem(item(titles["startSpeaking"], enabled: !spoken.isEmpty) { [weak self] in self?.say(spoken) })
+    speak.submenu?.addItem(item(titles["stopSpeaking"], enabled: speech.isSpeaking) { [weak self] in
+      self?.speech.stopSpeaking(at: .immediate)
+    })
+    menu.addItem(speak)
+
+    menu.popUp(positioning: nil, at: point, in: view)
+    // Действие пункта могло встать в очередь после закрытия меню.
+    DispatchQueue.main.async { [weak self] in
+      result(self?.answer)
+      self?.answer = nil
+    }
+  }
+
+  /// Пункт приложения: `{id, title, enabled, checked, icon, key, children}`,
+  /// `{separator: true}`.
+  private func appItem(_ entry: [String: Any]) -> NSMenuItem {
+    if entry["separator"] as? Bool ?? false { return .separator() }
+    let id = entry["id"] as? String ?? ""
+    let result = item(entry["title"] as? String, icon: entry["icon"] as? String, enabled: entry["enabled"] as? Bool ?? true) {
+      [weak self] in self?.answer = ["id": id]
+    }
+    result.state = entry["checked"] as? Bool ?? false ? .on : .off
+    if let key = entry["key"] as? String, !key.isEmpty {
+      result.keyEquivalent = key
+      result.keyEquivalentModifierMask = .command
+    }
+    if let children = entry["children"] as? [[String: Any]] {
+      result.submenu = NSMenu()
+      result.submenu?.autoenablesItems = false
+      children.forEach { result.submenu?.addItem(appItem($0)) }
+    }
+    return result
+  }
+
+  private func item(
+    _ title: String?, icon: String? = nil, enabled: Bool = true, font: NSFont? = nil, action: (() -> Void)? = nil
+  ) -> NSMenuItem {
+    let item = NSMenuItem(title: title ?? "", action: nil, keyEquivalent: "")
+    item.isEnabled = enabled
+    if let font {
+      item.attributedTitle = NSAttributedString(string: title ?? "", attributes: [.font: font])
+    }
+    // Значки в меню — как у системных с macOS 26; раньше меню без них.
+    if #available(macOS 26.0, *), let icon {
+      item.image = NSImage(systemSymbolName: icon, accessibilityDescription: nil)
+    }
+    if let action {
+      let target = MenuAction(action)
+      item.target = target
+      item.action = #selector(MenuAction.run)
+      item.representedObject = target
+    }
+    return item
+  }
+
+  /// «Проверить документ сейчас»: первая ошибка правописания или грамматики
+  /// после [from] (по кругу); нет — звук.
+  private func check(_ text: String, from: Int) -> NSRange? {
+    let checker = NSSpellChecker.shared
+    let start = min(max(from, 0), (text as NSString).length)
+    let spelling = checker.checkSpelling(of: text, startingAt: start, language: nil, wrap: true, inSpellDocumentWithTag: spellTag, wordCount: nil)
+    let grammar = checker.checkGrammar(of: text, startingAt: start, language: nil, wrap: true, inSpellDocumentWithTag: spellTag, details: nil)
+    // Ближайшая после каретки (найденные «по кругу» — позже).
+    let found = [spelling, grammar].filter { $0.location != NSNotFound && $0.length > 0 }
+    let next = found.min { a, b in
+      (a.location >= start ? a.location : a.location + Int(Int32.max)) < (b.location >= start ? b.location : b.location + Int(Int32.max))
+    }
+    if next == nil { NSSound.beep() }
+    return next
+  }
+
+  /// «Начать говорить» — голосом языка текста.
+  private func say(_ text: String) {
+    speech.stopSpeaking(at: .immediate)
+    let utterance = AVSpeechUtterance(string: text)
+    if let language = NLLanguageRecognizer.dominantLanguage(for: text)?.rawValue {
+      utterance.voice = AVSpeechSynthesisVoice(language: language)
+    }
+    speech.speak(utterance)
+  }
+}
+
+/// Действие пункта меню замыканием (держит его сам пункт).
+private final class MenuAction: NSObject {
+  private let action: () -> Void
+
+  init(_ action: @escaping () -> Void) {
+    self.action = action
+  }
+
+  @objc func run() {
+    action()
   }
 }

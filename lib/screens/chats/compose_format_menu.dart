@@ -11,6 +11,7 @@ import 'package:material_ui/material_ui.dart' as m;
 
 import '../../chats/media_files.dart';
 import '../../chats/message_formatting.dart';
+import '../../desktop.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import 'compose_controller.dart';
@@ -89,6 +90,15 @@ class ComposeFormatMenu {
   }
 
   Widget builder(BuildContext context, EditableTextState editable) {
+    // macOS — системное меню, как у NSTextView (сам Flutter ничего не рисует);
+    // билдер зовётся и при перестройке — меню одно на показ.
+    if (Platform.isMacOS) {
+      if (!_native) {
+        _native = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_showNative(context, editable)));
+      }
+      return const SizedBox.shrink();
+    }
     final selection = input.selection;
     if (_formats && selection.isValid && !selection.isCollapsed) {
       return _FormatList(
@@ -151,6 +161,125 @@ class ComposeFormatMenu {
       },
     );
     return [...items, format];
+  }
+
+  /// Показано системное меню macOS ([_showNative]).
+  bool _native = false;
+
+  Future<void> _showNative(BuildContext context, EditableTextState editable) async {
+    // Диалоги ссылки / упоминания — от поля: меню живёт в оверлее.
+    final field = editable.context;
+    try {
+      final t = context.t.screenChat;
+      final selection = input.selection;
+      final hasSelection = selection.isValid && !selection.isCollapsed;
+      final selected = hasSelection ? selection.textInside(input.text) : '';
+      final buttons = {for (final item in editable.contextMenuButtonItems) item.type: item};
+      final pasteMedia = onPasteMedia;
+      if (pasteMedia != null) await ClipboardMedia.instance.refresh();
+      final media = pasteMedia != null && ClipboardMedia.instance.value;
+      final active = input.activeFormats;
+      final mention = _members.isNotEmpty;
+      final formats = <(ComposeFormat, String, String, String)>[
+        (ComposeFormat.bold, t.formatBold, 'bold', 'b'),
+        (ComposeFormat.italic, t.formatItalic, 'italic', 'i'),
+        (ComposeFormat.underline, t.formatUnderline, 'underline', 'u'),
+        (ComposeFormat.strike, t.formatStrike, 'strikethrough', ''),
+        (ComposeFormat.spoiler, t.formatSpoiler, 'eye.slash', ''),
+        (ComposeFormat.code, t.formatCode, 'chevron.left.forwardslash.chevron.right', ''),
+        (ComposeFormat.pre, t.formatPre, 'curlybraces', ''),
+        (ComposeFormat.link, t.formatLink, 'link', 'k'),
+        if (mention) (ComposeFormat.mention, t.formatMention, 'at', ''),
+        (ComposeFormat.quote, t.formatQuote, 'quote.opening', ''),
+        (ComposeFormat.quoteExpandable, t.formatQuoteExpandable, 'text.quote', ''),
+        (ComposeFormat.plain, t.formatPlain, 'textformat', ''),
+      ];
+      final choice = await Desktop.showTextMenu(
+        items: [
+          DesktopMenuItem('cut', t.textMenu.cut, icon: 'scissors', enabled: buttons.containsKey(ContextMenuButtonType.cut)),
+          DesktopMenuItem('copy', t.textMenu.copy, icon: 'doc.on.doc', enabled: buttons.containsKey(ContextMenuButtonType.copy)),
+          DesktopMenuItem(
+            'paste',
+            t.textMenu.paste,
+            icon: 'doc.on.clipboard',
+            enabled: media || buttons.containsKey(ContextMenuButtonType.paste),
+          ),
+          if (hasSelection) ...[
+            const DesktopMenuItem.separator(),
+            DesktopMenuItem(
+              '',
+              t.format,
+              icon: 'bold.italic.underline',
+              children: [
+                for (final (format, title, icon, key) in formats)
+                  DesktopMenuItem('format:${format.name}', title, icon: icon, key: key, checked: active.contains(format)),
+              ],
+            ),
+          ],
+        ],
+        extra: [
+          if (hasSelection)
+            DesktopMenuItem(
+              '',
+              t.textMenu.transformations,
+              icon: 'textformat.size',
+              children: [
+                DesktopMenuItem('upper', t.textMenu.upper),
+                DesktopMenuItem('lower', t.textMenu.lower),
+                DesktopMenuItem('capitalize', t.textMenu.capitalize),
+              ],
+            ),
+        ],
+        selected: selected,
+        text: input.text,
+        selection: selection,
+      );
+      editable.hideToolbar();
+      if (choice == null || !field.mounted) return;
+      if (choice.replace case final replace?) return _replaceSelection(selection, replace);
+      if (choice.select case final select?) {
+        input.selection = select;
+        return;
+      }
+      switch (choice.id) {
+        case 'cut':
+          buttons[ContextMenuButtonType.cut]?.onPressed?.call();
+        case 'copy':
+          buttons[ContextMenuButtonType.copy]?.onPressed?.call();
+        case 'paste':
+          if (media) {
+            pasteMedia(field);
+          } else {
+            buttons[ContextMenuButtonType.paste]?.onPressed?.call();
+          }
+        case 'upper':
+          _replaceSelection(selection, selected.toUpperCase());
+        case 'lower':
+          _replaceSelection(selection, selected.toLowerCase());
+        case 'capitalize':
+          _replaceSelection(
+            selection,
+            selected.replaceAllMapped(
+              RegExp(r'[\p{L}\p{N}]+', unicode: true),
+              (m) => '${m[0]!.substring(0, 1).toUpperCase()}${m[0]!.substring(1).toLowerCase()}',
+            ),
+          );
+        case final id? when id.startsWith('format:'):
+          final format = ComposeFormat.values.byName(id.substring('format:'.length));
+          await _apply(field, editable, format);
+      }
+    } finally {
+      _native = false;
+    }
+  }
+
+  /// Заменить выделенное [selection] на [text] (оно же остаётся выделенным).
+  void _replaceSelection(TextSelection selection, String text) {
+    if (!selection.isValid || selection.end > input.text.length) return;
+    input.value = TextEditingValue(
+      text: input.text.replaceRange(selection.start, selection.end, text),
+      selection: TextSelection(baseOffset: selection.start, extentOffset: selection.start + text.length),
+    );
   }
 
   /// Применить [format] к выделению (из меню — [editable], с клавиатуры —

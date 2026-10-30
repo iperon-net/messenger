@@ -2063,6 +2063,8 @@ class Translations$screenChat$en {
 	/// en: 'Collapsible Quote'
 	String get formatQuoteExpandable => 'Collapsible Quote';
 
+	late final Translations$screenChat$textMenu$en textMenu = Translations$screenChat$textMenu$en.internal(_root);
+
 	/// en: 'Mention'
 	String get mentionPickTitle => 'Mention';
 
@@ -5212,6 +5214,69 @@ class Translations$report$en {
 	late final Translations$report$reasons$en reasons = Translations$report$reasons$en.internal(_root);
 }
 
+// Path: screenChat.textMenu
+class Translations$screenChat$textMenu$en {
+	Translations$screenChat$textMenu$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Look Up “{text}”'
+	String lookUp({required Object text}) => 'Look Up “${text}”';
+
+	/// en: 'Search with Google'
+	String get searchGoogle => 'Search with Google';
+
+	/// en: 'Cut'
+	String get cut => 'Cut';
+
+	/// en: 'Copy'
+	String get copy => 'Copy';
+
+	/// en: 'Paste'
+	String get paste => 'Paste';
+
+	/// en: 'Share'
+	String get share => 'Share';
+
+	/// en: 'Spelling and Grammar'
+	String get spelling => 'Spelling and Grammar';
+
+	/// en: 'Check Document Now'
+	String get checkNow => 'Check Document Now';
+
+	/// en: 'Learn Spelling'
+	String get learnSpelling => 'Learn Spelling';
+
+	/// en: 'Ignore Spelling'
+	String get ignoreSpelling => 'Ignore Spelling';
+
+	/// en: 'No Guesses Found'
+	String get noGuesses => 'No Guesses Found';
+
+	/// en: 'Transformations'
+	String get transformations => 'Transformations';
+
+	/// en: 'Make Upper Case'
+	String get upper => 'Make Upper Case';
+
+	/// en: 'Make Lower Case'
+	String get lower => 'Make Lower Case';
+
+	/// en: 'Capitalize'
+	String get capitalize => 'Capitalize';
+
+	/// en: 'Speech'
+	String get speech => 'Speech';
+
+	/// en: 'Start Speaking'
+	String get startSpeaking => 'Start Speaking';
+
+	/// en: 'Stop Speaking'
+	String get stopSpeaking => 'Stop Speaking';
+}
+
 // Path: screenAuthBlocked.reasons
 class Translations$screenAuthBlocked$reasons$en {
 	Translations$screenAuthBlocked$reasons$en.internal(this._root);
@@ -5888,6 +5953,24 @@ extension on Translations {
 			'screenChat.formatPre' => 'Code Block',
 			'screenChat.formatMention' => 'Mention',
 			'screenChat.formatQuoteExpandable' => 'Collapsible Quote',
+			'screenChat.textMenu.lookUp' => ({required Object text}) => 'Look Up “${text}”',
+			'screenChat.textMenu.searchGoogle' => 'Search with Google',
+			'screenChat.textMenu.cut' => 'Cut',
+			'screenChat.textMenu.copy' => 'Copy',
+			'screenChat.textMenu.paste' => 'Paste',
+			'screenChat.textMenu.share' => 'Share',
+			'screenChat.textMenu.spelling' => 'Spelling and Grammar',
+			'screenChat.textMenu.checkNow' => 'Check Document Now',
+			'screenChat.textMenu.learnSpelling' => 'Learn Spelling',
+			'screenChat.textMenu.ignoreSpelling' => 'Ignore Spelling',
+			'screenChat.textMenu.noGuesses' => 'No Guesses Found',
+			'screenChat.textMenu.transformations' => 'Transformations',
+			'screenChat.textMenu.upper' => 'Make Upper Case',
+			'screenChat.textMenu.lower' => 'Make Lower Case',
+			'screenChat.textMenu.capitalize' => 'Capitalize',
+			'screenChat.textMenu.speech' => 'Speech',
+			'screenChat.textMenu.startSpeaking' => 'Start Speaking',
+			'screenChat.textMenu.stopSpeaking' => 'Stop Speaking',
 			'screenChat.mentionPickTitle' => 'Mention',
 			'screenChat.linkTitle' => 'Add link',
 			'screenChat.linkAdd' => 'Add',
@@ -6288,6 +6371,8 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.blockedEmpty' => 'You haven\'t blocked anyone',
 			'sessionsPrivacyAndSecurity.blockedNotFound' => 'No one found',
 			'sessionsPrivacyAndSecurity.blockedNote' => 'Blocked users can\'t message or call you and can\'t see your last seen, photo, bio or birthday. You can also block someone from their profile.',
+			_ => null,
+		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.unblock' => 'Unblock',
 			'sessionsPrivacyAndSecurity.unknownUser' => 'User',
 			'sessionsPrivacyAndSecurity.blockUser' => 'Block user',
@@ -6306,8 +6391,6 @@ extension on Translations {
 			'cloudPassword.next' => 'Next',
 			'cloudPassword.forgotPassword' => 'Forgot password?',
 			'cloudPassword.recoveryHint' => ({required Object email}) => 'We sent a recovery code to ${email}',
-			_ => null,
-		} ?? switch (path) {
 			'cloudPassword.recoveryEmailHint' => 'Enter the email linked to your account. If it matches, we\'ll send a recovery code to it.',
 			'cloudPassword.codePlaceholder' => 'Code from email',
 			'cloudPassword.newPasswordPlaceholder' => 'New password',
@@ -6802,6 +6885,8 @@ extension on Translations {
 			'report.comment' => 'Comment (optional)',
 			'report.send' => 'Send',
 			'report.thanks' => 'Thank you! Moderators will review the report.',
+			_ => null,
+		} ?? switch (path) {
 			'report.offline' => 'No connection — the report was not sent.',
 			'report.flood' => 'Too many reports in a row. Please try later.',
 			'report.failed' => 'Could not send the report. Please try again.',
