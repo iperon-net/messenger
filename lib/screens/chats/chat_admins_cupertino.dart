@@ -266,6 +266,9 @@ class _ChatAdminRightsCupertino extends State<ChatAdminRightsCupertino> {
   late models.ChatAdminRights _rights;
   late final _rankController = TextEditingController(text: widget.member.rank);
   bool _saving = false;
+  // Передача владения в полёте: проверка облачного пароля (OPAQUE, Argon2id —
+  // около секунды) и сам запрос — спиннер на пункте, повторный тап закрыт.
+  bool _transferring = false;
 
   bool get _isAdmin => widget.member.role == models.ChatRole.admin;
 
@@ -343,8 +346,11 @@ class _ChatAdminRightsCupertino extends State<ChatAdminRightsCupertino> {
       password = await _askPassword() ?? '';
       if (password.isEmpty) return;
     }
+    if (!mounted) return;
+    setState(() => _transferring = true);
     final result = await cubit.transferOwnership(widget.member, password: password);
     if (!mounted) return;
+    setState(() => _transferring = false);
     switch (result) {
       case ChatTransferResult.done:
         Navigator.of(context).pop();
@@ -508,7 +514,8 @@ class _ChatAdminRightsCupertino extends State<ChatAdminRightsCupertino> {
                       if (canTransfer)
                         CupertinoListTile(
                           title: Text(tc.transfer, style: TextStyle(color: destructive)),
-                          onTap: _transfer,
+                          trailing: _transferring ? const CupertinoActivityIndicator() : null,
+                          onTap: _transferring ? null : _transfer,
                         ),
                       if (canDismiss)
                         CupertinoListTile(

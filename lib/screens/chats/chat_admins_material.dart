@@ -230,6 +230,9 @@ class _ChatAdminRightsMaterial extends State<ChatAdminRightsMaterial> {
   late models.ChatAdminRights _rights;
   late final _rankController = TextEditingController(text: widget.member.rank);
   bool _saving = false;
+  // Передача владения в полёте: проверка облачного пароля (OPAQUE, Argon2id —
+  // около секунды) и сам запрос — спиннер на пункте, повторный тап закрыт.
+  bool _transferring = false;
 
   bool get _isAdmin => widget.member.role == models.ChatRole.admin;
 
@@ -311,8 +314,11 @@ class _ChatAdminRightsMaterial extends State<ChatAdminRightsMaterial> {
       password = await _askPassword() ?? '';
       if (password.isEmpty) return;
     }
+    if (!mounted) return;
+    setState(() => _transferring = true);
     final result = await cubit.transferOwnership(widget.member, password: password);
     if (!mounted) return;
+    setState(() => _transferring = false);
     switch (result) {
       case ChatTransferResult.done:
         Navigator.of(context).pop();
@@ -469,7 +475,10 @@ class _ChatAdminRightsMaterial extends State<ChatAdminRightsMaterial> {
                     if (canTransfer)
                       ListTile(
                         title: Text(tc.transfer, style: TextStyle(color: scheme.error)),
-                        onTap: _transfer,
+                        trailing: _transferring
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                            : null,
+                        onTap: _transferring ? null : _transfer,
                       ),
                     if (canDismiss)
                       ListTile(
