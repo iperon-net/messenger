@@ -1492,9 +1492,11 @@ class _ComposeBar extends StatelessWidget {
                               state.editUploadProgress == null;
                           // Пусто — микрофон (голосовое), как в Telegram.
                           // Слот фиксированный (как у скрепки слева): поле ввода не
-                          // дёргается при смене кнопки.
+                          // дёргается при смене кнопки. Высота — как у кнопок с
+                          // плотностью темы: на десктопе (compact) поле ниже, 40, и
+                          // кнопка в слоте 48 вставала бы выше его центра.
                           return ComposeActionSlot(
-                            size: const Size(48, 48),
+                            size: Size(48, 48 + Theme.of(context).visualDensity.baseSizeAdjustment.dy),
                             child: (state.slowModeLeft > 0 || state.floodLeft > 0) && !editing
                                 ? SlowModeCountdown(
                                     key: const ValueKey('slow'),
