@@ -294,6 +294,14 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
       result(nil)
     case "showTextMenu":
       textMenu.show(args, result: result)
+    case "revealFile":
+      // «Показать в Finder»: окно Finder с выделенным файлом.
+      guard let path = args["path"] as? String, FileManager.default.fileExists(atPath: path) else {
+        result(false)
+        return
+      }
+      NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: path)])
+      result(true)
     case "launchAtLogin":
       result(SMAppService.mainApp.status == .enabled)
     case "setLaunchAtLogin":

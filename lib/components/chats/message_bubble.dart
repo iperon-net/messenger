@@ -19,6 +19,7 @@ import '../../models.dart' as models;
 import '../dust_effect.dart';
 import '../user_avatar.dart';
 import 'chat_avatar.dart' show chatImage;
+import 'media_actions.dart' show chatFileRevealLabel;
 import 'media_viewer.dart';
 import 'message_double_tap.dart';
 import 'message_text.dart';
@@ -107,6 +108,9 @@ class ChatMessagesView extends StatelessWidget {
 
   /// Крестик на прогрессе загрузки вложений.
   final ValueChanged<models.Message>? onCancelUpload;
+
+  /// Десктоп: «Показать в Finder» под скачанным файлом; `null` — без ссылки.
+  final ValueChanged<models.Message>? onFileReveal;
 
   /// Тап по реакции под сообщением; двойной тап по пузырю — быстрая реакция.
   final void Function(models.Message message, String emoji)? onReaction;
@@ -205,6 +209,7 @@ class ChatMessagesView extends StatelessWidget {
     this.focusedID,
     this.keyFor,
     this.onCancelUpload,
+    this.onFileReveal,
     this.onReaction,
     this.onReactionLongPress,
     this.onDoubleTap,
@@ -372,6 +377,7 @@ class ChatMessagesView extends StatelessWidget {
                                     focused: m.id == focusedID,
                                     mark: m.id == flashID ? flashRange : null,
                                     onCancelUpload: onCancelUpload == null ? null : () => onCancelUpload!(m),
+                                    onFileReveal: onFileReveal == null ? null : () => onFileReveal!(m),
                                     onReaction: onReaction == null ? null : (emoji) => onReaction!(m, emoji),
                                     onReactionLongPress: onReactionLongPress == null ? null : (emoji) => onReactionLongPress!(m, emoji),
                                     onDoubleTap: onDoubleTap == null ? null : () => onDoubleTap!(m),
@@ -690,6 +696,9 @@ class MessageBubble extends StatelessWidget {
   /// Крестик на прогрессе загрузки вложений.
   final VoidCallback? onCancelUpload;
 
+  /// Десктоп: «Показать в Finder» под скачанным файлом.
+  final VoidCallback? onFileReveal;
+
   /// Тап по реакции под сообщением (поставить/снять свою).
   final ValueChanged<String>? onReaction;
 
@@ -743,6 +752,7 @@ class MessageBubble extends StatelessWidget {
     this.focused = false,
     this.mark,
     this.onCancelUpload,
+    this.onFileReveal,
     this.onReaction,
     this.onReactionLongPress,
     this.onDoubleTap,
@@ -878,6 +888,7 @@ class MessageBubble extends StatelessWidget {
         metaStyle: metaStyle,
         onCancelUpload: onCancelUpload,
         onTap: mediaTap == null ? null : () => mediaTap(0),
+        onReveal: onFileReveal,
       ),
       models.MessageKind.voice => _VoiceRow(message: m, colors: colors, iconColor: iconColor, metaStyle: metaStyle),
       models.MessageKind.poll when m.poll != null => _PollView(
@@ -1469,6 +1480,9 @@ class _FileRow extends StatelessWidget {
   /// Тап — открыть файл (пока грузится — нет).
   final VoidCallback? onTap;
 
+  /// Десктоп: ссылка «Показать в Finder», когда файл скачан.
+  final VoidCallback? onReveal;
+
   const _FileRow({
     required this.message,
     required this.colors,
@@ -1476,6 +1490,7 @@ class _FileRow extends StatelessWidget {
     required this.metaStyle,
     this.onCancelUpload,
     this.onTap,
+    this.onReveal,
   });
 
   @override
@@ -1520,6 +1535,14 @@ class _FileRow extends StatelessWidget {
                 uploading ? uploadProgressText(context, message) : '${formatBytes(context, size)}${ext.isEmpty ? '' : ' · $ext'}',
                 style: metaStyle.copyWith(fontSize: 13),
               ),
+              if (onReveal != null && !uploading && message.localPath.isNotEmpty)
+                MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: onReveal,
+                    child: Text(chatFileRevealLabel(context.t), style: metaStyle.copyWith(fontSize: 13, color: colors.link)),
+                  ),
+                ),
             ],
           ),
         ),

@@ -1679,6 +1679,12 @@ class Translations$screenChat$en {
 	/// en: 'No app to open this file'
 	String get noAppToOpen => 'No app to open this file';
 
+	/// en: 'Show in Finder'
+	String get showInFinder => 'Show in Finder';
+
+	/// en: 'Show in folder'
+	String get showInFolder => 'Show in folder';
+
 	/// en: 'No access to the gallery — allow it in Settings'
 	String get galleryDenied => 'No access to the gallery — allow it in Settings';
 
@@ -5828,6 +5834,8 @@ extension on Translations {
 			'screenChat.savedToDownloads' => 'Saved to Downloads',
 			'screenChat.mediaNotReady' => 'The file is still loading',
 			'screenChat.noAppToOpen' => 'No app to open this file',
+			'screenChat.showInFinder' => 'Show in Finder',
+			'screenChat.showInFolder' => 'Show in folder',
 			'screenChat.galleryDenied' => 'No access to the gallery — allow it in Settings',
 			'screenChat.saveFailed' => 'Couldn\'t save',
 			'screenChat.copyFailed' => 'Couldn\'t copy',
@@ -5855,10 +5863,10 @@ extension on Translations {
 			'screenChat.file' => _root.screenChats.file,
 			'screenChat.voice' => _root.screenChats.voice,
 			'screenChat.selected' => ({required Object n}) => 'Selected: ${n}',
-			'screenChat.search' => 'Search',
-			'screenChat.searchNoResults' => 'No results',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.search' => 'Search',
+			'screenChat.searchNoResults' => 'No results',
 			'screenChat.searchLoading' => 'Searching…',
 			'screenChat.searchOffline' => 'No connection — showing only messages on this device',
 			'screenChat.unreadMessages' => 'Unread messages',
@@ -6369,10 +6377,10 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.phoneNumberFindNote' => 'Others won\'t be able to find you by searching for your phone number.',
 			'sessionsPrivacyAndSecurity.blocked' => 'Blocked Users',
 			'sessionsPrivacyAndSecurity.blockedEmpty' => 'You haven\'t blocked anyone',
-			'sessionsPrivacyAndSecurity.blockedNotFound' => 'No one found',
-			'sessionsPrivacyAndSecurity.blockedNote' => 'Blocked users can\'t message or call you and can\'t see your last seen, photo, bio or birthday. You can also block someone from their profile.',
 			_ => null,
 		} ?? switch (path) {
+			'sessionsPrivacyAndSecurity.blockedNotFound' => 'No one found',
+			'sessionsPrivacyAndSecurity.blockedNote' => 'Blocked users can\'t message or call you and can\'t see your last seen, photo, bio or birthday. You can also block someone from their profile.',
 			'sessionsPrivacyAndSecurity.unblock' => 'Unblock',
 			'sessionsPrivacyAndSecurity.unknownUser' => 'User',
 			'sessionsPrivacyAndSecurity.blockUser' => 'Block user',
@@ -6883,10 +6891,10 @@ extension on Translations {
 			'report.title' => 'Report',
 			'report.question' => 'What\'s wrong? Moderators will see the reason and comment; the reported person won\'t know who reported them.',
 			'report.comment' => 'Comment (optional)',
-			'report.send' => 'Send',
-			'report.thanks' => 'Thank you! Moderators will review the report.',
 			_ => null,
 		} ?? switch (path) {
+			'report.send' => 'Send',
+			'report.thanks' => 'Thank you! Moderators will review the report.',
 			'report.offline' => 'No connection — the report was not sent.',
 			'report.flood' => 'Too many reports in a row. Please try later.',
 			'report.failed' => 'Could not send the report. Please try again.',

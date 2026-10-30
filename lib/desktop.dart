@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -179,6 +180,21 @@ abstract final class Desktop {
       replace: answer['replace'] as String?,
       select: select is List && select.length == 2 ? TextSelection(baseOffset: select[0] as int, extentOffset: select[1] as int) : null,
     );
+  }
+
+  /// Показать файл [path] выделенным в Finder / Проводнике. `false` — не вышло.
+  static Future<bool> revealFile(String path) async {
+    if (Platform.isWindows) {
+      // `explorer` выходит с кодом 1 и при успехе — его не проверяем.
+      try {
+        await Process.run('explorer', ['/select,', path]);
+        return true;
+      } catch (error, stackTrace) {
+        _logger.handle(error, stackTrace, 'desktop: revealFile');
+        return false;
+      }
+    }
+    return await _invoke<bool>('revealFile', {'path': path}) ?? false;
   }
 
   static Future<T?> _invoke<T>(String method, [Map<String, Object?>? arguments]) async {

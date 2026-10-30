@@ -538,6 +538,8 @@
   "savedToDownloads": "Сохранено в Загрузки"
   "mediaNotReady": "Файл ещё загружается"
   "noAppToOpen": "Нет приложения, чтобы открыть этот файл"
+  "showInFinder": "Показать в Finder"
+  "showInFolder": "Показать в папке"
   "galleryDenied": "Нет доступа к галерее — разрешите его в настройках"
   "saveFailed": "Не удалось сохранить"
   "copyFailed": "Не удалось скопировать"

@@ -726,6 +726,8 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get savedToDownloads => 'Сохранено в Загрузки';
 	@override String get mediaNotReady => 'Файл ещё загружается';
 	@override String get noAppToOpen => 'Нет приложения, чтобы открыть этот файл';
+	@override String get showInFinder => 'Показать в Finder';
+	@override String get showInFolder => 'Показать в папке';
 	@override String get galleryDenied => 'Нет доступа к галерее — разрешите его в настройках';
 	@override String get saveFailed => 'Не удалось сохранить';
 	@override String get copyFailed => 'Не удалось скопировать';
@@ -2778,6 +2780,8 @@ extension on TranslationsRu {
 			'screenChat.savedToDownloads' => 'Сохранено в Загрузки',
 			'screenChat.mediaNotReady' => 'Файл ещё загружается',
 			'screenChat.noAppToOpen' => 'Нет приложения, чтобы открыть этот файл',
+			'screenChat.showInFinder' => 'Показать в Finder',
+			'screenChat.showInFolder' => 'Показать в папке',
 			'screenChat.galleryDenied' => 'Нет доступа к галерее — разрешите его в настройках',
 			'screenChat.saveFailed' => 'Не удалось сохранить',
 			'screenChat.copyFailed' => 'Не удалось скопировать',
@@ -2805,10 +2809,10 @@ extension on TranslationsRu {
 			'screenChat.file' => _root.screenChats.file,
 			'screenChat.voice' => _root.screenChats.voice,
 			'screenChat.selected' => ({required Object n}) => 'Выбрано: ${n}',
-			'screenChat.search' => 'Поиск',
-			'screenChat.searchNoResults' => 'Нет результатов',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.search' => 'Поиск',
+			'screenChat.searchNoResults' => 'Нет результатов',
 			'screenChat.searchLoading' => 'Поиск…',
 			'screenChat.searchOffline' => 'Нет соединения — показаны только сообщения на устройстве',
 			'screenChat.unreadMessages' => 'Непрочитанные сообщения',
@@ -3319,10 +3323,10 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.phoneNumberFindNote' => 'Остальные не найдут вас поиском по номеру телефона.',
 			'sessionsPrivacyAndSecurity.blocked' => 'Заблокированные',
 			'sessionsPrivacyAndSecurity.blockedEmpty' => 'Вы никого не заблокировали',
-			'sessionsPrivacyAndSecurity.blockedNotFound' => 'Никого не найдено',
-			'sessionsPrivacyAndSecurity.blockedNote' => 'Заблокированные не могут писать вам и звонить, не видят ваше время захода, фото, «О себе» и день рождения. Заблокировать можно и в профиле пользователя.',
 			_ => null,
 		} ?? switch (path) {
+			'sessionsPrivacyAndSecurity.blockedNotFound' => 'Никого не найдено',
+			'sessionsPrivacyAndSecurity.blockedNote' => 'Заблокированные не могут писать вам и звонить, не видят ваше время захода, фото, «О себе» и день рождения. Заблокировать можно и в профиле пользователя.',
 			'sessionsPrivacyAndSecurity.unblock' => 'Разблокировать',
 			'sessionsPrivacyAndSecurity.unknownUser' => 'Пользователь',
 			'sessionsPrivacyAndSecurity.blockUser' => 'Заблокировать пользователя',
@@ -3833,10 +3837,10 @@ extension on TranslationsRu {
 			'report.title' => 'Пожаловаться',
 			'report.question' => 'Что не так? Модераторы увидят причину и комментарий, нарушитель не узнает, кто пожаловался.',
 			'report.comment' => 'Комментарий (необязательно)',
-			'report.send' => 'Отправить',
-			'report.thanks' => 'Спасибо! Модераторы рассмотрят жалобу.',
 			_ => null,
 		} ?? switch (path) {
+			'report.send' => 'Отправить',
+			'report.thanks' => 'Спасибо! Модераторы рассмотрят жалобу.',
 			'report.offline' => 'Нет соединения — жалоба не отправлена.',
 			'report.flood' => 'Слишком много жалоб подряд. Попробуйте позже.',
 			'report.failed' => 'Не удалось отправить жалобу. Попробуйте ещё раз.',

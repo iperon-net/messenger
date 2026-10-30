@@ -12,6 +12,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../components/share_origin.dart';
+import '../desktop.dart';
 import '../di.dart';
 import '../logger.dart';
 import '../platform.dart';
@@ -49,12 +50,22 @@ class MediaFiles {
   static const _exportTtl = Duration(hours: 1);
 
   /// Открыть: iOS — Quick Look (в нём же «Поделиться»), Android — приложение
-  /// для этого типа, десктоп — программа по умолчанию для типа. `false` —
-  /// открыть нечем.
+  /// для этого типа, десктоп — программа по умолчанию для типа, из копии в
+  /// «Загрузки/Iperon» (как Telegram Desktop: правки в открытом документе не
+  /// пропадут вместе с временной копией). `false` — открыть нечем.
   static Future<bool> open(MediaFile file) async {
-    final path = await _named(file);
-    if (AppPlatform.isDesktop) return launchUrl(Uri.file(path));
-    return await _channel.invokeMethod<bool>('open', {'path': path}) ?? false;
+    if (AppPlatform.isDesktop) {
+      final path = await _downloaded(file);
+      return path != null && await launchUrl(Uri.file(path));
+    }
+    return await _channel.invokeMethod<bool>('open', {'path': await _named(file)}) ?? false;
+  }
+
+  /// Десктоп: «Показать в Finder» — копия в «Загрузки/Iperon» (уже есть — та
+  /// же), выделенная в Finder / Проводнике. `false` — не вышло.
+  static Future<bool> reveal(MediaFile file) async {
+    final path = await _downloaded(file);
+    return path != null && await Desktop.revealFile(path);
   }
 
   /// В буфер обмена (фото и видео — как файлы, их можно вставить в другой
@@ -98,16 +109,10 @@ class MediaFiles {
   /// Android и Telegram Desktop), занятое имя — «имя (1).ext».
   static Future<MediaSaveResult> _saveDesktop(List<MediaFile> files) async {
     try {
-      final downloads = await getDownloadsDirectory();
-      if (downloads == null) return MediaSaveResult.failed;
-      final dir = await Directory(p.join(downloads.path, 'Iperon')).create(recursive: true);
+      final dir = await _downloadsDir();
+      if (dir == null) return MediaSaveResult.failed;
       for (final file in files) {
-        final name = _safeName(file.name).isEmpty ? p.basename(file.path) : _safeName(file.name);
-        var target = File(p.join(dir.path, name));
-        for (var i = 1; await target.exists(); i++) {
-          target = File(p.join(dir.path, '${p.basenameWithoutExtension(name)} ($i)${p.extension(name)}'));
-        }
-        await File(file.path).copy(target.path);
+        _exported[file.path] = await _copyUnique(file, dir);
       }
       _logger.info('media files: saved ${files.length} to ${dir.path}');
       return MediaSaveResult.saved;
@@ -115,6 +120,51 @@ class MediaFiles {
       _logger.handle(error, stackTrace, 'media files: save');
       return MediaSaveResult.failed;
     }
+  }
+
+  /// Десктоп: копии в «Загрузках» за этот запуск — файл в кэше → копия.
+  /// Повторные «Открыть» / «Показать в Finder» берут её, а не плодят
+  /// «имя (1).ext».
+  static final _exported = <String, String>{};
+
+  /// Копия [file] в «Загрузки/Iperon» для «Открыть» / «Показать в Finder»:
+  /// сделанная в этот запуск (ещё на месте), там же файл с этим именем и
+  /// размером (скачан раньше) или новая. `null` — не вышло.
+  static Future<String?> _downloaded(MediaFile file) async {
+    try {
+      final dir = await _downloadsDir();
+      if (dir == null) return null;
+      final known = _exported[file.path];
+      if (known != null && p.dirname(known) == dir.path && await File(known).exists()) return known;
+      final same = File(p.join(dir.path, _exportName(file)));
+      if (await same.exists() && await same.length() == await File(file.path).length()) {
+        return _exported[file.path] = same.path;
+      }
+      final path = await _copyUnique(file, dir);
+      _logger.info('media files: exported ${p.basename(path)} to ${dir.path}');
+      return _exported[file.path] = path;
+    } catch (error, stackTrace) {
+      _logger.handle(error, stackTrace, 'media files: export');
+      return null;
+    }
+  }
+
+  static Future<Directory?> _downloadsDir() async {
+    final downloads = await getDownloadsDirectory();
+    if (downloads == null) return null;
+    return Directory(p.join(downloads.path, 'Iperon')).create(recursive: true);
+  }
+
+  static String _exportName(MediaFile file) => _safeName(file.name).isEmpty ? p.basename(file.path) : _safeName(file.name);
+
+  /// Копия [file] в [dir]; занятое имя — «имя (1).ext».
+  static Future<String> _copyUnique(MediaFile file, Directory dir) async {
+    final name = _exportName(file);
+    var target = File(p.join(dir.path, name));
+    for (var i = 1; await target.exists(); i++) {
+      target = File(p.join(dir.path, '${p.basenameWithoutExtension(name)} ($i)${p.extension(name)}'));
+    }
+    return (await File(file.path).copy(target.path)).path;
   }
 
   /// Есть ли в буфере обмена фото / видео (без чтения содержимого).

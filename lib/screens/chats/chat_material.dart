@@ -811,6 +811,10 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
                                                     chatTitle: chat.title,
                                                     noForwards: chat.noForwards,
                                                   ),
+                                            // Десктоп: «Показать в Finder» под файлом (не при защите содержимого).
+                                            onFileReveal: AppPlatform.isDesktop && !chat.noForwards
+                                                ? (message) => revealChatFile(context, message)
+                                                : null,
                                             onNoForwardsAnswer: (request, accept) =>
                                                 setChatNoForwards(context, _cubit, !accept, requestID: request.id),
                                           ),
@@ -1008,6 +1012,12 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
                   title: Text(t.shareMedia),
                   onTap: () => Navigator.of(sheetContext).pop('shareMedia'),
                 ),
+                if (AppPlatform.isDesktop && message.kind == models.MessageKind.file && !message.isAlbum)
+                  ListTile(
+                    leading: const Icon(Icons.folder_open_outlined),
+                    title: Text(chatFileRevealLabel(context.t)),
+                    onTap: () => Navigator.of(sheetContext).pop('revealFile'),
+                  ),
               ],
               if (canWrite && features.pinnedMessages && _pinnable(message) && _cubit.canTogglePin(message))
                 ListTile(
@@ -1105,6 +1115,8 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
         await saveChatMedia(context, message);
       case 'shareMedia':
         await shareChatMedia(context, message);
+      case 'revealFile':
+        await revealChatFile(context, message);
       case 'edit':
         _cubit.startEdit(message);
       case 'pin':

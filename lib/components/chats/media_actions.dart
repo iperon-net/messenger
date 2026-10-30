@@ -62,6 +62,18 @@ Future<void> openChatFile(BuildContext context, models.Message m) async {
   }
 }
 
+/// Десктоп: «Показать в Finder» / «Показать в папке» (Windows).
+String chatFileRevealLabel(Translations t) => Platform.isMacOS ? t.screenChat.showInFinder : t.screenChat.showInFolder;
+
+/// Десктоп: файл — копией в «Загрузки/Iperon», выделенным в Finder /
+/// Проводнике (как в Telegram Desktop).
+Future<void> revealChatFile(BuildContext context, models.Message m) async {
+  final t = context.t.screenChat;
+  final files = _files(m, null);
+  if (files == null) return showChatToast(context, t.mediaNotReady);
+  if (!await MediaFiles.reveal(files.first) && context.mounted) showChatToast(context, t.saveFailed);
+}
+
 /// Фото / видео (или файл) — в буфер обмена: вставляется в другой мессенджер.
 Future<void> copyChatMedia(BuildContext context, models.Message m, {int? index, bool overlay = false}) async {
   final t = context.t.screenChat;
