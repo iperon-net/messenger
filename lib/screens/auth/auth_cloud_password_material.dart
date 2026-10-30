@@ -94,7 +94,6 @@ class _AuthCloudPasswordMaterial extends State<AuthCloudPasswordMaterial> {
           emailController,
           context.t.cloudPassword.emailPlaceholder,
           keyboardType: TextInputType.emailAddress,
-          autofillHints: const [AutofillHints.email],
           autofocus: true,
           enabled: !loading,
           errorText: state.error.isEmpty ? null : context.t[state.error],
@@ -112,7 +111,6 @@ class _AuthCloudPasswordMaterial extends State<AuthCloudPasswordMaterial> {
           context,
           passwordController,
           context.t.cloudPassword.passwordPlaceholder,
-          autofillHints: const [AutofillHints.password],
           obscure: true,
           autofocus: true,
           enabled: !loading,
@@ -152,7 +150,6 @@ class _AuthCloudPasswordMaterial extends State<AuthCloudPasswordMaterial> {
           context,
           newPasswordController,
           context.t.cloudPassword.newPasswordPlaceholder,
-          autofillHints: const [AutofillHints.newPassword],
           obscure: true,
           enabled: !loading,
           errorText: (state.error.isNotEmpty && !_isCodeError(state.error)) ? context.t[state.error] : null,
@@ -196,6 +193,10 @@ class _AuthCloudPasswordMaterial extends State<AuthCloudPasswordMaterial> {
     String label, {
     bool obscure = false,
     TextInputType? keyboardType,
+    // Поля пароля и email — без autofillHints (null): окно автозаполнения Android
+    // (Google: «надёжный пароль», «сохранить», подсказки адресов) забирает фокус
+    // окна, и клавиатура прячется после первых символов (CLAUDE.md, «Android:
+    // autofill popup closes the keyboard»). Облачный пароль — не учётка сайта.
     Iterable<String>? autofillHints,
     bool autofocus = false,
     bool enabled = true,

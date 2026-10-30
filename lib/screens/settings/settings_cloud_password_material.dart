@@ -162,7 +162,6 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
               emailController,
               context.t.cloudPassword.emailPlaceholder,
               keyboardType: TextInputType.emailAddress,
-              autofillHints: const [AutofillHints.email],
               autofocus: true,
               enabled: !loading,
               error: state.error,
@@ -195,7 +194,6 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
               passwordController,
               context.t.cloudPassword.passwordPlaceholder,
               obscure: true,
-              autofillHints: const [AutofillHints.newPassword],
               autofocus: true,
               enabled: !loading,
               error: state.error,
@@ -211,7 +209,6 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
               passwordController,
               context.t.cloudPassword.newPasswordPlaceholder,
               obscure: true,
-              autofillHints: const [AutofillHints.newPassword],
               autofocus: true,
               enabled: !loading,
               error: state.error,
@@ -227,7 +224,6 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
               passwordController,
               context.t.cloudPassword.passwordPlaceholder,
               obscure: true,
-              autofillHints: const [AutofillHints.password],
               autofocus: true,
               enabled: !loading,
               error: state.error,
@@ -263,7 +259,6 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
               passwordController,
               context.t.cloudPassword.newPasswordPlaceholder,
               obscure: true,
-              autofillHints: const [AutofillHints.newPassword],
               enabled: !loading,
               error: state.error,
             ),
@@ -384,6 +379,10 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
     String label, {
     bool obscure = false,
     TextInputType? keyboardType,
+    // Поля пароля и email — без autofillHints (null): окно автозаполнения Android
+    // (Google: «надёжный пароль», «сохранить», подсказки адресов) забирает фокус
+    // окна, и клавиатура прячется после первых символов (CLAUDE.md, «Android:
+    // autofill popup closes the keyboard»). Облачный пароль — не учётка сайта.
     Iterable<String>? autofillHints,
     bool autofocus = false,
     bool enabled = true,

@@ -344,6 +344,9 @@ class _ChatAdminRightsMaterial extends State<ChatAdminRightsMaterial> {
               autofocus: true,
               autocorrect: false,
               enableSuggestions: false,
+              // null, а не []: окно автозаполнения Android прятало бы клавиатуру
+              // (CLAUDE.md, «Android: autofill popup closes the keyboard»).
+              autofillHints: null,
               decoration: InputDecoration(labelText: t.passwordHint, floatingLabelBehavior: FloatingLabelBehavior.always),
               onSubmitted: (value) => Navigator.of(dialogContext).pop(value),
             ),
