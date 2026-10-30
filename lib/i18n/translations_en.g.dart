@@ -1673,6 +1673,12 @@ class Translations$screenChat$en {
 	/// en: 'Saved to Downloads'
 	String get savedToDownloads => 'Saved to Downloads';
 
+	/// en: 'Save to “{folder}”'
+	String saveToFolder({required Object folder}) => 'Save to “${folder}”';
+
+	/// en: 'Saved to “{folder}”'
+	String savedToFolder({required Object folder}) => 'Saved to “${folder}”';
+
 	/// en: 'The file is still loading'
 	String get mediaNotReady => 'The file is still loading';
 
@@ -2373,6 +2379,21 @@ class Translations$screenSettingsData$en {
 
 	/// en: 'How much space chat files take on this device and how much data Iperon has used.'
 	String get storageNote => 'How much space chat files take on this device and how much data Iperon has used.';
+
+	/// en: 'Downloads'
+	String get downloads => 'Downloads';
+
+	/// en: 'Download folder'
+	String get downloadsDir => 'Download folder';
+
+	/// en: 'Downloads/Iperon'
+	String get downloadsDefault => 'Downloads/Iperon';
+
+	/// en: 'Default'
+	String get downloadsReset => 'Default';
+
+	/// en: 'Files you save from chats go here, as well as files you open or show in Finder.'
+	String get downloadsNote => 'Files you save from chats go here, as well as files you open or show in Finder.';
 
 	/// en: 'Calculating…'
 	String get calculating => 'Calculating…';
@@ -5832,6 +5853,8 @@ extension on Translations {
 			'screenChat.saveToDownloads' => 'Save to Downloads',
 			'screenChat.savedToGallery' => 'Saved to Gallery',
 			'screenChat.savedToDownloads' => 'Saved to Downloads',
+			'screenChat.saveToFolder' => ({required Object folder}) => 'Save to “${folder}”',
+			'screenChat.savedToFolder' => ({required Object folder}) => 'Saved to “${folder}”',
 			'screenChat.mediaNotReady' => 'The file is still loading',
 			'screenChat.noAppToOpen' => 'No app to open this file',
 			'screenChat.showInFinder' => 'Show in Finder',
@@ -5861,10 +5884,10 @@ extension on Translations {
 			'screenChat.photo' => _root.screenChats.photo,
 			'screenChat.video' => _root.screenChats.video,
 			'screenChat.file' => _root.screenChats.file,
-			'screenChat.voice' => _root.screenChats.voice,
-			'screenChat.selected' => ({required Object n}) => 'Selected: ${n}',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.voice' => _root.screenChats.voice,
+			'screenChat.selected' => ({required Object n}) => 'Selected: ${n}',
 			'screenChat.search' => 'Search',
 			'screenChat.searchNoResults' => 'No results',
 			'screenChat.searchLoading' => 'Searching…',
@@ -6068,6 +6091,11 @@ extension on Translations {
 			'screenSettingsData.storageUsage' => 'Storage usage',
 			'screenSettingsData.networkUsage' => 'Network usage',
 			'screenSettingsData.storageNote' => 'How much space chat files take on this device and how much data Iperon has used.',
+			'screenSettingsData.downloads' => 'Downloads',
+			'screenSettingsData.downloadsDir' => 'Download folder',
+			'screenSettingsData.downloadsDefault' => 'Downloads/Iperon',
+			'screenSettingsData.downloadsReset' => 'Default',
+			'screenSettingsData.downloadsNote' => 'Files you save from chats go here, as well as files you open or show in Finder.',
 			'screenSettingsData.calculating' => 'Calculating…',
 			'screenSettingsData.onDevice' => 'on this device',
 			'screenSettingsData.photos' => 'Photos',
@@ -6370,6 +6398,8 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.groupInvites' => 'Groups & Channels',
 			'sessionsPrivacyAndSecurity.whoCanAddToGroups' => 'Who can add me to groups and channels',
 			'sessionsPrivacyAndSecurity.groupInvitesNote' => 'Everyone else won\'t be able to add you to a group or channel — you just won\'t be among its members or subscribers.',
+			_ => null,
+		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.phoneNumber' => 'Phone number',
 			'sessionsPrivacyAndSecurity.whoCanSeePhoneNumber' => 'Who can see my phone number',
 			'sessionsPrivacyAndSecurity.phoneNumberNote' => 'People who already have your number saved in their contacts will always see it.',
@@ -6377,8 +6407,6 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.phoneNumberFindNote' => 'Others won\'t be able to find you by searching for your phone number.',
 			'sessionsPrivacyAndSecurity.blocked' => 'Blocked Users',
 			'sessionsPrivacyAndSecurity.blockedEmpty' => 'You haven\'t blocked anyone',
-			_ => null,
-		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.blockedNotFound' => 'No one found',
 			'sessionsPrivacyAndSecurity.blockedNote' => 'Blocked users can\'t message or call you and can\'t see your last seen, photo, bio or birthday. You can also block someone from their profile.',
 			'sessionsPrivacyAndSecurity.unblock' => 'Unblock',
@@ -6884,6 +6912,8 @@ extension on Translations {
 			'screenAuthBlocked.support' => 'If you think this is a mistake, contact support:',
 			'screenAuthBlocked.back' => 'Back',
 			'screenAuthBlocked.reasons.spam' => 'spam',
+			_ => null,
+		} ?? switch (path) {
 			'screenAuthBlocked.reasons.fraud' => 'fraud',
 			'screenAuthBlocked.reasons.abuse' => 'abuse and threats',
 			'screenAuthBlocked.reasons.illegal' => 'illegal content',
@@ -6891,8 +6921,6 @@ extension on Translations {
 			'report.title' => 'Report',
 			'report.question' => 'What\'s wrong? Moderators will see the reason and comment; the reported person won\'t know who reported them.',
 			'report.comment' => 'Comment (optional)',
-			_ => null,
-		} ?? switch (path) {
 			'report.send' => 'Send',
 			'report.thanks' => 'Thank you! Moderators will review the report.',
 			'report.offline' => 'No connection — the report was not sent.',

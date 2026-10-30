@@ -724,6 +724,8 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get saveToDownloads => 'Сохранить в Загрузки';
 	@override String get savedToGallery => 'Сохранено в галерею';
 	@override String get savedToDownloads => 'Сохранено в Загрузки';
+	@override String saveToFolder({required Object folder}) => 'Сохранить в «${folder}»';
+	@override String savedToFolder({required Object folder}) => 'Сохранено в «${folder}»';
 	@override String get mediaNotReady => 'Файл ещё загружается';
 	@override String get noAppToOpen => 'Нет приложения, чтобы открыть этот файл';
 	@override String get showInFinder => 'Показать в Finder';
@@ -1002,6 +1004,11 @@ class _Translations$screenSettingsData$ru extends Translations$screenSettingsDat
 	@override String get storageUsage => 'Использование памяти';
 	@override String get networkUsage => 'Использование трафика';
 	@override String get storageNote => 'Сколько места занимают файлы чатов на этом устройстве и сколько трафика потратил Iperon.';
+	@override String get downloads => 'Загрузки';
+	@override String get downloadsDir => 'Папка для загрузок';
+	@override String get downloadsDefault => 'Загрузки/Iperon';
+	@override String get downloadsReset => 'По умолчанию';
+	@override String get downloadsNote => 'Сюда сохраняются файлы из чатов, а также файлы, которые вы открываете или показываете в Finder.';
 	@override String get calculating => 'Подсчёт…';
 	@override String get onDevice => 'на этом устройстве';
 	@override String get photos => 'Фото';
@@ -2778,6 +2785,8 @@ extension on TranslationsRu {
 			'screenChat.saveToDownloads' => 'Сохранить в Загрузки',
 			'screenChat.savedToGallery' => 'Сохранено в галерею',
 			'screenChat.savedToDownloads' => 'Сохранено в Загрузки',
+			'screenChat.saveToFolder' => ({required Object folder}) => 'Сохранить в «${folder}»',
+			'screenChat.savedToFolder' => ({required Object folder}) => 'Сохранено в «${folder}»',
 			'screenChat.mediaNotReady' => 'Файл ещё загружается',
 			'screenChat.noAppToOpen' => 'Нет приложения, чтобы открыть этот файл',
 			'screenChat.showInFinder' => 'Показать в Finder',
@@ -2807,10 +2816,10 @@ extension on TranslationsRu {
 			'screenChat.photo' => _root.screenChats.photo,
 			'screenChat.video' => _root.screenChats.video,
 			'screenChat.file' => _root.screenChats.file,
-			'screenChat.voice' => _root.screenChats.voice,
-			'screenChat.selected' => ({required Object n}) => 'Выбрано: ${n}',
 			_ => null,
 		} ?? switch (path) {
+			'screenChat.voice' => _root.screenChats.voice,
+			'screenChat.selected' => ({required Object n}) => 'Выбрано: ${n}',
 			'screenChat.search' => 'Поиск',
 			'screenChat.searchNoResults' => 'Нет результатов',
 			'screenChat.searchLoading' => 'Поиск…',
@@ -3014,6 +3023,11 @@ extension on TranslationsRu {
 			'screenSettingsData.storageUsage' => 'Использование памяти',
 			'screenSettingsData.networkUsage' => 'Использование трафика',
 			'screenSettingsData.storageNote' => 'Сколько места занимают файлы чатов на этом устройстве и сколько трафика потратил Iperon.',
+			'screenSettingsData.downloads' => 'Загрузки',
+			'screenSettingsData.downloadsDir' => 'Папка для загрузок',
+			'screenSettingsData.downloadsDefault' => 'Загрузки/Iperon',
+			'screenSettingsData.downloadsReset' => 'По умолчанию',
+			'screenSettingsData.downloadsNote' => 'Сюда сохраняются файлы из чатов, а также файлы, которые вы открываете или показываете в Finder.',
 			'screenSettingsData.calculating' => 'Подсчёт…',
 			'screenSettingsData.onDevice' => 'на этом устройстве',
 			'screenSettingsData.photos' => 'Фото',
@@ -3316,6 +3330,8 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.groupInvites' => 'Группы и каналы',
 			'sessionsPrivacyAndSecurity.whoCanAddToGroups' => 'Кто может добавлять меня в группы и каналы',
 			'sessionsPrivacyAndSecurity.groupInvitesNote' => 'Остальные не смогут добавить вас в группу или канал — вы просто не попадёте в число участников или подписчиков.',
+			_ => null,
+		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.phoneNumber' => 'Номер телефона',
 			'sessionsPrivacyAndSecurity.whoCanSeePhoneNumber' => 'Кто видит мой номер телефона',
 			'sessionsPrivacyAndSecurity.phoneNumberNote' => 'Тот, у кого ваш номер уже записан в контактах, видит его всегда.',
@@ -3323,8 +3339,6 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.phoneNumberFindNote' => 'Остальные не найдут вас поиском по номеру телефона.',
 			'sessionsPrivacyAndSecurity.blocked' => 'Заблокированные',
 			'sessionsPrivacyAndSecurity.blockedEmpty' => 'Вы никого не заблокировали',
-			_ => null,
-		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.blockedNotFound' => 'Никого не найдено',
 			'sessionsPrivacyAndSecurity.blockedNote' => 'Заблокированные не могут писать вам и звонить, не видят ваше время захода, фото, «О себе» и день рождения. Заблокировать можно и в профиле пользователя.',
 			'sessionsPrivacyAndSecurity.unblock' => 'Разблокировать',
@@ -3830,6 +3844,8 @@ extension on TranslationsRu {
 			'screenAuthBlocked.support' => 'Если вы считаете, что это ошибка, напишите в поддержку:',
 			'screenAuthBlocked.back' => 'Назад',
 			'screenAuthBlocked.reasons.spam' => 'спам',
+			_ => null,
+		} ?? switch (path) {
 			'screenAuthBlocked.reasons.fraud' => 'мошенничество',
 			'screenAuthBlocked.reasons.abuse' => 'оскорбления и угрозы',
 			'screenAuthBlocked.reasons.illegal' => 'незаконный контент',
@@ -3837,8 +3853,6 @@ extension on TranslationsRu {
 			'report.title' => 'Пожаловаться',
 			'report.question' => 'Что не так? Модераторы увидят причину и комментарий, нарушитель не узнает, кто пожаловался.',
 			'report.comment' => 'Комментарий (необязательно)',
-			_ => null,
-		} ?? switch (path) {
 			'report.send' => 'Отправить',
 			'report.thanks' => 'Спасибо! Модераторы рассмотрят жалобу.',
 			'report.offline' => 'Нет соединения — жалоба не отправлена.',

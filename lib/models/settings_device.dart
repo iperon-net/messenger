@@ -64,6 +64,10 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
   final String speakerId;
   final String speakerName;
 
+  /// macOS, «Данные и память → Папка для загрузок»: куда сохраняются и
+  /// откуда открываются файлы; пусто — «Загрузки/Iperon».
+  final String downloadsDir;
+
   const SettingsDeviceModel({
     this.locale,
     this.darkMode = DarkModeModel.system,
@@ -90,6 +94,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     this.cameraName = '',
     this.speakerId = '',
     this.speakerName = '',
+    this.downloadsDir = '',
   });
 
   factory SettingsDeviceModel.fromSqlite(Map<String, dynamic> data) {
@@ -119,6 +124,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
     final cameraName = data['cameraName'] as String? ?? '';
     final speakerId = data['speakerId'] as String? ?? '';
     final speakerName = data['speakerName'] as String? ?? '';
+    final downloadsDir = data['downloadsDir'] as String? ?? '';
 
     SettingsDeviceModel settingsDeviceModel = SettingsDeviceModel();
 
@@ -217,6 +223,7 @@ class SettingsDeviceModel with SettingsDeviceModelMappable {
       cameraName: cameraName,
       speakerId: speakerId,
       speakerName: speakerName,
+      downloadsDir: downloadsDir,
     );
 
     return settingsDeviceModel;

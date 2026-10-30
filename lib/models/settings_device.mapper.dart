@@ -204,6 +204,13 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     opt: true,
     def: '',
   );
+  static String _$downloadsDir(SettingsDeviceModel v) => v.downloadsDir;
+  static const Field<SettingsDeviceModel, String> _f$downloadsDir = Field(
+    'downloadsDir',
+    _$downloadsDir,
+    opt: true,
+    def: '',
+  );
 
   @override
   final MappableFields<SettingsDeviceModel> fields = const {
@@ -232,6 +239,7 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
     #cameraName: _f$cameraName,
     #speakerId: _f$speakerId,
     #speakerName: _f$speakerName,
+    #downloadsDir: _f$downloadsDir,
   };
 
   static SettingsDeviceModel _instantiate(DecodingData data) {
@@ -261,6 +269,7 @@ class SettingsDeviceModelMapper extends ClassMapperBase<SettingsDeviceModel> {
       cameraName: data.dec(_f$cameraName),
       speakerId: data.dec(_f$speakerId),
       speakerName: data.dec(_f$speakerName),
+      downloadsDir: data.dec(_f$downloadsDir),
     );
   }
 
@@ -361,6 +370,7 @@ abstract class SettingsDeviceModelCopyWith<
     String? cameraName,
     String? speakerId,
     String? speakerName,
+    String? downloadsDir,
   });
   SettingsDeviceModelCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -409,6 +419,7 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     String? cameraName,
     String? speakerId,
     String? speakerName,
+    String? downloadsDir,
   }) => $apply(
     FieldCopyWithData({
       if (locale != $none) #locale: locale,
@@ -441,6 +452,7 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
       if (cameraName != null) #cameraName: cameraName,
       if (speakerId != null) #speakerId: speakerId,
       if (speakerName != null) #speakerName: speakerName,
+      if (downloadsDir != null) #downloadsDir: downloadsDir,
     }),
   );
   @override
@@ -491,6 +503,7 @@ class _SettingsDeviceModelCopyWithImpl<$R, $Out>
     cameraName: data.get(#cameraName, or: $value.cameraName),
     speakerId: data.get(#speakerId, or: $value.speakerId),
     speakerName: data.get(#speakerName, or: $value.speakerName),
+    downloadsDir: data.get(#downloadsDir, or: $value.downloadsDir),
   );
 
   @override

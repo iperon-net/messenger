@@ -1004,7 +1004,9 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
               if (chatMediaActionable(message) && !protected) ...[
                 ListTile(
                   leading: const Icon(Icons.download_outlined),
-                  title: Text(chatMediaSaveLabel(context.t, message)),
+                  title: Text(
+                    chatMediaSaveLabel(context.t, message, downloadsDir: context.read<CommonCubit>().state.settingsDevice.downloadsDir),
+                  ),
                   onTap: () => Navigator.of(sheetContext).pop('saveMedia'),
                 ),
                 ListTile(

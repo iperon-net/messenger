@@ -24,9 +24,14 @@ bool chatMediaActionable(models.Message m) =>
 bool _isFile(models.Message m) => !m.isAlbum && m.kind == models.MessageKind.file;
 
 /// Подпись «Сохранить …»: файл — в «Файлы» (iOS) / «Загрузки» (Android), фото
-/// и видео — в галерею.
-String chatMediaSaveLabel(Translations t, models.Message m) =>
-    _isFile(m) ? (Platform.isIOS ? t.screenChat.saveToFiles : t.screenChat.saveToDownloads) : t.screenChat.saveToGallery;
+/// и видео — в галерею; десктоп — всё в «Загрузки» или в папку [downloadsDir]
+/// из «Данных и памяти» (macOS).
+String chatMediaSaveLabel(Translations t, models.Message m, {String downloadsDir = ''}) {
+  if (AppPlatform.isDesktop) {
+    return downloadsDir.isEmpty ? t.screenChat.saveToDownloads : t.screenChat.saveToFolder(folder: p.basename(downloadsDir));
+  }
+  return _isFile(m) ? (Platform.isIOS ? t.screenChat.saveToFiles : t.screenChat.saveToDownloads) : t.screenChat.saveToGallery;
+}
 
 /// Вложения как файлы для системы; `null` — какое-то ещё не скачано.
 List<MediaFile>? _files(models.Message m, int? index) {
@@ -65,7 +70,7 @@ Future<void> openChatFile(BuildContext context, models.Message m) async {
 /// Десктоп: «Показать в Finder» / «Показать в папке» (Windows).
 String chatFileRevealLabel(Translations t) => Platform.isMacOS ? t.screenChat.showInFinder : t.screenChat.showInFolder;
 
-/// Десктоп: файл — копией в «Загрузки/Iperon», выделенным в Finder /
+/// Десктоп: файл — копией в папке загрузок, выделенным в Finder /
 /// Проводнике (как в Telegram Desktop).
 Future<void> revealChatFile(BuildContext context, models.Message m) async {
   final t = context.t.screenChat;
@@ -91,11 +96,14 @@ Future<void> saveChatMedia(BuildContext context, models.Message m, {int? index, 
   if (files == null) return showChatToast(context, t.mediaNotReady, overlay: overlay);
   final file = _isFile(m);
   final result = file ? await MediaFiles.saveFile(files.first) : await MediaFiles.saveToGallery(files);
+  // Десктоп: своя папка из «Данных и памяти» — её имя в подтверждении.
+  final custom = AppPlatform.isDesktop && result == MediaSaveResult.saved ? await MediaFiles.customDownloadsDir() : null;
   if (!context.mounted) return;
   final text = switch (result) {
     // iOS: место в «Файлах» выбрали сами — подтверждать нечего.
     MediaSaveResult.saved when file && Platform.isIOS => null,
-    // Десктоп: всё — в «Загрузки».
+    // Десктоп: всё — в «Загрузки» (или свою папку).
+    MediaSaveResult.saved when custom != null => t.savedToFolder(folder: p.basename(custom)),
     MediaSaveResult.saved => file || AppPlatform.isDesktop ? t.savedToDownloads : t.savedToGallery,
     MediaSaveResult.canceled => null,
     MediaSaveResult.denied => t.galleryDenied,

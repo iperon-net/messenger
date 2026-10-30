@@ -16,6 +16,7 @@ import '../desktop.dart';
 import '../di.dart';
 import '../logger.dart';
 import '../platform.dart';
+import '../repositories.dart';
 
 /// Файл вложения для системы: [path] — где лежит (кэш скачанного / outbox),
 /// [name] — как его назвать снаружи (имя файла из сообщения; пусто — как
@@ -51,7 +52,7 @@ class MediaFiles {
 
   /// Открыть: iOS — Quick Look (в нём же «Поделиться»), Android — приложение
   /// для этого типа, десктоп — программа по умолчанию для типа, из копии в
-  /// «Загрузки/Iperon» (как Telegram Desktop: правки в открытом документе не
+  /// папке загрузок (как Telegram Desktop: правки в открытом документе не
   /// пропадут вместе с временной копией). `false` — открыть нечем.
   static Future<bool> open(MediaFile file) async {
     if (AppPlatform.isDesktop) {
@@ -61,7 +62,7 @@ class MediaFiles {
     return await _channel.invokeMethod<bool>('open', {'path': await _named(file)}) ?? false;
   }
 
-  /// Десктоп: «Показать в Finder» — копия в «Загрузки/Iperon» (уже есть — та
+  /// Десктоп: «Показать в Finder» — копия в папке загрузок (уже есть — та
   /// же), выделенная в Finder / Проводнике. `false` — не вышло.
   static Future<bool> reveal(MediaFile file) async {
     final path = await _downloaded(file);
@@ -105,8 +106,9 @@ class MediaFiles {
   static Future<MediaSaveResult> saveFile(MediaFile file) async =>
       AppPlatform.isDesktop ? _saveDesktop([file]) : _save('saveFile', {'path': await _named(file)});
 
-  /// Десктоп: галереи нет — фото, видео и файлы в «Загрузки/Iperon» (как
-  /// Android и Telegram Desktop), занятое имя — «имя (1).ext».
+  /// Десктоп: галереи нет — фото, видео и файлы в папку загрузок
+  /// («Загрузки/Iperon» или своя, как Android и Telegram Desktop), занятое
+  /// имя — «имя (1).ext».
   static Future<MediaSaveResult> _saveDesktop(List<MediaFile> files) async {
     try {
       final dir = await _downloadsDir();
@@ -127,13 +129,14 @@ class MediaFiles {
   /// «имя (1).ext».
   static final _exported = <String, String>{};
 
-  /// Копия [file] в «Загрузки/Iperon» для «Открыть» / «Показать в Finder»:
+  /// Копия [file] в папку загрузок для «Открыть» / «Показать в Finder»:
   /// сделанная в этот запуск (ещё на месте), там же файл с этим именем и
   /// размером (скачан раньше) или новая. `null` — не вышло.
   static Future<String?> _downloaded(MediaFile file) async {
     try {
       final dir = await _downloadsDir();
       if (dir == null) return null;
+      // Папку в «Данных и памяти» сменили — копия в новую.
       final known = _exported[file.path];
       if (known != null && p.dirname(known) == dir.path && await File(known).exists()) return known;
       final same = File(p.join(dir.path, _exportName(file)));
@@ -149,10 +152,27 @@ class MediaFiles {
     }
   }
 
+  /// Десктоп: куда сохранять — папка из «Данных и памяти» (macOS; пропала —
+  /// диск отключён, папку удалили — по умолчанию), иначе «Загрузки/Iperon».
   static Future<Directory?> _downloadsDir() async {
+    final custom = await customDownloadsDir();
+    if (custom != null) return Directory(custom);
+    final path = await defaultDownloadsDir();
+    return path == null ? null : Directory(path).create(recursive: true);
+  }
+
+  /// «Загрузки/Iperon» (папки может ещё не быть).
+  static Future<String?> defaultDownloadsDir() async {
     final downloads = await getDownloadsDirectory();
-    if (downloads == null) return null;
-    return Directory(p.join(downloads.path, 'Iperon')).create(recursive: true);
+    return downloads == null ? null : p.join(downloads.path, 'Iperon');
+  }
+
+  /// Выбранная в «Данных и памяти» папка, если она на месте; `null` — по
+  /// умолчанию.
+  static Future<String?> customDownloadsDir() async {
+    if (!Platform.isMacOS) return null;
+    final path = (await getIt.get<DeviceRepositories>().settingsDevice.getAll()).downloadsDir;
+    return path.isNotEmpty && await Directory(path).exists() ? path : null;
   }
 
   static String _exportName(MediaFile file) => _safeName(file.name).isEmpty ? p.basename(file.path) : _safeName(file.name);

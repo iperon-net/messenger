@@ -369,6 +369,12 @@ class DeviceDatabase {
           // Настройки приложения с сервера (ClientConfig) — lib/client_config.dart.
           await tx.execute(ClientConfigCache.schema);
         }),
+      )
+      ..add(
+        SqliteMigration(8, (tx) async {
+          // macOS, «Данные и память → Папка для загрузок»: '' — «Загрузки/Iperon».
+          await tx.execute("ALTER TABLE settingsDevice ADD COLUMN downloadsDir TEXT NOT NULL DEFAULT '';");
+        }),
       );
   }
 

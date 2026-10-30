@@ -94,4 +94,8 @@ class SettingsDevice {
   Future<void> setSendWithModifierEnter(bool value) async {
     await db.execute("UPDATE settingsDevice SET sendWithModifierEnter = ?", [value ? 1 : 0]);
   }
+
+  Future<void> setDownloadsDir(String path) async {
+    await db.execute("UPDATE settingsDevice SET downloadsDir = ?", [path]);
+  }
 }

@@ -312,4 +312,10 @@ class CommonCubit extends Cubit<CommonState> {
     await repositories.settingsDevice.setSendWithModifierEnter(value);
     emit(state.copyWith(settingsDevice: state.settingsDevice.copyWith(sendWithModifierEnter: value)));
   }
+
+  /// macOS: папка для загрузок; пусто — «Загрузки/Iperon».
+  Future<void> setDownloadsDir(String path) async {
+    await repositories.settingsDevice.setDownloadsDir(path);
+    emit(state.copyWith(settingsDevice: state.settingsDevice.copyWith(downloadsDir: path)));
+  }
 }
