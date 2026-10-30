@@ -7,6 +7,7 @@ import '../../constants.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import '../../platform.dart';
 import '../../themes.dart';
 import 'settings_data_common.dart';
 
@@ -74,18 +75,20 @@ class SettingsNetworkMaterial extends StatelessWidget {
           body: SafeArea(
             child: ListView(
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  child: SegmentedButton<models.NetworkKind>(
-                    segments: [
-                      for (final network in models.NetworkKind.values)
-                        ButtonSegment(value: network, label: Text(networkTitle(context.t, network))),
-                    ],
-                    selected: {state.network},
-                    showSelectedIcon: false,
-                    onSelectionChanged: (selected) => cubit.setNetwork(selected.first),
+                // Десктоп: мобильной сети нет — без переключателя сетей.
+                if (!AppPlatform.isDesktop)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: SegmentedButton<models.NetworkKind>(
+                      segments: [
+                        for (final network in models.NetworkKind.values)
+                          ButtonSegment(value: network, label: Text(networkTitle(context.t, network))),
+                      ],
+                      selected: {state.network},
+                      showSelectedIcon: false,
+                      onSelectionChanged: (selected) => cubit.setNetwork(selected.first),
+                    ),
                   ),
-                ),
                 Padding(
                   padding: const EdgeInsets.only(top: 16, bottom: 8),
                   child: Center(
@@ -103,11 +106,12 @@ class SettingsNetworkMaterial extends StatelessWidget {
                                     style: TextStyle(fontSize: AppFontSizes.emphasisLarge, fontWeight: FontWeight.w600),
                                   ),
                                 ),
-                                Text(
-                                  networkTitle(context.t, state.network),
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(fontSize: AppFontSizes.caption, color: muted),
-                                ),
+                                if (!AppPlatform.isDesktop)
+                                  Text(
+                                    networkTitle(context.t, state.network),
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontSize: AppFontSizes.caption, color: muted),
+                                  ),
                               ],
                             ),
                     ),

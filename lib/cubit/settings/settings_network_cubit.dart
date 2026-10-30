@@ -7,12 +7,16 @@ import '../../di.dart';
 import '../../logger.dart';
 import '../../models.dart' as models;
 import '../../network_usage.dart';
+import '../../platform.dart';
 import 'settings_network_state.dart';
 
 /// «Использование трафика»: счётчики по мобильной сети и Wi-Fi (локальные,
-/// сеть не нужна), обновляются вживую, пока экран открыт.
+/// сеть не нужна), обновляются вживую, пока экран открыт. На десктопе
+/// мобильной сети нет — весь трафик идёт в Wi-Fi (Ethernet туда же, см.
+/// [NetworkUsage]), экран показывает только его.
 class SettingsNetworkCubit extends Cubit<SettingsNetworkState> {
-  SettingsNetworkCubit() : super(const SettingsNetworkState());
+  SettingsNetworkCubit()
+    : super(SettingsNetworkState(network: AppPlatform.isDesktop ? models.NetworkKind.wifi : models.NetworkKind.mobile));
 
   final logger = getIt.get<Logger>();
   final usage = NetworkUsage.instance;
