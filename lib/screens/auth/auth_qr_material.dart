@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../../accounts.dart';
 import '../../constants.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
@@ -13,7 +17,8 @@ import 'auth_material.dart';
 /// Экран входа на десктопе: только QR с телефона (docs/plans/desktop-client.md
 /// §3.4), без номера, Яндекса и passkey. В debug-сборке есть ссылка на обычный
 /// вход по номеру — для разработки, пока у тестового аккаунта нет телефона под
-/// рукой.
+/// рукой. При «Добавить аккаунт» — крестик и Esc: назад в прежний аккаунт
+/// ([cancelAddAccount]).
 class AuthDesktopMaterial extends StatefulWidget {
   const AuthDesktopMaterial({super.key});
 
@@ -24,20 +29,39 @@ class AuthDesktopMaterial extends StatefulWidget {
 class _AuthDesktopMaterialState extends State<AuthDesktopMaterial> {
   bool _phone = false;
 
+  /// Есть вошедший аккаунт, куда вернуться (добавляем ещё один).
+  bool _canReturn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(
+      returnAccount().then((id) {
+        if (mounted && id != null) setState(() => _canReturn = true);
+      }),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_phone) return const AuthMaterialScreen();
     return BlocProvider(
       create: (_) => AuthQrCubit()..initialization(),
-      child: _AuthQrMaterial(onPhoneLogin: kDebugMode ? () => setState(() => _phone = true) : null),
+      child: _AuthQrMaterial(
+        onPhoneLogin: kDebugMode ? () => setState(() => _phone = true) : null,
+        onCancel: _canReturn ? cancelAddAccount : null,
+      ),
     );
   }
 }
 
 class _AuthQrMaterial extends StatelessWidget {
-  const _AuthQrMaterial({required this.onPhoneLogin});
+  const _AuthQrMaterial({required this.onPhoneLogin, required this.onCancel});
 
   final VoidCallback? onPhoneLogin;
+
+  /// Отмена добавления аккаунта; null — других аккаунтов нет.
+  final VoidCallback? onCancel;
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +110,14 @@ class _AuthQrMaterial extends StatelessWidget {
           );
         }
 
-        return Scaffold(
+        final cancel = onCancel;
+        final screen = Scaffold(
+          appBar: cancel != null
+              ? AppBar(
+                  backgroundColor: Colors.transparent,
+                  leading: IconButton(tooltip: context.t.common.cancel, icon: const Icon(Icons.close), onPressed: cancel),
+                )
+              : null,
           body: Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -128,6 +159,11 @@ class _AuthQrMaterial extends StatelessWidget {
               ),
             ),
           ),
+        );
+        if (cancel == null) return screen;
+        return CallbackShortcuts(
+          bindings: {const SingleActivator(LogicalKeyboardKey.escape): cancel},
+          child: Focus(autofocus: true, child: screen),
         );
       },
     );
