@@ -178,7 +178,6 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
               codeController,
               context.t.cloudPassword.codePlaceholder,
               keyboardType: TextInputType.number,
-              autofillHints: const [AutofillHints.oneTimeCode],
               autofocus: true,
               enabled: !loading,
               error: state.error,
@@ -249,7 +248,6 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
               codeController,
               context.t.cloudPassword.codePlaceholder,
               keyboardType: TextInputType.number,
-              autofillHints: const [AutofillHints.oneTimeCode],
               autofocus: true,
               enabled: !loading,
             ),
@@ -379,11 +377,6 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
     String label, {
     bool obscure = false,
     TextInputType? keyboardType,
-    // Поля пароля и email — без autofillHints (null): окно автозаполнения Android
-    // (Google: «надёжный пароль», «сохранить», подсказки адресов) забирает фокус
-    // окна, и клавиатура прячется после первых символов (CLAUDE.md, «Android:
-    // autofill popup closes the keyboard»). Облачный пароль — не учётка сайта.
-    Iterable<String>? autofillHints,
     bool autofocus = false,
     bool enabled = true,
     String? error,
@@ -398,7 +391,11 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
         controller: controller,
         obscureText: obscure,
         keyboardType: keyboardType,
-        autofillHints: autofillHints,
+        // null, а не []: окно автозаполнения Android (Google: «надёжный пароль»,
+        // «сохранить», подсказки адресов и кодов) забирает фокус окна, и клавиатура
+        // прячется после первых символов (CLAUDE.md, «Android: autofill popup closes
+        // the keyboard»). Облачный пароль — не учётка сайта.
+        autofillHints: null,
         autofocus: autofocus,
         enabled: enabled,
         decoration: InputDecoration(
