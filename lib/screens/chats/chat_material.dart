@@ -1244,6 +1244,10 @@ class _Header extends StatelessWidget {
 /// Нижний отступ панелей чата (ввод, «Подписаться» / звук, «Разблокировать»,
 /// поиск) на десктопе: безопасной зоны снизу там нет — иначе панель упирается
 /// в край окна. На мобильных отступ даёт сама безопасная зона.
+/// Кнопка во всю нижнюю панель: подсветка наведения (десктоп) и нажатия —
+/// прямоугольником во всю панель, без скруглённой «таблетки».
+final _barButtonStyle = TextButton.styleFrom(shape: const RoundedRectangleBorder());
+
 EdgeInsets get _bottomGap => AppPlatform.isDesktop ? const EdgeInsets.only(bottom: 5) : EdgeInsets.zero;
 
 class _ComposeBar extends StatelessWidget {
@@ -1558,7 +1562,7 @@ class _ChannelBar extends StatelessWidget {
         child: SizedBox(
           width: double.infinity,
           height: 52,
-          child: TextButton(onPressed: action, child: Text(label ?? (chat.muted ? t.unmute : t.mute))),
+          child: TextButton(style: _barButtonStyle, onPressed: action, child: Text(label ?? (chat.muted ? t.unmute : t.mute))),
         ),
       ),
     );
@@ -1605,6 +1609,7 @@ class _CommentsBlockedBar extends StatelessWidget {
           height: 52,
           child: switch (state.commentsBlock) {
             ChatCommentsBlock.subscribe => TextButton(
+              style: _barButtonStyle,
               onPressed: context.read<ChatCubit>().subscribeToChannel,
               child: Text(t.screenChat.commentsSubscribe),
             ),
@@ -1613,7 +1618,11 @@ class _CommentsBlockedBar extends StatelessWidget {
               commentsWaitLabel(t, state.commentsWaitUntil!),
             ),
             // Собеседник у меня в «Заблокированных» — писать нельзя, пока не разблокирую.
-            ChatCommentsBlock.blocked => TextButton(onPressed: context.read<ChatCubit>().unblockPeer, child: Text(t.screenChat.unblock)),
+            ChatCommentsBlock.blocked => TextButton(
+              style: _barButtonStyle,
+              onPressed: context.read<ChatCubit>().unblockPeer,
+              child: Text(t.screenChat.unblock),
+            ),
             ChatCommentsBlock.privacy => note(Icons.lock_outline, t.screenChat.privacyRestricted),
             // Группа, роль «Чтение».
             ChatCommentsBlock.readOnly => note(Icons.visibility_outlined, t.screenChat.readOnly),

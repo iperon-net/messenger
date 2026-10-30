@@ -134,7 +134,12 @@ class PinnedMessagesMaterial extends StatelessWidget {
                     child: SizedBox(
                       width: double.infinity,
                       child: TextButton(
-                        style: TextButton.styleFrom(foregroundColor: scheme.error, padding: const EdgeInsets.symmetric(vertical: 16)),
+                        style: TextButton.styleFrom(
+                          foregroundColor: scheme.error,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          // Подсветка наведения — во всю панель, без скруглённых краёв.
+                          shape: const RoundedRectangleBorder(),
+                        ),
                         onPressed: () => _unpinAll(context, chat, pinned.length, shared: pinned.any((m) => !m.pinnedOnlyMe)),
                         child: Text(t.unpinAll),
                       ),
