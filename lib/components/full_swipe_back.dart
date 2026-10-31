@@ -154,8 +154,33 @@ class _FullSwipeBackDetector extends StatefulWidget {
   State<_FullSwipeBackDetector> createState() => _FullSwipeBackDetectorState();
 }
 
+/// Как [DirectionalDragGestureRecognizer], но с учётом того, что скролл
+/// (вертикальный список) стоит глубже и при равных условиях забирает жест:
+/// события пальца доходят до него раньше, и при диагональном свайпе вертикальный
+/// порог преодолевается первым. Поэтому «назад» принимаем раньше скролла —
+/// как только накопленный сдвиг вправо превысил половину slop и при этом идёт
+/// правее, чем вниз.
+class _SwipeBackDragGestureRecognizer extends DirectionalDragGestureRecognizer {
+  _SwipeBackDragGestureRecognizer({required super.direction, super.debugOwner});
+
+  double _downward = 0;
+
+  @override
+  void handleEvent(PointerEvent event) {
+    if (event is PointerDownEvent) _downward = 0;
+    if (event is PointerMoveEvent) _downward += event.delta.dy;
+    super.handleEvent(event);
+  }
+
+  @override
+  bool hasSufficientGlobalDistanceToAccept(PointerDeviceKind pointerDeviceKind, double? deviceTouchSlop) {
+    final rightward = globalDistanceMoved * direction;
+    return rightward > computeHitSlop(pointerDeviceKind, gestureSettings) / 2 && rightward > _downward;
+  }
+}
+
 class _FullSwipeBackDetectorState extends State<_FullSwipeBackDetector> {
-  late final _recognizer = DirectionalDragGestureRecognizer(direction: 1, debugOwner: this)
+  late final _recognizer = _SwipeBackDragGestureRecognizer(direction: 1, debugOwner: this)
     ..onStart = _start
     ..onUpdate = _update
     ..onEnd = _end
