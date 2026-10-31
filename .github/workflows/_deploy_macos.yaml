@@ -23,6 +23,11 @@ on:
         required: false
         type: string
         default: ""
+      # Номер сборки (CFBundleVersion = sparkle:version), общий для всех
+      # платформ — считает job Version вызывающего workflow.
+      build_number:
+        required: true
+        type: string
       # Опубликовать в GitHub Release (иначе — только артефакт).
       publish:
         required: false
@@ -125,12 +130,13 @@ jobs:
           ASC_KEY_ID: ${{ secrets.asc_key_id }}
           ASC_ISSUER_ID: ${{ secrets.asc_issuer_id }}
           BUILD_NAME: ${{ inputs.build_name }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          # Версия — из входа или тега (v0.0.N → 0.0.N), номер сборки скрипт
-          # берёт из UTC-времени, как TestFlight.
-          scripts/macos_release.sh "${BUILD_NAME:-${GITHUB_REF_NAME#v}}"
+          # Версия — из входа или тега (v0.0.N → 0.0.N), номер сборки — общий
+          # с TestFlight/Android (вход build_number).
+          scripts/macos_release.sh "${BUILD_NAME:-${GITHUB_REF_NAME#v}}" "$BUILD_NUMBER"
 
       - name: Upload DMG artifact
         uses: actions/upload-artifact@v7

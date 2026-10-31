@@ -25,6 +25,26 @@ permissions:
   contents: read
 
 jobs:
+  # Номер сборки — из версии, как в build_and_deploy.yaml (scripts/build_number.sh).
+  Version:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    outputs:
+      build_number: ${{ steps.version.outputs.build_number }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Compute build number
+        id: version
+        env:
+          BUILD_NAME: ${{ inputs.build_name }}
+        run: |
+          set -euo pipefail
+          BUILD_NUMBER=$(scripts/build_number.sh "$BUILD_NAME" "$GITHUB_RUN_ATTEMPT")
+          echo "$BUILD_NAME ($BUILD_NUMBER)"
+          echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+
   Linter:
     uses: iperon-net/messenger/.github/workflows/_linter.yaml@main
     with:
@@ -34,13 +54,14 @@ jobs:
 
   macOS:
     uses: iperon-net/messenger/.github/workflows/_deploy_macos.yaml@main
-    needs: Linter
+    needs: [Version, Linter]
     # Публикация — GitHub Release этого репо.
     permissions:
       contents: write
     with:
       flutter_version: "3.47.8"
       build_name: ${{ inputs.build_name }}
+      build_number: ${{ needs.Version.outputs.build_number }}
       publish: ${{ inputs.publish }}
     secrets:
       firebase_options_dart_base64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}

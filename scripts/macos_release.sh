@@ -29,8 +29,9 @@ set -euo pipefail
 
 BUILD_NAME="${1:?usage: $0 <build-name> [build-number]}"
 # Номер сборки = CFBundleVersion = sparkle:version: Sparkle сравнивает его, он
-# обязан расти — как у TestFlight, UTC-время.
-BUILD_NUMBER="${2:-$(date -u +%y%m%d%H%M)}"
+# обязан расти. Общий для всех платформ (scripts/build_number.sh): на CI его
+# передаёт job Version, локально — из версии с попыткой 1.
+BUILD_NUMBER="${2:-$("$(dirname "$0")/build_number.sh" "$BUILD_NAME")}"
 
 if [ -z "${RELEASE:-}" ]; then
   if [[ "$BUILD_NAME" =~ ^[0-9]+\.[0-9]+\.0$ ]]; then RELEASE=1; else RELEASE=0; fi

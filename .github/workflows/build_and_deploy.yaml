@@ -13,6 +13,25 @@ permissions:
   contents: read
 
 jobs:
+  # Один номер сборки на все платформы: v0.0.589 → 0.0.589 (58901), перезапуск
+  # → 58902 (scripts/build_number.sh).
+  Version:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    outputs:
+      build_number: ${{ steps.version.outputs.build_number }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Compute build number
+        id: version
+        run: |
+          set -euo pipefail
+          BUILD_NUMBER=$(scripts/build_number.sh "${GITHUB_REF_NAME#v}" "$GITHUB_RUN_ATTEMPT")
+          echo "${GITHUB_REF_NAME#v} ($BUILD_NUMBER)"
+          echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+
   Linter:
     uses: iperon-net/messenger/.github/workflows/_linter.yaml@main
     with:
@@ -22,9 +41,10 @@ jobs:
 
   TestFlight:
     uses: iperon-net/messenger/.github/workflows/_deploy_testflight.yaml@main
-    needs: Linter
+    needs: [Version, Linter]
     with:
       flutter_version: "3.47.8"
+      build_number: ${{ needs.Version.outputs.build_number }}
     secrets:
       firebase_options_dart_base64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
       ios_google_service_info_plist_base64: ${{ secrets.IOS_GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
@@ -40,12 +60,13 @@ jobs:
   # секретов нет — неподписанный DMG только артефактом, релиз не создаётся.
   macOS:
     uses: iperon-net/messenger/.github/workflows/_deploy_macos.yaml@main
-    needs: Linter
+    needs: [Version, Linter]
     # Публикация — GitHub Release этого репо.
     permissions:
       contents: write
     with:
       flutter_version: "3.47.8"
+      build_number: ${{ needs.Version.outputs.build_number }}
     secrets:
       firebase_options_dart_base64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
       macos_developer_id_p12_base64: ${{ secrets.MACOS_DEVELOPER_ID_P12_BASE64 }}

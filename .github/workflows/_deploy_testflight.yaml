@@ -6,6 +6,11 @@ on:
       flutter_version:
         required: true
         type: string
+      # Номер сборки (CFBundleVersion), общий для всех платформ — считает job
+      # Version вызывающего workflow (scripts/build_number.sh).
+      build_number:
+        required: true
+        type: string
     secrets:
       firebase_options_dart_base64:
         required: true
@@ -50,8 +55,7 @@ jobs:
           set -euo pipefail
           # Сборка запускается по push тега v* (github.ref_name — имя этого тега),
           # поэтому имя версии (BUILD_NAME) берём прямо из тега, срезая префикс v.
-          # Номер билда — из UTC-даты (см. шаг «Build IPA»), так что он уникален
-          # даже при нескольких сборках на одном теге.
+          # Номер билда приходит входом build_number (общий с macOS/Android).
           CURRENT_TAG="${GITHUB_REF_NAME}"
           BUILD_NAME="${CURRENT_TAG#v}"
           echo "Tag: ${CURRENT_TAG} → BUILD_NAME=${BUILD_NAME}"
@@ -240,10 +244,9 @@ jobs:
         run: |
           set -euo pipefail
           # Version name (BUILD_NAME) comes from the triggering v* tag, resolved
-          # in the "Resolve version from tag" step; build number from a UTC
-          # timestamp (YYMMDDHHMM), so every TestFlight build is unique and
-          # monotonically increasing, independent of the CI run counter.
-          BUILD_NUMBER="$(date -u +%y%m%d%H%M)"
+          # in the "Resolve version from tag" step; build number is shared by
+          # all platforms: N × 100 + run attempt (scripts/build_number.sh).
+          BUILD_NUMBER="${{ inputs.build_number }}"
           echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
           flutter build ipa \
             --release \
