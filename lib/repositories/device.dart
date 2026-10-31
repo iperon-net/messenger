@@ -375,6 +375,15 @@ class DeviceDatabase {
           // macOS, «Данные и память → Папка для загрузок»: '' — «Загрузки/Iperon».
           await tx.execute("ALTER TABLE settingsDevice ADD COLUMN downloadsDir TEXT NOT NULL DEFAULT '';");
         }),
+      )
+      ..add(
+        SqliteMigration(9, (tx) async {
+          // Баннер «Доступна версия» (lib/app_update.dart): «Позже» — номер
+          // отложенной сборки и когда (мс с эпохи).
+          for (final column in ['updateDismissedBuild', 'updateDismissedAt']) {
+            await tx.execute("ALTER TABLE settingsDevice ADD COLUMN $column INTEGER NOT NULL DEFAULT 0;");
+          }
+        }),
       );
   }
 

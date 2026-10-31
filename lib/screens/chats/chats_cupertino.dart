@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../app_update.dart';
 import '../../split_layout.dart';
 import '../../themes.dart';
 import '../../cubit.dart';
@@ -135,6 +136,22 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll, Cha
                   ),
                 ),
                 header: [
+                  // «Доступна версия» (lib/app_update.dart): на iOS пока не бывает —
+                  // TestFlight сам сообщает о сборках.
+                  ValueListenableBuilder<AppUpdateOffer?>(
+                    valueListenable: AppUpdates.instance.available,
+                    builder: (context, offer, _) {
+                      if (offer == null) return const SizedBox.shrink();
+                      return PermissionBannerCupertino(
+                        icon: HugeIcons.strokeRoundedDownload04,
+                        title: context.t.appUpdate.bannerTitle(version: offer.version),
+                        message: context.t.appUpdate.bannerText,
+                        actionLabel: context.t.appUpdate.button,
+                        onAction: AppUpdates.instance.open,
+                        onDismiss: AppUpdates.instance.dismiss,
+                      );
+                    },
+                  ),
                   // Мягкий баннер-объяснение о разрешении на уведомления. Виден, только
                   // пока разрешения нет и пользователь его не закрыл.
                   BlocSelector<ChatsCubit, ChatsState, bool>(

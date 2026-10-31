@@ -2205,6 +2205,8 @@ class _Translations$appUpdate$ru extends Translations$appUpdate$en {
 	@override String get text => 'Эта версия Iperon устарела и больше не поддерживается. Установите новую, чтобы продолжить.';
 	@override String get button => 'Обновить';
 	@override String version({required Object current, required Object minimal}) => 'Установлена ${current}, нужна ${minimal} или новее.';
+	@override String bannerTitle({required Object version}) => 'Доступна версия ${version}';
+	@override String get bannerText => 'Установите новую версию Iperon — с исправлениями и новыми возможностями.';
 }
 
 // Path: screenAuthBlocked
@@ -3846,11 +3848,13 @@ extension on TranslationsRu {
 			'appUpdate.text' => 'Эта версия Iperon устарела и больше не поддерживается. Установите новую, чтобы продолжить.',
 			'appUpdate.button' => 'Обновить',
 			'appUpdate.version' => ({required Object current, required Object minimal}) => 'Установлена ${current}, нужна ${minimal} или новее.',
+			'appUpdate.bannerTitle' => ({required Object version}) => 'Доступна версия ${version}',
+			'appUpdate.bannerText' => 'Установите новую версию Iperon — с исправлениями и новыми возможностями.',
 			'screenAuthBlocked.title' => 'Аккаунт заблокирован',
-			'screenAuthBlocked.text' => 'Войти в этот аккаунт сейчас нельзя: он заблокирован за нарушение правил Iperon.',
-			'screenAuthBlocked.reason' => ({required Object reason}) => 'Причина: ${reason}',
 			_ => null,
 		} ?? switch (path) {
+			'screenAuthBlocked.text' => 'Войти в этот аккаунт сейчас нельзя: он заблокирован за нарушение правил Iperon.',
+			'screenAuthBlocked.reason' => ({required Object reason}) => 'Причина: ${reason}',
 			'screenAuthBlocked.until' => ({required Object date}) => 'Блокировка действует до ${date}.',
 			'screenAuthBlocked.forever' => 'Блокировка бессрочная.',
 			'screenAuthBlocked.support' => 'Если вы считаете, что это ошибка, напишите в поддержку:',

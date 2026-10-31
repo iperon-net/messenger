@@ -1689,6 +1689,8 @@ dateTime:
   "text": "This version of Iperon is out of date and no longer supported. Install the new one to continue."
   "button": "Update"
   "version": "Installed {current}, {minimal} or newer is required."
+  "bannerTitle": "Version {version} is available"
+  "bannerText": "Install the new version of Iperon with fixes and new features."
 
 "screenAuthBlocked":
   "title": "Account blocked"

@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
 import 'package:messenger/repositories/repositories.dart';
 import 'account_scope.dart';
+import 'app_update.dart';
 import 'accounts.dart';
 import 'chats/spoiler_reveals.dart';
 import 'client_config.dart';
@@ -118,6 +119,8 @@ Future<void> startAccountServices() async {
   AccountProfileSync.instance.start();
   // «Хранить медиа» и предел размера кэша.
   StorageUsage.instance.start();
+  // Баннер «Доступна версия» (APK); общий для устройства — повторно не запускается.
+  AppUpdates.instance.start();
 }
 
 /// Идёт переключение аккаунта: дерево приложения на это время снято — старое

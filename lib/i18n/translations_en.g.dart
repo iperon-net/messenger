@@ -5187,6 +5187,12 @@ class Translations$appUpdate$en {
 
 	/// en: 'Installed {current}, {minimal} or newer is required.'
 	String version({required Object current, required Object minimal}) => 'Installed ${current}, ${minimal} or newer is required.';
+
+	/// en: 'Version {version} is available'
+	String bannerTitle({required Object version}) => 'Version ${version} is available';
+
+	/// en: 'Install the new version of Iperon with fixes and new features.'
+	String get bannerText => 'Install the new version of Iperon with fixes and new features.';
 }
 
 // Path: screenAuthBlocked
@@ -6924,11 +6930,13 @@ extension on Translations {
 			'appUpdate.text' => 'This version of Iperon is out of date and no longer supported. Install the new one to continue.',
 			'appUpdate.button' => 'Update',
 			'appUpdate.version' => ({required Object current, required Object minimal}) => 'Installed ${current}, ${minimal} or newer is required.',
+			'appUpdate.bannerTitle' => ({required Object version}) => 'Version ${version} is available',
+			'appUpdate.bannerText' => 'Install the new version of Iperon with fixes and new features.',
 			'screenAuthBlocked.title' => 'Account blocked',
-			'screenAuthBlocked.text' => 'You can\'t sign in to this account right now: it has been blocked for violating the Iperon rules.',
-			'screenAuthBlocked.reason' => ({required Object reason}) => 'Reason: ${reason}',
 			_ => null,
 		} ?? switch (path) {
+			'screenAuthBlocked.text' => 'You can\'t sign in to this account right now: it has been blocked for violating the Iperon rules.',
+			'screenAuthBlocked.reason' => ({required Object reason}) => 'Reason: ${reason}',
 			'screenAuthBlocked.until' => ({required Object date}) => 'The block lasts until ${date}.',
 			'screenAuthBlocked.forever' => 'The block is permanent.',
 			'screenAuthBlocked.support' => 'If you think this is a mistake, contact support:',
