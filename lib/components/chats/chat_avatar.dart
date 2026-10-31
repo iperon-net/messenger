@@ -145,6 +145,8 @@ class ChatAvatar extends StatelessWidget {
           fit: BoxFit.cover,
           cacheWidth: (size * 3).round(),
           frameBuilder: preview == null ? null : (context, child, frame, sync) => frame != null || sync ? child : blurred(preview),
+          // Файл пропал из кэша — превью или заглушка, а не битая картинка.
+          errorBuilder: (context, error, stackTrace) => preview == null ? _placeholder(shape) : blurred(preview),
         ),
       );
     }
@@ -154,7 +156,10 @@ class ChatAvatar extends StatelessWidget {
         child: blurred(preview),
       );
     }
+    return _placeholder(shape);
+  }
 
+  Widget _placeholder(ShapeBorder shape) {
     // Прозрачная подложка ловит тапы (шапка чата): hitTest заглушки смотрит на
     // размер с последней отрисовки, и после перестройки шапки без перерисовки
     // (новый painter) тап проходил мимо — профиль не открывался.
@@ -201,8 +206,27 @@ class SystemAccountAvatar extends StatelessWidget {
 }
 
 /// Картинка чата (аватар, обложка) по пути: файл с устройства или ассет
-/// демо-данных (`assets/…`).
-Image chatImage(String path, {double? width, double? height, BoxFit? fit, int? cacheWidth, ImageFrameBuilder? frameBuilder}) =>
-    path.startsWith('assets/')
-    ? Image.asset(path, width: width, height: height, fit: fit, cacheWidth: cacheWidth, frameBuilder: frameBuilder)
-    : Image.file(File(path), width: width, height: height, fit: fit, cacheWidth: cacheWidth, frameBuilder: frameBuilder);
+/// демо-данных (`assets/…`). Файла нет (кэш почистили) — [errorBuilder], по
+/// умолчанию пустое место того же размера.
+Image chatImage(
+  String path, {
+  double? width,
+  double? height,
+  BoxFit? fit,
+  int? cacheWidth,
+  ImageFrameBuilder? frameBuilder,
+  ImageErrorWidgetBuilder? errorBuilder,
+}) {
+  final onError = errorBuilder ?? (context, error, stackTrace) => SizedBox(width: width, height: height);
+  return path.startsWith('assets/')
+      ? Image.asset(path, width: width, height: height, fit: fit, cacheWidth: cacheWidth, frameBuilder: frameBuilder, errorBuilder: onError)
+      : Image.file(
+          File(path),
+          width: width,
+          height: height,
+          fit: fit,
+          cacheWidth: cacheWidth,
+          frameBuilder: frameBuilder,
+          errorBuilder: onError,
+        );
+}

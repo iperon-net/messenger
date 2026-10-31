@@ -110,7 +110,8 @@ Widget chatMediaPlaceholder(String seed, {required bool video, double iconSize =
 }
 
 /// Фото из файла на всю площадь (cover); пока декодируется — размытое превью
-/// из ThumbHash (если есть).
+/// из ThumbHash (если есть). Файла нет (кэш почистили — автоочистка или iOS) —
+/// то же превью вместо падения на `PathNotFoundException`.
 class ChatMediaImage extends StatelessWidget {
   final String path;
   final String thumbhash;
@@ -130,6 +131,8 @@ class ChatMediaImage extends StatelessWidget {
         if (frame != null || wasSynchronouslyLoaded || preview == null) return child;
         return Image(image: preview, fit: fit, gaplessPlayback: true);
       },
+      errorBuilder: (context, error, stackTrace) =>
+          preview == null ? const SizedBox.expand() : Image(image: preview, fit: fit, gaplessPlayback: true),
     );
   }
 }

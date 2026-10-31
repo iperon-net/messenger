@@ -68,13 +68,15 @@ mixin SettingsAccountsState<T extends StatefulWidget> on State<T> {
   /// профиле».
   Widget accountAvatar(AccountEntry account, {required double size}) {
     final image = avatarOf(account);
+    final placeholder = BoringAvatar(name: account.userHex, type: _placeholderTypes[account.userHex], shape: const CircleBorder());
     return SizedBox.square(
       dimension: size,
       child: image != null
           ? ClipOval(
-              child: Image(image: image, fit: BoxFit.cover),
+              // Файл удалили между проверкой и чтением — заглушка, не падение.
+              child: Image(image: image, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => placeholder),
             )
-          : BoringAvatar(name: account.userHex, type: _placeholderTypes[account.userHex], shape: const CircleBorder()),
+          : placeholder,
     );
   }
 
