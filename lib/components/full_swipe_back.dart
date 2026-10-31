@@ -159,7 +159,9 @@ class _FullSwipeBackDetector extends StatefulWidget {
 /// события пальца доходят до него раньше, и при диагональном свайпе вертикальный
 /// порог преодолевается первым. Поэтому «назад» принимаем раньше скролла —
 /// как только накопленный сдвиг вправо превысил половину slop и при этом идёт
-/// правее, чем вниз.
+/// правее, чем вниз. Только при заметном вертикальном сдвиге (соперник — скролл):
+/// чисто горизонтальный жест — с обычным порогом, иначе он перебил бы внутренний
+/// горизонтальный жест (свайп-действия строки, Slidable в «Архиве»).
 class _SwipeBackDragGestureRecognizer extends DirectionalDragGestureRecognizer {
   _SwipeBackDragGestureRecognizer({required super.direction, super.debugOwner});
 
@@ -174,8 +176,10 @@ class _SwipeBackDragGestureRecognizer extends DirectionalDragGestureRecognizer {
 
   @override
   bool hasSufficientGlobalDistanceToAccept(PointerDeviceKind pointerDeviceKind, double? deviceTouchSlop) {
+    final slop = computeHitSlop(pointerDeviceKind, gestureSettings);
     final rightward = globalDistanceMoved * direction;
-    return rightward > computeHitSlop(pointerDeviceKind, gestureSettings) / 2 && rightward > _downward;
+    if (_downward.abs() < slop / 4) return rightward > slop;
+    return rightward > slop / 2 && rightward > _downward;
   }
 }
 
