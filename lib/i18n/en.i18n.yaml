@@ -701,6 +701,7 @@
   "dataAndStorage": "@:screenSettingsData.dataAndStorage"
   "privacyAndSecurity": "Privacy and security"
   "aboutApplication": "About the application"
+  "licenses": "Licenses"
   "logs": "Logs"
   "logout": "Logout"
   "addAccount": "Add account"

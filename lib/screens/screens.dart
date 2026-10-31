@@ -35,6 +35,8 @@ export 'settings/settings_developer_cupertino.dart';
 export 'settings/settings_developer_material.dart';
 export 'settings/settings_language_cupertino.dart';
 export 'settings/settings_language_material.dart';
+export 'settings/settings_licenses_cupertino.dart';
+export 'settings/settings_licenses_material.dart';
 export 'settings/settings_general_material.dart';
 export 'settings/settings_calls_material.dart';
 export 'settings/settings_appearance_cupertino.dart';

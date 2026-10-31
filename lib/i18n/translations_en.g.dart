@@ -2149,6 +2149,9 @@ class Translations$screenSettings$en {
 	/// en: 'About the application'
 	String get aboutApplication => 'About the application';
 
+	/// en: 'Licenses'
+	String get licenses => 'Licenses';
+
 	/// en: 'Logs'
 	String get logs => 'Logs';
 
@@ -6035,6 +6038,7 @@ extension on Translations {
 			'screenSettings.dataAndStorage' => _root.screenSettingsData.dataAndStorage,
 			'screenSettings.privacyAndSecurity' => 'Privacy and security',
 			'screenSettings.aboutApplication' => 'About the application',
+			'screenSettings.licenses' => 'Licenses',
 			'screenSettings.logs' => 'Logs',
 			'screenSettings.logout' => 'Logout',
 			'screenSettings.addAccount' => 'Add account',
@@ -6409,9 +6413,9 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.forwardsPreviewText' => 'Remind me, what time are we meeting tomorrow?',
 			'sessionsPrivacyAndSecurity.groupInvites' => 'Groups & Channels',
 			'sessionsPrivacyAndSecurity.whoCanAddToGroups' => 'Who can add me to groups and channels',
-			'sessionsPrivacyAndSecurity.groupInvitesNote' => 'Everyone else won\'t be able to add you to a group or channel — you just won\'t be among its members or subscribers.',
 			_ => null,
 		} ?? switch (path) {
+			'sessionsPrivacyAndSecurity.groupInvitesNote' => 'Everyone else won\'t be able to add you to a group or channel — you just won\'t be among its members or subscribers.',
 			'sessionsPrivacyAndSecurity.phoneNumber' => 'Phone number',
 			'sessionsPrivacyAndSecurity.whoCanSeePhoneNumber' => 'Who can see my phone number',
 			'sessionsPrivacyAndSecurity.phoneNumberNote' => 'People who already have your number saved in their contacts will always see it.',
@@ -6923,9 +6927,9 @@ extension on Translations {
 			'screenAuthBlocked.title' => 'Account blocked',
 			'screenAuthBlocked.text' => 'You can\'t sign in to this account right now: it has been blocked for violating the Iperon rules.',
 			'screenAuthBlocked.reason' => ({required Object reason}) => 'Reason: ${reason}',
-			'screenAuthBlocked.until' => ({required Object date}) => 'The block lasts until ${date}.',
 			_ => null,
 		} ?? switch (path) {
+			'screenAuthBlocked.until' => ({required Object date}) => 'The block lasts until ${date}.',
 			'screenAuthBlocked.forever' => 'The block is permanent.',
 			'screenAuthBlocked.support' => 'If you think this is a mistake, contact support:',
 			'screenAuthBlocked.back' => 'Back',

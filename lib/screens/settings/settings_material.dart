@@ -129,6 +129,15 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                     additionalInfo: Text(_languageName(LocaleSettings.currentLocale)),
                     isTrailing: true,
                   ),
+                  // Лицензии библиотек.
+                  MaterialListTileIcon(
+                    title: Text(context.t.screenSettings.licenses),
+                    color: const Color(0xFF8E8E93),
+                    icon: FontAwesomeIcons.fileLines,
+                    onTab: () async => context.go("/settings/licenses"),
+                    selected: SplitSelection.of(context) == 'licenses',
+                    isTrailing: true,
+                  ),
                 ]),
                 const SizedBox(height: 6),
               ],

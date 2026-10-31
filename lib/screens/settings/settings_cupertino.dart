@@ -155,6 +155,15 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                       additionalInfo: Text(_languageName(LocaleSettings.currentLocale)),
                       isTrailing: true,
                     ),
+                    // Лицензии библиотек.
+                    CupertinoListTileIcon(
+                      title: Text(context.t.screenSettings.licenses),
+                      color: Color(0xFF8E8E93),
+                      icon: FontAwesomeIcons.fileLines,
+                      onTab: () async => context.go('/settings/licenses'),
+                      backgroundColor: splitSelectedBackground(context, 'licenses', base: ThemesCupertino.groupedCard.resolveFrom(context)),
+                      isTrailing: true,
+                    ),
                   ],
                 ),
               ],

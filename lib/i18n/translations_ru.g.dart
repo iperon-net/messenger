@@ -909,6 +909,7 @@ class _Translations$screenSettings$ru extends Translations$screenSettings$en {
 	@override String get dataAndStorage => _root.screenSettingsData.dataAndStorage;
 	@override String get privacyAndSecurity => 'Конфиденциальность';
 	@override String get aboutApplication => 'О приложении';
+	@override String get licenses => 'Лицензии';
 	@override String get logs => 'Логи';
 	@override String get logout => 'Выйти';
 	@override String get addAccount => 'Добавить аккаунт';
@@ -2959,6 +2960,7 @@ extension on TranslationsRu {
 			'screenSettings.dataAndStorage' => _root.screenSettingsData.dataAndStorage,
 			'screenSettings.privacyAndSecurity' => 'Конфиденциальность',
 			'screenSettings.aboutApplication' => 'О приложении',
+			'screenSettings.licenses' => 'Лицензии',
 			'screenSettings.logs' => 'Логи',
 			'screenSettings.logout' => 'Выйти',
 			'screenSettings.addAccount' => 'Добавить аккаунт',
@@ -3333,9 +3335,9 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.forwardsPreviewText' => 'Напомни, во сколько завтра встречаемся?',
 			'sessionsPrivacyAndSecurity.groupInvites' => 'Группы и каналы',
 			'sessionsPrivacyAndSecurity.whoCanAddToGroups' => 'Кто может добавлять меня в группы и каналы',
-			'sessionsPrivacyAndSecurity.groupInvitesNote' => 'Остальные не смогут добавить вас в группу или канал — вы просто не попадёте в число участников или подписчиков.',
 			_ => null,
 		} ?? switch (path) {
+			'sessionsPrivacyAndSecurity.groupInvitesNote' => 'Остальные не смогут добавить вас в группу или канал — вы просто не попадёте в число участников или подписчиков.',
 			'sessionsPrivacyAndSecurity.phoneNumber' => 'Номер телефона',
 			'sessionsPrivacyAndSecurity.whoCanSeePhoneNumber' => 'Кто видит мой номер телефона',
 			'sessionsPrivacyAndSecurity.phoneNumberNote' => 'Тот, у кого ваш номер уже записан в контактах, видит его всегда.',
@@ -3847,9 +3849,9 @@ extension on TranslationsRu {
 			'screenAuthBlocked.title' => 'Аккаунт заблокирован',
 			'screenAuthBlocked.text' => 'Войти в этот аккаунт сейчас нельзя: он заблокирован за нарушение правил Iperon.',
 			'screenAuthBlocked.reason' => ({required Object reason}) => 'Причина: ${reason}',
-			'screenAuthBlocked.until' => ({required Object date}) => 'Блокировка действует до ${date}.',
 			_ => null,
 		} ?? switch (path) {
+			'screenAuthBlocked.until' => ({required Object date}) => 'Блокировка действует до ${date}.',
 			'screenAuthBlocked.forever' => 'Блокировка бессрочная.',
 			'screenAuthBlocked.support' => 'Если вы считаете, что это ошибка, напишите в поддержку:',
 			'screenAuthBlocked.back' => 'Назад',

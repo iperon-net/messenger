@@ -727,6 +727,7 @@
   "dataAndStorage": "@:screenSettingsData.dataAndStorage"
   "privacyAndSecurity": "Конфиденциальность"
   "aboutApplication": "О приложении"
+  "licenses": "Лицензии"
   "logs": "Логи"
   "logout": "Выйти"
   "addAccount": "Добавить аккаунт"

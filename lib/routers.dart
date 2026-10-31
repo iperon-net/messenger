@@ -906,6 +906,11 @@ class Routers {
           ),
         ),
         GoRoute(
+          path: "licenses",
+          parentNavigatorKey: pane,
+          pageBuilder: (context, state) => _page(state, const SettingsLicensesCupertinoScreen(), pane: split, context: context),
+        ),
+        GoRoute(
           path: "appearance",
           parentNavigatorKey: pane,
           pageBuilder: (context, state) => _page(
@@ -2073,6 +2078,11 @@ class Routers {
             pane: split,
             context: context,
           ),
+        ),
+        GoRoute(
+          path: "licenses",
+          parentNavigatorKey: pane,
+          pageBuilder: (context, state) => _pageMaterial(state, const SettingsLicensesMaterialScreen(), pane: split, context: context),
         ),
         // «Общие» — только десктоп (клавиша отправки, автозапуск).
         GoRoute(
