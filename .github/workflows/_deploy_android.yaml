@@ -154,6 +154,29 @@ jobs:
           "$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner" \
             verify --print-certs "$OUT/Iperon-$BUILD_NAME-arm64-v8a.apk" | grep -E "SHA-256|DN"
 
+      # Манифест последней версии для баннера «Доступна версия» (lib/app_update.dart,
+      # docs/plans/app-updates.md §4): nginx отдаёт его из Latest-релиза как
+      # download.iperon.net/android/latest.json.
+      - name: Write latest.json
+        env:
+          BUILD_NUMBER: ${{ inputs.build_number }}
+        run: |
+          set -euo pipefail
+          OUT=build/android/release
+          APKS='{}'
+          for apk in "$OUT"/Iperon-"$BUILD_NAME"-*.apk; do
+            file=$(basename "$apk")
+            abi=${file#"Iperon-$BUILD_NAME-"}
+            abi=${abi%.apk}
+            APKS=$(jq -c --arg abi "$abi" --arg url "https://download.iperon.net/android/$file" \
+              --argjson size "$(stat -c %s "$apk")" --arg sha256 "$(sha256sum "$apk" | cut -d' ' -f1)" \
+              '. + {($abi): {url: $url, size: $size, sha256: $sha256}}' <<<"$APKS")
+          done
+          jq -n --arg version "$BUILD_NAME" --argjson build "$BUILD_NUMBER" \
+            --arg publishedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --argjson apks "$APKS" \
+            '{version: $version, build: $build, publishedAt: $publishedAt, apks: $apks}' > "$OUT/android-latest.json"
+          cat "$OUT/android-latest.json"
+
       # Артефакт workflow — zip-архив; при публикации APK и так лежат в релизе
       # отдельными файлами, поэтому артефакт — только для сборок без publish.
       - name: Upload APK artifact
@@ -171,7 +194,7 @@ jobs:
         run: |
           set -euo pipefail
           TAG="v$BUILD_NAME"
-          FILES=(build/android/release/*.apk)
+          FILES=(build/android/release/*.apk build/android/release/android-latest.json)
           # Релиз версии общий с macOS. Если Android первый — создаём его
           # pre-release: latest переключает scripts/macos_release.sh, когда
           # appcast уже загружен (nginx берёт /macos/appcast.xml из latest).
