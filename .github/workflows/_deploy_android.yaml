@@ -79,11 +79,8 @@ jobs:
           channel: stable
           cache: true
 
-      # compileSdk 37 (app/build.gradle.kts) на образе раннера может не быть.
-      - name: Install Android platform
-        run: |
-          set -euo pipefail
-          (yes || true) | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37" >/dev/null
+      # compileSdk 37 (пакет platforms;android-37.0) и NDK Gradle докачивает
+      # сам: лицензии на образе раннера приняты.
 
       - name: Restore config files
         env:
