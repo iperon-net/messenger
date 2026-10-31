@@ -69,8 +69,18 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      # Кэш Gradle (зависимости, wrapper, build cache). Пишется только на main
+      # (ручной android.yaml и warm_cache.yaml), сборка по тегу его только читает.
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+
+      # Build cache Gradle: выходы задач (компиляция плагинов, Kotlin, R8 и т. п.)
+      # переиспользуются между сборками, а не только скачанные зависимости.
+      - name: Enable Gradle build cache
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.gradle
+          echo "org.gradle.caching=true" >> ~/.gradle/gradle.properties
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2

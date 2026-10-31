@@ -17,6 +17,11 @@ on:
       - .github/workflows/warm_cache.yaml
       - .github/workflows/_deploy_testflight.yaml
       - .github/workflows/build_and_deploy.yaml
+      - .github/workflows/_deploy_android.yaml
+      - android/gradle.properties
+      - android/settings.gradle.kts
+      - android/app/build.gradle.kts
+      - android/gradle/wrapper/gradle-wrapper.properties
   schedule:
     # Неиспользуемый 7 дней кэш GitHub удаляет — раз в неделю освежаем.
     - cron: "0 3 * * 1"
@@ -79,3 +84,21 @@ jobs:
             -workspace ios/Runner.xcworkspace \
             -scheme Runner \
             -clonedSourcePackagesDirPath build/ios/SourcePackages
+
+  # Кэш Gradle для Android: та же сборка, что по тегу (_deploy_android.yaml),
+  # без публикации — на main setup-gradle сохраняет кэш, сборки по тегу его читают.
+  android:
+    name: Warm Android caches
+    uses: iperon-net/messenger/.github/workflows/_deploy_android.yaml@main
+    with:
+      flutter_version: "3.47.8"
+      build_name: "0.0.0"
+      build_number: "1"
+      publish: false
+    secrets:
+      firebase_options_dart_base64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
+      android_google_services_json_base64: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_BASE64 }}
+      android_keystore_base64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      android_keystore_password: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      android_key_alias: ${{ secrets.ANDROID_KEY_ALIAS }}
+      android_key_password: ${{ secrets.ANDROID_KEY_PASSWORD }}
