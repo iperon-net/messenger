@@ -26,6 +26,10 @@
     <!-- flutter_contacts: приватный поиск контактов (чтение телефонной книги;
          номера не покидают устройство в открытом виде — сверка через OPRF). -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!-- Обновление из приложения для APK с сайта (AppUpdate.kt). Google Play его
+         мессенджерам не разрешает: сборка для Play уберёт его (tools:node="remove"),
+         docs/plans/app-updates.md §5. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <!-- Сохранение медиа и файлов из чатов до Android 10 (общие папки);
          с Android 10 — через MediaStore без разрешения. -->
     <uses-permission
@@ -123,6 +127,10 @@
              PendingIntent'ы — не экспортируется). См. NotificationActionReceiver.kt. -->
         <receiver
             android:name=".NotificationActionReceiver"
+            android:exported="false" />
+        <!-- Статусы установки обновления (PackageInstaller), см. AppUpdate.kt. -->
+        <receiver
+            android:name=".AppUpdateInstallReceiver"
             android:exported="false" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

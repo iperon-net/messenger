@@ -6,7 +6,7 @@ void main() {
     'version': '0.0.593',
     'build': 59301,
     'apks': {
-      'arm64-v8a': {'url': 'https://download.iperon.net/android/Iperon-0.0.593-arm64-v8a.apk'},
+      'arm64-v8a': {'url': 'https://download.iperon.net/android/Iperon-0.0.593-arm64-v8a.apk', 'size': 70000000, 'sha256': 'ab' * 32},
       'armeabi-v7a': {'url': 'https://download.iperon.net/android/Iperon-0.0.593-armeabi-v7a.apk'},
     },
   };
@@ -47,5 +47,12 @@ void main() {
       AppUpdates.offerFrom({'version': '0.0.593'}, currentBuild: 1, abis: const [], dismissedBuild: 0, dismissedAt: now, now: now),
       isNull,
     );
+  });
+
+  test('sha256 и размер APK своего ABI — для установки из приложения', () {
+    expect(offer()?.sha256, 'ab' * 32);
+    expect(offer()?.size, 70000000);
+    expect(offer(abis: ['armeabi-v7a'])?.sha256, isNull);
+    expect(offer(abis: ['x86_64'])?.sha256, isNull);
   });
 }

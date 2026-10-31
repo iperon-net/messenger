@@ -147,7 +147,7 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll, Cha
                         title: context.t.appUpdate.bannerTitle(version: offer.version),
                         message: context.t.appUpdate.bannerText,
                         actionLabel: context.t.appUpdate.button,
-                        onAction: AppUpdates.instance.open,
+                        onAction: AppUpdates.instance.openInBrowser,
                         onDismiss: AppUpdates.instance.dismiss,
                       );
                     },

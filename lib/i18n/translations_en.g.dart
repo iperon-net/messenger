@@ -5193,6 +5193,30 @@ class Translations$appUpdate$en {
 
 	/// en: 'Install the new version of Iperon with fixes and new features.'
 	String get bannerText => 'Install the new version of Iperon with fixes and new features.';
+
+	/// en: 'Downloading the update… {percent}%'
+	String downloading({required Object percent}) => 'Downloading the update… ${percent}%';
+
+	/// en: 'Download over mobile data?'
+	String get mobileTitle => 'Download over mobile data?';
+
+	/// en: 'The update is about {size} MB. You can wait for Wi-Fi.'
+	String mobileText({required Object size}) => 'The update is about ${size} MB. You can wait for Wi-Fi.';
+
+	/// en: 'Download'
+	String get mobileDownload => 'Download';
+
+	/// en: 'Allow installing updates'
+	String get permissionTitle => 'Allow installing updates';
+
+	/// en: 'To update Iperon right from the app, Android will ask for permission. In settings, turn on «Allow from this source» and come back.'
+	String get permissionText => 'To update Iperon right from the app, Android will ask for permission. In settings, turn on «Allow from this source» and come back.';
+
+	/// en: 'Couldn't install the update'
+	String get failed => 'Couldn\'t install the update';
+
+	/// en: 'In browser'
+	String get openInBrowser => 'In browser';
 }
 
 // Path: screenAuthBlocked
@@ -6932,9 +6956,17 @@ extension on Translations {
 			'appUpdate.version' => ({required Object current, required Object minimal}) => 'Installed ${current}, ${minimal} or newer is required.',
 			'appUpdate.bannerTitle' => ({required Object version}) => 'Version ${version} is available',
 			'appUpdate.bannerText' => 'Install the new version of Iperon with fixes and new features.',
-			'screenAuthBlocked.title' => 'Account blocked',
+			'appUpdate.downloading' => ({required Object percent}) => 'Downloading the update… ${percent}%',
 			_ => null,
 		} ?? switch (path) {
+			'appUpdate.mobileTitle' => 'Download over mobile data?',
+			'appUpdate.mobileText' => ({required Object size}) => 'The update is about ${size} MB. You can wait for Wi-Fi.',
+			'appUpdate.mobileDownload' => 'Download',
+			'appUpdate.permissionTitle' => 'Allow installing updates',
+			'appUpdate.permissionText' => 'To update Iperon right from the app, Android will ask for permission. In settings, turn on «Allow from this source» and come back.',
+			'appUpdate.failed' => 'Couldn\'t install the update',
+			'appUpdate.openInBrowser' => 'In browser',
+			'screenAuthBlocked.title' => 'Account blocked',
 			'screenAuthBlocked.text' => 'You can\'t sign in to this account right now: it has been blocked for violating the Iperon rules.',
 			'screenAuthBlocked.reason' => ({required Object reason}) => 'Reason: ${reason}',
 			'screenAuthBlocked.until' => ({required Object date}) => 'The block lasts until ${date}.',

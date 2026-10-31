@@ -2207,6 +2207,14 @@ class _Translations$appUpdate$ru extends Translations$appUpdate$en {
 	@override String version({required Object current, required Object minimal}) => 'Установлена ${current}, нужна ${minimal} или новее.';
 	@override String bannerTitle({required Object version}) => 'Доступна версия ${version}';
 	@override String get bannerText => 'Установите новую версию Iperon — с исправлениями и новыми возможностями.';
+	@override String downloading({required Object percent}) => 'Загрузка обновления… ${percent} %';
+	@override String get mobileTitle => 'Загрузить по мобильной сети?';
+	@override String mobileText({required Object size}) => 'Обновление весит около ${size} МБ. Можно подождать Wi-Fi.';
+	@override String get mobileDownload => 'Загрузить';
+	@override String get permissionTitle => 'Разрешите установку обновлений';
+	@override String get permissionText => 'Чтобы обновлять Iperon прямо из приложения, Android попросит разрешение. В настройках включите «Разрешить установку из этого источника» и вернитесь назад.';
+	@override String get failed => 'Не удалось установить обновление';
+	@override String get openInBrowser => 'В браузере';
 }
 
 // Path: screenAuthBlocked
@@ -3850,9 +3858,17 @@ extension on TranslationsRu {
 			'appUpdate.version' => ({required Object current, required Object minimal}) => 'Установлена ${current}, нужна ${minimal} или новее.',
 			'appUpdate.bannerTitle' => ({required Object version}) => 'Доступна версия ${version}',
 			'appUpdate.bannerText' => 'Установите новую версию Iperon — с исправлениями и новыми возможностями.',
-			'screenAuthBlocked.title' => 'Аккаунт заблокирован',
+			'appUpdate.downloading' => ({required Object percent}) => 'Загрузка обновления… ${percent} %',
 			_ => null,
 		} ?? switch (path) {
+			'appUpdate.mobileTitle' => 'Загрузить по мобильной сети?',
+			'appUpdate.mobileText' => ({required Object size}) => 'Обновление весит около ${size} МБ. Можно подождать Wi-Fi.',
+			'appUpdate.mobileDownload' => 'Загрузить',
+			'appUpdate.permissionTitle' => 'Разрешите установку обновлений',
+			'appUpdate.permissionText' => 'Чтобы обновлять Iperon прямо из приложения, Android попросит разрешение. В настройках включите «Разрешить установку из этого источника» и вернитесь назад.',
+			'appUpdate.failed' => 'Не удалось установить обновление',
+			'appUpdate.openInBrowser' => 'В браузере',
+			'screenAuthBlocked.title' => 'Аккаунт заблокирован',
 			'screenAuthBlocked.text' => 'Войти в этот аккаунт сейчас нельзя: он заблокирован за нарушение правил Iperon.',
 			'screenAuthBlocked.reason' => ({required Object reason}) => 'Причина: ${reason}',
 			'screenAuthBlocked.until' => ({required Object date}) => 'Блокировка действует до ${date}.',

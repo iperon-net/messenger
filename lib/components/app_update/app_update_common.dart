@@ -79,6 +79,22 @@ Future<AppInstallSource> _detectInstallSource() async {
   }
 }
 
+/// Android: можно ли ставить APK из приложения («Установка неизвестных
+/// приложений» для Iperon, AppUpdate.kt).
+Future<bool> appCanInstallPackages() async => await _channel.invokeMethod<bool>('canInstall') ?? false;
+
+/// Android: экран разрешения «Установка неизвестных приложений» для Iperon.
+Future<void> appOpenInstallSettings() => _channel.invokeMethod<void>('openInstallSettings');
+
+/// Android: поставить APK системным окном «Обновить приложение?». Возвращается,
+/// только если установка не удалась или её отменили (`aborted`); при успехе
+/// процесс завершает система.
+Future<({bool aborted, String? message})> appInstallApk(String path) async {
+  final result = await _channel.invokeMapMethod<String, Object?>('install', {'path': path});
+  // PackageInstaller.STATUS_FAILURE_ABORTED.
+  return (aborted: result?['status'] == 3, message: result?['message'] as String?);
+}
+
 /// Ссылка на APK последней версии под ABI устройства (первый из
 /// Build.SUPPORTED_ABIS, под который есть сборка; иначе arm64-v8a).
 Uri apkDownloadUri(List<String> abis) {

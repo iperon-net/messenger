@@ -17,6 +17,9 @@ class PermissionBannerMaterial extends StatelessWidget {
   /// Подпись крестика для accessibility/тултипа. Необязательна.
   final String? dismissTooltip;
 
+  /// Полоса прогресса над кнопкой (0…1, 0 — неопределённый); null — без неё.
+  final double? progress;
+
   const PermissionBannerMaterial({
     required this.icon,
     required this.title,
@@ -25,6 +28,7 @@ class PermissionBannerMaterial extends StatelessWidget {
     required this.onAction,
     this.onDismiss,
     this.dismissTooltip,
+    this.progress,
     super.key,
   });
 
@@ -67,6 +71,11 @@ class PermissionBannerMaterial extends StatelessWidget {
                   ),
               ],
             ),
+            if (progress case final progress?)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(36, 12, 8, 0),
+                child: LinearProgressIndicator(value: progress > 0 ? progress : null),
+              ),
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(onPressed: onAction, child: Text(actionLabel)),

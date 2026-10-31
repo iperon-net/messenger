@@ -1691,6 +1691,14 @@ dateTime:
   "version": "Installed {current}, {minimal} or newer is required."
   "bannerTitle": "Version {version} is available"
   "bannerText": "Install the new version of Iperon with fixes and new features."
+  "downloading": "Downloading the update… {percent}%"
+  "mobileTitle": "Download over mobile data?"
+  "mobileText": "The update is about {size} MB. You can wait for Wi-Fi."
+  "mobileDownload": "Download"
+  "permissionTitle": "Allow installing updates"
+  "permissionText": "To update Iperon right from the app, Android will ask for permission. In settings, turn on «Allow from this source» and come back."
+  "failed": "Couldn't install the update"
+  "openInBrowser": "In browser"
 
 "screenAuthBlocked":
   "title": "Account blocked"
