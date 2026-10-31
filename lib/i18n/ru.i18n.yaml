@@ -1053,6 +1053,9 @@
   "licenses": "Лицензии"
   "licensesCount": "Лицензий: {n}"
   "noLicenses": "Лицензии не найдены"
+  "appVersion": "Версия приложения"
+  "flutterVersion": "Flutter"
+  "dartVersion": "Dart"
 
 "screenSettingsLanguage":
   "language": "Язык"

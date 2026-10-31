@@ -155,13 +155,22 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                       additionalInfo: Text(_languageName(LocaleSettings.currentLocale)),
                       isTrailing: true,
                     ),
-                    // Лицензии библиотек.
+                  ],
+                ),
+                // Отдельной группой: версии приложения, Flutter, Dart и лицензии библиотек.
+                CupertinoListSection.insetGrouped(
+                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                  decoration: BoxDecoration(
+                    color: ThemesCupertino.groupedCard.resolveFrom(context),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                  ),
+                  children: [
                     CupertinoListTileIcon(
-                      title: Text(context.t.screenSettings.licenses),
+                      title: Text(context.t.screenSettings.aboutApplication),
                       color: Color(0xFF8E8E93),
-                      icon: FontAwesomeIcons.fileLines,
-                      onTab: () async => context.go('/settings/licenses'),
-                      backgroundColor: splitSelectedBackground(context, 'licenses', base: ThemesCupertino.groupedCard.resolveFrom(context)),
+                      icon: FontAwesomeIcons.circleInfo,
+                      onTab: () async => context.go('/settings/about'),
+                      backgroundColor: splitSelectedBackground(context, 'about', base: ThemesCupertino.groupedCard.resolveFrom(context)),
                       isTrailing: true,
                     ),
                   ],

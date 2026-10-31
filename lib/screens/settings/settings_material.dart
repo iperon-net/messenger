@@ -129,13 +129,16 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                     additionalInfo: Text(_languageName(LocaleSettings.currentLocale)),
                     isTrailing: true,
                   ),
-                  // Лицензии библиотек.
+                ]),
+                const SizedBox(height: 6),
+                // Отдельной группой: версии приложения, Flutter, Dart и лицензии библиотек.
+                _group(context, [
                   MaterialListTileIcon(
-                    title: Text(context.t.screenSettings.licenses),
+                    title: Text(context.t.screenSettings.aboutApplication),
                     color: const Color(0xFF8E8E93),
-                    icon: FontAwesomeIcons.fileLines,
-                    onTab: () async => context.go("/settings/licenses"),
-                    selected: SplitSelection.of(context) == 'licenses',
+                    icon: FontAwesomeIcons.circleInfo,
+                    onTab: () async => context.go("/settings/about"),
+                    selected: SplitSelection.of(context) == 'about',
                     isTrailing: true,
                   ),
                 ]),

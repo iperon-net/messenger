@@ -1027,6 +1027,9 @@
   "licenses": "Licenses"
   "licensesCount": "{n} licenses"
   "noLicenses": "No licenses found"
+  "appVersion": "App version"
+  "flutterVersion": "Flutter"
+  "dartVersion": "Dart"
 
 "screenSettingsLanguage":
   "language": "Language"

@@ -906,9 +906,16 @@ class Routers {
           ),
         ),
         GoRoute(
-          path: "licenses",
+          path: "about",
           parentNavigatorKey: pane,
-          pageBuilder: (context, state) => _page(state, const SettingsLicensesCupertinoScreen(), pane: split, context: context),
+          pageBuilder: (context, state) => _page(state, const SettingsAboutCupertino(), pane: split, context: context),
+          routes: [
+            GoRoute(
+              path: "licenses",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _page(state, const SettingsLicensesCupertinoScreen()),
+            ),
+          ],
         ),
         GoRoute(
           path: "appearance",
@@ -2080,9 +2087,16 @@ class Routers {
           ),
         ),
         GoRoute(
-          path: "licenses",
+          path: "about",
           parentNavigatorKey: pane,
-          pageBuilder: (context, state) => _pageMaterial(state, const SettingsLicensesMaterialScreen(), pane: split, context: context),
+          pageBuilder: (context, state) => _pageMaterial(state, const SettingsAboutMaterial(), pane: split, context: context),
+          routes: [
+            GoRoute(
+              path: "licenses",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(state, const SettingsLicensesMaterialScreen()),
+            ),
+          ],
         ),
         // «Общие» — только десктоп (клавиша отправки, автозапуск).
         GoRoute(

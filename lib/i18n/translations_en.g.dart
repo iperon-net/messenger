@@ -3153,6 +3153,15 @@ class Translations$screenSettingsAboutApplication$en {
 
 	/// en: 'No licenses found'
 	String get noLicenses => 'No licenses found';
+
+	/// en: 'App version'
+	String get appVersion => 'App version';
+
+	/// en: 'Flutter'
+	String get flutterVersion => 'Flutter';
+
+	/// en: 'Dart'
+	String get dartVersion => 'Dart';
 }
 
 // Path: screenSettingsLanguage
@@ -6385,6 +6394,9 @@ extension on Translations {
 			'screenSettingsAboutApplication.licenses' => 'Licenses',
 			'screenSettingsAboutApplication.licensesCount' => ({required Object n}) => '${n} licenses',
 			'screenSettingsAboutApplication.noLicenses' => 'No licenses found',
+			'screenSettingsAboutApplication.appVersion' => 'App version',
+			'screenSettingsAboutApplication.flutterVersion' => 'Flutter',
+			'screenSettingsAboutApplication.dartVersion' => 'Dart',
 			'screenSettingsLanguage.language' => 'Language',
 			'screenSettingsPasscode.passcode' => 'Passcode',
 			'screenSettingsPasscode.passcodeAndFaceID' => 'Passcode & Face ID',
@@ -6449,11 +6461,11 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.forwards' => 'Forwarded messages',
 			'sessionsPrivacyAndSecurity.whoCanLinkForwards' => 'Who can add a link to my account when forwarding my messages',
 			'sessionsPrivacyAndSecurity.forwardsNote' => 'Everyone else will see only your name in "Forwarded from…", without a link to your profile.',
+			_ => null,
+		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.forwardsPreviewText' => 'Remind me, what time are we meeting tomorrow?',
 			'sessionsPrivacyAndSecurity.groupInvites' => 'Groups & Channels',
 			'sessionsPrivacyAndSecurity.whoCanAddToGroups' => 'Who can add me to groups and channels',
-			_ => null,
-		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.groupInvitesNote' => 'Everyone else won\'t be able to add you to a group or channel — you just won\'t be among its members or subscribers.',
 			'sessionsPrivacyAndSecurity.phoneNumber' => 'Phone number',
 			'sessionsPrivacyAndSecurity.whoCanSeePhoneNumber' => 'Who can see my phone number',
@@ -6963,11 +6975,11 @@ extension on Translations {
 			'qrLogin.expired' => 'The QR code has expired — scan a new one on your computer',
 			'auth.accountBlocked' => 'Account blocked',
 			'appUpdate.title' => 'Update the app',
+			_ => null,
+		} ?? switch (path) {
 			'appUpdate.text' => 'This version of Iperon is out of date and no longer supported. Install the new one to continue.',
 			'appUpdate.button' => 'Update',
 			'appUpdate.version' => ({required Object current, required Object minimal}) => 'Installed ${current}, ${minimal} or newer is required.',
-			_ => null,
-		} ?? switch (path) {
 			'appUpdate.bannerTitle' => ({required Object version}) => 'Version ${version} is available',
 			'appUpdate.bannerText' => 'Install the new version of Iperon with fixes and new features.',
 			'appUpdate.downloading' => ({required Object percent}) => 'Downloading the update… ${percent}%',

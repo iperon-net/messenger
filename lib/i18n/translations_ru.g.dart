@@ -1298,6 +1298,9 @@ class _Translations$screenSettingsAboutApplication$ru extends Translations$scree
 	@override String get licenses => 'Лицензии';
 	@override String licensesCount({required Object n}) => 'Лицензий: ${n}';
 	@override String get noLicenses => 'Лицензии не найдены';
+	@override String get appVersion => 'Версия приложения';
+	@override String get flutterVersion => 'Flutter';
+	@override String get dartVersion => 'Dart';
 }
 
 // Path: screenSettingsLanguage
@@ -3281,6 +3284,9 @@ extension on TranslationsRu {
 			'screenSettingsAboutApplication.licenses' => 'Лицензии',
 			'screenSettingsAboutApplication.licensesCount' => ({required Object n}) => 'Лицензий: ${n}',
 			'screenSettingsAboutApplication.noLicenses' => 'Лицензии не найдены',
+			'screenSettingsAboutApplication.appVersion' => 'Версия приложения',
+			'screenSettingsAboutApplication.flutterVersion' => 'Flutter',
+			'screenSettingsAboutApplication.dartVersion' => 'Dart',
 			'screenSettingsLanguage.language' => 'Язык',
 			'screenSettingsPasscode.passcode' => 'Код-пароль',
 			'screenSettingsPasscode.passcodeAndFaceID' => 'Код-пароль и Face ID',
@@ -3345,11 +3351,11 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.forwards' => 'Пересылка сообщений',
 			'sessionsPrivacyAndSecurity.whoCanLinkForwards' => 'Кто может добавлять ссылку на мой аккаунт при пересылке моих сообщений',
 			'sessionsPrivacyAndSecurity.forwardsNote' => 'Остальные увидят в «Переслано от …» только ваше имя — без перехода в ваш профиль.',
+			_ => null,
+		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.forwardsPreviewText' => 'Напомни, во сколько завтра встречаемся?',
 			'sessionsPrivacyAndSecurity.groupInvites' => 'Группы и каналы',
 			'sessionsPrivacyAndSecurity.whoCanAddToGroups' => 'Кто может добавлять меня в группы и каналы',
-			_ => null,
-		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.groupInvitesNote' => 'Остальные не смогут добавить вас в группу или канал — вы просто не попадёте в число участников или подписчиков.',
 			'sessionsPrivacyAndSecurity.phoneNumber' => 'Номер телефона',
 			'sessionsPrivacyAndSecurity.whoCanSeePhoneNumber' => 'Кто видит мой номер телефона',
@@ -3859,11 +3865,11 @@ extension on TranslationsRu {
 			'qrLogin.expired' => 'QR-код устарел — отсканируйте новый на компьютере',
 			'auth.accountBlocked' => 'Аккаунт заблокирован',
 			'appUpdate.title' => 'Обновите приложение',
+			_ => null,
+		} ?? switch (path) {
 			'appUpdate.text' => 'Эта версия Iperon устарела и больше не поддерживается. Установите новую, чтобы продолжить.',
 			'appUpdate.button' => 'Обновить',
 			'appUpdate.version' => ({required Object current, required Object minimal}) => 'Установлена ${current}, нужна ${minimal} или новее.',
-			_ => null,
-		} ?? switch (path) {
 			'appUpdate.bannerTitle' => ({required Object version}) => 'Доступна версия ${version}',
 			'appUpdate.bannerText' => 'Установите новую версию Iperon — с исправлениями и новыми возможностями.',
 			'appUpdate.downloading' => ({required Object percent}) => 'Загрузка обновления… ${percent} %',
