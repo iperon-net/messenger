@@ -46,7 +46,9 @@ class _SettingsLicensesMaterialScreen extends State<SettingsLicensesMaterialScre
                       children: [
                         Text(license.packages, style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 8),
-                        SelectableText(license.text, style: Theme.of(context).textTheme.bodySmall),
+                        // Не SelectableText: его жест выделения забирает горизонтальный drag,
+                        // и свайп «назад» с текста не работал (как на iOS — обычный Text).
+                        Text(license.text, style: Theme.of(context).textTheme.bodySmall),
                       ],
                     ),
                   ),
