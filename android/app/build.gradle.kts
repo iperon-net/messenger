@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // START: FlutterFire Configuration
@@ -7,6 +9,16 @@ plugins {
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+// Ключ подписи релиза — android/key.properties (gitignored; на CI его пишет
+// _deploy_android.yaml из секретов): storeFile, storePassword, keyAlias,
+// keyPassword. Без файла релиз подписывается debug-ключом, как раньше, —
+// локальный `flutter build apk --release` / `task apk` работают без ключа.
+val keystoreProperties =
+    Properties().apply {
+        val file = rootProject.file("key.properties")
+        if (file.exists()) file.inputStream().use { load(it) }
+    }
 
 android {
     namespace = "net.iperon.messenger"
@@ -35,11 +47,25 @@ android {
         manifestPlaceholders["YANDEX_CLIENT_ID"] = "c3ae9f778e734f70ad8b5bc96b419169"
     }
 
+    signingConfigs {
+        if (!keystoreProperties.isEmpty) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig =
+                if (keystoreProperties.isEmpty) {
+                    signingConfigs.getByName("debug")
+                } else {
+                    signingConfigs.getByName("release")
+                }
 
             // Shrink, obfuscate and optimize the code with R8, and strip unused
             // Android resources. Keep rules for plugins that rely on reflection
