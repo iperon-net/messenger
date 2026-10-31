@@ -63,6 +63,12 @@ import flutter_callkit_incoming
       DevicePerformanceBridge.shared.attach(messenger: messenger)
     }
 
+    // Откуда установлено приложение (TestFlight / App Store) — обновление через
+    // тот же канал. См. AppUpdateBridge и lib/components/app_update/app_update_common.dart.
+    if let messenger = engineBridge.pluginRegistry.registrar(forPlugin: "IperonAppUpdate")?.messenger() {
+      AppUpdateBridge.attach(messenger: messenger)
+    }
+
     // PlatformView системного пикера аудио-маршрутов (AVRoutePickerView) для
     // экрана звонка — «полный» выбор выхода на iOS (iPhone/Speaker/BT/CarPlay/
     // AirPlay). См. RoutePickerViewFactory и lib/components/calls/route_picker_button.dart.
@@ -652,6 +658,26 @@ private class RoutePickerPlatformView: NSObject, FlutterPlatformView {
     let g = CGFloat((argb >> 8) & 0xFF) / 255.0
     let b = CGFloat(argb & 0xFF) / 255.0
     return UIColor(red: r, green: g, blue: b, alpha: a)
+  }
+}
+
+/// Откуда установлено приложение — для обновления через тот же канал
+/// (lib/components/app_update/app_update_common.dart, docs/plans/app-updates.md §3).
+/// Канал `net.iperon.messenger/app_update`, протокол как у Android
+/// (AppInstallSource.kt): `installSource` → {testFlight (bool)}. Чек TestFlight —
+/// `sandboxReceipt` (debug-сборки тоже дают sandbox).
+enum AppUpdateBridge {
+  static func attach(messenger: FlutterBinaryMessenger) {
+    let channel = FlutterMethodChannel(name: "net.iperon.messenger/app_update", binaryMessenger: messenger)
+    channel.setMethodCallHandler { call, result in
+      switch call.method {
+      case "installSource":
+        let receipt = Bundle.main.appStoreReceiptURL?.lastPathComponent
+        result(["testFlight": receipt == "sandboxReceipt"])
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
   }
 }
 

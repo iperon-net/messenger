@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -29,15 +30,79 @@ bool isVersionOlder(String current, String minimal) {
   return false;
 }
 
-/// Открыть обновление: Google Play, TestFlight (пока нет страницы в App
-/// Store), на macOS — проверка Sparkle.
+/// Откуда установлено приложение — обновляем через тот же канал
+/// (docs/plans/app-updates.md §3).
+enum AppInstallChannel { googlePlay, ruStore, apk, testFlight, appStore, desktop }
+
+/// Канал установки и ABI устройства (для ссылки на APK).
+class AppInstallSource {
+  final AppInstallChannel channel;
+
+  /// Build.SUPPORTED_ABIS (Android), по предпочтению; иначе пусто.
+  final List<String> abis;
+
+  const AppInstallSource(this.channel, [this.abis = const []]);
+}
+
+/// Откуда раздаются сборки (nginx, файлы из GitHub Releases; сервер —
+/// iperon docs/nginx/download.iperon.net.conf).
+const appDownloadHost = 'https://download.iperon.net';
+
+/// ABI, под которые CI собирает APK (`--split-per-abi`).
+const _apkAbis = ['arm64-v8a', 'armeabi-v7a', 'x86_64'];
+
+const _channel = MethodChannel('net.iperon.messenger/app_update');
+Future<AppInstallSource>? _installSource;
+
+/// Канал установки: Android — по установщику (AppInstallSource.kt), iOS — по
+/// чеку (AppUpdateBridge в AppDelegate.swift). Не меняется, пока процесс жив, —
+/// считаем один раз. Ошибка натива — Android считаем APK, iOS — TestFlight.
+Future<AppInstallSource> appInstallSource() => _installSource ??= _detectInstallSource();
+
+Future<AppInstallSource> _detectInstallSource() async {
+  if (AppPlatform.isDesktop) return const AppInstallSource(AppInstallChannel.desktop);
+  try {
+    final info = await _channel.invokeMapMethod<String, Object?>('installSource');
+    if (Platform.isIOS) {
+      return AppInstallSource(info?['testFlight'] == false ? AppInstallChannel.appStore : AppInstallChannel.testFlight);
+    }
+    final abis = [for (final abi in (info?['abis'] as List?) ?? const []) '$abi'];
+    final channel = switch (info?['installer']) {
+      'com.android.vending' => AppInstallChannel.googlePlay,
+      'ru.vk.store' => AppInstallChannel.ruStore,
+      _ => AppInstallChannel.apk,
+    };
+    return AppInstallSource(channel, abis);
+  } catch (error, stackTrace) {
+    getIt.get<Logger>().handle(error, stackTrace, 'app update: install source');
+    return AppInstallSource(Platform.isIOS ? AppInstallChannel.testFlight : AppInstallChannel.apk);
+  }
+}
+
+/// Ссылка на APK последней версии под ABI устройства (первый из
+/// Build.SUPPORTED_ABIS, под который есть сборка; иначе arm64-v8a).
+Uri apkDownloadUri(List<String> abis) {
+  final abi = abis.firstWhere(_apkAbis.contains, orElse: () => _apkAbis.first);
+  return Uri.parse('$appDownloadHost/android/Iperon-$abi.apk');
+}
+
+/// Открыть обновление в канале установки: Google Play, RuStore, APK с сайта
+/// (браузер скачает, установка — системным окном), TestFlight (страницы в App
+/// Store пока нет — App Store тоже туда), на macOS — проверка Sparkle.
 Future<void> openAppUpdate() async {
-  if (AppPlatform.isDesktop) return Desktop.checkForUpdates();
-  final uri = Platform.isIOS ? Uri.parse('itms-beta://') : Uri.parse('https://play.google.com/store/apps/details?id=net.iperon.messenger');
+  final source = await appInstallSource();
+  final uri = switch (source.channel) {
+    AppInstallChannel.desktop => null,
+    AppInstallChannel.googlePlay => Uri.parse('https://play.google.com/store/apps/details?id=net.iperon.messenger'),
+    AppInstallChannel.ruStore => Uri.parse('https://www.rustore.ru/catalog/app/net.iperon.messenger'),
+    AppInstallChannel.apk => apkDownloadUri(source.abis),
+    AppInstallChannel.testFlight || AppInstallChannel.appStore => Uri.parse('itms-beta://'),
+  };
+  if (uri == null) return Desktop.checkForUpdates();
   try {
     await launchUrl(uri, mode: LaunchMode.externalApplication);
   } catch (error, stackTrace) {
-    getIt.get<Logger>().handle(error, stackTrace, 'app update: open store');
+    getIt.get<Logger>().handle(error, stackTrace, 'app update: open ${source.channel.name}');
   }
 }
 

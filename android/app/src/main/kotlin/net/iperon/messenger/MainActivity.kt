@@ -98,6 +98,9 @@ class MainActivity : FlutterFragmentActivity() {
     private var videoCompressor: VideoCompressor? = null
     private var devicePerformance: DevicePerformance? = null
 
+    // Откуда установлено приложение — обновление через тот же канал (AppInstallSource).
+    private var appInstallSource: AppInstallSource? = null
+
     // Файлы и медиа чата: открыть, копировать, сохранить (MediaFiles,
     // lib/chats/media_files.dart).
     private var mediaFiles: MediaFiles? = null
@@ -177,6 +180,8 @@ class MainActivity : FlutterFragmentActivity() {
         // Класс производительности (память, ядра, частота, экономия батареи).
         devicePerformance?.dispose()
         devicePerformance = DevicePerformance(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
+        appInstallSource?.dispose()
+        appInstallSource = AppInstallSource(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
         // Контекст — эта Activity: открытый файл — поверх неё, «назад» вернёт в чат.
         mediaFiles?.dispose()
         mediaFiles = MediaFiles(this, flutterEngine.dartExecutor.binaryMessenger)

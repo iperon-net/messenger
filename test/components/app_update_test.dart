@@ -13,4 +13,13 @@ void main() {
     expect(isVersionOlder('0.0.1', 'latest'), isFalse);
     expect(isVersionOlder('', '0.0.570'), isFalse);
   });
+
+  test('ссылка на APK — первый ABI устройства, под который есть сборка', () {
+    expect(apkDownloadUri(['arm64-v8a', 'armeabi-v7a', 'armeabi']).toString(), 'https://download.iperon.net/android/Iperon-arm64-v8a.apk');
+    expect(apkDownloadUri(['armeabi-v7a', 'armeabi']).toString(), 'https://download.iperon.net/android/Iperon-armeabi-v7a.apk');
+    expect(apkDownloadUri(['x86_64', 'arm64-v8a']).toString(), 'https://download.iperon.net/android/Iperon-x86_64.apk');
+    // Нет данных / неизвестный ABI — самая частая сборка.
+    expect(apkDownloadUri([]).toString(), 'https://download.iperon.net/android/Iperon-arm64-v8a.apk');
+    expect(apkDownloadUri(['riscv64']).toString(), 'https://download.iperon.net/android/Iperon-arm64-v8a.apk');
+  });
 }
