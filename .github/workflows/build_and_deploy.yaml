@@ -75,3 +75,20 @@ jobs:
       asc_issuer_id: ${{ secrets.ASC_ISSUER_ID }}
       asc_key_p8_base64: ${{ secrets.ASC_KEY_P8_BASE64 }}
       sparkle_ed_private_key: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+
+  # Android: APK по ABI (--split-per-abi) в тот же GitHub Release, что и macOS.
+  Android:
+    uses: iperon-net/messenger/.github/workflows/_deploy_android.yaml@main
+    needs: [Version, Linter]
+    permissions:
+      contents: write
+    with:
+      flutter_version: "3.47.8"
+      build_number: ${{ needs.Version.outputs.build_number }}
+    secrets:
+      firebase_options_dart_base64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
+      android_google_services_json_base64: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_BASE64 }}
+      android_keystore_base64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      android_keystore_password: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      android_key_alias: ${{ secrets.ANDROID_KEY_ALIAS }}
+      android_key_password: ${{ secrets.ANDROID_KEY_PASSWORD }}

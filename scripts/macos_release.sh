@@ -213,5 +213,12 @@ if gh release view "$TAG" --repo "$GITHUB_RELEASE_REPO" >/dev/null 2>&1 ||
 fi
 # appcast — последним: клиенты увидят версию, только когда DMG уже лежит.
 gh release upload "$TAG" --repo "$GITHUB_RELEASE_REPO" --clobber "$OUT/appcast-macos.xml"
+# Релиз мог создать Android (_deploy_android.yaml — всегда pre-release):
+# latest / pre-release выставляем здесь, когда appcast уже лежит.
+if [ "$RELEASE" = 1 ]; then
+  gh release edit "$TAG" --repo "$GITHUB_RELEASE_REPO" --prerelease=false --latest
+else
+  gh release edit "$TAG" --repo "$GITHUB_RELEASE_REPO" --prerelease --latest=false
+fi
 
 echo "==> готово: $DMG_URL"

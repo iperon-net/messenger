@@ -1,0 +1,172 @@
+name: Android
+
+# Сборка Android-клиента: APK по ABI (--split-per-abi), подписанные release-
+# ключом, → GitHub Release v<версия> этого репо (общий с macOS: кто первый,
+# тот создаёт). Позже — AAB в Google Play.
+#
+# Без ключа (секреты пустые) сборка падает: debug-подпись CI-раннера не
+# совпадает ни с одной установленной копией, такой APK бесполезен.
+# Вызывающему job нужен `permissions: contents: write`.
+
+on:
+  workflow_call:
+    inputs:
+      flutter_version:
+        required: true
+        type: string
+      # Версия (versionName); пусто — из тега (v0.0.N → 0.0.N).
+      build_name:
+        required: false
+        type: string
+        default: ""
+      # Номер сборки (versionCode), общий для всех платформ — считает job
+      # Version вызывающего workflow (scripts/build_number.sh).
+      build_number:
+        required: true
+        type: string
+      # Опубликовать в GitHub Release (иначе — только артефакт).
+      publish:
+        required: false
+        type: boolean
+        default: true
+    secrets:
+      firebase_options_dart_base64:
+        required: true
+      android_google_services_json_base64:
+        required: true
+      # Release-keystore (.jks в base64), пароли и alias ключа.
+      android_keystore_base64:
+        required: true
+      android_keystore_password:
+        required: true
+      android_key_alias:
+        required: true
+      android_key_password:
+        required: true
+
+jobs:
+  android:
+    name: Build and publish
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Resolve version
+        env:
+          INPUT_BUILD_NAME: ${{ inputs.build_name }}
+        run: |
+          set -euo pipefail
+          BUILD_NAME="${INPUT_BUILD_NAME:-${GITHUB_REF_NAME#v}}"
+          echo "BUILD_NAME=$BUILD_NAME" >> "$GITHUB_ENV"
+          echo "Version: $BUILD_NAME (${{ inputs.build_number }})"
+
+      # JDK 17 — требование app/build.gradle.kts и flutter_callkit_incoming.
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ inputs.flutter_version }}
+          channel: stable
+          cache: true
+
+      # compileSdk 37 (app/build.gradle.kts) на образе раннера может не быть.
+      - name: Install Android platform
+        run: |
+          set -euo pipefail
+          (yes || true) | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37" >/dev/null
+
+      - name: Restore config files
+        env:
+          FIREBASE_OPTIONS_DART_BASE64: ${{ secrets.firebase_options_dart_base64 }}
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.android_google_services_json_base64 }}
+        run: |
+          set -euo pipefail
+          echo "$FIREBASE_OPTIONS_DART_BASE64" | base64 --decode > lib/firebase_options.dart
+          echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > android/app/google-services.json
+          # .env-файлы объявлены ассетами — без них сборка падает; значения
+          # в релизе — с сервера / Remote Config (Settings).
+          touch .env .env.development
+
+      - name: Restore signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.android_keystore_base64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.android_keystore_password }}
+          KEY_ALIAS: ${{ secrets.android_key_alias }}
+          KEY_PASSWORD: ${{ secrets.android_key_password }}
+        run: |
+          set -euo pipefail
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 is empty — add the release keystore to repository secrets"
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/release.jks
+          # storeFile — относительно android/ (rootProject в build.gradle.kts).
+          cat > android/key.properties <<EOF
+          storeFile=release.jks
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: |
+          set -euo pipefail
+          flutter build apk \
+            --release \
+            --split-per-abi \
+            --build-name="$BUILD_NAME" \
+            --build-number="${{ inputs.build_number }}"
+
+      # Имена как у DMG: Iperon-<версия>-<abi>.apk — для версии, Iperon-<abi>.apk —
+      # постоянная ссылка на последнюю.
+      - name: Rename APKs
+        run: |
+          set -euo pipefail
+          OUT=build/android/release
+          mkdir -p "$OUT"
+          for apk in build/app/outputs/flutter-apk/app-*-release.apk; do
+            abi=$(basename "$apk" | sed -E 's/^app-(.+)-release\.apk$/\1/')
+            cp "$apk" "$OUT/Iperon-$BUILD_NAME-$abi.apk"
+            cp "$apk" "$OUT/Iperon-$abi.apk"
+          done
+          ls -la "$OUT"
+          # Подпись — release-ключом, не debug (сверить SHA-256 с assetlinks).
+          "$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner" \
+            verify --print-certs "$OUT/Iperon-$BUILD_NAME-arm64-v8a.apk" | grep -E "SHA-256|DN"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: Iperon-android
+          path: build/android/release/
+          retention-days: 14
+
+      - name: Publish to GitHub Release
+        if: inputs.publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="v$BUILD_NAME"
+          FILES=(build/android/release/*.apk)
+          # Релиз версии общий с macOS. Если Android первый — создаём его
+          # pre-release: latest переключает scripts/macos_release.sh, когда
+          # appcast уже загружен (nginx берёт /macos/appcast.xml из latest).
+          if gh release view "$TAG" >/dev/null 2>&1 ||
+            ! gh release create "$TAG" --verify-tag --prerelease --latest=false \
+              --title "Iperon $BUILD_NAME" --notes "Iperon $BUILD_NAME" "${FILES[@]}"; then
+            gh release upload "$TAG" --clobber "${FILES[@]}"
+          fi

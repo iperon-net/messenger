@@ -1,0 +1,63 @@
+name: Android build
+
+# Ручная сборка Android-клиента (Actions → Android build → Run workflow):
+# проверить сборку / подпись без тега. По умолчанию APK только артефактом;
+# publish — ещё и в GitHub Release v<версия> (тег должен быть).
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_name:
+        description: "Версия (versionName)"
+        required: true
+        default: "0.0.0"
+      publish:
+        description: "Опубликовать в GitHub Release (тег v<версия> должен быть)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: android-build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Номер сборки — из версии, как в build_and_deploy.yaml (scripts/build_number.sh).
+  Version:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    outputs:
+      build_number: ${{ steps.version.outputs.build_number }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Compute build number
+        id: version
+        env:
+          BUILD_NAME: ${{ inputs.build_name }}
+        run: |
+          set -euo pipefail
+          BUILD_NUMBER=$(scripts/build_number.sh "$BUILD_NAME" "$GITHUB_RUN_ATTEMPT")
+          echo "$BUILD_NAME ($BUILD_NUMBER)"
+          echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+
+  Android:
+    uses: iperon-net/messenger/.github/workflows/_deploy_android.yaml@main
+    needs: Version
+    permissions:
+      contents: write
+    with:
+      flutter_version: "3.47.8"
+      build_name: ${{ inputs.build_name }}
+      build_number: ${{ needs.Version.outputs.build_number }}
+      publish: ${{ inputs.publish }}
+    secrets:
+      firebase_options_dart_base64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
+      android_google_services_json_base64: ${{ secrets.ANDROID_GOOGLE_SERVICES_JSON_BASE64 }}
+      android_keystore_base64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      android_keystore_password: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      android_key_alias: ${{ secrets.ANDROID_KEY_ALIAS }}
+      android_key_password: ${{ secrets.ANDROID_KEY_PASSWORD }}
