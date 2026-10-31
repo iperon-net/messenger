@@ -154,7 +154,10 @@ jobs:
           "$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner" \
             verify --print-certs "$OUT/Iperon-$BUILD_NAME-arm64-v8a.apk" | grep -E "SHA-256|DN"
 
+      # Артефакт workflow — zip-архив; при публикации APK и так лежат в релизе
+      # отдельными файлами, поэтому артефакт — только для сборок без publish.
       - name: Upload APK artifact
+        if: ${{ !inputs.publish }}
         uses: actions/upload-artifact@v7
         with:
           name: Iperon-android

@@ -1,8 +1,8 @@
 name: Android build
 
 # Ручная сборка Android-клиента (Actions → Android build → Run workflow):
-# проверить сборку / подпись без тега. По умолчанию APK только артефактом;
-# publish — ещё и в GitHub Release v<версия> (тег должен быть).
+# пересобрать версию. По умолчанию APK уходят в GitHub Release v<версия>
+# отдельными файлами (тег должен быть); без publish — zip-артефактом workflow.
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ on:
       publish:
         description: "Опубликовать в GitHub Release (тег v<версия> должен быть)"
         type: boolean
-        default: false
+        default: true
 
 concurrency:
   group: android-build-${{ github.ref }}
