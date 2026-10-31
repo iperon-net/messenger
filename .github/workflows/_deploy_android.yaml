@@ -72,7 +72,7 @@ jobs:
       # Кэш Gradle (зависимости, wrapper, build cache). Пишется только на main
       # (ручной android.yaml и warm_cache.yaml), сборка по тегу его только читает.
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       # Build cache Gradle: выходы задач (компиляция плагинов, Kotlin, R8 и т. п.)
       # переиспользуются между сборками, а не только скачанные зависимости.
