@@ -241,11 +241,22 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   /// Старт на уровне shell: мгновенный показ снимка из БД, затем облачная
   /// синхронизация с сервером, тихая фоновая книжная дозагрузка (если доступ уже
   /// выдан) и разовый перенос legacy-ручных контактов в облако.
+  ///
+  /// Вызывается без await (`ContactsCubit()..bootstrap()`), поэтому ошибки
+  /// ловим здесь. Пока шли сетевые шаги, аккаунт могли сменить или выйти из
+  /// него: кубит закрыт, а его [repositories] — уже закрытая БД («This
+  /// connection pool is closed») — дальше не идём и такую ошибку не репортим.
   Future<void> bootstrap() async {
-    await preload();
-    await Future.wait([_fetchCloud(), discoverIfAlreadyGranted()]);
-    await _backfillLegacyManual();
-    // Присутствие не тянем здесь: начальный снимок придёт по стриму (subscribe).
+    try {
+      await preload();
+      if (isClosed) return;
+      await Future.wait([_fetchCloud(), discoverIfAlreadyGranted()]);
+      if (isClosed) return;
+      await _backfillLegacyManual();
+      // Присутствие не тянем здесь: начальный снимок придёт по стриму (subscribe).
+    } catch (error, stackTrace) {
+      if (!isClosed) logger.handle(error, stackTrace);
+    }
   }
 
   /// Тянет присутствие (online/last-seen) всех зарегистрированных контактов
