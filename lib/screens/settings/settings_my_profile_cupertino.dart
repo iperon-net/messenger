@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:messenger/constants.dart';
@@ -274,10 +275,18 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                             if (state.lastName.isNotEmpty) _lastNameTile(context, state.lastName),
                           ]),
 
-                    CopyTooltip(
-                      value: state.phoneNumber,
-                      label: context.t.screenMyProfile.copy,
-                      child: CupertinoListTile(
+                    // Тап — меню «Скопировать», как у строк профиля собеседника.
+                    CupertinoMenuAnchor(
+                      useRootOverlay: true,
+                      menuChildren: [
+                        CupertinoMenuItem(
+                          trailing: const Icon(CupertinoIcons.doc_on_doc),
+                          onPressed: () => Clipboard.setData(ClipboardData(text: state.phoneNumber)),
+                          child: Text(context.t.screenMyProfile.copy),
+                        ),
+                      ],
+                      builder: (context, controller, _) => CupertinoListTile(
+                        onTap: () => controller.isOpen ? controller.close() : controller.open(),
                         title: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [

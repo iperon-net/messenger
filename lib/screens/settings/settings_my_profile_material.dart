@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:messenger/constants.dart';
@@ -90,8 +91,9 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
     return cropped == null ? null : XFile(cropped.path);
   }
 
-  Widget _fieldTile(BuildContext context, String label, String value) {
+  Widget _fieldTile(BuildContext context, String label, String value, {VoidCallback? onTap}) {
     return ListTile(
+      onTap: onTap,
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -203,10 +205,22 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
                   child: Column(
                     children: [
                       ...nameTiles,
-                      CopyTooltip(
-                        value: state.phoneNumber,
-                        label: context.t.screenMyProfile.copy,
-                        child: _fieldTile(context, context.t.screenMyProfile.mobilePhone, state.phoneNumber),
+                      // Тап — меню «Скопировать», как у строк профиля собеседника.
+                      MenuAnchor(
+                        alignmentOffset: const Offset(16, 0),
+                        menuChildren: [
+                          MenuItemButton(
+                            leadingIcon: const Icon(Icons.copy_outlined),
+                            onPressed: () => Clipboard.setData(ClipboardData(text: state.phoneNumber)),
+                            child: Text(context.t.screenMyProfile.copy),
+                          ),
+                        ],
+                        builder: (context, controller, _) => _fieldTile(
+                          context,
+                          context.t.screenMyProfile.mobilePhone,
+                          state.phoneNumber,
+                          onTap: () => controller.isOpen ? controller.close() : controller.open(),
+                        ),
                       ),
                     ],
                   ),

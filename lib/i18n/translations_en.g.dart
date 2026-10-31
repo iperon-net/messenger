@@ -3748,6 +3748,15 @@ class Translations$screenProfile$en {
 
 	// Translations
 
+	/// en: 'Copy link'
+	String get copyLink => 'Copy link';
+
+	/// en: 'Call via Iperon'
+	String get callIperon => 'Call via Iperon';
+
+	/// en: 'Call via mobile network'
+	String get callCellular => 'Call via mobile network';
+
 	/// en: 'Profile'
 	String get profile => 'Profile';
 
@@ -6552,6 +6561,9 @@ extension on Translations {
 			'screenMyProfile.usernameInvalid' => 'Username must contain 5–24 characters:\nlowercase Latin letters, digits and underscores',
 			'screenMyProfile.usernameTaken' => 'This username is already taken',
 			'screenMyProfile.errorSavingUsername' => 'Saving username',
+			'screenProfile.copyLink' => 'Copy link',
+			'screenProfile.callIperon' => 'Call via Iperon',
+			'screenProfile.callCellular' => 'Call via mobile network',
 			'screenProfile.profile' => 'Profile',
 			'screenProfile.firstName' => _root.screenMyProfile.firstName,
 			'screenProfile.lastName' => _root.screenMyProfile.lastName,
@@ -6954,11 +6966,11 @@ extension on Translations {
 			'appUpdate.text' => 'This version of Iperon is out of date and no longer supported. Install the new one to continue.',
 			'appUpdate.button' => 'Update',
 			'appUpdate.version' => ({required Object current, required Object minimal}) => 'Installed ${current}, ${minimal} or newer is required.',
+			_ => null,
+		} ?? switch (path) {
 			'appUpdate.bannerTitle' => ({required Object version}) => 'Version ${version} is available',
 			'appUpdate.bannerText' => 'Install the new version of Iperon with fixes and new features.',
 			'appUpdate.downloading' => ({required Object percent}) => 'Downloading the update… ${percent}%',
-			_ => null,
-		} ?? switch (path) {
 			'appUpdate.mobileTitle' => 'Download over mobile data?',
 			'appUpdate.mobileText' => ({required Object size}) => 'The update is about ${size} MB. You can wait for Wi-Fi.',
 			'appUpdate.mobileDownload' => 'Download',

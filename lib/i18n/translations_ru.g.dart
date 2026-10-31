@@ -1545,6 +1545,9 @@ class _Translations$screenProfile$ru extends Translations$screenProfile$en {
 	final TranslationsRu _root; // ignore: unused_field
 
 	// Translations
+	@override String get copyLink => 'Скопировать ссылку';
+	@override String get callIperon => 'Позвонить через Iperon';
+	@override String get callCellular => 'Позвонить по сотовой связи';
 	@override String get profile => 'Профиль';
 	@override String get firstName => _root.screenMyProfile.firstName;
 	@override String get lastName => _root.screenMyProfile.lastName;
@@ -3454,6 +3457,9 @@ extension on TranslationsRu {
 			'screenMyProfile.usernameInvalid' => 'Имя пользователя должно содержать 5–24 символа:\nстрочные латинские буквы, цифры и подчёркивания',
 			'screenMyProfile.usernameTaken' => 'Это имя пользователя уже занято',
 			'screenMyProfile.errorSavingUsername' => 'Сохранение имени пользователя',
+			'screenProfile.copyLink' => 'Скопировать ссылку',
+			'screenProfile.callIperon' => 'Позвонить через Iperon',
+			'screenProfile.callCellular' => 'Позвонить по сотовой связи',
 			'screenProfile.profile' => 'Профиль',
 			'screenProfile.firstName' => _root.screenMyProfile.firstName,
 			'screenProfile.lastName' => _root.screenMyProfile.lastName,
@@ -3856,11 +3862,11 @@ extension on TranslationsRu {
 			'appUpdate.text' => 'Эта версия Iperon устарела и больше не поддерживается. Установите новую, чтобы продолжить.',
 			'appUpdate.button' => 'Обновить',
 			'appUpdate.version' => ({required Object current, required Object minimal}) => 'Установлена ${current}, нужна ${minimal} или новее.',
+			_ => null,
+		} ?? switch (path) {
 			'appUpdate.bannerTitle' => ({required Object version}) => 'Доступна версия ${version}',
 			'appUpdate.bannerText' => 'Установите новую версию Iperon — с исправлениями и новыми возможностями.',
 			'appUpdate.downloading' => ({required Object percent}) => 'Загрузка обновления… ${percent} %',
-			_ => null,
-		} ?? switch (path) {
 			'appUpdate.mobileTitle' => 'Загрузить по мобильной сети?',
 			'appUpdate.mobileText' => ({required Object size}) => 'Обновление весит около ${size} МБ. Можно подождать Wi-Fi.',
 			'appUpdate.mobileDownload' => 'Загрузить',

@@ -285,8 +285,8 @@ class _ProfileViewState extends State<_ProfileView> {
     }
   }
 
-  /// Строка данных: значение (копируется по тапу — пузырёк «Скопировать») и
-  /// подпись под ним.
+  /// Строка данных: значение и подпись под ним; тап — меню: «Скопировать»
+  /// ([copy] или само значение) и [actions] под ним.
   Widget _field(
     BuildContext context, {
     required List<List<dynamic>> icon,
@@ -294,15 +294,50 @@ class _ProfileViewState extends State<_ProfileView> {
     required String label,
     String? copy,
     int maxLines = 1,
-  }) => CopyTooltip(
-    value: copy ?? value,
-    label: context.t.screenProfile.copy,
-    child: ListTile(
+    List<Widget> actions = const [],
+  }) => MenuAnchor(
+    alignmentOffset: const Offset(56, 0),
+    menuChildren: [
+      MenuItemButton(
+        leadingIcon: const Icon(Icons.copy_outlined),
+        onPressed: () => profileCopy(copy ?? value),
+        child: Text(context.t.screenProfile.copy),
+      ),
+      ...actions,
+    ],
+    builder: (context, controller, _) => ListTile(
       leading: HugeIcon(icon: icon, color: Theme.of(context).colorScheme.onSurfaceVariant),
       title: Text(value, maxLines: maxLines, overflow: TextOverflow.ellipsis),
       subtitle: Text(label),
+      onTap: () => controller.isOpen ? controller.close() : controller.open(),
     ),
   );
+
+  /// Номер телефона: в меню ещё «Позвонить через Iperon» (где есть кнопка
+  /// «Звонок») и «Позвонить по сотовой связи» (не на десктопе).
+  Widget _phone(BuildContext context, ProfileState profile, {required bool canCall}) {
+    final t = context.t.screenProfile;
+    return _field(
+      context,
+      icon: HugeIcons.strokeRoundedSmartPhone01,
+      value: profile.phoneNumber,
+      label: t.mobilePhone,
+      actions: [
+        if (canCall)
+          MenuItemButton(
+            leadingIcon: const Icon(Icons.call_outlined),
+            onPressed: () => profileCall(profile.userID, video: false),
+            child: Text(t.callIperon),
+          ),
+        if (!AppPlatform.isDesktop)
+          MenuItemButton(
+            leadingIcon: const Icon(Icons.phone_forwarded_outlined),
+            onPressed: () => profileCellularCall(profile.phoneNumber),
+            child: Text(t.callCellular),
+          ),
+      ],
+    );
+  }
 
   /// Аватар: есть фото — тап открывает его во весь экран.
   Widget _avatar(BuildContext context, ProfileState profile, String name) {
@@ -482,12 +517,7 @@ class _ProfileViewState extends State<_ProfileView> {
               child: Column(
                 children: [
                   if (profile.phoneNumber.isNotEmpty)
-                    _field(
-                      context,
-                      icon: HugeIcons.strokeRoundedSmartPhone01,
-                      value: profile.phoneNumber,
-                      label: t.screenProfile.mobilePhone,
-                    ),
+                    _phone(context, profile, canCall: !self && !system && !profile.blocked && AppPlatform.hasCalls),
                   if (profile.aboutMe.isNotEmpty)
                     _field(
                       context,
@@ -497,12 +527,25 @@ class _ProfileViewState extends State<_ProfileView> {
                       maxLines: 6,
                     ),
                   if (username.isNotEmpty)
-                    _field(context, icon: HugeIcons.strokeRoundedAt, value: username, label: t.screenChatInfo.username),
+                    _field(
+                      context,
+                      icon: HugeIcons.strokeRoundedAt,
+                      value: username,
+                      label: t.screenChatInfo.username,
+                      actions: [
+                        MenuItemButton(
+                          leadingIcon: const Icon(Icons.link),
+                          onPressed: () => profileCopy(profileUsernameLink(username)),
+                          child: Text(t.screenProfile.copyLink),
+                        ),
+                      ],
+                    ),
                   if (birthDate != null)
                     _field(
                       context,
                       icon: HugeIcons.strokeRoundedBirthdayCake,
                       value: profileBirthDateText(t, birthDate, hideYear: profile.hideBirthYear),
+                      copy: profileBirthDateCopy(birthDate, hideYear: profile.hideBirthYear),
                       label: t.screenProfile.birthDate,
                     ),
                 ],

@@ -1248,6 +1248,9 @@
   "errorSavingUsername": "Сохранение имени пользователя"
 
 "screenProfile":
+  "copyLink": "Скопировать ссылку"
+  "callIperon": "Позвонить через Iperon"
+  "callCellular": "Позвонить по сотовой связи"
   "profile": "Профиль"
   "firstName": "@:screenMyProfile.firstName"
   "lastName": "@:screenMyProfile.lastName"

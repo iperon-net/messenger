@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import '../../auth.dart';
@@ -28,6 +29,18 @@ Future<void> profileCall(List<int> userID, {required bool video}) async {
   await ensureCallMicPermission();
   await getIt.get<Calls>().startCall(toUserID: userID, video: video);
 }
+
+/// Меню строки профиля: «Скопировать».
+Future<void> profileCopy(String value) => Clipboard.setData(ClipboardData(text: value));
+
+/// Ссылка на профиль по имени пользователя (`@name` → `https://iperon.net/name`).
+String profileUsernameLink(String username) => 'https://iperon.net/${username.startsWith('@') ? username.substring(1) : username}';
+
+/// День рождения для копирования — без возраста.
+String profileBirthDateCopy(DateTime birthDate, {required bool hideYear}) => DateFormat(hideYear ? 'd MMMM' : 'd MMMM y').format(birthDate);
+
+/// Меню номера телефона: «Позвонить по сотовой связи» — системная звонилка.
+Future<void> profileCellularCall(String phone) => getIt.get<Utils>().makePhoneCall(phone);
 
 /// «9 мая 1981 (43 года)»; владелец скрыл год — только «9 мая» (без года и
 /// возраста).

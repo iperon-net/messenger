@@ -1221,6 +1221,9 @@
   "errorSavingUsername": "Saving username"
 
 "screenProfile":
+  "copyLink": "Copy link"
+  "callIperon": "Call via Iperon"
+  "callCellular": "Call via mobile network"
   "profile": "Profile"
   "firstName": "@:screenMyProfile.firstName"
   "lastName": "@:screenMyProfile.lastName"
