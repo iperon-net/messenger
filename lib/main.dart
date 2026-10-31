@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:http2/transport.dart' show TransportConnectionException;
 
 import 'account_scope.dart';
 import 'app_cupertino.dart';
@@ -192,6 +193,7 @@ Future<void> _initFirebase() async {
 
   PlatformDispatcher.instance.onError = (error, stack) {
     if (kDebugMode) return false;
+    if (_isConnectionDrop(error)) return true;
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: false);
     return true;
   };
@@ -219,7 +221,16 @@ void _initCrashReports() {
 
   PlatformDispatcher.instance.onError = (error, stack) {
     if (kDebugMode) return false;
+    if (_isConnectionDrop(error)) return true;
     CrashReports.instance.record(error, stack);
     return true;
   };
 }
+
+/// Обрыв HTTP/2-соединения gRPC — не сбой. Keepalive в grpc-dart шлёт
+/// `transport.ping()` без обработки ошибки (`Http2ClientConnection._connect`),
+/// и когда сокет умирает (iOS усыпил приложение, сменилась сеть), висящий пинг
+/// завершается `TransportConnectionException` («Connection is being forcefully
+/// terminated») мимо всех наших обработчиков. Сам стрим это видит в `onError`
+/// и переподключается (`API._scheduleReconnect`).
+bool _isConnectionDrop(Object error) => error is TransportConnectionException;

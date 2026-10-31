@@ -70,6 +70,7 @@ dependencies:
   flutter_multi_formatter: ^2.13.11
   dlibphonenumber: ^1.1.67
   grpc: ^5.1.0
+  http2: ^2.3.1
   protobuf: ^6.0.0
   pin_code_fields: ^10.0.0
   cryptography: ^2.9.0
