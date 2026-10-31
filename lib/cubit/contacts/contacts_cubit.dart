@@ -88,7 +88,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     // discover() крутится лишь при старте shell, первом показе вкладки и
     // pull-to-refresh, и новый контакт не появляется до перезапуска вкладки.
     WidgetsBinding.instance.addObserver(this);
-    if (AppPlatform.hasAddressBook) _bookChangeSub = FlutterContacts.onDatabaseChange.listen((_) => _onBookChanged());
+    _watchBook();
     // Дельты облачных контактов с сервера (add/update/remove/резолв) на все
     // устройства владельца — держим локальную книгу облачных в синхроне.
     _updatedSub = api.on(MessageType.CONTACTS_UPDATED).listen(_onCloudUpdated);
@@ -418,6 +418,19 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     if (status.isGranted || status.isLimited) await discover();
   }
 
+  /// Слушатель изменений книги устройства. Без доступа к контактам
+  /// Android-плагин сразу отдаёт в стрим ошибку `permission_denied` и больше
+  /// ничего не шлёт — подписку сбрасываем и заводим заново, когда доступ
+  /// появится ([discover]).
+  void _watchBook() {
+    if (!AppPlatform.hasAddressBook || _bookChangeSub != null || isClosed) return;
+    _bookChangeSub = FlutterContacts.onDatabaseChange.listen(
+      (_) => _onBookChanged(),
+      onError: (Object error) => _bookChangeSub = null,
+      cancelOnError: true,
+    );
+  }
+
   /// Изменилась книга устройства: дебаунсим всплеск событий и тихо
   /// пересинхронизируемся (без диалога разрешений).
   void _onBookChanged() {
@@ -484,6 +497,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
         return;
       }
       emit(state.copyWith(permissionGranted: true));
+      _watchBook();
 
       final deviceContacts = await FlutterContacts.getAll(properties: {ContactProperty.name, ContactProperty.phone});
       if (isClosed) return;
