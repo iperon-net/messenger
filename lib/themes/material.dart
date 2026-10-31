@@ -129,6 +129,24 @@ class ThemesMaterial {
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(14))),
         labelTextStyle: WidgetStatePropertyAll(TextStyle(fontSize: listTitleSize, color: colorScheme.onSurface)),
       ),
+      // Меню `MenuAnchor` (строки профиля): как `popupMenuTheme` — скруглённая
+      // карточка в тон секций, пункты шрифтом `listTitle`.
+      menuTheme: MenuThemeData(
+        style: MenuStyle(
+          backgroundColor: WidgetStatePropertyAll(card),
+          surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+          elevation: const WidgetStatePropertyAll(3),
+          shape: const WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(14)))),
+          padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 8)),
+        ),
+      ),
+      menuButtonTheme: MenuButtonThemeData(
+        style: ButtonStyle(
+          textStyle: WidgetStatePropertyAll(TextStyle(fontSize: listTitleSize)),
+          padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 16)),
+          minimumSize: const WidgetStatePropertyAll(Size(180, 48)),
+        ),
+      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           foregroundColor: Colors.white,
