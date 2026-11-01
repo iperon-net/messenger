@@ -33,6 +33,13 @@ class ChatBannedMaterial extends StatefulWidget {
 
 class _ChatBannedMaterialState extends State<ChatBannedMaterial> {
   String _query = '';
+  final _search = TextEditingController();
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,13 +67,9 @@ class _ChatBannedMaterialState extends State<ChatBannedMaterial> {
                 if (state.banned.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-                    child: TextField(
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.search),
-                        hintText: t.screenChatInfo.membersSearch,
-                        border: const OutlineInputBorder(),
-                        isDense: true,
-                      ),
+                    child: SearchFieldMaterial(
+                      controller: _search,
+                      hintText: t.screenChatInfo.membersSearch,
                       onChanged: (value) => setState(() => _query = value),
                     ),
                   ),

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../components.dart';
 import '../../cubit.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
@@ -46,6 +47,13 @@ class _SettingsPrivacyCallsAllowMaterial extends State<SettingsPrivacyCallsAllow
 
   // Строка поиска (нижний регистр); фильтрует кандидатов по имени/телефону.
   String _query = "";
+  final _search = TextEditingController();
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
 
   List<_AllowCandidate> get _filtered {
     if (_query.isEmpty) return _candidates;
@@ -151,13 +159,9 @@ class _SettingsPrivacyCallsAllowMaterial extends State<SettingsPrivacyCallsAllow
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(12),
-                    child: TextField(
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.search),
-                        hintText: context.t.screenContacts.search,
-                        border: const OutlineInputBorder(),
-                        isDense: true,
-                      ),
+                    child: SearchFieldMaterial(
+                      controller: _search,
+                      hintText: context.t.screenContacts.search,
                       onChanged: (value) => setState(() => _query = value.trim().toLowerCase()),
                     ),
                   ),

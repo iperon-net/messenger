@@ -24,6 +24,13 @@ class SettingsBlockedMaterial extends StatefulWidget {
 
 class _SettingsBlockedMaterialState extends State<SettingsBlockedMaterial> {
   String _query = '';
+  final _search = TextEditingController();
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
 
   /// Заблокированные под поиском: каждое слово запроса — начало какого-то
   /// слова имени.
@@ -65,13 +72,9 @@ class _SettingsBlockedMaterialState extends State<SettingsBlockedMaterial> {
                     if (state.users.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(6, 0, 6, 10),
-                        child: TextField(
-                          decoration: InputDecoration(
-                            prefixIcon: const Icon(Icons.search),
-                            hintText: context.t.screenContacts.search,
-                            border: const OutlineInputBorder(),
-                            isDense: true,
-                          ),
+                        child: SearchFieldMaterial(
+                          controller: _search,
+                          hintText: context.t.screenContacts.search,
                           onChanged: (value) => setState(() => _query = value),
                         ),
                       ),

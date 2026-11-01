@@ -142,6 +142,14 @@ class _Picker<T> extends StatefulWidget {
 
 class _PickerState<T> extends State<_Picker<T>> {
   String _query = '';
+  final _search = TextEditingController();
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
   final _selected = <T>[];
 
   bool get _multi => widget.max != null;
@@ -282,16 +290,10 @@ class _PickerState<T> extends State<_Picker<T>> {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              // Обычное поле с тонкой рамкой из темы: SearchBar рисовал свою
-              // «таблетку», а внутри — ещё и рамку TextField (двойной контур).
-              child: m.TextField(
-                textAlignVertical: TextAlignVertical.center,
-                decoration: m.InputDecoration(
-                  hintText: t.screenChat.search,
-                  prefixIcon: const m.Icon(m.Icons.search, size: 20),
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                ),
+              // То же поле, что на вкладках (с крестиком «Очистить»).
+              child: SearchFieldMaterial(
+                controller: _search,
+                hintText: t.screenChat.search,
                 onChanged: (value) => setState(() => _query = value),
               ),
             ),
