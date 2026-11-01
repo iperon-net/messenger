@@ -8,6 +8,7 @@ import 'package:get_it/get_it.dart';
 import 'package:messenger/repositories/repositories.dart';
 import 'account_scope.dart';
 import 'app_update.dart';
+import 'bootstrap/bootstrap_config.dart';
 import 'accounts.dart';
 import 'chats/spoiler_reveals.dart';
 import 'client_config.dart';
@@ -50,8 +51,6 @@ Future<void> registerCommonDependencies() async {
     getIt.registerSingletonAsync<DeviceRepositories>(() async => DeviceRepositories.initialization(), dependsOn: [Settings]);
   }
   await getIt.allReady();
-  // Настройки приложения с прошлого ответа сервера — до первого экрана.
-  if (getIt.get<Settings>().serverConfig == null) await ClientConfigSync.loadCached();
 
   if (!getIt.hasScope(_accountScopeName)) await openAccount(getIt.get<DeviceRepositories>().activeAccountID);
 }
@@ -62,6 +61,11 @@ Future<void> openAccount(String accountID) async {
   final scope = AccountScope(accountID);
   AccountScope.activate(scope);
   final device = getIt.get<DeviceRepositories>();
+  // Сервер аккаунта (его окружение) — до `API`; настройки приложения с
+  // прошлого ответа этого сервера — до первого экрана.
+  final settings = getIt.get<Settings>();
+  settings.environment = await device.accounts.environmentOf(accountID);
+  await ClientConfigSync.loadCached();
   getIt.pushNewScope(
     scopeName: _accountScopeName,
     init: (getIt) {
@@ -103,6 +107,8 @@ Future<void> startAccountServices() async {
   // Свежие настройки приложения (до входа тоже; после входа их обновляет
   // стрим). Не ждём — экран не задерживаем, пока есть кэш.
   unawaited(ClientConfigSync.fetch());
+  // Свежие адреса серверов (bootstrap-файл) — к следующему подключению.
+  unawaited(BootstrapConfig.refresh());
   final settingsDevice = await getIt.get<DeviceRepositories>().settingsDevice.getAll();
   // Само-гейтится на авторизацию; VoIP-токен iOS синхронизирует CallPush. См.
   // docs/plans/push-notifications.md.

@@ -130,6 +130,27 @@ void main() {
     expect((await accounts.all()).map((a) => a.accountID), [slot]);
   });
 
+  test('окружение: вошедшие до миграции — staging, новый слот — по умолчанию до входа', () async {
+    await account.execute("INSERT INTO users (userID, phoneNumber) VALUES (?, '79990000001');", [user]);
+    await account.execute('INSERT INTO sessions VALUES (x\'01\', x\'02\', ?, x\'03\', x\'04\', 1, 1000);', [user]);
+    await migrate();
+    final accounts = Accounts(logger: Logger(), db: device);
+    expect((await accounts.all()).single.environment, 'staging');
+
+    final empty = await accounts.createSlot();
+    expect((await accounts.all()).last.environment, '');
+    expect(await accounts.environmentOf(empty), 'staging');
+
+    // Вход закрепляет сервер, на котором вошли; выбранный в «Разработчике» не меняется.
+    await accounts.ensureActive(empty);
+    await accounts.activate(userID: [1], phoneNumber: '79990000003', environment: 'production');
+    expect(await accounts.environmentOf(empty), 'production');
+    final chosen = await accounts.createSlot(environment: 'staging');
+    await accounts.ensureActive(chosen);
+    await accounts.activate(userID: [2], phoneNumber: '79990000004', environment: 'production');
+    expect(await accounts.environmentOf(chosen), 'staging');
+  });
+
   // Сбои до device.db копятся в памяти и переезжают в неё при attach; хранится
   // не больше CrashReports.maxStored — старые вытесняются.
   test('crashReports: сбои до базы и предел хранения', () async {

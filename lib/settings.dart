@@ -2,6 +2,8 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'bootstrap/bootstrap_config.dart';
+import 'bootstrap/bootstrap_file.dart';
 import 'di.dart';
 import 'logger.dart';
 import 'platform.dart';
@@ -11,7 +13,9 @@ import 'protobuf.dart';
 /// Яндекс, минимальная версия) берутся по цепочке: `.env` (debug) → настройки
 /// с сервера ([serverConfig], `ClientConfig` из админки, этап 5б
 /// docs/plans/admin-panel.md) → Remote Config (переходный период) →
-/// [_defaults]. Новый [serverConfig] — [notifyListeners].
+/// [_defaults]. Новый [serverConfig] — [notifyListeners]. Адрес сервера —
+/// окружения активного аккаунта ([environment]) из bootstrap-файла
+/// ([BootstrapConfig]).
 class Settings extends ChangeNotifier {
   /// Remote Config — только где есть Firebase ([AppPlatform.hasFirebase]); на
   /// десктопе значения берутся из [_defaults] (и `.env`).
@@ -29,12 +33,15 @@ class Settings extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Окружение (сервер) активного аккаунта: `production` / `staging`. Ставит
+  /// `openAccount` до создания `API` аккаунта.
+  String environment = BootstrapConfig.builtIn.defaultEnvironment;
+
+  /// Основной адрес окружения [environment].
+  BootstrapApi get _api => BootstrapConfig.environment(environment).api.first;
+
   static const _defaults = <String, Object>{
-    "PUBLIC_KEY_EDDSA_FINGERPRINT": "7abfc2a7e8ea09ae384bdeb855cfeae24d60bfac3646046e754fddc8d5ab604d",
     "YANDEX_OAUTH_CLIENT_ID": "c3ae9f778e734f70ad8b5bc96b419169",
-    "API_HOST": "staging.iperon.net",
-    "API_PORT": 443,
-    "API_SECURE": true,
     "PHONE_NUMBER_MODERATION_APPLICATION_STORE_ENABLE": false,
     "CALL_CONNECT_MAX_ATTEMPTS": 3,
     "CALL_PEER_CONNECTION_TIMEOUT_SECONDS": 7,
@@ -105,7 +112,7 @@ class Settings extends ChangeNotifier {
   String get databaseName => dotenv.get('DATABASE_NAME', fallback: "iperon.db");
   bool get isDeleteDatabase => dotenv.getBool('IS_DELETE_DATABASE', fallback: false);
   int get databaseVersion => dotenv.getInt('DATABASE_VERSION', fallback: 1);
-  String get publicKeyEDDSAFingerprint => _getString("PUBLIC_KEY_EDDSA_FINGERPRINT");
+  String get publicKeyEDDSAFingerprint => BootstrapConfig.environment(environment).serverKeyFingerprint;
 
   /// Флаг: `.env` (только debug) → сервер → Remote Config / [_defaults].
   bool _flag(String key, bool Function(ClientConfig_Response config) server) {
@@ -148,21 +155,23 @@ class Settings extends ChangeNotifier {
     return _getString("ANIMATED_EMOJI_URL");
   }
 
+  /// Адрес сервера: `.env` (`API_HOST` / `API_PORT` / `API_SECURE` — для
+  /// любого окружения) → окружение активного аккаунта.
   String get apiHost {
     final res = dotenv.get('API_HOST', fallback: "");
     if (res.isNotEmpty) return res;
-    return _getString("API_HOST");
+    return _api.host;
   }
 
   int get apiPort {
     final res = dotenv.getInt('API_PORT', fallback: 0);
     if (res > 0) return res;
-    return _getInt("API_PORT");
+    return _api.port;
   }
 
   bool get apiSecure {
-    if (kDebugMode) return dotenv.getBool('API_SECURE', fallback: true);
-    return _getBool("API_SECURE");
+    if (kDebugMode && (dotenv.maybeGet('API_SECURE') ?? '').isNotEmpty) return dotenv.getBool('API_SECURE');
+    return _api.secure;
   }
 
   /// Номера с постоянным кодом (ревьюер стора и тестовые аккаунты стенда,

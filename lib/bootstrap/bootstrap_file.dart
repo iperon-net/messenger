@@ -170,3 +170,41 @@ Object? _sorted(Object? value) {
   if (value is List) return [for (final item in value) _sorted(item)];
   return value;
 }
+
+/// Откуда клиент берёт файл, по порядку: свой домен (nginx, кэш 5 мин), затем
+/// GitHub Release напрямую — если домен недоступен или отдаёт старое.
+const bootstrapMirrors = <String>[
+  'https://download.iperon.net/config.json',
+  'https://github.com/iperon-net/messenger/releases/download/bootstrap/config.json',
+];
+
+/// Скачанный и проверенный файл: разобранный и его текст (в кэш как есть).
+typedef BootstrapDownload = ({BootstrapFile file, String text});
+
+/// Первый файл с зеркал [mirrors], который проходит проверку подписи и не
+/// старше [currentSerial] (равный — «без изменений»). Зеркало, отдавшее
+/// ошибку, битый или более старый файл (откат, устаревший кэш), пропускается
+/// ([onSkip] — для лога). Null — ни одно не подошло.
+Future<BootstrapDownload?> fetchBootstrapFile({
+  required Future<String> Function(Uri uri) fetch,
+  required int currentSerial,
+  List<String> mirrors = bootstrapMirrors,
+  List<String> publicKeys = bootstrapPublicKeys,
+  void Function(Uri uri, Object reason)? onSkip,
+}) async {
+  for (final mirror in mirrors) {
+    final uri = Uri.parse(mirror);
+    try {
+      final text = await fetch(uri);
+      final file = await BootstrapFile.verify(text, publicKeys: publicKeys);
+      if (file.serial < currentSerial) {
+        onSkip?.call(uri, 'serial ${file.serial} < $currentSerial');
+        continue;
+      }
+      return (file: file, text: text);
+    } catch (error) {
+      onSkip?.call(uri, error);
+    }
+  }
+  return null;
+}

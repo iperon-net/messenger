@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -89,5 +90,48 @@ void main() {
       environments: {'staging': file.environments['staging']!},
     );
     expect(() async => BootstrapFile.verify(await orphan.sign(key), publicKeys: [publicKey]), throwsA(isA<BootstrapException>()));
+  });
+
+  group('fetchBootstrapFile', () {
+    Future<String> signedWith(int serial) =>
+        BootstrapFile(serial: serial, issuedAt: 0, defaultEnvironment: file.defaultEnvironment, environments: file.environments).sign(key);
+
+    const mirrors = ['https://a.example/config.json', 'https://b.example/config.json'];
+
+    test('первое зеркало недоступно или с чужой подписью — берётся следующее', () async {
+      final good = await signedWith(5);
+      final skipped = <String>[];
+      final result = await fetchBootstrapFile(
+        fetch: (uri) async => uri.host == 'a.example' ? throw const SocketException('down') : good,
+        currentSerial: 3,
+        mirrors: mirrors,
+        publicKeys: [publicKey],
+        onSkip: (uri, _) => skipped.add(uri.host),
+      );
+      expect(result?.file.serial, 5);
+      expect(result?.text, good);
+      expect(skipped, ['a.example']);
+
+      final forged = await fetchBootstrapFile(
+        fetch: (uri) async => uri.host == 'a.example' ? good.replaceFirst('staging.iperon.net', 'evil.example') : good,
+        currentSerial: 3,
+        mirrors: mirrors,
+        publicKeys: [publicKey],
+      );
+      expect(forged?.text, good);
+    });
+
+    test('откат serial не принимается; равный — «без изменений»', () async {
+      final old = await signedWith(2), same = await signedWith(3);
+      final rollback = await fetchBootstrapFile(fetch: (_) async => old, currentSerial: 3, mirrors: mirrors, publicKeys: [publicKey]);
+      expect(rollback, isNull);
+      final stale = await fetchBootstrapFile(
+        fetch: (uri) async => uri.host == 'a.example' ? old : same,
+        currentSerial: 3,
+        mirrors: mirrors,
+        publicKeys: [publicKey],
+      );
+      expect(stale?.file.serial, 3);
+    });
   });
 }

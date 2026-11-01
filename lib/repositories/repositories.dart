@@ -11,6 +11,7 @@ import 'package:sqlite_async/sqlite_async.dart';
 import 'package:sqlite_async/native.dart';
 
 import '../account_scope.dart';
+import '../bootstrap/bootstrap_config.dart';
 import '../di.dart';
 import '../i18n/translations.g.dart';
 import '../logger.dart';
@@ -40,6 +41,7 @@ part "secret_chats.dart";
 part "spoiler_reveals.dart";
 part "device.dart";
 part "client_config.dart";
+part "bootstrap_config.dart";
 part "account_files.dart";
 part "data_usage.dart";
 

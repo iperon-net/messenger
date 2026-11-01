@@ -24,12 +24,13 @@ import 'developer_test_push.dart';
 class SettingsDeveloperMaterial extends StatelessWidget {
   const SettingsDeveloperMaterial({super.key});
 
-  /// Слоты аккаунтов: переключиться или завести новый (вход откроется в нём).
+  /// Слоты аккаунтов: переключиться или завести новый в выбранном окружении
+  /// (вход откроется в нём, на сервере окружения).
   Future<void> _pickAccount(BuildContext context) async {
     final t = context.t.screenDeveloper;
     final slots = await developerAccountSlots(signedOut: t.accountsEmpty);
     if (!context.mounted) return;
-    final picked = await showModalBottomSheet<({String? accountID})>(
+    final picked = await showModalBottomSheet<({String? accountID, String? environment})>(
       context: context,
       showDragHandle: true,
       builder: (sheetContext) => SafeArea(
@@ -41,13 +42,14 @@ class SettingsDeveloperMaterial extends StatelessWidget {
                 leading: Icon(slot.active ? Icons.radio_button_checked : Icons.radio_button_unchecked),
                 title: Text(slot.title),
                 subtitle: slot.active ? Text(t.accountsActive) : null,
-                onTap: () => Navigator.of(sheetContext).pop((accountID: slot.accountID)),
+                onTap: () => Navigator.of(sheetContext).pop((accountID: slot.accountID, environment: null)),
               ),
-            ListTile(
-              leading: const Icon(Icons.add),
-              title: Text(t.accountsNew),
-              onTap: () => Navigator.of(sheetContext).pop((accountID: null)),
-            ),
+            for (final environment in developerEnvironments())
+              ListTile(
+                leading: const Icon(Icons.add),
+                title: Text('${t.accountsNew} · $environment'),
+                onTap: () => Navigator.of(sheetContext).pop((accountID: null, environment: environment)),
+              ),
           ],
         ),
       ),
@@ -59,7 +61,7 @@ class SettingsDeveloperMaterial extends StatelessWidget {
         ..showSnackBar(SnackBar(content: Text(t.accountsCallActive)));
       return;
     }
-    await developerSwitchAccount(picked.accountID);
+    await developerSwitchAccount(accountID: picked.accountID, environment: picked.environment);
   }
 
   @override

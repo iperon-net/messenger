@@ -5,11 +5,13 @@ import 'dart:typed_data';
 import 'package:path/path.dart' as p;
 
 import 'account_scope.dart';
+import 'bootstrap/bootstrap_config.dart';
 import 'di.dart';
 import 'logger.dart';
 import 'push.dart';
 import 'repositories.dart';
 import 'routers.dart';
+import 'settings.dart';
 import 'api.dart';
 import 'protobuf.dart';
 import 'utils.dart';
@@ -28,6 +30,13 @@ const maxAccounts = 3;
 typedef AccountEntry = ({String accountID, String userHex, String title, String avatarPath, bool active, int unread});
 
 DeviceRepositories get _device => getIt.get<DeviceRepositories>();
+
+/// Окружение слота ('' — по умолчанию).
+String _environmentOf(AccountSlot slot) => slot.environment.isNotEmpty ? slot.environment : BootstrapConfig.defaultEnvironment;
+
+/// Слот на том же сервере, что и активный аккаунт: userID и номер уникальны
+/// только в пределах сервера.
+bool _sameServer(AccountSlot slot) => _environmentOf(slot) == getIt.get<Settings>().environment;
 
 /// Вошедшие аккаунты по порядку слотов; [withUnread] — с непрочитанными
 /// неактивных (спрашивает натив).
@@ -48,7 +57,11 @@ Future<List<AccountEntry>> signedInAccounts({bool withUnread = false}) async {
         (
           accountID: slot.accountID,
           userHex: utils.bytesToHex(slot.userID),
-          title: slot.name.isNotEmpty ? slot.name : phone(slot.phoneNumber),
+          // Аккаунт не из окружения по умолчанию (стейдж) — с пометкой.
+          title: [
+            slot.name.isNotEmpty ? slot.name : phone(slot.phoneNumber),
+            if (_environmentOf(slot) != BootstrapConfig.defaultEnvironment) _environmentOf(slot),
+          ].join(' · '),
           avatarPath: _avatarFile(slot.accountID, slot.avatarPath),
           active: slot.accountID == current,
           unread: slot.accountID == current ? 0 : badges[slot.accountID] ?? 0,
@@ -74,7 +87,7 @@ String _avatarFile(String accountID, String stored) {
 /// в них ещё раз (`AuthConfirmation.signedInUserIDs`).
 Future<List<Uint8List>> signedInUserIDs() async => [
   for (final slot in await _device.accounts.all())
-    if (slot.userID.isNotEmpty && !slot.active) slot.userID,
+    if (slot.userID.isNotEmpty && !slot.active && _sameServer(slot)) slot.userID,
 ];
 
 /// Уже вошёл ли на устройстве другой аккаунт с номером [phoneNumber] (сравнение
@@ -83,7 +96,9 @@ Future<bool> isPhoneSignedIn(String phoneNumber) async {
   String digits(String value) => value.replaceAll(RegExp(r'\D'), '');
   final phone = digits(phoneNumber);
   if (phone.isEmpty) return false;
-  return (await _device.accounts.all()).any((slot) => slot.userID.isNotEmpty && !slot.active && digits(slot.phoneNumber) == phone);
+  return (await _device.accounts.all()).any(
+    (slot) => slot.userID.isNotEmpty && !slot.active && _sameServer(slot) && digits(slot.phoneNumber) == phone,
+  );
 }
 
 /// Изменения списка аккаунтов (вход, выход, имя, аватар).

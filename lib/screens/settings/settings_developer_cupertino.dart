@@ -24,12 +24,13 @@ import 'developer_test_push.dart';
 class SettingsDeveloperCupertino extends StatelessWidget {
   const SettingsDeveloperCupertino({super.key});
 
-  /// Слоты аккаунтов: переключиться или завести новый (вход откроется в нём).
+  /// Слоты аккаунтов: переключиться или завести новый в выбранном окружении
+  /// (вход откроется в нём, на сервере окружения).
   Future<void> _pickAccount(BuildContext context) async {
     final t = context.t.screenDeveloper;
     final slots = await developerAccountSlots(signedOut: t.accountsEmpty);
     if (!context.mounted) return;
-    final picked = await showCupertinoDialog<({String? accountID})>(
+    final picked = await showCupertinoDialog<({String? accountID, String? environment})>(
       context: context,
       barrierDismissible: true,
       builder: (dialogContext) => CupertinoAlertDialog(
@@ -38,10 +39,14 @@ class SettingsDeveloperCupertino extends StatelessWidget {
           for (final slot in slots)
             CupertinoDialogAction(
               isDefaultAction: slot.active,
-              onPressed: () => Navigator.of(dialogContext).pop((accountID: slot.accountID)),
+              onPressed: () => Navigator.of(dialogContext).pop((accountID: slot.accountID, environment: null)),
               child: Text(slot.active ? '${slot.title} · ${t.accountsActive}' : slot.title),
             ),
-          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop((accountID: null)), child: Text(t.accountsNew)),
+          for (final environment in developerEnvironments())
+            CupertinoDialogAction(
+              onPressed: () => Navigator.of(dialogContext).pop((accountID: null, environment: environment)),
+              child: Text('${t.accountsNew} · $environment'),
+            ),
           CupertinoDialogAction(
             isDestructiveAction: true,
             onPressed: () => Navigator.of(dialogContext).pop(),
@@ -61,7 +66,7 @@ class SettingsDeveloperCupertino extends StatelessWidget {
       );
       return;
     }
-    await developerSwitchAccount(picked.accountID);
+    await developerSwitchAccount(accountID: picked.accountID, environment: picked.environment);
   }
 
   @override

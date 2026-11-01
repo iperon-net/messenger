@@ -14,6 +14,7 @@ class DeviceRepositories {
   late final SettingsDevice settingsDevice;
   late final Accounts accounts;
   late final ClientConfigCache clientConfig;
+  late final BootstrapConfigCache bootstrapConfig;
 
   /// `accountID` активного слота на старте.
   late final String activeAccountID;
@@ -129,6 +130,9 @@ class DeviceRepositories {
     settingsDevice = SettingsDevice(logger: logger, db: db);
     accounts = Accounts(logger: logger, db: db);
     clientConfig = ClientConfigCache(db: db);
+    bootstrapConfig = BootstrapConfigCache(db: db);
+    // Адреса окружений — до первого подключения (API аккаунта).
+    await BootstrapConfig.load(bootstrapConfig);
     await accounts.ensureActive(slot);
     activeAccountID = slot;
     final abandoned = _abandonedSlot;
@@ -384,6 +388,16 @@ class DeviceDatabase {
             await tx.execute("ALTER TABLE settingsDevice ADD COLUMN $column INTEGER NOT NULL DEFAULT 0;");
           }
         }),
+      )
+      ..add(
+        SqliteMigration(10, (tx) async {
+          // Окружение аккаунта (production / staging, docs/plans/bootstrap-config.md):
+          // '' — ещё не вошли, окружение по умолчанию; при входе записывается.
+          // Вошедшие до этого — на стейдже (прода не было).
+          await tx.execute("ALTER TABLE accounts ADD COLUMN environment TEXT NOT NULL DEFAULT '';");
+          await tx.execute("UPDATE accounts SET environment = 'staging' WHERE length(userID) > 0;");
+          await tx.execute(BootstrapConfigCache.schema);
+        }),
       );
   }
 
@@ -398,7 +412,18 @@ class DeviceDatabase {
 }
 
 /// Слот аккаунта из `device.db`: [userID] пуст — в нём никто не вошёл.
-typedef AccountSlot = ({String accountID, Uint8List userID, String phoneNumber, String name, String avatarPath, bool active});
+///
+/// [environment] — окружение (сервер) аккаунта; '' — ещё не вошли, окружение
+/// по умолчанию ([Accounts.environmentOf]).
+typedef AccountSlot = ({
+  String accountID,
+  Uint8List userID,
+  String phoneNumber,
+  String name,
+  String avatarPath,
+  bool active,
+  String environment,
+});
 
 /// Индекс аккаунтов устройства (`device.db`). `accountID` — случайный
 /// локальный id: `userID` уникален только в пределах сервера.
@@ -434,7 +459,7 @@ class Accounts {
   /// Все слоты по порядку.
   Future<List<AccountSlot>> all() async {
     final rows = await db.getAll(
-      'SELECT accountID, userID, phoneNumber, name, avatarPath, isActive FROM accounts ORDER BY sortOrder, createdAt;',
+      'SELECT accountID, userID, phoneNumber, name, avatarPath, isActive, environment FROM accounts ORDER BY sortOrder, createdAt;',
     );
     return [
       for (final row in rows)
@@ -445,8 +470,17 @@ class Accounts {
           name: row['name'] as String,
           avatarPath: row['avatarPath'] as String,
           active: row['isActive'] == 1,
+          environment: row['environment'] as String,
         ),
     ];
+  }
+
+  /// Окружение слота [accountID]: записанное, иначе (не вошли, слота нет) —
+  /// окружение по умолчанию.
+  Future<String> environmentOf(String accountID) async {
+    final row = await db.getOptional('SELECT environment FROM accounts WHERE accountID = ?;', [accountID]);
+    final environment = row?['environment'] as String? ?? '';
+    return environment.isNotEmpty ? environment : BootstrapConfig.defaultEnvironment;
   }
 
   /// Изменения слотов (вход, выход, имя, аватар) — для списка аккаунтов.
@@ -474,17 +508,16 @@ class Accounts {
   }
 
   /// Новый пустой слот (не активный); его папку заведёт первое открытие.
-  Future<String> createSlot() async {
+  /// [environment] — сервер слота («Разработчик»); null — окружение по
+  /// умолчанию на момент входа.
+  Future<String> createSlot({String? environment}) async {
     final accountID = newAccountID();
     await db.writeTransaction((tx) async {
       final next = await tx.get('SELECT COALESCE(MAX(sortOrder), -1) + 1 AS n FROM accounts;');
-      await tx.execute('INSERT INTO accounts (accountID, userID, phoneNumber, isActive, sortOrder, createdAt) VALUES (?, ?, ?, 0, ?, ?);', [
-        accountID,
-        Uint8List(0),
-        '',
-        next['n'],
-        DateTime.now().millisecondsSinceEpoch,
-      ]);
+      await tx.execute(
+        'INSERT INTO accounts (accountID, userID, phoneNumber, isActive, sortOrder, createdAt, environment) VALUES (?, ?, ?, 0, ?, ?, ?);',
+        [accountID, Uint8List(0), '', next['n'], DateTime.now().millisecondsSinceEpoch, environment ?? ''],
+      );
     });
     return accountID;
   }
@@ -502,9 +535,13 @@ class Accounts {
   }
 
   /// Вход [userID] в активный слот (аккаунт пока один — слот и папка те же,
-  /// что до выхода).
-  Future<void> activate({required List<int> userID, required String phoneNumber}) async {
-    await db.execute('UPDATE accounts SET userID = ?, phoneNumber = ? WHERE isActive = 1;', [userID, phoneNumber]);
+  /// что до выхода). [environment] — сервер, на котором вошли: слот без
+  /// окружения закрепляется за ним.
+  Future<void> activate({required List<int> userID, required String phoneNumber, required String environment}) async {
+    await db.execute(
+      "UPDATE accounts SET userID = ?, phoneNumber = ?, environment = CASE WHEN environment = '' THEN ? ELSE environment END WHERE isActive = 1;",
+      [userID, phoneNumber, environment],
+    );
   }
 
   /// Выход из активного слота: пользователь снимается, слот и папка остаются

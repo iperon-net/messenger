@@ -22,11 +22,12 @@ class ClientConfigSync {
   /// Ключ кэша — сервер, к которому подключается приложение.
   static String get _server => '${_settings.apiHost}:${_settings.apiPort}';
 
-  /// Кэш с прошлого запуска → [Settings.serverConfig].
+  /// Кэш сервера активного аккаунта → [Settings.serverConfig] (нет кэша —
+  /// null: настройки другого сервера не подходят).
   static Future<void> loadCached() async {
     try {
       final data = await getIt.get<DeviceRepositories>().clientConfig.get(_server);
-      if (data != null) _settings.serverConfig = ClientConfig_Response.fromBuffer(data);
+      _settings.serverConfig = data == null ? null : ClientConfig_Response.fromBuffer(data);
     } catch (error, stackTrace) {
       getIt.get<Logger>().handle(error, stackTrace, 'client config: cache');
     }

@@ -26,7 +26,12 @@ class Sessions {
     });
     // Номер пишет Users.createOrUpdate перед созданием сессии.
     final user = await db.getOptional("SELECT phoneNumber FROM users WHERE userID = ?;", [userID]);
-    await accounts.activate(userID: userID, phoneNumber: user?['phoneNumber'] as String? ?? '');
+    await accounts.activate(
+      userID: userID,
+      phoneNumber: user?['phoneNumber'] as String? ?? '',
+      // Сервер, к которому подключён аккаунт (без get_it — тесты).
+      environment: getIt.isRegistered<Settings>() ? getIt.get<Settings>().environment : BootstrapConfig.defaultEnvironment,
+    );
   }
 
   Future<models.Session> getActive() async {
