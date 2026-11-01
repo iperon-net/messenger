@@ -876,12 +876,11 @@
   "serverConfigUpdated": "Новые настройки применены."
   "serverConfigUnchanged": "Изменений нет — настройки уже актуальные."
   "serverConfigError": "Не удалось загрузить настройки с сервера."
-  "remoteConfig": "Обновить Remote Config"
-  "remoteConfigFetched": "Загружено {time}"
-  "remoteConfigNever": "Ещё не загружался"
-  "remoteConfigUpdated": "Новые значения применены. Экраны подхватят их при следующем открытии; адрес сервера — после перезапуска приложения."
-  "remoteConfigUnchanged": "Изменений нет — значения уже актуальные. Если только что поменяли в консоли Firebase, подождите минуту и повторите."
-  "remoteConfigError": "Не удалось загрузить: {error}"
+  "bootstrapConfig": "Обновить адреса серверов"
+  "bootstrapConfigInfo": "config.json №{serial} · {environment} · {address}"
+  "bootstrapConfigUpdated": "Новый config.json применён. Адрес сервера сменится при переключении аккаунта или после перезапуска приложения."
+  "bootstrapConfigUnchanged": "Изменений нет — config.json уже актуальный."
+  "bootstrapConfigError": "Не удалось загрузить config.json ни с одного адреса."
 
 "screenSettingsAppearance":
   "appearance": "Оформление"

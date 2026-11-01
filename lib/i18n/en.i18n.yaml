@@ -850,12 +850,11 @@
   "serverConfigUpdated": "New settings applied."
   "serverConfigUnchanged": "No changes — the settings are already up to date."
   "serverConfigError": "Could not load the settings from the server."
-  "remoteConfig": "Refresh Remote Config"
-  "remoteConfigFetched": "Fetched {time}"
-  "remoteConfigNever": "Not fetched yet"
-  "remoteConfigUpdated": "New values applied. Screens pick them up the next time they open; the server address — after an app restart."
-  "remoteConfigUnchanged": "No changes — values are already up to date. If you just changed them in the Firebase console, wait a minute and retry."
-  "remoteConfigError": "Failed to fetch: {error}"
+  "bootstrapConfig": "Refresh server addresses"
+  "bootstrapConfigInfo": "config.json #{serial} · {environment} · {address}"
+  "bootstrapConfigUpdated": "New config.json applied. The server address changes when you switch accounts or restart the app."
+  "bootstrapConfigUnchanged": "No changes — config.json is already up to date."
+  "bootstrapConfigError": "Couldn't download config.json from any address."
 
 "screenSettingsAppearance":
   "appearance": "Appearance"

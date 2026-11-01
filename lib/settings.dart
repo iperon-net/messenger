@@ -1,4 +1,3 @@
-import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -6,20 +5,15 @@ import 'bootstrap/bootstrap_config.dart';
 import 'bootstrap/bootstrap_file.dart';
 import 'di.dart';
 import 'logger.dart';
-import 'platform.dart';
 import 'protobuf.dart';
 
 /// Настройки приложения. Флаги поведения (секретные чаты, звонки, эмодзи,
 /// Яндекс, минимальная версия) берутся по цепочке: `.env` (debug) → настройки
 /// с сервера ([serverConfig], `ClientConfig` из админки, этап 5б
-/// docs/plans/admin-panel.md) → Remote Config (переходный период) →
-/// [_defaults]. Новый [serverConfig] — [notifyListeners]. Адрес сервера —
+/// docs/plans/admin-panel.md) → [_defaults] (сборка). Новый [serverConfig] — [notifyListeners]. Адрес сервера —
 /// окружения активного аккаунта ([environment]) из bootstrap-файла
 /// ([BootstrapConfig]).
 class Settings extends ChangeNotifier {
-  /// Remote Config — только где есть Firebase ([AppPlatform.hasFirebase]); на
-  /// десктопе значения берутся из [_defaults] (и `.env`).
-  FirebaseRemoteConfig get remoteConfig => FirebaseRemoteConfig.instance;
   final logger = getIt.get<Logger>();
 
   ClientConfig_Response? _serverConfig;
@@ -42,7 +36,6 @@ class Settings extends ChangeNotifier {
 
   static const _defaults = <String, Object>{
     "YANDEX_OAUTH_CLIENT_ID": "c3ae9f778e734f70ad8b5bc96b419169",
-    "PHONE_NUMBER_MODERATION_APPLICATION_STORE_ENABLE": false,
     "CALL_CONNECT_MAX_ATTEMPTS": 3,
     "CALL_PEER_CONNECTION_TIMEOUT_SECONDS": 7,
     "CALL_RING_TIMEOUT_SECONDS": 45,
@@ -58,9 +51,9 @@ class Settings extends ChangeNotifier {
     "GROUP_CALLS_ENABLED": false,
   };
 
-  String _getString(String key) => AppPlatform.hasFirebase ? remoteConfig.getString(key) : (_defaults[key] as String? ?? '');
-  int _getInt(String key) => AppPlatform.hasFirebase ? remoteConfig.getInt(key) : (_defaults[key] as int? ?? 0);
-  bool _getBool(String key) => AppPlatform.hasFirebase ? remoteConfig.getBool(key) : (_defaults[key] as bool? ?? false);
+  String _getString(String key) => _defaults[key] as String? ?? '';
+  int _getInt(String key) => _defaults[key] as int? ?? 0;
+  bool _getBool(String key) => _defaults[key] as bool? ?? false;
 
   static Future<Settings> initialization() async {
     final settings = Settings._();
@@ -75,38 +68,8 @@ class Settings extends ChangeNotifier {
     // NotInitializedError на любой dotenv.get(...) даже с fallback, если load()
     // не вызывали. Раньше (до fd0770e) загрузка была безусловной; ограничение
     // её дебагом ломало release-старт (крэш в Repositories на settings.databaseName).
-    // isOptional: true — если ассета .env нет, load всё равно инициализирует dotenv,
-    // а геттеры откатятся к Remote Config.
+    // isOptional: true — если ассета .env нет, load всё равно инициализирует dotenv.
     await dotenv.load(isOptional: true);
-
-    if (!AppPlatform.hasFirebase) return;
-
-    await remoteConfig.setConfigSettings(
-      RemoteConfigSettings(fetchTimeout: const Duration(seconds: 30), minimumFetchInterval: const Duration(hours: 24)),
-    );
-
-    // Default config
-    await remoteConfig.setDefaults(_defaults);
-
-    try {
-      await remoteConfig.fetchAndActivate();
-    } catch (err) {
-      logger.handle(err);
-    }
-  }
-
-  /// Принудительная загрузка Remote Config мимо интервала 24 ч (меню
-  /// «Разработчик»): обычный `fetchAndActivate` на старте берёт кэш, пока он
-  /// моложе `minimumFetchInterval`. Возвращает true, если активированы новые
-  /// значения. Бросает при ошибке (нет сети, throttling Firebase).
-  Future<bool> forceFetchRemoteConfig() async {
-    final current = remoteConfig.settings;
-    await remoteConfig.setConfigSettings(RemoteConfigSettings(fetchTimeout: current.fetchTimeout, minimumFetchInterval: Duration.zero));
-    try {
-      return await remoteConfig.fetchAndActivate();
-    } finally {
-      await remoteConfig.setConfigSettings(current);
-    }
   }
 
   String get databaseName => dotenv.get('DATABASE_NAME', fallback: "iperon.db");
@@ -114,7 +77,7 @@ class Settings extends ChangeNotifier {
   int get databaseVersion => dotenv.getInt('DATABASE_VERSION', fallback: 1);
   String get publicKeyEDDSAFingerprint => BootstrapConfig.environment(environment).serverKeyFingerprint;
 
-  /// Флаг: `.env` (только debug) → сервер → Remote Config / [_defaults].
+  /// Флаг: `.env` (только debug) → сервер → [_defaults].
   bool _flag(String key, bool Function(ClientConfig_Response config) server) {
     if (kDebugMode && (dotenv.maybeGet(key) ?? '').isNotEmpty) return dotenv.getBool(key);
     final config = _serverConfig;
@@ -122,14 +85,14 @@ class Settings extends ChangeNotifier {
     return _getBool(key);
   }
 
-  /// Число: `.env` → сервер → Remote Config / [_defaults] → [fallback]; ноль
+  /// Число: `.env` → сервер → [_defaults] → [fallback]; ноль
   /// и меньше — «не задано».
   int _number(String key, int server, int fallback) {
     final env = dotenv.getInt(key, fallback: 0);
     if (env > 0) return env;
     if (server > 0) return server;
-    final rc = _getInt(key);
-    return rc > 0 ? rc : fallback;
+    final built = _getInt(key);
+    return built > 0 ? built : fallback;
   }
 
   /// Яндекс ID: client_id с сервера (по нему он и сверяет токен), иначе из
@@ -174,25 +137,12 @@ class Settings extends ChangeNotifier {
     return _api.secure;
   }
 
-  /// Номера с постоянным кодом (ревьюер стора и тестовые аккаунты стенда,
-  /// `testAccounts` сервера): вход без звонка. Через запятую; первый — номер
-  /// ревьюера (кнопка «вставить номер» в debug).
-  List<String> get phoneNumbersModerationApplicationStore {
-    var res = dotenv.get('PHONE_NUMBER_MODERATION_APPLICATION_STORE', fallback: "");
-    if (res.isEmpty) res = _getString("PHONE_NUMBER_MODERATION_APPLICATION_STORE");
-    return [
-      for (final number in res.split(','))
-        if (number.trim().isNotEmpty) number.trim(),
-    ];
-  }
-
-  String get phoneNumberModerationApplicationStore => phoneNumbersModerationApplicationStore.firstOrNull ?? '';
-
-  bool get phoneNumberModerationApplicationStoreEnable {
-    if (kDebugMode) {
-      return dotenv.getBool('PHONE_NUMBER_MODERATION_APPLICATION_STORE_ENABLE', fallback: false);
-    }
-    return _getBool("PHONE_NUMBER_MODERATION_APPLICATION_STORE_ENABLE");
+  /// Номер для кнопки «вставить номер» на экране входа в debug (`.env`,
+  /// первый через запятую): тестовый аккаунт стенда (`testAccounts` сервера,
+  /// вход без звонка — сервер сам отвечает `fixedCode`).
+  String get debugPhoneNumber {
+    final res = dotenv.get('PHONE_NUMBER_MODERATION_APPLICATION_STORE', fallback: "");
+    return res.split(',').first.trim();
   }
 
   /// Показывать «Начать секретный чат».

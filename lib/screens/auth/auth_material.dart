@@ -177,7 +177,7 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                                   child: Text(t.screenAuth.insertDebugPhone),
                                   onPressed: () {
                                     phoneNumberController.text = utils
-                                        .phoneNormalization(phoneNumber: settings.phoneNumberModerationApplicationStore)
+                                        .phoneNormalization(phoneNumber: settings.debugPhoneNumber)
                                         .international;
                                   },
                                 ),

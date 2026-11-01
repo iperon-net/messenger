@@ -201,7 +201,7 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
                                   child: Text(t.screenAuth.insertDebugPhone),
                                   onPressed: () {
                                     phoneNumberController.text = utils
-                                        .phoneNormalization(phoneNumber: settings.phoneNumberModerationApplicationStore)
+                                        .phoneNormalization(phoneNumber: settings.debugPhoneNumber)
                                         .international;
                                   },
                                 ),

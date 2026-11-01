@@ -73,42 +73,6 @@ class AuthCubit extends Cubit<AuthState> {
       return;
     }
 
-    // Workflow moderation application store — по списку из Remote Config,
-    // пока он есть (переходный период: сервер сам отвечает fixedCode на
-    // AUTH_CALL_PASSWORD, см. ниже).
-    final phoneNumberEnable = settings.phoneNumberModerationApplicationStoreEnable;
-    if (phoneNumberEnable && settings.phoneNumbersModerationApplicationStore.contains(phoneNumberNormalization.raw)) {
-      final messageRequest = Message(
-        messageType: MessageType.AUTH_MODERATION_APPLICATION_STORE,
-        message: AuthModerationApplicationStore_Request(phoneNumber: phoneNumberNormalization.raw).writeToBuffer(),
-      );
-
-      late Message response;
-      final grpcError = await api.call(() async {
-        response = await api.client.unary(messageRequest);
-      });
-
-      if (grpcError.status == APIStatus.error) {
-        emit(state.copyWith(status: Status.success, error: grpcError.error));
-        return;
-      }
-
-      final messageResponse = AuthModerationApplicationStore_Response.fromBuffer(response.message);
-      final moderationApplicationStoreSession = utils.bytesToHex(Uint8List.fromList(messageResponse.moderationApplicationStoreSession));
-
-      final phoneNormalization = utils.phoneNormalization(phoneNumber: phoneNumber);
-
-      final uri = Uri.parse("/auth/moderation_application_store").replace(
-        queryParameters: {
-          "moderationApplicationStoreSession": moderationApplicationStoreSession,
-          "phoneNumber": phoneNormalization.international,
-        },
-      );
-
-      emit(state.copyWith(status: Status.success, error: "", redirectURI: uri.toString()));
-      return;
-    }
-
     // Workflow call password
     final messageRequest = Message(
       messageType: MessageType.AUTH_CALL_PASSWORD,

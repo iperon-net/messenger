@@ -2608,23 +2608,20 @@ class Translations$screenDeveloper$en {
 	/// en: 'Could not load the settings from the server.'
 	String get serverConfigError => 'Could not load the settings from the server.';
 
-	/// en: 'Refresh Remote Config'
-	String get remoteConfig => 'Refresh Remote Config';
+	/// en: 'Refresh server addresses'
+	String get bootstrapConfig => 'Refresh server addresses';
 
-	/// en: 'Fetched {time}'
-	String remoteConfigFetched({required Object time}) => 'Fetched ${time}';
+	/// en: 'config.json #{serial} · {environment} · {address}'
+	String bootstrapConfigInfo({required Object serial, required Object environment, required Object address}) => 'config.json #${serial} · ${environment} · ${address}';
 
-	/// en: 'Not fetched yet'
-	String get remoteConfigNever => 'Not fetched yet';
+	/// en: 'New config.json applied. The server address changes when you switch accounts or restart the app.'
+	String get bootstrapConfigUpdated => 'New config.json applied. The server address changes when you switch accounts or restart the app.';
 
-	/// en: 'New values applied. Screens pick them up the next time they open; the server address — after an app restart.'
-	String get remoteConfigUpdated => 'New values applied. Screens pick them up the next time they open; the server address — after an app restart.';
+	/// en: 'No changes — config.json is already up to date.'
+	String get bootstrapConfigUnchanged => 'No changes — config.json is already up to date.';
 
-	/// en: 'No changes — values are already up to date. If you just changed them in the Firebase console, wait a minute and retry.'
-	String get remoteConfigUnchanged => 'No changes — values are already up to date. If you just changed them in the Firebase console, wait a minute and retry.';
-
-	/// en: 'Failed to fetch: {error}'
-	String remoteConfigError({required Object error}) => 'Failed to fetch: ${error}';
+	/// en: 'Couldn't download config.json from any address.'
+	String get bootstrapConfigError => 'Couldn\'t download config.json from any address.';
 }
 
 // Path: screenSettingsAppearance
@@ -6230,12 +6227,11 @@ extension on Translations {
 			'screenDeveloper.serverConfigUpdated' => 'New settings applied.',
 			'screenDeveloper.serverConfigUnchanged' => 'No changes — the settings are already up to date.',
 			'screenDeveloper.serverConfigError' => 'Could not load the settings from the server.',
-			'screenDeveloper.remoteConfig' => 'Refresh Remote Config',
-			'screenDeveloper.remoteConfigFetched' => ({required Object time}) => 'Fetched ${time}',
-			'screenDeveloper.remoteConfigNever' => 'Not fetched yet',
-			'screenDeveloper.remoteConfigUpdated' => 'New values applied. Screens pick them up the next time they open; the server address — after an app restart.',
-			'screenDeveloper.remoteConfigUnchanged' => 'No changes — values are already up to date. If you just changed them in the Firebase console, wait a minute and retry.',
-			'screenDeveloper.remoteConfigError' => ({required Object error}) => 'Failed to fetch: ${error}',
+			'screenDeveloper.bootstrapConfig' => 'Refresh server addresses',
+			'screenDeveloper.bootstrapConfigInfo' => ({required Object serial, required Object environment, required Object address}) => 'config.json #${serial} · ${environment} · ${address}',
+			'screenDeveloper.bootstrapConfigUpdated' => 'New config.json applied. The server address changes when you switch accounts or restart the app.',
+			'screenDeveloper.bootstrapConfigUnchanged' => 'No changes — config.json is already up to date.',
+			'screenDeveloper.bootstrapConfigError' => 'Couldn\'t download config.json from any address.',
 			'screenSettingsAppearance.appearance' => 'Appearance',
 			'screenSettingsAppearance.colorTheme' => 'Color theme',
 			'screenSettingsAppearance.colorThemeDefault' => 'Blue',
@@ -6464,9 +6460,9 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.forwards' => 'Forwarded messages',
 			'sessionsPrivacyAndSecurity.whoCanLinkForwards' => 'Who can add a link to my account when forwarding my messages',
 			'sessionsPrivacyAndSecurity.forwardsNote' => 'Everyone else will see only your name in "Forwarded from…", without a link to your profile.',
+			'sessionsPrivacyAndSecurity.forwardsPreviewText' => 'Remind me, what time are we meeting tomorrow?',
 			_ => null,
 		} ?? switch (path) {
-			'sessionsPrivacyAndSecurity.forwardsPreviewText' => 'Remind me, what time are we meeting tomorrow?',
 			'sessionsPrivacyAndSecurity.groupInvites' => 'Groups & Channels',
 			'sessionsPrivacyAndSecurity.whoCanAddToGroups' => 'Who can add me to groups and channels',
 			'sessionsPrivacyAndSecurity.groupInvitesNote' => 'Everyone else won\'t be able to add you to a group or channel — you just won\'t be among its members or subscribers.',
@@ -6978,9 +6974,9 @@ extension on Translations {
 			'deviceLink.cameraDenied' => 'No camera access. Allow it in settings.',
 			'qrLogin.expired' => 'The QR code has expired — scan a new one on your computer',
 			'auth.accountBlocked' => 'Account blocked',
+			'appUpdate.title' => 'Update the app',
 			_ => null,
 		} ?? switch (path) {
-			'appUpdate.title' => 'Update the app',
 			'appUpdate.text' => 'This version of Iperon is out of date and no longer supported. Install the new one to continue.',
 			'appUpdate.button' => 'Update',
 			'appUpdate.version' => ({required Object current, required Object minimal}) => 'Installed ${current}, ${minimal} or newer is required.',

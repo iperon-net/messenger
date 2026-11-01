@@ -14,7 +14,7 @@ import '../../di.dart';
 import '../../logger.dart';
 import 'developer_accounts.dart';
 import 'developer_export_logs.dart';
-import 'developer_remote_config.dart';
+import 'developer_config.dart';
 import 'developer_test_push.dart';
 
 /// Скрытый экран «Разработчик». Открывается 5 быстрыми тапами по кнопке
@@ -173,16 +173,16 @@ class SettingsDeveloperCupertino extends StatelessWidget {
                   },
                   isTrailing: false,
                 ),
-                // Remote Config мимо интервала 24 ч — чтобы проверить флаг,
-                // только что изменённый в консоли Firebase.
+                // Bootstrap-файл (адреса серверов) мимо интервала — чтобы
+                // проверить только что подписанный config.json.
                 StatefulBuilder(
                   builder: (context, setState) => CupertinoListTileIcon(
-                    title: Text(context.t.screenDeveloper.remoteConfig),
-                    subtitle: Text(remoteConfigFetchedText(context.t)),
+                    title: Text(context.t.screenDeveloper.bootstrapConfig),
+                    subtitle: Text(bootstrapConfigInfo(context.t)),
                     color: const Color(0xFFFFCC00),
-                    icon: FontAwesomeIcons.arrowsRotate,
+                    icon: FontAwesomeIcons.server,
                     onTab: () async {
-                      final message = await refreshRemoteConfig(context.t);
+                      final message = await refreshBootstrapConfig(context.t);
                       if (!context.mounted) return;
                       setState(() {});
                       await showCupertinoDialog<void>(

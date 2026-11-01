@@ -1086,12 +1086,11 @@ class _Translations$screenDeveloper$ru extends Translations$screenDeveloper$en {
 	@override String get serverConfigUpdated => 'Новые настройки применены.';
 	@override String get serverConfigUnchanged => 'Изменений нет — настройки уже актуальные.';
 	@override String get serverConfigError => 'Не удалось загрузить настройки с сервера.';
-	@override String get remoteConfig => 'Обновить Remote Config';
-	@override String remoteConfigFetched({required Object time}) => 'Загружено ${time}';
-	@override String get remoteConfigNever => 'Ещё не загружался';
-	@override String get remoteConfigUpdated => 'Новые значения применены. Экраны подхватят их при следующем открытии; адрес сервера — после перезапуска приложения.';
-	@override String get remoteConfigUnchanged => 'Изменений нет — значения уже актуальные. Если только что поменяли в консоли Firebase, подождите минуту и повторите.';
-	@override String remoteConfigError({required Object error}) => 'Не удалось загрузить: ${error}';
+	@override String get bootstrapConfig => 'Обновить адреса серверов';
+	@override String bootstrapConfigInfo({required Object serial, required Object environment, required Object address}) => 'config.json №${serial} · ${environment} · ${address}';
+	@override String get bootstrapConfigUpdated => 'Новый config.json применён. Адрес сервера сменится при переключении аккаунта или после перезапуска приложения.';
+	@override String get bootstrapConfigUnchanged => 'Изменений нет — config.json уже актуальный.';
+	@override String get bootstrapConfigError => 'Не удалось загрузить config.json ни с одного адреса.';
 }
 
 // Path: screenSettingsAppearance
@@ -3118,12 +3117,11 @@ extension on TranslationsRu {
 			'screenDeveloper.serverConfigUpdated' => 'Новые настройки применены.',
 			'screenDeveloper.serverConfigUnchanged' => 'Изменений нет — настройки уже актуальные.',
 			'screenDeveloper.serverConfigError' => 'Не удалось загрузить настройки с сервера.',
-			'screenDeveloper.remoteConfig' => 'Обновить Remote Config',
-			'screenDeveloper.remoteConfigFetched' => ({required Object time}) => 'Загружено ${time}',
-			'screenDeveloper.remoteConfigNever' => 'Ещё не загружался',
-			'screenDeveloper.remoteConfigUpdated' => 'Новые значения применены. Экраны подхватят их при следующем открытии; адрес сервера — после перезапуска приложения.',
-			'screenDeveloper.remoteConfigUnchanged' => 'Изменений нет — значения уже актуальные. Если только что поменяли в консоли Firebase, подождите минуту и повторите.',
-			'screenDeveloper.remoteConfigError' => ({required Object error}) => 'Не удалось загрузить: ${error}',
+			'screenDeveloper.bootstrapConfig' => 'Обновить адреса серверов',
+			'screenDeveloper.bootstrapConfigInfo' => ({required Object serial, required Object environment, required Object address}) => 'config.json №${serial} · ${environment} · ${address}',
+			'screenDeveloper.bootstrapConfigUpdated' => 'Новый config.json применён. Адрес сервера сменится при переключении аккаунта или после перезапуска приложения.',
+			'screenDeveloper.bootstrapConfigUnchanged' => 'Изменений нет — config.json уже актуальный.',
+			'screenDeveloper.bootstrapConfigError' => 'Не удалось загрузить config.json ни с одного адреса.',
 			'screenSettingsAppearance.appearance' => 'Оформление',
 			'screenSettingsAppearance.colorTheme' => 'Цветовая тема',
 			'screenSettingsAppearance.colorThemeDefault' => 'Синяя',
@@ -3352,9 +3350,9 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.forwards' => 'Пересылка сообщений',
 			'sessionsPrivacyAndSecurity.whoCanLinkForwards' => 'Кто может добавлять ссылку на мой аккаунт при пересылке моих сообщений',
 			'sessionsPrivacyAndSecurity.forwardsNote' => 'Остальные увидят в «Переслано от …» только ваше имя — без перехода в ваш профиль.',
+			'sessionsPrivacyAndSecurity.forwardsPreviewText' => 'Напомни, во сколько завтра встречаемся?',
 			_ => null,
 		} ?? switch (path) {
-			'sessionsPrivacyAndSecurity.forwardsPreviewText' => 'Напомни, во сколько завтра встречаемся?',
 			'sessionsPrivacyAndSecurity.groupInvites' => 'Группы и каналы',
 			'sessionsPrivacyAndSecurity.whoCanAddToGroups' => 'Кто может добавлять меня в группы и каналы',
 			'sessionsPrivacyAndSecurity.groupInvitesNote' => 'Остальные не смогут добавить вас в группу или канал — вы просто не попадёте в число участников или подписчиков.',
@@ -3866,9 +3864,9 @@ extension on TranslationsRu {
 			'deviceLink.cameraDenied' => 'Нет доступа к камере. Разрешите его в настройках.',
 			'qrLogin.expired' => 'QR-код устарел — отсканируйте новый на компьютере',
 			'auth.accountBlocked' => 'Аккаунт заблокирован',
+			'appUpdate.title' => 'Обновите приложение',
 			_ => null,
 		} ?? switch (path) {
-			'appUpdate.title' => 'Обновите приложение',
 			'appUpdate.text' => 'Эта версия Iperon устарела и больше не поддерживается. Установите новую, чтобы продолжить.',
 			'appUpdate.button' => 'Обновить',
 			'appUpdate.version' => ({required Object current, required Object minimal}) => 'Установлена ${current}, нужна ${minimal} или новее.',
