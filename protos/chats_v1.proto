@@ -1874,6 +1874,12 @@ message Messages {
   message ForwardFrom {
     bytes chatID = 1;
     int64 messageID = 2;
+    // «Скрыть имя отправителя» (drop_author в Telegram): без заголовка
+    // forward — у получателя как своё сообщение.
+    bool dropAuthor = 3;
+    // «Скрыть подписи» (drop_media_captions): у медиа без текста подписи.
+    // Изменённое уже не выдать за оригинал — заодно и без автора.
+    bool dropCaptions = 4;
   }
 
   message SendResult {

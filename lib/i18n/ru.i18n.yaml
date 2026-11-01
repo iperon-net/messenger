@@ -631,6 +631,12 @@
   "forwardedFromChannel": "Переслано из {name}"
   "forwardChannelUnavailable": "Канал недоступен: вы не подписаны на него"
   "forwardFrom": "От: {names}"
+  "forwardSenderHidden": "Без имени отправителя"
+  "forwardHideSender": "Скрыть имя отправителя"
+  "forwardShowSender": "Показать имя отправителя"
+  "forwardHideCaptions": "Скрыть подписи"
+  "forwardShowCaptions": "Показать подписи"
+  "forwardChangeRecipient": "Изменить получателя"
   "savedToFavorites(plural)":
     one: "Сообщение сохранено в Избранном"
     few: "Сообщения сохранены в Избранном"

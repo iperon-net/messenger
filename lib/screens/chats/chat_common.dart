@@ -15,6 +15,7 @@ import '../../split_layout.dart';
 import '../../chats/channel_rights.dart';
 import '../../chats/chats_remote_data_source.dart';
 import '../../chats/chats_sync.dart';
+import '../../chats/edit_media.dart';
 import '../../chats/media_files.dart';
 import '../../chats/media_prepare.dart';
 import '../../chats/member_badge.dart';
@@ -34,6 +35,7 @@ import '../../platform.dart';
 import 'chat_create_common.dart';
 import 'chat_info_common.dart';
 import 'comments_limit.dart';
+import 'forward_picker.dart';
 import 'compose_controller.dart';
 import 'media_caption_cupertino.dart';
 import 'media_caption_material.dart';
@@ -1442,6 +1444,18 @@ class _ThumbBadge extends StatelessWidget {
   }
 }
 
+/// «Изменить получателя» в меню плашки пересылки (как в Telegram): выбор
+/// чата — плашка с теми же «Скрыть имя / подписи» переезжает в его окно.
+Future<void> changeForwardRecipient(BuildContext context) async {
+  final cubit = context.read<ChatCubit>();
+  final targets = await cubit.forwardTargets();
+  if (!context.mounted) return;
+  final target = await showForwardPicker(context, targets);
+  if (target == null || !context.mounted || target.id == cubit.state.chat?.id) return;
+  cubit.moveForwarding(target.id);
+  context.pushReplacement('/chats/chat/${target.id}');
+}
+
 /// Плашка над полем ввода: «Ответ Анне: …» / «Редактирование: …».
 ///
 /// [quote] — отвечаем на фрагмент («Цитировать»): в [text] — цитата, её
@@ -1451,9 +1465,12 @@ class _ThumbBadge extends StatelessWidget {
   if (forwarding.isNotEmpty && state.editing == null) {
     String nameOf(models.Message m) => (m.forward?.self ?? m.outgoing) ? t.screenChat.you : (m.forward?.name ?? m.senderName);
     final first = forwarding.first;
-    // Одно — его текст, несколько — от кого.
+    final noCaption = state.forwardDropCaptions && messageMediaCount(first) > 0;
+    // Одно — его текст, несколько — от кого (имя скрыто — так и пишем).
     final text = forwarding.length == 1
-        ? (first.text.isNotEmpty ? first.text : messageKindLabel(t, first.kind))
+        ? (first.text.isNotEmpty && !noCaption ? first.text : messageKindLabel(t, first.kind))
+        : state.forwardDropAuthor
+        ? t.screenChat.forwardSenderHidden
         : t.screenChat.forwardFrom(names: {for (final m in forwarding) nameOf(m)}.where((n) => n.isNotEmpty).join(', '));
     return (title: t.screenChat.forwardMessages(n: forwarding.length), text: text.replaceAll('\n', ' '), quote: false, entities: const []);
   }

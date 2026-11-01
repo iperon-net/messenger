@@ -77,8 +77,9 @@ class AccountScope {
   T resolve<T extends Object>(T Function() create) => (_services[T] ??= create()) as T;
 
   /// Пересылка, выбранная в другом чате: окно чата-получателя заберёт её при
-  /// открытии (`ChatCubit.forwardTo`).
-  final pendingForwards = <String, List<models.Message>>{};
+  /// открытии (`ChatCubit.forwardTo`) — с «Скрыть имя / подписи», если их уже
+  /// выбрали («Изменить получателя»).
+  final pendingForwards = <String, ({List<models.Message> messages, bool dropAuthor, bool dropCaptions})>{};
 
   /// Папки аккаунта: `data` — база и неотправленное (`chat_outbox`,
   /// `secret_media`), `cache` — кэш скачанного (`media`). Ставит

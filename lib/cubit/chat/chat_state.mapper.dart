@@ -240,6 +240,20 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     opt: true,
     def: const [],
   );
+  static bool _$forwardDropAuthor(ChatState v) => v.forwardDropAuthor;
+  static const Field<ChatState, bool> _f$forwardDropAuthor = Field(
+    'forwardDropAuthor',
+    _$forwardDropAuthor,
+    opt: true,
+    def: false,
+  );
+  static bool _$forwardDropCaptions(ChatState v) => v.forwardDropCaptions;
+  static const Field<ChatState, bool> _f$forwardDropCaptions = Field(
+    'forwardDropCaptions',
+    _$forwardDropCaptions,
+    opt: true,
+    def: false,
+  );
   static bool _$searching(ChatState v) => v.searching;
   static const Field<ChatState, bool> _f$searching = Field(
     'searching',
@@ -438,6 +452,8 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
     #vanishingIDs: _f$vanishingIDs,
     #hasNewer: _f$hasNewer,
     #forwarding: _f$forwarding,
+    #forwardDropAuthor: _f$forwardDropAuthor,
+    #forwardDropCaptions: _f$forwardDropCaptions,
     #searching: _f$searching,
     #searchQuery: _f$searchQuery,
     #searchResults: _f$searchResults,
@@ -489,6 +505,8 @@ class ChatStateMapper extends ClassMapperBase<ChatState> {
       vanishingIDs: data.dec(_f$vanishingIDs),
       hasNewer: data.dec(_f$hasNewer),
       forwarding: data.dec(_f$forwarding),
+      forwardDropAuthor: data.dec(_f$forwardDropAuthor),
+      forwardDropCaptions: data.dec(_f$forwardDropCaptions),
       searching: data.dec(_f$searching),
       searchQuery: data.dec(_f$searchQuery),
       searchResults: data.dec(_f$searchResults),
@@ -661,6 +679,8 @@ abstract class ChatStateCopyWith<$R, $In extends ChatState, $Out>
     List<String>? vanishingIDs,
     bool? hasNewer,
     List<models.Message>? forwarding,
+    bool? forwardDropAuthor,
+    bool? forwardDropCaptions,
     bool? searching,
     String? searchQuery,
     List<String>? searchResults,
@@ -857,6 +877,8 @@ class _ChatStateCopyWithImpl<$R, $Out>
     List<String>? vanishingIDs,
     bool? hasNewer,
     List<models.Message>? forwarding,
+    bool? forwardDropAuthor,
+    bool? forwardDropCaptions,
     bool? searching,
     String? searchQuery,
     List<String>? searchResults,
@@ -906,6 +928,9 @@ class _ChatStateCopyWithImpl<$R, $Out>
       if (vanishingIDs != null) #vanishingIDs: vanishingIDs,
       if (hasNewer != null) #hasNewer: hasNewer,
       if (forwarding != null) #forwarding: forwarding,
+      if (forwardDropAuthor != null) #forwardDropAuthor: forwardDropAuthor,
+      if (forwardDropCaptions != null)
+        #forwardDropCaptions: forwardDropCaptions,
       if (searching != null) #searching: searching,
       if (searchQuery != null) #searchQuery: searchQuery,
       if (searchResults != null) #searchResults: searchResults,
@@ -961,6 +986,14 @@ class _ChatStateCopyWithImpl<$R, $Out>
     vanishingIDs: data.get(#vanishingIDs, or: $value.vanishingIDs),
     hasNewer: data.get(#hasNewer, or: $value.hasNewer),
     forwarding: data.get(#forwarding, or: $value.forwarding),
+    forwardDropAuthor: data.get(
+      #forwardDropAuthor,
+      or: $value.forwardDropAuthor,
+    ),
+    forwardDropCaptions: data.get(
+      #forwardDropCaptions,
+      or: $value.forwardDropCaptions,
+    ),
     searching: data.get(#searching, or: $value.searching),
     searchQuery: data.get(#searchQuery, or: $value.searchQuery),
     searchResults: data.get(#searchResults, or: $value.searchResults),

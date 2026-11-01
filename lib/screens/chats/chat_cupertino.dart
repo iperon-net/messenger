@@ -1069,6 +1069,39 @@ class _ComposeBar extends StatelessWidget {
     required this.onScheduled,
   });
 
+  /// Пересылка: тап по плашке — меню (как в Telegram): показать / скрыть имя
+  /// отправителя, подписи (если есть у медиа), «Изменить получателя».
+  Widget _forwardMenu(BuildContext context, Widget child) {
+    if (state.forwarding.isEmpty || state.editing != null) return child;
+    final t = context.t.screenChat;
+    final cubit = context.read<ChatCubit>();
+    CupertinoMenuItem option(String label, {required bool selected, required VoidCallback onPressed}) =>
+        CupertinoMenuItem(leading: selected ? const Icon(CupertinoIcons.check_mark) : null, onPressed: onPressed, child: Text(label));
+    return CupertinoMenuAnchor(
+      consumeOutsideTaps: true,
+      menuChildren: [
+        option(t.forwardShowSender, selected: !state.forwardDropAuthor, onPressed: () => cubit.setForwardDropAuthor(false)),
+        option(t.forwardHideSender, selected: state.forwardDropAuthor, onPressed: () => cubit.setForwardDropAuthor(true)),
+        if (state.forwardHasCaptions) ...[
+          const CupertinoMenuDivider(),
+          option(t.forwardShowCaptions, selected: !state.forwardDropCaptions, onPressed: () => cubit.setForwardDropCaptions(false)),
+          option(t.forwardHideCaptions, selected: state.forwardDropCaptions, onPressed: () => cubit.setForwardDropCaptions(true)),
+        ],
+        const CupertinoMenuDivider(),
+        CupertinoMenuItem(
+          trailing: const Icon(CupertinoIcons.arrowshape_turn_up_right),
+          onPressed: () => changeForwardRecipient(context),
+          child: Text(t.forwardChangeRecipient),
+        ),
+      ],
+      builder: (context, controller, _) => GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => controller.isOpen ? controller.close() : controller.open(),
+        child: child,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.t;
@@ -1161,17 +1194,20 @@ class _ComposeBar extends StatelessWidget {
                     Container(width: 2, height: 32, color: primary),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            banner.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: primary),
-                          ),
-                          composeBannerText(banner, const TextStyle(fontSize: 14), secondary, primary),
-                        ],
+                      child: _forwardMenu(
+                        context,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              banner.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: primary),
+                            ),
+                            composeBannerText(banner, const TextStyle(fontSize: 14), secondary, primary),
+                          ],
+                        ),
                       ),
                     ),
                     CupertinoButton(

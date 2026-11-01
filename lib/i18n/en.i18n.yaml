@@ -611,6 +611,12 @@
   "forwardedFromChannel": "Forwarded from {name}"
   "forwardChannelUnavailable": "The channel is unavailable: you are not subscribed to it"
   "forwardFrom": "From: {names}"
+  "forwardSenderHidden": "Sender name hidden"
+  "forwardHideSender": "Hide sender name"
+  "forwardShowSender": "Show sender name"
+  "forwardHideCaptions": "Hide captions"
+  "forwardShowCaptions": "Show captions"
+  "forwardChangeRecipient": "Change recipient"
   "savedToFavorites(plural)":
     one: "Message saved to Saved Messages"
     other: "Messages saved to Saved Messages"

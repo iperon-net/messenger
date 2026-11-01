@@ -610,7 +610,9 @@ abstract class ChatsDataSource {
 
   /// Переслать [messages] (из любых чатов, по порядку) в чат [toChatID]: новые
   /// исходящие сообщения с тем же содержимым и пометкой «Переслано от».
-  Future<void> forwardMessages(String toChatID, List<models.Message> messages);
+  /// [dropAuthor] — без пометки (как свои), [dropCaptions] — у медиа без
+  /// подписей (и тоже без пометки).
+  Future<void> forwardMessages(String toChatID, List<models.Message> messages, {bool dropAuthor = false, bool dropCaptions = false});
 
   /// Отправить ещё раз сообщение, отклонённое сервером
   /// ([models.MessageStatus.failed]).

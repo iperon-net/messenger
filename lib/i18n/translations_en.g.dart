@@ -1940,6 +1940,24 @@ class Translations$screenChat$en {
 	/// en: 'From: {names}'
 	String forwardFrom({required Object names}) => 'From: ${names}';
 
+	/// en: 'Sender name hidden'
+	String get forwardSenderHidden => 'Sender name hidden';
+
+	/// en: 'Hide sender name'
+	String get forwardHideSender => 'Hide sender name';
+
+	/// en: 'Show sender name'
+	String get forwardShowSender => 'Show sender name';
+
+	/// en: 'Hide captions'
+	String get forwardHideCaptions => 'Hide captions';
+
+	/// en: 'Show captions'
+	String get forwardShowCaptions => 'Show captions';
+
+	/// en: 'Change recipient'
+	String get forwardChangeRecipient => 'Change recipient';
+
 	/// en: '(one) {Message saved to Saved Messages} (other) {Messages saved to Saved Messages}'
 	String savedToFavorites({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
 		one: 'Message saved to Saved Messages',
@@ -6011,6 +6029,12 @@ extension on Translations {
 			'screenChat.forwardedFromChannel' => ({required Object name}) => 'Forwarded from ${name}',
 			'screenChat.forwardChannelUnavailable' => 'The channel is unavailable: you are not subscribed to it',
 			'screenChat.forwardFrom' => ({required Object names}) => 'From: ${names}',
+			'screenChat.forwardSenderHidden' => 'Sender name hidden',
+			'screenChat.forwardHideSender' => 'Hide sender name',
+			'screenChat.forwardShowSender' => 'Show sender name',
+			'screenChat.forwardHideCaptions' => 'Hide captions',
+			'screenChat.forwardShowCaptions' => 'Show captions',
+			'screenChat.forwardChangeRecipient' => 'Change recipient',
 			'screenChat.savedToFavorites' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Message saved to Saved Messages', other: 'Messages saved to Saved Messages', ), 
 			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Forward ${n} message', other: 'Forward ${n} messages', ), 
 			'screenChat.deleteSelectedTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Delete ${n} message?', other: 'Delete ${n} messages?', ), 
@@ -6461,14 +6485,14 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.lastSeenPreviewOthers' => 'How everyone else sees you',
 			'sessionsPrivacyAndSecurity.lastSeenReciprocityNote' => 'If you choose Nobody, you won\'t see others\' last seen or online status either.',
 			'sessionsPrivacyAndSecurity.messages' => 'Messages',
+			_ => null,
+		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.whoCanMessage' => 'Who can message me',
 			'sessionsPrivacyAndSecurity.messagesReplyNote' => 'People you message first can always reply to you.',
 			'sessionsPrivacyAndSecurity.forwards' => 'Forwarded messages',
 			'sessionsPrivacyAndSecurity.whoCanLinkForwards' => 'Who can add a link to my account when forwarding my messages',
 			'sessionsPrivacyAndSecurity.forwardsNote' => 'Everyone else will see only your name in "Forwarded from…", without a link to your profile.',
 			'sessionsPrivacyAndSecurity.forwardsPreviewText' => 'Remind me, what time are we meeting tomorrow?',
-			_ => null,
-		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.groupInvites' => 'Groups & Channels',
 			'sessionsPrivacyAndSecurity.whoCanAddToGroups' => 'Who can add me to groups and channels',
 			'sessionsPrivacyAndSecurity.groupInvitesNote' => 'Everyone else won\'t be able to add you to a group or channel — you just won\'t be among its members or subscribers.',
@@ -6975,14 +6999,14 @@ extension on Translations {
 			'deviceLink.linkDevice' => 'Link a device',
 			'deviceLink.hint' => 'Open Iperon on your computer and point the camera at the QR code',
 			'deviceLink.confirmTitle' => 'Log in on this device?',
+			_ => null,
+		} ?? switch (path) {
 			'deviceLink.confirmMessage' => 'Confirm only if this is your computer and you opened Iperon on it yourself.',
 			'deviceLink.confirm' => 'Log in',
 			'deviceLink.linked' => 'Device linked',
 			'deviceLink.invalidCode' => 'This is not an Iperon login QR code',
 			'deviceLink.cameraDenied' => 'No camera access. Allow it in settings.',
 			'qrLogin.expired' => 'The QR code has expired — scan a new one on your computer',
-			_ => null,
-		} ?? switch (path) {
 			'auth.accountBlocked' => 'Account blocked',
 			'appUpdate.title' => 'Update the app',
 			'appUpdate.text' => 'This version of Iperon is out of date and no longer supported. Install the new one to continue.',

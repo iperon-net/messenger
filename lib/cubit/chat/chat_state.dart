@@ -1,5 +1,6 @@
 import 'package:dart_mappable/dart_mappable.dart';
 
+import '../../chats/edit_media.dart';
 import '../../constants.dart';
 import '../../models.dart' as models;
 
@@ -75,6 +76,14 @@ class ChatState with ChatStateMappable {
   /// Пересылаемые в этот чат сообщения — плашка над полем ввода, уходят по
   /// «Отправить» (после текста, если он есть).
   final List<models.Message> forwarding;
+
+  /// «Скрыть имя отправителя» / «Скрыть подписи» для [forwarding] (меню
+  /// плашки, как в Telegram); скрытые подписи — всегда и без имени.
+  final bool forwardDropAuthor;
+  final bool forwardDropCaptions;
+
+  /// Есть что скрывать «Скрыть подписи»: медиа с подписью среди [forwarding].
+  bool get forwardHasCaptions => forwarding.any((m) => m.text.isNotEmpty && messageMediaCount(m) > 0);
 
   /// Поиск по чату (удержание шапки): строка поиска вместо шапки, внизу —
   /// «N из M» и стрелки.
@@ -196,6 +205,8 @@ class ChatState with ChatStateMappable {
     this.vanishingIDs = const [],
     this.hasNewer = false,
     this.forwarding = const [],
+    this.forwardDropAuthor = false,
+    this.forwardDropCaptions = false,
     this.searching = false,
     this.searchQuery = '',
     this.searchResults = const [],

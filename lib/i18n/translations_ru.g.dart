@@ -821,6 +821,12 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String forwardedFromChannel({required Object name}) => 'Переслано из ${name}';
 	@override String get forwardChannelUnavailable => 'Канал недоступен: вы не подписаны на него';
 	@override String forwardFrom({required Object names}) => 'От: ${names}';
+	@override String get forwardSenderHidden => 'Без имени отправителя';
+	@override String get forwardHideSender => 'Скрыть имя отправителя';
+	@override String get forwardShowSender => 'Показать имя отправителя';
+	@override String get forwardHideCaptions => 'Скрыть подписи';
+	@override String get forwardShowCaptions => 'Показать подписи';
+	@override String get forwardChangeRecipient => 'Изменить получателя';
 	@override String savedToFavorites({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
 		one: 'Сообщение сохранено в Избранном',
 		few: 'Сообщения сохранены в Избранном',
@@ -2897,6 +2903,12 @@ extension on TranslationsRu {
 			'screenChat.forwardedFromChannel' => ({required Object name}) => 'Переслано из ${name}',
 			'screenChat.forwardChannelUnavailable' => 'Канал недоступен: вы не подписаны на него',
 			'screenChat.forwardFrom' => ({required Object names}) => 'От: ${names}',
+			'screenChat.forwardSenderHidden' => 'Без имени отправителя',
+			'screenChat.forwardHideSender' => 'Скрыть имя отправителя',
+			'screenChat.forwardShowSender' => 'Показать имя отправителя',
+			'screenChat.forwardHideCaptions' => 'Скрыть подписи',
+			'screenChat.forwardShowCaptions' => 'Показать подписи',
+			'screenChat.forwardChangeRecipient' => 'Изменить получателя',
 			'screenChat.savedToFavorites' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Сообщение сохранено в Избранном', few: 'Сообщения сохранены в Избранном', many: 'Сообщения сохранены в Избранном', other: 'Сообщения сохранены в Избранном', ), 
 			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Переслать ${n} сообщение', few: 'Переслать ${n} сообщения', many: 'Переслать ${n} сообщений', other: 'Переслать ${n} сообщения', ), 
 			'screenChat.deleteSelectedTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Удалить ${n} сообщение?', few: 'Удалить ${n} сообщения?', many: 'Удалить ${n} сообщений?', other: 'Удалить ${n} сообщения?', ), 
@@ -3347,14 +3359,14 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.lastSeenPreviewOthers' => 'Так вас видят остальные',
 			'sessionsPrivacyAndSecurity.lastSeenReciprocityNote' => 'Если выбрано «Никто», вы тоже не будете видеть время захода и статус других.',
 			'sessionsPrivacyAndSecurity.messages' => 'Сообщения',
+			_ => null,
+		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.whoCanMessage' => 'Кто может мне писать',
 			'sessionsPrivacyAndSecurity.messagesReplyNote' => 'Тем, кому вы написали сами, ответить можно всегда.',
 			'sessionsPrivacyAndSecurity.forwards' => 'Пересылка сообщений',
 			'sessionsPrivacyAndSecurity.whoCanLinkForwards' => 'Кто может добавлять ссылку на мой аккаунт при пересылке моих сообщений',
 			'sessionsPrivacyAndSecurity.forwardsNote' => 'Остальные увидят в «Переслано от …» только ваше имя — без перехода в ваш профиль.',
 			'sessionsPrivacyAndSecurity.forwardsPreviewText' => 'Напомни, во сколько завтра встречаемся?',
-			_ => null,
-		} ?? switch (path) {
 			'sessionsPrivacyAndSecurity.groupInvites' => 'Группы и каналы',
 			'sessionsPrivacyAndSecurity.whoCanAddToGroups' => 'Кто может добавлять меня в группы и каналы',
 			'sessionsPrivacyAndSecurity.groupInvitesNote' => 'Остальные не смогут добавить вас в группу или канал — вы просто не попадёте в число участников или подписчиков.',
@@ -3861,14 +3873,14 @@ extension on TranslationsRu {
 			'deviceLink.linkDevice' => 'Подключить устройство',
 			'deviceLink.hint' => 'Откройте Iperon на компьютере и наведите камеру на QR-код',
 			'deviceLink.confirmTitle' => 'Войти на этом устройстве?',
+			_ => null,
+		} ?? switch (path) {
 			'deviceLink.confirmMessage' => 'Подтверждайте, только если это ваш компьютер и вы сами открыли на нём Iperon.',
 			'deviceLink.confirm' => 'Войти',
 			'deviceLink.linked' => 'Устройство подключено',
 			'deviceLink.invalidCode' => 'Это не QR-код входа в Iperon',
 			'deviceLink.cameraDenied' => 'Нет доступа к камере. Разрешите его в настройках.',
 			'qrLogin.expired' => 'QR-код устарел — отсканируйте новый на компьютере',
-			_ => null,
-		} ?? switch (path) {
 			'auth.accountBlocked' => 'Аккаунт заблокирован',
 			'appUpdate.title' => 'Обновите приложение',
 			'appUpdate.text' => 'Эта версия Iperon устарела и больше не поддерживается. Установите новую, чтобы продолжить.',

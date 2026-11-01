@@ -14338,10 +14338,14 @@ class Messages_ForwardFrom extends $pb.GeneratedMessage {
   factory Messages_ForwardFrom({
     $core.List<$core.int>? chatID,
     $fixnum.Int64? messageID,
+    $core.bool? dropAuthor,
+    $core.bool? dropCaptions,
   }) {
     final result = create();
     if (chatID != null) result.chatID = chatID;
     if (messageID != null) result.messageID = messageID;
+    if (dropAuthor != null) result.dropAuthor = dropAuthor;
+    if (dropCaptions != null) result.dropCaptions = dropCaptions;
     return result;
   }
 
@@ -14356,6 +14360,8 @@ class Messages_ForwardFrom extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
     ..a<$core.List<$core.int>>(1, _omitFieldNames ? '' : 'chatID', $pb.PbFieldType.OY, protoName: 'chatID')
     ..aInt64(2, _omitFieldNames ? '' : 'messageID', protoName: 'messageID')
+    ..aOB(3, _omitFieldNames ? '' : 'dropAuthor', protoName: 'dropAuthor')
+    ..aOB(4, _omitFieldNames ? '' : 'dropCaptions', protoName: 'dropCaptions')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -14392,6 +14398,28 @@ class Messages_ForwardFrom extends $pb.GeneratedMessage {
   $core.bool hasMessageID() => $_has(1);
   @$pb.TagNumber(2)
   void clearMessageID() => $_clearField(2);
+
+  /// «Скрыть имя отправителя» (drop_author в Telegram): без заголовка
+  /// forward — у получателя как своё сообщение.
+  @$pb.TagNumber(3)
+  $core.bool get dropAuthor => $_getBF(2);
+  @$pb.TagNumber(3)
+  set dropAuthor($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasDropAuthor() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearDropAuthor() => $_clearField(3);
+
+  /// «Скрыть подписи» (drop_media_captions): у медиа без текста подписи.
+  /// Изменённое уже не выдать за оригинал — заодно и без автора.
+  @$pb.TagNumber(4)
+  $core.bool get dropCaptions => $_getBF(3);
+  @$pb.TagNumber(4)
+  set dropCaptions($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasDropCaptions() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearDropCaptions() => $_clearField(4);
 }
 
 class Messages_SendResult extends $pb.GeneratedMessage {

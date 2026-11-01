@@ -1957,8 +1957,16 @@ class ChatsSync implements AccountService {
               randomID: Int64(row.randomID),
               // Пересылка — только ссылка на исходное, содержимое соберёт сервер.
               content: row.isForward ? null : content,
+              // «Скрыть имя / подписи» — по превью в outbox
+              // (ChatsRemoteDataSource.forwardMessages): без «Переслано от» —
+              // без автора; медиа без текста — без подписей (не было — не важно).
               forwardFrom: row.isForward
-                  ? pb.Messages_ForwardFrom(chatID: row.forwardChatID, messageID: Int64(row.forwardMessageID))
+                  ? pb.Messages_ForwardFrom(
+                      chatID: row.forwardChatID,
+                      messageID: Int64(row.forwardMessageID),
+                      dropAuthor: !content.hasForward(),
+                      dropCaptions: content.media.isNotEmpty && content.text.isEmpty,
+                    )
                   : null,
               silent: row.silent,
               scheduleDate: row.isScheduled ? Int64(row.scheduleDate) : null,

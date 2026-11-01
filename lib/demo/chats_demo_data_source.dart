@@ -2063,8 +2063,11 @@ class ChatsDemoDataSource implements ChatsDataSource {
   }
 
   @override
-  Future<void> forwardMessages(String toChatID, List<models.Message> messages) async {
+  Future<void> forwardMessages(String toChatID, List<models.Message> messages, {bool dropAuthor = false, bool dropCaptions = false}) async {
     final source = {for (final c in _chats) c.id: c};
+    dropAuthor = dropAuthor || dropCaptions;
+    // «Скрыть подписи» — только у медиа; текст без медиа остаётся.
+    bool noCaption(models.Message m) => dropCaptions && messageMediaCount(m) > 0;
     final now = DateTime.now();
     final copies = [
       for (final (i, m) in messages.indexed)
@@ -2072,8 +2075,8 @@ class ChatsDemoDataSource implements ChatsDataSource {
           id: _id(),
           chatID: toChatID,
           kind: m.kind,
-          text: m.text,
-          entities: m.entities,
+          text: noCaption(m) ? '' : m.text,
+          entities: noCaption(m) ? const [] : m.entities,
           outgoing: true,
           status: models.MessageStatus.pending,
           date: now.add(Duration(microseconds: i)),
@@ -2086,15 +2089,21 @@ class ChatsDemoDataSource implements ChatsDataSource {
           poll: m.poll,
           commentsCloseDate: _commentsCloseDate(toChatID, now),
           // Пересылка пересланного — автор оригинала остаётся прежним.
-          forward:
-              m.forward ??
-              (source[m.chatID]?.type == models.ChatType.channel
-                  // Пост канала — «Переслано из» канала, с подписью автора.
-                  ? models.MessageForward(name: source[m.chatID]!.title, chatID: m.chatID, messageID: m.id, signature: m.authorSignature)
-                  : models.MessageForward(
-                      self: m.outgoing,
-                      name: m.outgoing ? '' : (m.senderName.isNotEmpty ? m.senderName : source[m.chatID]?.title ?? ''),
-                    )),
+          forward: dropAuthor
+              ? null
+              : m.forward ??
+                    (source[m.chatID]?.type == models.ChatType.channel
+                        // Пост канала — «Переслано из» канала, с подписью автора.
+                        ? models.MessageForward(
+                            name: source[m.chatID]!.title,
+                            chatID: m.chatID,
+                            messageID: m.id,
+                            signature: m.authorSignature,
+                          )
+                        : models.MessageForward(
+                            self: m.outgoing,
+                            name: m.outgoing ? '' : (m.senderName.isNotEmpty ? m.senderName : source[m.chatID]?.title ?? ''),
+                          )),
         ),
     ];
     if (copies.isEmpty) return;

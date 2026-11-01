@@ -1299,6 +1299,36 @@ class _ComposeBar extends StatelessWidget {
     required this.color,
   });
 
+  /// Пересылка: тап по плашке — меню (как в Telegram): показать / скрыть имя
+  /// отправителя, подписи (если есть у медиа), «Изменить получателя».
+  Widget _forwardMenu(BuildContext context, Widget child) {
+    if (state.forwarding.isEmpty || state.editing != null) return child;
+    final t = context.t.screenChat;
+    final cubit = context.read<ChatCubit>();
+    PopupMenuEntry<VoidCallback> option(String label, {required bool selected, required VoidCallback onSelected}) =>
+        CheckedPopupMenuItem(value: onSelected, checked: selected, child: Text(label));
+    return PopupMenuButton<VoidCallback>(
+      useRootNavigator: true,
+      tooltip: '',
+      onSelected: (action) => action(),
+      itemBuilder: (_) => [
+        option(t.forwardShowSender, selected: !state.forwardDropAuthor, onSelected: () => cubit.setForwardDropAuthor(false)),
+        option(t.forwardHideSender, selected: state.forwardDropAuthor, onSelected: () => cubit.setForwardDropAuthor(true)),
+        if (state.forwardHasCaptions) ...[
+          const PopupMenuDivider(),
+          option(t.forwardShowCaptions, selected: !state.forwardDropCaptions, onSelected: () => cubit.setForwardDropCaptions(false)),
+          option(t.forwardHideCaptions, selected: state.forwardDropCaptions, onSelected: () => cubit.setForwardDropCaptions(true)),
+        ],
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: () => changeForwardRecipient(context),
+          child: ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.forward), title: Text(t.forwardChangeRecipient)),
+        ),
+      ],
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = context.t;
@@ -1379,17 +1409,20 @@ class _ComposeBar extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            banner.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontWeight: FontWeight.w600, color: scheme.primary),
-                          ),
-                          composeBannerText(banner, const TextStyle(), scheme.onSurfaceVariant, scheme.primary),
-                        ],
+                      child: _forwardMenu(
+                        context,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              banner.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontWeight: FontWeight.w600, color: scheme.primary),
+                            ),
+                            composeBannerText(banner, const TextStyle(), scheme.onSurfaceVariant, scheme.primary),
+                          ],
+                        ),
                       ),
                     ),
                     IconButton(

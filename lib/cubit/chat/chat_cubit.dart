@@ -110,7 +110,8 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   /// Пересылка в другой чат: сообщения ждут в [AccountScope.pendingForwards],
   /// пока не откроется окно чата-получателя (его cubit забирает их в
   /// [ChatState.forwarding]).
-  static void forwardTo(String chatID, List<models.Message> messages) => AccountScope.current.pendingForwards[chatID] = messages;
+  static void forwardTo(String chatID, List<models.Message> messages, {bool dropAuthor = false, bool dropCaptions = false}) =>
+      AccountScope.current.pendingForwards[chatID] = (messages: messages, dropAuthor: dropAuthor, dropCaptions: dropCaptions);
 
   /// Что доступно в источнике и в этом чате — экраны прячут остальное
   /// (реакции, закреп …; в группе на сервере — см. [ChatsFeatures.forChat]).
@@ -134,7 +135,9 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
       return;
     }
     final pending = AccountScope.current.pendingForwards.remove(chatID);
-    if (pending != null) emit(state.copyWith(forwarding: pending));
+    if (pending != null) {
+      emit(state.copyWith(forwarding: pending.messages, forwardDropAuthor: pending.dropAuthor, forwardDropCaptions: pending.dropCaptions));
+    }
     if (source is ChatsRemoteDataSource) {
       _syncFlood(ChatsSync.instance.floodUntil);
       _floodSubscription = ChatsSync.instance.floodChanged.listen(_syncFlood);
@@ -463,6 +466,8 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   Future<bool> send(String raw, {bool silent = false, DateTime? scheduleDate, List<models.ChatMember> mentions = const []}) async {
     final source = _source;
     final forwarding = state.forwarding;
+    final dropAuthor = state.forwardDropAuthor;
+    final dropCaptions = state.forwardDropCaptions;
     final editMedia = state.editing == null ? null : state.editMedia;
     // Подпись вложений может быть пустой.
     final caption = state.editing != null && (editMedia != null || messageMediaCount(state.editing!) > 0);
@@ -504,7 +509,9 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
         linkPreview: linkPreview,
       );
     }
-    if (forwarding.isNotEmpty) await source.forwardMessages(_chatID, forwarding);
+    if (forwarding.isNotEmpty) {
+      await source.forwardMessages(_chatID, forwarding, dropAuthor: dropAuthor, dropCaptions: dropCaptions);
+    }
     return true;
   }
 
@@ -1196,6 +1203,8 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
           selecting: false,
           selectedIDs: const [],
           forwarding: messages,
+          forwardDropAuthor: false,
+          forwardDropCaptions: false,
           reply: null,
           replyQuote: null,
           editing: null,
@@ -1206,6 +1215,23 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
       forwardTo(toChatID, messages);
       clearSelection();
     }
+  }
+
+  /// «Скрыть имя отправителя» в меню плашки пересылки; показать имя —
+  /// заодно и подписи (без имени их не скрыть).
+  void setForwardDropAuthor(bool value) =>
+      emit(state.copyWith(forwardDropAuthor: value, forwardDropCaptions: value && state.forwardDropCaptions));
+
+  /// «Скрыть подписи»: изменённое уже не выдать за оригинал — и без имени.
+  void setForwardDropCaptions(bool value) =>
+      emit(state.copyWith(forwardDropCaptions: value, forwardDropAuthor: value || state.forwardDropAuthor));
+
+  /// «Изменить получателя»: плашка с теми же настройками переезжает в окно
+  /// [toChatID] (откроется следом); здесь пересылка снимается.
+  void moveForwarding(String toChatID) {
+    if (toChatID == _chatID || state.forwarding.isEmpty) return;
+    forwardTo(toChatID, state.forwarding, dropAuthor: state.forwardDropAuthor, dropCaptions: state.forwardDropCaptions);
+    emit(state.copyWith(forwarding: const [], forwardDropAuthor: false, forwardDropCaptions: false));
   }
 
   /// «Избранное» в списке «Переслать в…» (как в Telegram): отмеченные уходят
@@ -1232,7 +1258,8 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
     final source = _source;
     if (source == null) return const [];
     final hidden = await getIt.get<Repositories>().hiddenProfiles.hashByHex();
-    final pollsOnly = features.pollsGroupsChannelsOnly && state.selectedMessages.any((m) => m.kind == models.MessageKind.poll);
+    final pollsOnly =
+        features.pollsGroupsChannelsOnly && [...state.selectedMessages, ...state.forwarding].any((m) => m.kind == models.MessageKind.poll);
     final chats = (await source.watchChats().first).where((c) => isForwardTarget(c, hidden: hidden, polls: pollsOnly)).toList();
     int rank(models.Chat c) => c.isSelf ? 0 : (c.archived ? 2 : 1);
     // Внутри группы — порядок списка чатов (sort в Dart неустойчивый).

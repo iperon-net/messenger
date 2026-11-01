@@ -3319,10 +3319,12 @@ class ChatsRemoteDataSource implements ChatsDataSource {
   /// Пересылка: каждое — отдельной отправкой через outbox (сразу или при
   /// подключении, ⏱ в ленте). На сервер уходит ссылка на исходное
   /// (`Messages.Send.forwardFrom`) — содержимое он берёт сам; в outbox —
-  /// только превью для ленты: копия из кэша без ответа, с «Переслано от».
+  /// только превью для ленты: копия из кэша без ответа, с «Переслано от»
+  /// (без него — [dropAuthor], у медиа без подписи — [dropCaptions]; по
+  /// превью `ChatsSync` и выставит флаги `ForwardFrom`).
   /// Чего нет в кэше / ещё не на сервере — пропускаем.
   @override
-  Future<void> forwardMessages(String toChatID, List<models.Message> messages) async {
+  Future<void> forwardMessages(String toChatID, List<models.Message> messages, {bool dropAuthor = false, bool dropCaptions = false}) async {
     final to = idBytes(toChatID);
     if (to.isEmpty || !_auth.isAuthorized) return;
     unawaited(showLatestMessages(toChatID));
@@ -3337,7 +3339,14 @@ class ChatsRemoteDataSource implements ChatsDataSource {
       final source = await _store.message(userID: me, chatID: from, messageID: id);
       if (source == null) continue;
       final content = pb.MessageContent.fromBuffer(source.content.writeToBuffer())..clearReplyTo();
-      if (!content.hasForward()) {
+      if (dropCaptions && content.media.isNotEmpty) {
+        content
+          ..clearText()
+          ..entities.clear();
+      }
+      if (dropAuthor || dropCaptions) {
+        content.clearForward();
+      } else if (!content.hasForward()) {
         // Пост канала (4.2) — «Переслано из» канала с подписью автора.
         final channel = (await _store.dialog(userID: me, chatID: from))?.type == pb.ChatType.CHAT_TYPE_CHANNEL.value;
         content.forward = channel
