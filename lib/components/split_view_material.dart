@@ -28,11 +28,17 @@ class SplitViewMaterial extends StatelessWidget {
               children: [
                 SizedBox(
                   width: listWidth,
-                  child: MediaQuery(
-                    data: media.copyWith(
-                      padding: media.padding.copyWith(bottom: media.padding.bottom + SplitLayout.navigationBarHeightMaterial),
+                  // Список кончается над панелью вкладок (она непрозрачная), а не
+                  // уходит под неё с отступом в MediaQuery: CustomScrollView
+                  // списков (searchListView) нижний отступ не учитывает, и
+                  // последние чаты оставались под кнопками.
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: media.padding.bottom + SplitLayout.navigationBarHeightMaterial),
+                    child: MediaQuery.removePadding(
+                      context: context,
+                      removeBottom: true,
+                      child: SplitSelection(id: selected, child: list),
                     ),
-                    child: SplitSelection(id: selected, child: list),
                   ),
                 ),
                 VerticalDivider(width: 1, thickness: 1, color: Theme.of(context).colorScheme.outlineVariant),
