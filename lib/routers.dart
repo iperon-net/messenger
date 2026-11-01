@@ -157,7 +157,11 @@ class Routers {
     _profileCupertino("/profile/:userID", rootNavigatorKey),
     GoRoute(
       path: "/auth",
-      builder: (_, _) => BlocProvider<AuthCubit>(create: (_) => AuthCubit()..initialization(), child: AuthCupertinoScreen()),
+      // iPad — вход только по QR с телефона, как на десктопе.
+      builder: (_, _) => BlocProvider<AuthCubit>(
+        create: (_) => AuthCubit()..initialization(),
+        child: SplitLayout.enabled ? const AuthQrCupertino() : AuthCupertinoScreen(),
+      ),
       routes: [
         GoRoute(
           path: "/call_password_confirmation",
@@ -2199,10 +2203,11 @@ class Routers {
     _profileMaterial("/profile/:userID", rootNavigatorKey),
     GoRoute(
       path: "/auth",
-      // Десктоп — вход только по QR с телефона (docs/plans/desktop-client.md §3.4).
+      // Десктоп и Android-планшеты — вход только по QR с телефона
+      // (docs/plans/desktop-client.md §3.4).
       builder: (_, _) => BlocProvider<AuthCubit>(
         create: (_) => AuthCubit()..initialization(),
-        child: AppPlatform.isDesktop ? const AuthDesktopMaterial() : const AuthMaterialScreen(),
+        child: AppPlatform.isDesktop || SplitLayout.enabled ? const AuthDesktopMaterial() : const AuthMaterialScreen(),
       ),
       routes: [
         GoRoute(
