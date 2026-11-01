@@ -294,7 +294,7 @@ class _NewCallButton extends StatelessWidget {
       onPressed: () => startNewCall(context),
       child: Semantics(
         label: context.t.screenCalls.newCall,
-        child: HugeIcon(icon: HugeIcons.strokeRoundedCallAdd, color: ThemesCupertino.navActionColor(context), size: 24),
+        child: HugeIcon(icon: HugeIcons.strokeRoundedCall02, color: ThemesCupertino.navActionColor(context), size: 24),
       ),
     );
   }

@@ -78,7 +78,7 @@ class _CallsMaterialState extends State<CallsMaterial> with WidgetsBindingObserv
         actions: [
           if (AppPlatform.hasCalls)
             IconButton(
-              icon: const HugeIcon(icon: HugeIcons.strokeRoundedCallAdd),
+              icon: const HugeIcon(icon: HugeIcons.strokeRoundedCall02),
               tooltip: context.t.screenCalls.newCall,
               onPressed: () => startNewCall(context),
             ),
