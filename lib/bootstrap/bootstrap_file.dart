@@ -45,20 +45,31 @@ class BootstrapEnvironment {
   /// Первый — основной, остальные — запасные.
   final List<BootstrapApi> api;
 
-  /// sha256 (hex) публичного ключа сервера — задел под пиннинг (этап 4).
+  /// sha256 (hex) EdDSA-ключа сервера (бывший `PUBLIC_KEY_EDDSA_FINGERPRINT`
+  /// Remote Config). Клиент его не проверяет; поле обязательное — его требуют
+  /// сборки 0.0.604–0.0.605.
   final String serverKeyFingerprint;
 
-  const BootstrapEnvironment({required this.api, required this.serverKeyFingerprint});
+  /// sha256 (hex) ML-DSA-ключа сервера (`MetadataInfo.mldsa`): им сервер
+  /// подписывает обмен ключами при входе — клиент сверяет ключ с этим
+  /// отпечатком (этап 4, пиннинг). '' — не проверять (файл без поля).
+  final String mldsaKeyFingerprint;
+
+  const BootstrapEnvironment({required this.api, required this.serverKeyFingerprint, this.mldsaKeyFingerprint = ''});
 
   Map<String, Object?> toJson() => {
     'api': [for (final entry in api) entry.toJson()],
     'serverKeyFingerprint': serverKeyFingerprint,
+    if (mldsaKeyFingerprint.isNotEmpty) 'mldsaKeyFingerprint': mldsaKeyFingerprint,
   };
 
   static BootstrapEnvironment _parse(String name, Object? json) {
     if (json is! Map) throw BootstrapException('environment $name: not an object');
-    final api = json['api'], fingerprint = json['serverKeyFingerprint'];
+    final api = json['api'], fingerprint = json['serverKeyFingerprint'], mldsa = json['mldsaKeyFingerprint'] ?? '';
     if (fingerprint is! String) throw BootstrapException('environment $name: bad serverKeyFingerprint');
+    if (mldsa is! String || (mldsa.isNotEmpty && !bootstrapFingerprint.hasMatch(mldsa))) {
+      throw BootstrapException('environment $name: bad mldsaKeyFingerprint');
+    }
     if (api is! List || api.isEmpty) throw BootstrapException('environment $name: no api');
     final entries = <BootstrapApi>[];
     for (final entry in api) {
@@ -69,12 +80,15 @@ class BootstrapEnvironment {
       }
       entries.add(BootstrapApi(host: host, port: port, secure: secure));
     }
-    return BootstrapEnvironment(api: entries, serverKeyFingerprint: fingerprint);
+    return BootstrapEnvironment(api: entries, serverKeyFingerprint: fingerprint, mldsaKeyFingerprint: mldsa);
   }
 }
 
 /// Имя окружения: строчные латинские буквы, цифры, дефис.
 final bootstrapEnvironmentName = RegExp(r'^[a-z0-9][a-z0-9-]{0,31}$');
+
+/// Отпечаток ключа: sha256 в hex, строчными.
+final bootstrapFingerprint = RegExp(r'^[0-9a-f]{64}$');
 
 class BootstrapFile {
   /// Монотонный номер: клиент не принимает файл старше закэшированного.

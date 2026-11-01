@@ -4125,6 +4125,9 @@ class Translations$screenAuthModerationApplicationStore$en {
 
 	/// en: 'Signature verification failed'
 	String get signatureVerificationFailed => 'Signature verification failed';
+
+	/// en: 'Couldn't verify the server. The connection may be intercepted — try another network.'
+	String get serverKeyMismatch => 'Couldn\'t verify the server. The connection may be intercepted — try another network.';
 }
 
 // Path: screenAuthCallpasswordConfirmation
@@ -4146,6 +4149,9 @@ class Translations$screenAuthCallpasswordConfirmation$en {
 
 	/// en: 'Signature verification failed'
 	String get signatureVerificationFailed => 'Signature verification failed';
+
+	/// en: 'Couldn't verify the server. The connection may be intercepted — try another network.'
+	String get serverKeyMismatch => 'Couldn\'t verify the server. The connection may be intercepted — try another network.';
 }
 
 // Path: inAppNotice
@@ -6680,10 +6686,12 @@ extension on Translations {
 			'screenAuthModerationApplicationStore.enterTheCode' => 'Enter the code',
 			'screenAuthModerationApplicationStore.sentConfirmationCodeToNumber' => ({required Object phoneNumber}) => 'We sent a confirmation code to the number ${phoneNumber}',
 			'screenAuthModerationApplicationStore.signatureVerificationFailed' => 'Signature verification failed',
+			'screenAuthModerationApplicationStore.serverKeyMismatch' => 'Couldn\'t verify the server. The connection may be intercepted — try another network.',
 			'screenAuthCallpasswordConfirmation.weAreExpectingYourCallWithin' => ({required Object duration}) => 'We are expecting your call within ${duration}',
 			'screenAuthCallpasswordConfirmation.confirmYourNumberDetail' => ({required Object confirmationPhoneNumberRu}) => 'Call ${confirmationPhoneNumberRu} from the phone number you provided and wait for the call to be disconnected.',
 			'screenAuthCallpasswordConfirmation.callForFree' => 'Call for free',
 			'screenAuthCallpasswordConfirmation.signatureVerificationFailed' => 'Signature verification failed',
+			'screenAuthCallpasswordConfirmation.serverKeyMismatch' => 'Couldn\'t verify the server. The connection may be intercepted — try another network.',
 			'inAppNotice.appName' => 'Iperon',
 			'inAppNotice.newMessage' => 'New message',
 			'grpcError.errorConnectingServer' => 'Error connecting to the server',
@@ -6973,10 +6981,10 @@ extension on Translations {
 			'deviceLink.invalidCode' => 'This is not an Iperon login QR code',
 			'deviceLink.cameraDenied' => 'No camera access. Allow it in settings.',
 			'qrLogin.expired' => 'The QR code has expired — scan a new one on your computer',
-			'auth.accountBlocked' => 'Account blocked',
-			'appUpdate.title' => 'Update the app',
 			_ => null,
 		} ?? switch (path) {
+			'auth.accountBlocked' => 'Account blocked',
+			'appUpdate.title' => 'Update the app',
 			'appUpdate.text' => 'This version of Iperon is out of date and no longer supported. Install the new one to continue.',
 			'appUpdate.button' => 'Update',
 			'appUpdate.version' => ({required Object current, required Object minimal}) => 'Installed ${current}, ${minimal} or newer is required.',

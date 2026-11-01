@@ -28,6 +28,7 @@ class BootstrapConfig {
       'staging': BootstrapEnvironment(
         api: [BootstrapApi(host: 'staging.iperon.net', port: 443, secure: true)],
         serverKeyFingerprint: '7abfc2a7e8ea09ae384bdeb855cfeae24d60bfac3646046e754fddc8d5ab604d',
+        mldsaKeyFingerprint: 'e14b67f0691cfdcdb5a29fdc44c6c7f225f07b88f574821473b27b84f15894c7',
       ),
     },
   );

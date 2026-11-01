@@ -1705,6 +1705,7 @@ class _Translations$screenAuthModerationApplicationStore$ru extends Translations
 	@override String get enterTheCode => 'Введите код';
 	@override String sentConfirmationCodeToNumber({required Object phoneNumber}) => 'Мы отправили код подтверждения на номер ${phoneNumber}';
 	@override String get signatureVerificationFailed => 'Не удалось проверить подпись';
+	@override String get serverKeyMismatch => 'Не удалось подтвердить подлинность сервера. Возможно, соединение перехватывается — попробуйте другую сеть.';
 }
 
 // Path: screenAuthCallpasswordConfirmation
@@ -1718,6 +1719,7 @@ class _Translations$screenAuthCallpasswordConfirmation$ru extends Translations$s
 	@override String confirmYourNumberDetail({required Object confirmationPhoneNumberRu}) => 'Позвоните на номер ${confirmationPhoneNumberRu} с указанного вами номера телефона и дождитесь сброса вызова.';
 	@override String get callForFree => 'Позвонить бесплатно';
 	@override String get signatureVerificationFailed => 'Не удалось проверить подпись';
+	@override String get serverKeyMismatch => 'Не удалось подтвердить подлинность сервера. Возможно, соединение перехватывается — попробуйте другую сеть.';
 }
 
 // Path: inAppNotice
@@ -3570,10 +3572,12 @@ extension on TranslationsRu {
 			'screenAuthModerationApplicationStore.enterTheCode' => 'Введите код',
 			'screenAuthModerationApplicationStore.sentConfirmationCodeToNumber' => ({required Object phoneNumber}) => 'Мы отправили код подтверждения на номер ${phoneNumber}',
 			'screenAuthModerationApplicationStore.signatureVerificationFailed' => 'Не удалось проверить подпись',
+			'screenAuthModerationApplicationStore.serverKeyMismatch' => 'Не удалось подтвердить подлинность сервера. Возможно, соединение перехватывается — попробуйте другую сеть.',
 			'screenAuthCallpasswordConfirmation.weAreExpectingYourCallWithin' => ({required Object duration}) => 'Мы ждём вашего звонка в течение ${duration}',
 			'screenAuthCallpasswordConfirmation.confirmYourNumberDetail' => ({required Object confirmationPhoneNumberRu}) => 'Позвоните на номер ${confirmationPhoneNumberRu} с указанного вами номера телефона и дождитесь сброса вызова.',
 			'screenAuthCallpasswordConfirmation.callForFree' => 'Позвонить бесплатно',
 			'screenAuthCallpasswordConfirmation.signatureVerificationFailed' => 'Не удалось проверить подпись',
+			'screenAuthCallpasswordConfirmation.serverKeyMismatch' => 'Не удалось подтвердить подлинность сервера. Возможно, соединение перехватывается — попробуйте другую сеть.',
 			'inAppNotice.appName' => 'Iperon',
 			'inAppNotice.newMessage' => 'Новое сообщение',
 			'grpcError.errorConnectingServer' => 'Ошибка подключения к серверу',
@@ -3863,10 +3867,10 @@ extension on TranslationsRu {
 			'deviceLink.invalidCode' => 'Это не QR-код входа в Iperon',
 			'deviceLink.cameraDenied' => 'Нет доступа к камере. Разрешите его в настройках.',
 			'qrLogin.expired' => 'QR-код устарел — отсканируйте новый на компьютере',
-			'auth.accountBlocked' => 'Аккаунт заблокирован',
-			'appUpdate.title' => 'Обновите приложение',
 			_ => null,
 		} ?? switch (path) {
+			'auth.accountBlocked' => 'Аккаунт заблокирован',
+			'appUpdate.title' => 'Обновите приложение',
 			'appUpdate.text' => 'Эта версия Iperon устарела и больше не поддерживается. Установите новую, чтобы продолжить.',
 			'appUpdate.button' => 'Обновить',
 			'appUpdate.version' => ({required Object current, required Object minimal}) => 'Установлена ${current}, нужна ${minimal} или новее.',

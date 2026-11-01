@@ -11,6 +11,7 @@ import '../../logger.dart';
 import '../../repositories/repositories.dart';
 import '../../utils.dart';
 import '../../protobuf.dart';
+import 'server_key.dart';
 
 /// Ответ сервера на вход в аккаунт, заблокированный модерацией
 /// (PermissionDenied; подробности — в трейлере, см. [accountBlockedURI]).
@@ -66,6 +67,10 @@ class AuthLoginCompleter {
     }
 
     final metaData = MetadataInfo_Response.fromBuffer(metaDataResponse.message);
+    // Чужой ключ — дальше не идём: сессия входа не уходит посреднику.
+    if (!await serverKeyTrusted(metaData.mldsa.publicKey)) {
+      return (error: 'screenAuthCallpasswordConfirmation.serverKeyMismatch', redirectURI: "");
+    }
 
     final (publicKeySharedKey, privateKeySharedKey) = kem.generateKeyPair();
     final (publicKeySalt, privateKeySalt) = kem.generateKeyPair();

@@ -1343,12 +1343,14 @@
     "enterTheCode": "Enter the code"
     "sentConfirmationCodeToNumber": "We sent a confirmation code to the number {phoneNumber}"
     "signatureVerificationFailed": "Signature verification failed"
+    "serverKeyMismatch": "Couldn't verify the server. The connection may be intercepted — try another network."
 
 "screenAuthCallpasswordConfirmation":
   "weAreExpectingYourCallWithin": "We are expecting your call within {duration}"
   "confirmYourNumberDetail": "Call {confirmationPhoneNumberRu} from the phone number you provided and wait for the call to be disconnected."
   "callForFree": "Call for free"
   "signatureVerificationFailed": "Signature verification failed"
+  "serverKeyMismatch": "Couldn't verify the server. The connection may be intercepted — try another network."
 
 inAppNotice:
   "appName": "Iperon"

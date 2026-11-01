@@ -13,6 +13,7 @@ import '../../utils.dart';
 import '../../repositories.dart';
 import '../../auth.dart';
 import '../../protobuf.dart';
+import 'server_key.dart';
 
 import 'auth_moderation_application_store_state.dart';
 
@@ -60,6 +61,11 @@ class AuthModerationApplicationStoreCubit extends Cubit<AuthModerationApplicatio
     }
 
     final metaData = MetadataInfo_Response.fromBuffer(metaDataResponse.message);
+    // Чужой ключ — дальше не идём: сессия входа не уходит посреднику.
+    if (!await serverKeyTrusted(metaData.mldsa.publicKey)) {
+      emit(state.copyWith(status: Status.success, error: 'screenAuthModerationApplicationStore.serverKeyMismatch'));
+      return;
+    }
 
     final (publicKeySharedKey, privateKeySharedKey) = kem.generateKeyPair();
     final (publicKeySalt, privateKeySalt) = kem.generateKeyPair();

@@ -26,9 +26,13 @@ on:
         required: false
         default: "staging.iperon.net:443"
       fingerprint:
-        description: "sha256 (hex) публичного ключа сервера окружения"
+        description: "sha256 (hex) EdDSA-ключа сервера окружения"
         required: false
         default: "7abfc2a7e8ea09ae384bdeb855cfeae24d60bfac3646046e754fddc8d5ab604d"
+      mldsa_fingerprint:
+        description: "sha256 (hex) ML-DSA-ключа сервера (MetadataInfo.mldsa.fingerprint) — его сверяет клиент при входе"
+        required: false
+        default: "e14b67f0691cfdcdb5a29fdc44c6c7f225f07b88f574821473b27b84f15894c7"
       default_environment:
         description: "Окружение новых аккаунтов (keep — как в текущем файле)"
         type: choice
@@ -81,6 +85,7 @@ jobs:
           ENVIRONMENT: ${{ inputs.environment }}
           API: ${{ inputs.api }}
           FINGERPRINT: ${{ inputs.fingerprint }}
+          MLDSA_FINGERPRINT: ${{ inputs.mldsa_fingerprint }}
           DEFAULT_ENVIRONMENT: ${{ inputs.default_environment }}
           SERIAL: ${{ steps.serial.outputs.serial }}
         run: |
@@ -90,6 +95,7 @@ jobs:
           [ -f current.json ] && ARGS+=(--current current.json)
           if [ "$ENVIRONMENT" != "none" ]; then
             ARGS+=(--environment "$ENVIRONMENT" --fingerprint "$FINGERPRINT")
+            [ -n "$MLDSA_FINGERPRINT" ] && ARGS+=(--mldsa-fingerprint "$MLDSA_FINGERPRINT")
             IFS=',' read -ra ENTRIES <<< "$API"
             for entry in "${ENTRIES[@]}"; do
               ARGS+=(--api "$(echo "$entry" | xargs)")

@@ -75,7 +75,15 @@ class Settings extends ChangeNotifier {
   String get databaseName => dotenv.get('DATABASE_NAME', fallback: "iperon.db");
   bool get isDeleteDatabase => dotenv.getBool('IS_DELETE_DATABASE', fallback: false);
   int get databaseVersion => dotenv.getInt('DATABASE_VERSION', fallback: 1);
-  String get publicKeyEDDSAFingerprint => BootstrapConfig.environment(environment).serverKeyFingerprint;
+
+  /// Отпечаток ML-DSA-ключа сервера, с которым сверяется ключ из
+  /// `META_DATA_INFO` при входе ('' — не сверять). Адрес из `.env` — свой
+  /// сервер, отпечаток тоже из `.env` (`SERVER_MLDSA_FINGERPRINT`), иначе без
+  /// проверки.
+  String get serverMlDsaFingerprint {
+    if (dotenv.get('API_HOST', fallback: '').isNotEmpty) return dotenv.get('SERVER_MLDSA_FINGERPRINT', fallback: '');
+    return BootstrapConfig.environment(environment).mldsaKeyFingerprint;
+  }
 
   /// Флаг: `.env` (только debug) → сервер → [_defaults].
   bool _flag(String key, bool Function(ClientConfig_Response config) server) {

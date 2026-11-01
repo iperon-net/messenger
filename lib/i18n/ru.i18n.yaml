@@ -1372,12 +1372,14 @@
   "enterTheCode": "Введите код"
   "sentConfirmationCodeToNumber": "Мы отправили код подтверждения на номер {phoneNumber}"
   "signatureVerificationFailed": "Не удалось проверить подпись"
+  "serverKeyMismatch": "Не удалось подтвердить подлинность сервера. Возможно, соединение перехватывается — попробуйте другую сеть."
 
 "screenAuthCallpasswordConfirmation":
   "weAreExpectingYourCallWithin": "Мы ждём вашего звонка в течение {duration}"
   "confirmYourNumberDetail": "Позвоните на номер {confirmationPhoneNumberRu} с указанного вами номера телефона и дождитесь сброса вызова."
   "callForFree": "Позвонить бесплатно"
   "signatureVerificationFailed": "Не удалось проверить подпись"
+  "serverKeyMismatch": "Не удалось подтвердить подлинность сервера. Возможно, соединение перехватывается — попробуйте другую сеть."
 
 inAppNotice:
   "appName": "Iperon"

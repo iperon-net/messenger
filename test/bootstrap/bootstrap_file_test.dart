@@ -7,6 +7,7 @@ import 'package:messenger/bootstrap/bootstrap_file.dart';
 
 void main() {
   const fingerprint = '7abfc2a7e8ea09ae384bdeb855cfeae24d60bfac3646046e754fddc8d5ab604d';
+  const mldsa = 'e14b67f0691cfdcdb5a29fdc44c6c7f225f07b88f574821473b27b84f15894c7';
   const file = BootstrapFile(
     serial: 3,
     issuedAt: 1793260800,
@@ -22,6 +23,7 @@ void main() {
       'production': BootstrapEnvironment(
         api: [BootstrapApi(host: 'iperon.net', port: 443, secure: true)],
         serverKeyFingerprint: fingerprint,
+        mldsaKeyFingerprint: mldsa,
       ),
     },
   );
@@ -55,6 +57,9 @@ void main() {
     expect(parsed.environments.keys, unorderedEquals(['staging', 'production']));
     expect(parsed.environments['staging']!.api.map((api) => api.toString()), ['staging.iperon.net:443', 'backup.example:8443 (insecure)']);
     expect(parsed.environments['production']!.serverKeyFingerprint, fingerprint);
+    // ML-DSA-отпечаток — необязательный: без поля — пусто (не сверять).
+    expect(parsed.environments['production']!.mldsaKeyFingerprint, mldsa);
+    expect(parsed.environments['staging']!.mldsaKeyFingerprint, '');
   });
 
   test('порядок полей в файле на подпись не влияет', () async {
@@ -90,6 +95,22 @@ void main() {
       environments: {'staging': file.environments['staging']!},
     );
     expect(() async => BootstrapFile.verify(await orphan.sign(key), publicKeys: [publicKey]), throwsA(isA<BootstrapException>()));
+  });
+
+  test('битый ML-DSA-отпечаток — отказ даже с верной подписью', () async {
+    final bad = BootstrapFile(
+      serial: 1,
+      issuedAt: 0,
+      defaultEnvironment: 'staging',
+      environments: {
+        'staging': BootstrapEnvironment(
+          api: file.environments['staging']!.api,
+          serverKeyFingerprint: fingerprint,
+          mldsaKeyFingerprint: 'XYZ',
+        ),
+      },
+    );
+    expect(() async => BootstrapFile.verify(await bad.sign(key), publicKeys: [publicKey]), throwsA(isA<BootstrapException>()));
   });
 
   group('fetchBootstrapFile', () {

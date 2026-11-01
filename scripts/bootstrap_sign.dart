@@ -8,13 +8,16 @@
 //
 //   BOOTSTRAP_SIGNING_KEY=<base64> dart run scripts/bootstrap_sign.dart sign \
 //       --serial 2 [--current old.json] \
-//       [--environment staging --api staging.iperon.net:443 [--api backup:443] --fingerprint <hex>] \
+//       [--environment staging --api staging.iperon.net:443 [--api backup:443] --fingerprint <hex> \
+//        [--mldsa-fingerprint <hex>]] \
 //       [--default staging] [--public-key <base64>] [--out config.json]
 //     Подписать (вызывает workflow bootstrap.yaml). Окружения из --current
 //     (прошлый файл, проверяется ключом сборки или --public-key) переносятся как есть, меняется
 //     только --environment; --default — окружение новых аккаунтов (без него —
 //     из --current, а в первом файле — это же --environment). --api
-//     host:port[:insecure], первый — основной.
+//     host:port[:insecure], первый — основной. --fingerprint — sha256 EdDSA-ключа
+//     сервера, --mldsa-fingerprint — ML-DSA (его клиент сверяет при входе; без
+//     него — из --current, если окружение там есть).
 //
 //   dart run scripts/bootstrap_sign.dart verify config.json [--public-key <base64>]
 //     Проверить подпись ключом из сборки (или указанным) и показать содержимое.
@@ -108,8 +111,12 @@ Future<void> _sign(Map<String, List<String>> options) async {
     final api = [for (final value in options['api'] ?? const <String>[]) _api(value)];
     if (api.isEmpty) throw const FormatException('--api is required with --environment');
     final fingerprint = _one(options, 'fingerprint');
-    if (!RegExp(r'^[0-9a-f]{64}$').hasMatch(fingerprint)) throw const FormatException('--fingerprint must be 64 lowercase hex chars');
-    environments[name] = BootstrapEnvironment(api: api, serverKeyFingerprint: fingerprint);
+    if (!bootstrapFingerprint.hasMatch(fingerprint)) throw const FormatException('--fingerprint must be 64 lowercase hex chars');
+    final mldsa = options['mldsa-fingerprint']?.last ?? environments[name]?.mldsaKeyFingerprint ?? '';
+    if (mldsa.isNotEmpty && !bootstrapFingerprint.hasMatch(mldsa)) {
+      throw const FormatException('--mldsa-fingerprint must be 64 lowercase hex chars');
+    }
+    environments[name] = BootstrapEnvironment(api: api, serverKeyFingerprint: fingerprint, mldsaKeyFingerprint: mldsa);
   }
   final defaultEnvironment = options['default']?.last ?? current?.defaultEnvironment ?? name;
   if (defaultEnvironment == null || !environments.containsKey(defaultEnvironment)) {
@@ -148,6 +155,9 @@ Future<void> _verify(String path, Map<String, List<String>> options) async {
   final issued = DateTime.fromMillisecondsSinceEpoch(file.issuedAt * 1000, isUtc: true);
   stdout.writeln('ok: serial ${file.serial}, issued $issued, default ${file.defaultEnvironment}');
   for (final entry in file.environments.entries) {
-    stdout.writeln('  ${entry.key}: ${entry.value.api.join(', ')}, fingerprint ${entry.value.serverKeyFingerprint}');
+    final mldsa = entry.value.mldsaKeyFingerprint;
+    stdout.writeln(
+      '  ${entry.key}: ${entry.value.api.join(', ')}, fingerprint ${entry.value.serverKeyFingerprint}, mldsa ${mldsa.isEmpty ? '-' : mldsa}',
+    );
   }
 }
