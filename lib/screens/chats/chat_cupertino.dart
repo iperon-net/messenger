@@ -252,16 +252,6 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
     _cubit.startSearch();
   }
 
-  /// Фокус в поле ввода после закрытия меню сообщения («Ответить»,
-  /// «Цитировать»): запрошенный в тот же кадр, пока маршрут меню уходит, фокус
-  /// ставится, но поле не подключается к клавиатуре — её не было. Кадром позже
-  /// клавиатура открывается (проверено на iOS-симуляторе).
-  void _focusAfterMenu() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _focus.requestFocus();
-    });
-  }
-
   /// Свайп сообщения влево — ответить.
   void _swipeReply(models.Message message) {
     _cubit.startReply(message);
@@ -864,7 +854,7 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
       onQuote: (quote) {
         Navigator.of(context, rootNavigator: true).pop();
         _cubit.startReply(message, quote: quote);
-        _focusAfterMenu();
+        _focus.requestFocus();
       },
       child: text,
     );
@@ -938,7 +928,7 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
       if (canWrite)
         action(t.reply, CupertinoIcons.reply, () {
           _cubit.startReply(message);
-          _focusAfterMenu();
+          _focus.requestFocus();
         }),
       // Фото / видео — копируются сами (вставить в другой мессенджер), подпись — отдельно.
       // Защита содержимого — ни копирования, ни сохранения, ни пересылки.
@@ -1207,6 +1197,11 @@ class _ComposeBar extends StatelessWidget {
                 ),
               ),
             Padding(
+              // Ключ: плашка ответа / правки / пересылки над полем — тоже Padding;
+              // без ключа при её появлении Column отдаёт её элементу строку поля,
+              // а поле создаёт заново — фокус остаётся на узле, но клавиатура
+              // не открывается (и закрывается после отправки ответа).
+              key: const ValueKey('compose-input'),
               padding: const EdgeInsets.fromLTRB(4, 6, 8, 6),
               // Пока пишется голосовое — вместо скрепки и поля панель записи.
               child: ListenableBuilder(
