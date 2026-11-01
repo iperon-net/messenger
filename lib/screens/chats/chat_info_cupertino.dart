@@ -832,6 +832,7 @@ class _ChatInfoMoreButtonState extends State<ChatInfoMoreButton> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
         child: CupertinoMenuAnchor(
+          consumeOutsideTaps: true,
           onClose: () => mounted ? setState(() => _submenu = null) : null,
           menuChildren: _submenu ?? main,
           builder: (context, controller, child) => ChatInfoActionButton(
@@ -876,6 +877,7 @@ class ChatInfoActionButton extends StatelessWidget {
         child: menu == null
             ? _button(context, onTap)
             : CupertinoMenuAnchor(
+                consumeOutsideTaps: true,
                 menuChildren: menu,
                 builder: (context, controller, child) => _button(context, () => controller.isOpen ? controller.close() : controller.open()),
               ),

@@ -139,6 +139,7 @@ class _SettingsPasscodeCupertino extends State<SettingsPasscodeCupertino> {
                         icon: FontAwesomeIcons.solidClock,
                         onTab: null,
                         trailing: CupertinoMenuAnchor(
+                          consumeOutsideTaps: true,
                           builder: (context, controller, child) {
                             return CupertinoButton(
                               padding: EdgeInsets.zero,

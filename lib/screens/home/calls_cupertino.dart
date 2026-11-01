@@ -331,6 +331,7 @@ class _NewCallButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.t.screenCalls;
     return CupertinoMenuAnchor(
+      consumeOutsideTaps: true,
       useRootOverlay: true,
       menuChildren: [
         CupertinoMenuItem(

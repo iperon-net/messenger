@@ -123,6 +123,7 @@ class ChatInviteLinksCupertino extends StatelessWidget {
       }
       // Тап по строке — выпадающее меню действий со ссылкой.
       return CupertinoMenuAnchor(
+        consumeOutsideTaps: true,
         menuChildren: link.revoked
             ? [item('delete', tl.delete, CupertinoIcons.delete, destructive: true)]
             : [

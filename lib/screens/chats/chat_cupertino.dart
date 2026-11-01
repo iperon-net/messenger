@@ -1291,6 +1291,7 @@ class _ComposeBar extends StatelessWidget {
                                 : !canSend && !editing
                                 ? VoiceRecordButton(key: const ValueKey('mic'), recorder: recorder, style: voiceStyle)
                                 : CupertinoMenuAnchor(
+                                    consumeOutsideTaps: true,
                                     key: ValueKey(editing ? 'edit' : 'send'),
                                     menuChildren: [
                                       CupertinoMenuItem(
@@ -1406,6 +1407,7 @@ class _SelectionBar extends StatelessWidget {
           children: [
             if (canDelete && state.chat != null && chatDeleteScoped(state.chat!))
               CupertinoMenuAnchor(
+                consumeOutsideTaps: true,
                 menuChildren: scopeMenuCupertino(context, onDeleteScoped),
                 builder: (context, controller, child) =>
                     button(CupertinoIcons.delete, () => controller.isOpen ? controller.close() : controller.open(), destructive: true),

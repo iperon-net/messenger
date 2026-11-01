@@ -70,6 +70,7 @@ class SettingsStorageCupertino extends StatelessWidget {
       return CupertinoListTile(leading: leading, title: Text(title), additionalInfo: size);
     }
     return CupertinoMenuAnchor(
+      consumeOutsideTaps: true,
       menuChildren: [
         CupertinoMenuItem(
           isDestructiveAction: true,
@@ -97,6 +98,7 @@ class SettingsStorageCupertino extends StatelessWidget {
     return CupertinoListTile(
       title: Text(title),
       trailing: CupertinoMenuAnchor(
+        consumeOutsideTaps: true,
         builder: (context, controller, child) => CupertinoButton(
           padding: EdgeInsets.zero,
           // Короткое значение («∞») — по правому краю, как остальные, а не по

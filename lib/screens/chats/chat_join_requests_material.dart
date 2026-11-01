@@ -46,6 +46,7 @@ class ChatJoinRequestsMaterial extends StatelessWidget {
               actions: [
                 if (requests.length > 1)
                   PopupMenuButton<bool>(
+                    useRootNavigator: true,
                     onSelected: (approve) => context.read<ChatInvitesCubit>().answer(approve: approve),
                     itemBuilder: (_) => [
                       PopupMenuItem(value: true, child: Text(tc.approveAll)),

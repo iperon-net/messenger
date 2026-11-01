@@ -277,6 +277,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
 
                     // Тап — меню «Скопировать», как у строк профиля собеседника.
                     CupertinoMenuAnchor(
+                      consumeOutsideTaps: true,
                       useRootOverlay: true,
                       menuChildren: [
                         CupertinoMenuItem(

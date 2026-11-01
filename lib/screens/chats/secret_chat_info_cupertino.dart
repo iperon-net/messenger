@@ -105,6 +105,7 @@ class SecretChatInfoCupertino extends StatelessWidget {
                       ),
                       children: [
                         CupertinoMenuAnchor(
+                          consumeOutsideTaps: true,
                           menuChildren: secretTtlMenuCupertino(context, state.ttl, context.read<SecretChatCubit>().setTtl),
                           builder: (context, controller, child) => CupertinoListTile(
                             title: Text(t.ttl),

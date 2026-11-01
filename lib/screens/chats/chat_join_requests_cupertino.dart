@@ -55,6 +55,7 @@ class ChatJoinRequestsCupertino extends StatelessWidget {
                 // «Все» — выпадающее меню: принять / отклонить все.
                 trailing: requests.length > 1
                     ? CupertinoMenuAnchor(
+                        consumeOutsideTaps: true,
                         menuChildren: [
                           CupertinoMenuItem(
                             trailing: const Icon(CupertinoIcons.checkmark_circle),

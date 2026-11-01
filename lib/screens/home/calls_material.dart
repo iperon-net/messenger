@@ -82,6 +82,7 @@ class _CallsMaterialState extends State<CallsMaterial> with WidgetsBindingObserv
             builder: (context, _) => !getIt.get<Calls>().groupCallsEnabled
                 ? const SizedBox.shrink()
                 : PopupMenuButton<bool>(
+                    useRootNavigator: true,
                     icon: const HugeIcon(icon: HugeIcons.strokeRoundedCallAdd),
                     tooltip: context.t.screenCalls.newCall,
                     onSelected: (video) => startGroupCall(context, video: video),

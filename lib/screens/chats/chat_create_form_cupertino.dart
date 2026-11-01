@@ -107,6 +107,7 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
       required String Function(T value) label,
       required ValueChanged<T> onSelected,
     }) => CupertinoMenuAnchor(
+      consumeOutsideTaps: true,
       menuChildren: [
         for (final value in values)
           CupertinoMenuItem(
@@ -207,6 +208,7 @@ class _ChatCreateFormCupertino extends State<ChatCreateFormCupertino> {
                                 // Фото нет — сразу выбор; есть — меню «Изменить» / «Удалить».
                                 state.avatarPath.isNotEmpty
                                     ? CupertinoMenuAnchor(
+                                        consumeOutsideTaps: true,
                                         menuChildren: [
                                           CupertinoMenuItem(
                                             trailing: const Icon(CupertinoIcons.photo),

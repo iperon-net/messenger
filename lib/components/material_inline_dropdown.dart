@@ -19,6 +19,7 @@ class MaterialInlineDropdown<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<T>(
+      useRootNavigator: true,
       initialValue: value,
       onSelected: onSelected,
       itemBuilder: (context) => [

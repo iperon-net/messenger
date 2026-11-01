@@ -225,6 +225,7 @@ class _ScopeMenuAnchorCupertinoState extends State<ScopeMenuAnchorCupertino> {
   @override
   Widget build(BuildContext context) {
     return CupertinoMenuAnchor(
+      consumeOutsideTaps: true,
       controller: _controller,
       // Закрыли мимо пунктов — отмена (пункт успевает ответить раньше).
       onClose: () => _finish(null),

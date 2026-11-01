@@ -103,6 +103,7 @@ class _MediaCaptionSheetState extends State<_MediaCaptionSheet> {
                         if (_hasMedia)
                           // Выпадающее меню iOS (pull-down), как у «⋯» в системных приложениях.
                           CupertinoMenuAnchor(
+                            consumeOutsideTaps: true,
                             useRootOverlay: true,
                             menuChildren: [
                               CupertinoMenuItem(

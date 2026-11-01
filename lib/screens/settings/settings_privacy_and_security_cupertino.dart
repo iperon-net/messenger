@@ -275,6 +275,7 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
                   ),
                   children: [
                     CupertinoMenuAnchor(
+                      consumeOutsideTaps: true,
                       menuChildren: chatTTLMenuCupertino(context, state.messagesTTL, (period) => _setMessagesTTL(context, period)),
                       builder: (context, controller, child) => CupertinoListTileIcon(
                         title: Text(context.t.chatTtl.titleLong),

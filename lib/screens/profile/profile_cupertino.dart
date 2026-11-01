@@ -300,6 +300,7 @@ class _ProfileViewState extends State<_ProfileView> {
     int maxLines = 1,
     List<Widget> actions = const [],
   }) => CupertinoMenuAnchor(
+    consumeOutsideTaps: true,
     useRootOverlay: true,
     menuChildren: [
       CupertinoMenuItem(

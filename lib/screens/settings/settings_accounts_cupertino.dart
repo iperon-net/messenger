@@ -60,6 +60,7 @@ class _AccountSwitcherCupertino extends State<AccountSwitcherCupertino> with Set
   @override
   Widget build(BuildContext context) {
     return CupertinoMenuAnchor(
+      consumeOutsideTaps: true,
       useRootOverlay: true,
       onOpen: () => load(),
       menuChildren: [
