@@ -1323,7 +1323,7 @@
   "groupAudio": "Групповой аудиозвонок"
   "groupVideo": "Групповой видеозвонок"
   "pickTitle": "Кому позвонить"
-  "pickSelected": "Выбрано: ${n} из ${max}"
+  "pickSelected": "Выбрано: {n} из {max}"
   "pickCall": "Позвонить"
   "title": "Звонки"
   "empty": "Здесь появятся ваши звонки"
@@ -1400,9 +1400,9 @@ dateTime:
 "screenCall":
   "addParticipant": "Добавить участника"
   "addParticipantEmpty": "Некого добавить"
-  "inviteDeclined": "${name}: звонок отклонён"
-  "inviteBusy": "${name}: занято"
-  "inviteNoAnswer": "${name}: нет ответа"
+  "inviteDeclined": "{name}: звонок отклонён"
+  "inviteBusy": "{name}: занято"
+  "inviteNoAnswer": "{name}: нет ответа"
   "inviteSomeone": "Приглашённый"
   "groupInvite": "Групповой звонок"
   "groupCallTitle(plural)":

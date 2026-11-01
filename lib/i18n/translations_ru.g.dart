@@ -1642,7 +1642,7 @@ class _Translations$screenCalls$ru extends Translations$screenCalls$en {
 	@override String get groupAudio => 'Групповой аудиозвонок';
 	@override String get groupVideo => 'Групповой видеозвонок';
 	@override String get pickTitle => 'Кому позвонить';
-	@override String pickSelected({required Object n, required Object max}) => 'Выбрано: \$${n} из \$${max}';
+	@override String pickSelected({required Object n, required Object max}) => 'Выбрано: ${n} из ${max}';
 	@override String get pickCall => 'Позвонить';
 	@override String get title => 'Звонки';
 	@override String get empty => 'Здесь появятся ваши звонки';
@@ -1768,9 +1768,9 @@ class _Translations$screenCall$ru extends Translations$screenCall$en {
 	// Translations
 	@override String get addParticipant => 'Добавить участника';
 	@override String get addParticipantEmpty => 'Некого добавить';
-	@override String inviteDeclined({required Object name}) => '\$${name}: звонок отклонён';
-	@override String inviteBusy({required Object name}) => '\$${name}: занято';
-	@override String inviteNoAnswer({required Object name}) => '\$${name}: нет ответа';
+	@override String inviteDeclined({required Object name}) => '${name}: звонок отклонён';
+	@override String inviteBusy({required Object name}) => '${name}: занято';
+	@override String inviteNoAnswer({required Object name}) => '${name}: нет ответа';
 	@override String get inviteSomeone => 'Приглашённый';
 	@override String get groupInvite => 'Групповой звонок';
 	@override String groupCallTitle({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
@@ -3526,7 +3526,7 @@ extension on TranslationsRu {
 			'screenCalls.groupAudio' => 'Групповой аудиозвонок',
 			'screenCalls.groupVideo' => 'Групповой видеозвонок',
 			'screenCalls.pickTitle' => 'Кому позвонить',
-			'screenCalls.pickSelected' => ({required Object n, required Object max}) => 'Выбрано: \$${n} из \$${max}',
+			'screenCalls.pickSelected' => ({required Object n, required Object max}) => 'Выбрано: ${n} из ${max}',
 			'screenCalls.pickCall' => 'Позвонить',
 			'screenCalls.title' => 'Звонки',
 			'screenCalls.empty' => 'Здесь появятся ваши звонки',
@@ -3589,9 +3589,9 @@ extension on TranslationsRu {
 			'dateTime.relativeDateTimeOther' => ({required Object date, required Object time}) => '${date} в ${time}',
 			'screenCall.addParticipant' => 'Добавить участника',
 			'screenCall.addParticipantEmpty' => 'Некого добавить',
-			'screenCall.inviteDeclined' => ({required Object name}) => '\$${name}: звонок отклонён',
-			'screenCall.inviteBusy' => ({required Object name}) => '\$${name}: занято',
-			'screenCall.inviteNoAnswer' => ({required Object name}) => '\$${name}: нет ответа',
+			'screenCall.inviteDeclined' => ({required Object name}) => '${name}: звонок отклонён',
+			'screenCall.inviteBusy' => ({required Object name}) => '${name}: занято',
+			'screenCall.inviteNoAnswer' => ({required Object name}) => '${name}: нет ответа',
 			'screenCall.inviteSomeone' => 'Приглашённый',
 			'screenCall.groupInvite' => 'Групповой звонок',
 			'screenCall.groupCallTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: '${n} участник', few: '${n} участника', many: '${n} участников', other: '${n} участника', ), 

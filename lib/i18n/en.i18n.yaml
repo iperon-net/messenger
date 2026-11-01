@@ -1294,7 +1294,7 @@
   "groupAudio": "Group audio call"
   "groupVideo": "Group video call"
   "pickTitle": "Who to call"
-  "pickSelected": "Selected: ${n} of ${max}"
+  "pickSelected": "Selected: {n} of {max}"
   "pickCall": "Call"
   "title": "Calls"
   "empty": "Your calls will appear here"
@@ -1371,9 +1371,9 @@ dateTime:
 "screenCall":
   "addParticipant": "Add participant"
   "addParticipantEmpty": "No one to add"
-  "inviteDeclined": "${name} declined the call"
-  "inviteBusy": "${name} is busy"
-  "inviteNoAnswer": "${name} didn't answer"
+  "inviteDeclined": "{name} declined the call"
+  "inviteBusy": "{name} is busy"
+  "inviteNoAnswer": "{name} didn't answer"
   "inviteSomeone": "Invitee"
   "groupInvite": "Group call"
   "groupCallTitle(plural)":
