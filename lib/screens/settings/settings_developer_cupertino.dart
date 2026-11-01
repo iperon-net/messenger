@@ -24,51 +24,6 @@ import 'developer_test_push.dart';
 class SettingsDeveloperCupertino extends StatelessWidget {
   const SettingsDeveloperCupertino({super.key});
 
-  /// Слоты аккаунтов: переключиться или завести новый в выбранном окружении
-  /// (вход откроется в нём, на сервере окружения).
-  Future<void> _pickAccount(BuildContext context) async {
-    final t = context.t.screenDeveloper;
-    final slots = await developerAccountSlots(signedOut: t.accountsEmpty);
-    if (!context.mounted) return;
-    final picked = await showCupertinoDialog<({String? accountID, String? environment})>(
-      context: context,
-      barrierDismissible: true,
-      builder: (dialogContext) => CupertinoAlertDialog(
-        title: Text(t.accounts),
-        actions: [
-          for (final slot in slots)
-            CupertinoDialogAction(
-              isDefaultAction: slot.active,
-              onPressed: () => Navigator.of(dialogContext).pop((accountID: slot.accountID, environment: null)),
-              child: Text(slot.active ? '${slot.title} · ${t.accountsActive}' : slot.title),
-            ),
-          for (final environment in developerEnvironments())
-            CupertinoDialogAction(
-              onPressed: () => Navigator.of(dialogContext).pop((accountID: null, environment: environment)),
-              child: Text('${t.accountsNew} · $environment'),
-            ),
-          CupertinoDialogAction(
-            isDestructiveAction: true,
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(context.t.common.cancel),
-          ),
-        ],
-      ),
-    );
-    if (picked == null || !context.mounted) return;
-    if (!developerCanSwitchAccount()) {
-      await showCupertinoDialog<void>(
-        context: context,
-        builder: (dialogContext) => CupertinoAlertDialog(
-          title: Text(t.accountsCallActive),
-          actions: [CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.ok))],
-        ),
-      );
-      return;
-    }
-    await developerSwitchAccount(accountID: picked.accountID, environment: picked.environment);
-  }
-
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -224,13 +179,7 @@ class SettingsDeveloperCupertino extends StatelessWidget {
                     onTab: () async => Calls.forceRelay.value = !relay,
                   ),
                 ),
-                CupertinoListTileIcon(
-                  title: Text(context.t.screenDeveloper.accounts),
-                  color: const Color(0xFF30B0C7),
-                  icon: FontAwesomeIcons.users,
-                  onTab: () => _pickAccount(context),
-                  isTrailing: true,
-                ),
+                const _DeveloperAccountsCupertino(),
                 if (kDebugMode)
                   CupertinoListTileIcon(
                     title: Text(context.t.screenDeveloper.callPreview),
@@ -243,6 +192,81 @@ class SettingsDeveloperCupertino extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// «Аккаунты (разработка)»: выпадающее меню слотов — номер, под ним окружение
+/// и начало accountID, у активного галочка; ниже «Добавить аккаунт» в каждом
+/// окружении (вход откроется на его сервере).
+class _DeveloperAccountsCupertino extends StatefulWidget {
+  const _DeveloperAccountsCupertino();
+
+  @override
+  State<_DeveloperAccountsCupertino> createState() => _DeveloperAccountsCupertinoState();
+}
+
+class _DeveloperAccountsCupertinoState extends State<_DeveloperAccountsCupertino> {
+  List<DeveloperAccountSlot> _slots = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final slots = await developerAccountSlots(signedOut: context.t.screenDeveloper.accountsEmpty);
+    if (mounted) setState(() => _slots = slots);
+  }
+
+  Future<void> _switch({String? accountID, String? environment}) async {
+    if (!developerCanSwitchAccount()) {
+      await showCupertinoDialog<void>(
+        context: context,
+        builder: (dialogContext) => CupertinoAlertDialog(
+          title: Text(context.t.screenDeveloper.accountsCallActive),
+          actions: [CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(context.t.common.ok))],
+        ),
+      );
+      return;
+    }
+    await developerSwitchAccount(accountID: accountID, environment: environment);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t.screenDeveloper;
+    return CupertinoMenuAnchor(
+      consumeOutsideTaps: true,
+      onOpen: _load,
+      menuChildren: [
+        for (final slot in _slots)
+          CupertinoMenuItem(
+            // Как в системных меню выбора: галочка слева, иконка справа.
+            leading: slot.active ? const Icon(CupertinoIcons.check_mark) : null,
+            trailing: Icon(slot.signedIn ? CupertinoIcons.person_crop_circle : CupertinoIcons.person_crop_circle_badge_xmark),
+            subtitle: Text(slot.active ? '${slot.detail} · ${t.accountsActive}' : slot.detail),
+            onPressed: slot.active ? () {} : () => _switch(accountID: slot.accountID),
+            child: Text(slot.phone, style: slot.signedIn ? null : TextStyle(color: CupertinoColors.secondaryLabel.resolveFrom(context))),
+          ),
+        if (_slots.isNotEmpty) const CupertinoMenuDivider(),
+        for (final environment in developerEnvironments())
+          CupertinoMenuItem(
+            trailing: const Icon(CupertinoIcons.add_circled),
+            subtitle: Text(environment),
+            onPressed: () => _switch(environment: environment),
+            child: Text(t.accountsNew),
+          ),
+      ],
+      builder: (context, controller, child) => CupertinoListTileIcon(
+        title: Text(t.accounts),
+        additionalInfo: Text('${_slots.length}'),
+        color: const Color(0xFF30B0C7),
+        icon: FontAwesomeIcons.users,
+        trailing: Icon(CupertinoIcons.chevron_up_chevron_down, size: 16, color: CupertinoColors.tertiaryLabel.resolveFrom(context)),
+        onTab: () async => controller.isOpen ? controller.close() : controller.open(),
       ),
     );
   }

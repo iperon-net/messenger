@@ -859,7 +859,7 @@
   "exportLogs": "Экспорт логов"
   "callPreview": "Превью экрана звонка"
   "accounts": "Аккаунты (разработка)"
-  "accountsNew": "Новый слот"
+  "accountsNew": "Добавить аккаунт"
   "accountsActive": "активный"
   "accountsEmpty": "без входа"
   "accountsCallActive": "Во время звонка аккаунт не переключить"

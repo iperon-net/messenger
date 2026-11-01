@@ -2557,8 +2557,8 @@ class Translations$screenDeveloper$en {
 	/// en: 'Accounts (development)'
 	String get accounts => 'Accounts (development)';
 
-	/// en: 'New slot'
-	String get accountsNew => 'New slot';
+	/// en: 'Add account'
+	String get accountsNew => 'Add account';
 
 	/// en: 'active'
 	String get accountsActive => 'active';
@@ -6216,7 +6216,7 @@ extension on Translations {
 			'screenDeveloper.exportLogs' => 'Export logs',
 			'screenDeveloper.callPreview' => 'Call screen preview',
 			'screenDeveloper.accounts' => 'Accounts (development)',
-			'screenDeveloper.accountsNew' => 'New slot',
+			'screenDeveloper.accountsNew' => 'Add account',
 			'screenDeveloper.accountsActive' => 'active',
 			'screenDeveloper.accountsEmpty' => 'signed out',
 			'screenDeveloper.accountsCallActive' => 'Can\'t switch accounts during a call',

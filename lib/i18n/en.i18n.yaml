@@ -833,7 +833,7 @@
   "exportLogs": "Export logs"
   "callPreview": "Call screen preview"
   "accounts": "Accounts (development)"
-  "accountsNew": "New slot"
+  "accountsNew": "Add account"
   "accountsActive": "active"
   "accountsEmpty": "signed out"
   "accountsCallActive": "Can't switch accounts during a call"

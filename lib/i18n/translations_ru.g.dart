@@ -1069,7 +1069,7 @@ class _Translations$screenDeveloper$ru extends Translations$screenDeveloper$en {
 	@override String get exportLogs => 'Экспорт логов';
 	@override String get callPreview => 'Превью экрана звонка';
 	@override String get accounts => 'Аккаунты (разработка)';
-	@override String get accountsNew => 'Новый слот';
+	@override String get accountsNew => 'Добавить аккаунт';
 	@override String get accountsActive => 'активный';
 	@override String get accountsEmpty => 'без входа';
 	@override String get accountsCallActive => 'Во время звонка аккаунт не переключить';
@@ -3102,7 +3102,7 @@ extension on TranslationsRu {
 			'screenDeveloper.exportLogs' => 'Экспорт логов',
 			'screenDeveloper.callPreview' => 'Превью экрана звонка',
 			'screenDeveloper.accounts' => 'Аккаунты (разработка)',
-			'screenDeveloper.accountsNew' => 'Новый слот',
+			'screenDeveloper.accountsNew' => 'Добавить аккаунт',
 			'screenDeveloper.accountsActive' => 'активный',
 			'screenDeveloper.accountsEmpty' => 'без входа',
 			'screenDeveloper.accountsCallActive' => 'Во время звонка аккаунт не переключить',
