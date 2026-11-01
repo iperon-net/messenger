@@ -258,6 +258,16 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
     _cubit.startSearch();
   }
 
+  /// Фокус в поле ввода после закрытия меню сообщения («Ответить»,
+  /// «Цитировать»): запрошенный в тот же кадр, пока маршрут меню уходит, фокус
+  /// ставится, но поле не подключается к клавиатуре — её не было. Кадром позже
+  /// клавиатура открывается (проверено на iOS-симуляторе).
+  void _focusAfterMenu() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focus.requestFocus();
+    });
+  }
+
   /// Свайп сообщения влево — ответить.
   void _swipeReply(models.Message message) {
     _cubit.startReply(message);
@@ -1104,10 +1114,10 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
         await _cubit.retrySend(message);
       case 'reply':
         _cubit.startReply(message);
-        _focus.requestFocus();
+        _focusAfterMenu();
       case 'quote':
         _cubit.startReply(message, quote: quote);
-        _focus.requestFocus();
+        _focusAfterMenu();
       case 'copy':
         await Clipboard.setData(ClipboardData(text: message.text));
         if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.copied)));
