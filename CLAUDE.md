@@ -81,6 +81,7 @@ Callers:
 - **`testing.yaml`** (on PRs + pushes to `main`): calls `_linter.yaml` only.
 - **`warm_cache.yaml`** (pushes to `main` touching deps/workflows + schedule): pre-warms the Flutter/pub/fastlane/SwiftPM caches on `main`, because caches saved by a `v*` tag build aren't visible to the next tag. Its keys and Flutter version must match `_deploy_testflight.yaml` / `build_and_deploy.yaml`.
 - **`build_and_deploy.yaml`** (on `v*` tags): `Version` (shared build number) + `_linter.yaml`, then `_deploy_testflight.yaml`, `_deploy_macos.yaml` and `_deploy_android.yaml` in parallel.
+- **`bootstrap.yaml`** (manual): signs `config.json` (server addresses + key fingerprints per environment — `production`/`staging`, the environment is a property of the account, one app for both — plus `defaultEnvironment` for new accounts; Ed25519, secret `BOOTSTRAP_SIGNING_KEY`, `scripts/bootstrap_sign.dart`; format/verification in `lib/bootstrap/bootstrap_file.dart`, trusted public keys in `bootstrapPublicKeys`) and uploads it to the GitHub Release `bootstrap` (pre-release, never latest), served as `download.iperon.net/config.json`; `serial` auto-increments; one run changes one environment, the others are carried over from the current (verified) file. Replaces Remote Config — `docs/plans/bootstrap-config.md`.
 - **`dependabot.yaml`**: fetches Dependabot PR metadata (auto-approve scaffolding).
 
 Qodana (`qodana.yaml`, JVM-community linter, `qodana.starter` profile) is configured but not wired into a workflow that runs it here.
