@@ -3961,6 +3961,9 @@ class Translations$screenCalls$en {
 	/// en: 'New call'
 	String get newCall => 'New call';
 
+	/// en: 'Clear call history'
+	String get clearHistory => 'Clear call history';
+
 	/// en: 'Group audio call'
 	String get groupAudio => 'Group audio call';
 
@@ -6631,6 +6634,7 @@ extension on Translations {
 			'screenContacts.removeContact' => 'Delete Contact',
 			'screenContacts.removeFailed' => 'Couldn\'t delete the contact',
 			'screenCalls.newCall' => 'New call',
+			'screenCalls.clearHistory' => 'Clear call history',
 			'screenCalls.groupAudio' => 'Group audio call',
 			'screenCalls.groupVideo' => 'Group video call',
 			'screenCalls.pickTitle' => 'Who to call',
@@ -6974,9 +6978,9 @@ extension on Translations {
 			'deviceLink.cameraDenied' => 'No camera access. Allow it in settings.',
 			'qrLogin.expired' => 'The QR code has expired — scan a new one on your computer',
 			'auth.accountBlocked' => 'Account blocked',
-			'appUpdate.title' => 'Update the app',
 			_ => null,
 		} ?? switch (path) {
+			'appUpdate.title' => 'Update the app',
 			'appUpdate.text' => 'This version of Iperon is out of date and no longer supported. Install the new one to continue.',
 			'appUpdate.button' => 'Update',
 			'appUpdate.version' => ({required Object current, required Object minimal}) => 'Installed ${current}, ${minimal} or newer is required.',

@@ -1290,6 +1290,7 @@
 
 "screenCalls":
   "newCall": "New call"
+  "clearHistory": "Clear call history"
   "groupAudio": "Group audio call"
   "groupVideo": "Group video call"
   "pickTitle": "Who to call"

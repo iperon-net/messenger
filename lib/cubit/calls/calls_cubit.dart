@@ -156,16 +156,6 @@ class CallsCubit extends Cubit<CallsState> {
     await load();
   }
 
-  /// Очищает весь журнал.
-  Future<void> clearAll() async {
-    try {
-      await repositories.callLogs.deleteAll(ownerID: _auth.session.userID);
-    } catch (error, stackTrace) {
-      logger.handle(error, stackTrace);
-    }
-    await load();
-  }
-
   /// Пересчитывает недостающие разрешения для звонков БЕЗ системного диалога —
   /// только статусы (микрофон + уведомления на Android). Управляет показом
   /// баннера-объяснения на вкладке; вызывается при первом показе и после запроса.

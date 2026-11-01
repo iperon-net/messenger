@@ -1995,23 +1995,31 @@ class _GroupTile extends StatelessWidget {
   }
 }
 
-/// «Позвонить нескольким» (вкладка «Звонки»): выбор людей галочками, затем
-/// групповой звонок сразу ([Calls.startCall] с `others`).
-Future<void> startGroupCall(BuildContext context, {required bool video}) async {
+/// «Новый звонок» (трубка на вкладке «Звонки»): «Кому позвонить», затем
+/// аудиозвонок сразу — камеру включают уже в звонке. Групповые звонки включены
+/// в админке — выбор нескольких галочками (групповой звонок, [Calls.startCall]
+/// с `others`), иначе — один человек тапом.
+Future<void> startNewCall(BuildContext context) async {
   final t = context.t.screenCalls;
   final users = await callCandidates();
   if (!context.mounted) return;
-  final picked = await showUsersPicker(
-    context,
-    title: t.pickTitle,
-    users: users,
-    max: Calls.maxParticipants - 1,
-    action: t.pickCall,
-    emptyText: context.t.screenCall.addParticipantEmpty,
-  );
+  final List<PickerUser>? picked;
+  if (getIt.get<Calls>().groupCallsEnabled) {
+    picked = await showUsersPicker(
+      context,
+      title: t.pickTitle,
+      users: users,
+      max: Calls.maxParticipants - 1,
+      action: t.pickCall,
+      emptyText: context.t.screenCall.addParticipantEmpty,
+    );
+  } else {
+    final user = await showUserPicker(context, title: t.pickTitle, users: users, emptyText: context.t.screenCall.addParticipantEmpty);
+    picked = user == null ? null : [user];
+  }
   if (picked == null || picked.isEmpty) return;
   await ensureCallMicPermission();
-  await getIt.get<Calls>().startCall(toUserID: picked.first.userID, video: video, others: [for (final user in picked.skip(1)) user.userID]);
+  await getIt.get<Calls>().startCall(toUserID: picked.first.userID, video: false, others: [for (final user in picked.skip(1)) user.userID]);
 }
 
 /// Участник группового звонка, на ком фокус мини-окна (PiP); `null` — звонок

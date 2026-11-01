@@ -1638,6 +1638,7 @@ class _Translations$screenCalls$ru extends Translations$screenCalls$en {
 
 	// Translations
 	@override String get newCall => 'Новый звонок';
+	@override String get clearHistory => 'Очистить историю звонков';
 	@override String get groupAudio => 'Групповой аудиозвонок';
 	@override String get groupVideo => 'Групповой видеозвонок';
 	@override String get pickTitle => 'Кому позвонить';
@@ -3521,6 +3522,7 @@ extension on TranslationsRu {
 			'screenContacts.removeContact' => 'Удалить контакт',
 			'screenContacts.removeFailed' => 'Не удалось удалить контакт',
 			'screenCalls.newCall' => 'Новый звонок',
+			'screenCalls.clearHistory' => 'Очистить историю звонков',
 			'screenCalls.groupAudio' => 'Групповой аудиозвонок',
 			'screenCalls.groupVideo' => 'Групповой видеозвонок',
 			'screenCalls.pickTitle' => 'Кому позвонить',
@@ -3864,9 +3866,9 @@ extension on TranslationsRu {
 			'deviceLink.cameraDenied' => 'Нет доступа к камере. Разрешите его в настройках.',
 			'qrLogin.expired' => 'QR-код устарел — отсканируйте новый на компьютере',
 			'auth.accountBlocked' => 'Аккаунт заблокирован',
-			'appUpdate.title' => 'Обновите приложение',
 			_ => null,
 		} ?? switch (path) {
+			'appUpdate.title' => 'Обновите приложение',
 			'appUpdate.text' => 'Эта версия Iperon устарела и больше не поддерживается. Установите новую, чтобы продолжить.',
 			'appUpdate.button' => 'Обновить',
 			'appUpdate.version' => ({required Object current, required Object minimal}) => 'Установлена ${current}, нужна ${minimal} или новее.',

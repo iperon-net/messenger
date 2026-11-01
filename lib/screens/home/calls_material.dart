@@ -7,10 +7,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../split_layout.dart';
 import '../../calls.dart';
 import '../../components.dart';
-import '../../components/calls/call_view.dart' show startGroupCall;
+import '../../components/calls/call_view.dart' show startNewCall;
 import '../../cubit.dart';
 import '../../di.dart';
-import '../../settings.dart';
 import '../../extensions.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
@@ -74,41 +73,15 @@ class _CallsMaterialState extends State<CallsMaterial> with WidgetsBindingObserv
       appBar: AppBar(
         backgroundColor: background,
         title: Text(context.t.screenCalls.title),
+        // Трубка — «Кому позвонить»; «Очистить историю» — долгий тап по
+        // вкладке «Звонки» (HomeMaterial).
         actions: [
-          // Групповые звонки включают в админке — кнопка появляется без
-          // перезапуска.
-          ListenableBuilder(
-            listenable: getIt.get<Settings>(),
-            builder: (context, _) => !getIt.get<Calls>().groupCallsEnabled
-                ? const SizedBox.shrink()
-                : PopupMenuButton<bool>(
-                    useRootNavigator: true,
-                    icon: const HugeIcon(icon: HugeIcons.strokeRoundedCallAdd),
-                    tooltip: context.t.screenCalls.newCall,
-                    onSelected: (video) => startGroupCall(context, video: video),
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: false,
-                        child: ListTile(leading: const Icon(Icons.call_outlined), title: Text(context.t.screenCalls.groupAudio)),
-                      ),
-                      PopupMenuItem(
-                        value: true,
-                        child: ListTile(leading: const Icon(Icons.videocam_outlined), title: Text(context.t.screenCalls.groupVideo)),
-                      ),
-                    ],
-                  ),
-          ),
-          BlocSelector<CallsCubit, CallsState, bool>(
-            selector: (state) => state.calls.isNotEmpty,
-            builder: (context, hasCalls) {
-              if (!hasCalls) return const SizedBox.shrink();
-              return IconButton(
-                icon: const Icon(Icons.delete_sweep_outlined),
-                tooltip: context.t.screenCalls.clear,
-                onPressed: () => _confirmClear(context),
-              );
-            },
-          ),
+          if (AppPlatform.hasCalls)
+            IconButton(
+              icon: const HugeIcon(icon: HugeIcons.strokeRoundedCallAdd),
+              tooltip: context.t.screenCalls.newCall,
+              onPressed: () => startNewCall(context),
+            ),
         ],
       ),
       body: searchHideOnScrollBody(
@@ -299,22 +272,6 @@ class _CallsMaterialState extends State<CallsMaterial> with WidgetsBindingObserv
     final word = _directionWord(context, log);
     if (log.durationSeconds <= 0) return word;
     return '$word (${_humanDuration(context, log.durationSeconds)})';
-  }
-
-  Future<void> _confirmClear(BuildContext context) async {
-    final cubit = context.read<CallsCubit>();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(context.t.screenCalls.clearTitle),
-        content: Text(context.t.screenCalls.clearMessage),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(context.t.screenCalls.clear)),
-        ],
-      ),
-    );
-    if (confirmed ?? false) await cubit.clearAll();
   }
 
   /// Звонки со скрытыми собеседниками не показываются, пока их не раскроет

@@ -7,10 +7,9 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../split_layout.dart';
 import '../../calls.dart';
 import '../../components.dart';
-import '../../components/calls/call_view.dart' show startGroupCall;
+import '../../components/calls/call_view.dart' show startNewCall;
 import '../../cubit.dart';
 import '../../di.dart';
-import '../../settings.dart';
 import '../../extensions.dart';
 import '../../models.dart' as models;
 import '../../themes.dart';
@@ -50,30 +49,9 @@ class _CallsCupertinoState extends State<CallsCupertino> with SearchHideOnScroll
           automaticBackgroundVisibility: false,
           backgroundColor: ThemesCupertino.appBackground,
           middle: Text(context.t.screenCalls.title),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              BlocSelector<CallsCubit, CallsState, bool>(
-                selector: (state) => state.calls.isNotEmpty,
-                builder: (context, hasCalls) {
-                  if (!hasCalls) return const SizedBox.shrink();
-                  return NavBarButtonCupertino(
-                    NavBarAction.clear,
-                    label: context.t.screenCalls.clear,
-                    onPressed: () => _confirmClear(context),
-                  );
-                },
-              ),
-              // Групповые звонки включают в админке — кнопка появляется без
-              // перезапуска.
-              ListenableBuilder(
-                listenable: getIt.get<Settings>(),
-                builder: (context, _) => getIt.get<Calls>().groupCallsEnabled
-                    ? const Row(mainAxisSize: MainAxisSize.min, children: [SizedBox(width: 8), _NewCallButton()])
-                    : const SizedBox.shrink(),
-              ),
-            ],
-          ),
+          // Трубка — «Кому позвонить»; «Очистить историю» — долгий тап по
+          // вкладке «Звонки» (HomeCupertino).
+          trailing: const _NewCallButton(),
         ),
       ),
       child: SafeArea(
@@ -253,26 +231,6 @@ class _CallsCupertinoState extends State<CallsCupertino> with SearchHideOnScroll
     return '$word (${_humanDuration(context, log.durationSeconds)})';
   }
 
-  Future<void> _confirmClear(BuildContext context) async {
-    final cubit = context.read<CallsCubit>();
-    final confirmed = await showCupertinoDialog<bool>(
-      context: context,
-      builder: (dialogContext) => CupertinoAlertDialog(
-        title: Text(context.t.screenCalls.clearTitle),
-        content: Text(context.t.screenCalls.clearMessage),
-        actions: [
-          CupertinoDialogAction(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(context.t.common.cancel)),
-          CupertinoDialogAction(
-            isDestructiveAction: true,
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(context.t.screenCalls.clear),
-          ),
-        ],
-      ),
-    );
-    if (confirmed ?? false) await cubit.clearAll();
-  }
-
   /// Фильтрация журнала по активному фильтру и строке поиска (по имени). Звонки
   /// со скрытыми собеседниками не показываются, пока их не раскроет «/код-фраза»
   /// (см. CallsCubit.search); раскрытые проходят мимо текстового фильтра — сам
@@ -323,37 +281,20 @@ class _CallsCupertinoState extends State<CallsCupertino> with SearchHideOnScroll
   }
 }
 
-/// «Новый звонок» в навбаре: меню «Групповой аудио / видеозвонок» → выбор людей.
+/// «Новый звонок» в навбаре: «Кому позвонить» → звонок ([startNewCall]).
 class _NewCallButton extends StatelessWidget {
   const _NewCallButton();
 
   @override
   Widget build(BuildContext context) {
-    final t = context.t.screenCalls;
-    return CupertinoMenuAnchor(
-      consumeOutsideTaps: true,
-      useRootOverlay: true,
-      menuChildren: [
-        CupertinoMenuItem(
-          trailing: const Icon(CupertinoIcons.phone),
-          onPressed: () => startGroupCall(context, video: false),
-          child: Text(t.groupAudio),
-        ),
-        CupertinoMenuItem(
-          trailing: const Icon(CupertinoIcons.videocam),
-          onPressed: () => startGroupCall(context, video: true),
-          child: Text(t.groupVideo),
-        ),
-      ],
-      builder: (context, controller, child) => CupertinoButton(
-        padding: EdgeInsets.zero,
-        minimumSize: const Size(44, 44),
-        alignment: AlignmentDirectional.centerEnd,
-        onPressed: () => controller.isOpen ? controller.close() : controller.open(),
-        child: Semantics(
-          label: t.newCall,
-          child: HugeIcon(icon: HugeIcons.strokeRoundedCallAdd, color: ThemesCupertino.navActionColor(context), size: 24),
-        ),
+    return CupertinoButton(
+      padding: EdgeInsets.zero,
+      minimumSize: const Size(44, 44),
+      alignment: AlignmentDirectional.centerEnd,
+      onPressed: () => startNewCall(context),
+      child: Semantics(
+        label: context.t.screenCalls.newCall,
+        child: HugeIcon(icon: HugeIcons.strokeRoundedCallAdd, color: ThemesCupertino.navActionColor(context), size: 24),
       ),
     );
   }

@@ -9,6 +9,7 @@ import '../../cubit.dart';
 import '../../split_layout.dart';
 import '../../themes.dart';
 import '../settings/settings_accounts_cupertino.dart';
+import 'calls_tab_menu.dart';
 
 class HomeCupertino extends StatefulWidget {
   const HomeCupertino({super.key, required this.navigationShell});
@@ -139,6 +140,8 @@ class _HomeCupertinoState extends State<HomeCupertino> {
                       ),
               ),
               Positioned(left: 0, width: barWidth, bottom: 0, child: tabBar),
+              // Долгий тап по «Звонкам» — меню вкладки («Очистить историю»).
+              Positioned(left: barWidth / 4, bottom: bottomInset, width: barWidth / 4, height: tabBarHeight, child: const CallsTabMenu()),
               // Долгий тап по «Настройкам» — быстрый выбор аккаунта (как в
               // Telegram); обычный тап проходит к таб-бару.
               Positioned(

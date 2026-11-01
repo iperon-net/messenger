@@ -1319,6 +1319,7 @@
 
 "screenCalls":
   "newCall": "Новый звонок"
+  "clearHistory": "Очистить историю звонков"
   "groupAudio": "Групповой аудиозвонок"
   "groupVideo": "Групповой видеозвонок"
   "pickTitle": "Кому позвонить"

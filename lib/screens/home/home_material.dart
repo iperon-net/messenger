@@ -8,6 +8,7 @@ import '../../i18n/translations.g.dart';
 import '../../components.dart';
 import '../../cubit.dart';
 import '../settings/settings_accounts_material.dart';
+import 'calls_tab_menu.dart';
 
 class HomeMaterial extends StatefulWidget {
   const HomeMaterial({super.key, required this.navigationShell});
@@ -82,6 +83,8 @@ class _HomeMaterialState extends State<HomeMaterial> {
                   icon: const HugeIcon(icon: HugeIcons.strokeRoundedCall02, size: 24.0, strokeWidth: 2),
                   selectedIcon: const HugeIcon(icon: HugeIcons.strokeRoundedCall02, size: 24.0, strokeWidth: 2),
                   label: context.t.screenHome.calls,
+                  // Подсказку по долгому тапу заменяет меню вкладки.
+                  tooltip: '',
                 ),
                 NavigationDestination(icon: const _ChatsIcon(), selectedIcon: const _ChatsIcon(), label: context.t.screenHome.chats),
                 NavigationDestination(
@@ -93,6 +96,8 @@ class _HomeMaterialState extends State<HomeMaterial> {
                 ),
               ],
             ),
+            // Долгий тап по «Звонкам» — меню вкладки («Очистить историю»).
+            Positioned(top: 0, bottom: 0, left: barWidth / 4, width: barWidth / 4, child: const CallsTabMenu()),
             Positioned(
               top: 0,
               bottom: 0,
