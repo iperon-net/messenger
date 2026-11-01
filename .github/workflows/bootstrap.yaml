@@ -1,0 +1,115 @@
+name: Bootstrap config
+
+# Подписанный bootstrap-конфиг (docs/plans/bootstrap-config.md): адреса серверов
+# по окружениям (production, staging) и отпечатки их ключей — вместо Remote
+# Config. Окружение — свойство аккаунта: приложение одно. Actions → Bootstrap
+# config → Run workflow: меняет одно окружение (остальные переносятся из
+# текущего файла как есть) и/или окружение новых аккаунтов, подписывает
+# config.json (scripts/bootstrap_sign.dart, ключ — секрет BOOTSTRAP_SIGNING_KEY)
+# и кладёт его в GitHub Release `bootstrap`; клиентам его отдаёт nginx:
+# https://download.iperon.net/config.json (iperon
+# docs/nginx/download.iperon.net.conf, кэш 5 мин).
+#
+# serial растёт сам (из текущего файла релиза + 1): клиент не примет файл со
+# serial меньше закэшированного.
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Окружение, которое меняем (none — только «по умолчанию»)"
+        type: choice
+        options: [staging, production, none]
+        default: staging
+      api:
+        description: "Адреса окружения через запятую, первый — основной: host:port[:insecure]"
+        required: false
+        default: "staging.iperon.net:443"
+      fingerprint:
+        description: "sha256 (hex) публичного ключа сервера окружения"
+        required: false
+        default: "7abfc2a7e8ea09ae384bdeb855cfeae24d60bfac3646046e754fddc8d5ab604d"
+      default_environment:
+        description: "Окружение новых аккаунтов (keep — как в текущем файле)"
+        type: choice
+        options: [keep, staging, production]
+        default: keep
+
+concurrency:
+  group: bootstrap-config
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  Sign:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Скрипт — чистый Dart, но в пакете приложения (тот же код проверки
+      # подписи, что в клиенте): нужен Flutter SDK для pub get.
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.8"
+          channel: stable
+          cache: true
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Next serial
+        id: serial
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release download bootstrap -p config.json -O current.json 2>/dev/null; then
+            SERIAL=$(( $(jq -r .serial current.json) + 1 ))
+          else
+            SERIAL=1
+          fi
+          echo "serial=$SERIAL" >> "$GITHUB_OUTPUT"
+
+      - name: Sign
+        env:
+          BOOTSTRAP_SIGNING_KEY: ${{ secrets.BOOTSTRAP_SIGNING_KEY }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          API: ${{ inputs.api }}
+          FINGERPRINT: ${{ inputs.fingerprint }}
+          DEFAULT_ENVIRONMENT: ${{ inputs.default_environment }}
+          SERIAL: ${{ steps.serial.outputs.serial }}
+        run: |
+          set -euo pipefail
+          ARGS=(--serial "$SERIAL" --out config.json)
+          # Прошлый файл проверяется ключом сборки — подменённый релиз не переподпишется.
+          [ -f current.json ] && ARGS+=(--current current.json)
+          if [ "$ENVIRONMENT" != "none" ]; then
+            ARGS+=(--environment "$ENVIRONMENT" --fingerprint "$FINGERPRINT")
+            IFS=',' read -ra ENTRIES <<< "$API"
+            for entry in "${ENTRIES[@]}"; do
+              ARGS+=(--api "$(echo "$entry" | xargs)")
+            done
+          fi
+          [ "$DEFAULT_ENVIRONMENT" != "keep" ] && ARGS+=(--default "$DEFAULT_ENVIRONMENT")
+          dart run scripts/bootstrap_sign.dart sign "${ARGS[@]}"
+          # Ключом, зашитым в сборку (bootstrapPublicKeys): иначе клиенты файл не примут.
+          dart run scripts/bootstrap_sign.dart verify config.json
+          cat config.json
+
+      # Отдельный релиз, никогда не «latest» (на latest смотрят /macos/ и /android/).
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if ! gh release view bootstrap >/dev/null 2>&1; then
+            gh release create bootstrap --target main --prerelease --latest=false \
+              --title "Bootstrap config" \
+              --notes "Подписанный config.json для клиентов (адреса серверов по окружениям). Обновляет workflow «Bootstrap config», docs/plans/bootstrap-config.md."
+          fi
+          gh release upload bootstrap config.json --clobber
