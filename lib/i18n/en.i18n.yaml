@@ -617,6 +617,7 @@
   "forwardHideCaptions": "Hide captions"
   "forwardShowCaptions": "Show captions"
   "forwardChangeRecipient": "Change recipient"
+  "forwardOptions": "Forward options"
   "savedToFavorites(plural)":
     one: "Message saved to Saved Messages"
     other: "Messages saved to Saved Messages"

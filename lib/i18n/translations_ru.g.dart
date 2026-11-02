@@ -827,6 +827,7 @@ class _Translations$screenChat$ru extends Translations$screenChat$en {
 	@override String get forwardHideCaptions => 'Скрыть подписи';
 	@override String get forwardShowCaptions => 'Показать подписи';
 	@override String get forwardChangeRecipient => 'Изменить получателя';
+	@override String get forwardOptions => 'Настройки пересылки';
 	@override String savedToFavorites({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
 		one: 'Сообщение сохранено в Избранном',
 		few: 'Сообщения сохранены в Избранном',
@@ -2909,6 +2910,7 @@ extension on TranslationsRu {
 			'screenChat.forwardHideCaptions' => 'Скрыть подписи',
 			'screenChat.forwardShowCaptions' => 'Показать подписи',
 			'screenChat.forwardChangeRecipient' => 'Изменить получателя',
+			'screenChat.forwardOptions' => 'Настройки пересылки',
 			'screenChat.savedToFavorites' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Сообщение сохранено в Избранном', few: 'Сообщения сохранены в Избранном', many: 'Сообщения сохранены в Избранном', other: 'Сообщения сохранены в Избранном', ), 
 			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Переслать ${n} сообщение', few: 'Переслать ${n} сообщения', many: 'Переслать ${n} сообщений', other: 'Переслать ${n} сообщения', ), 
 			'screenChat.deleteSelectedTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'Удалить ${n} сообщение?', few: 'Удалить ${n} сообщения?', many: 'Удалить ${n} сообщений?', other: 'Удалить ${n} сообщения?', ), 
@@ -3358,9 +3360,9 @@ extension on TranslationsRu {
 			'sessionsPrivacyAndSecurity.lastSeenPreviewContacts' => 'Так вас видят контакты',
 			'sessionsPrivacyAndSecurity.lastSeenPreviewOthers' => 'Так вас видят остальные',
 			'sessionsPrivacyAndSecurity.lastSeenReciprocityNote' => 'Если выбрано «Никто», вы тоже не будете видеть время захода и статус других.',
-			'sessionsPrivacyAndSecurity.messages' => 'Сообщения',
 			_ => null,
 		} ?? switch (path) {
+			'sessionsPrivacyAndSecurity.messages' => 'Сообщения',
 			'sessionsPrivacyAndSecurity.whoCanMessage' => 'Кто может мне писать',
 			'sessionsPrivacyAndSecurity.messagesReplyNote' => 'Тем, кому вы написали сами, ответить можно всегда.',
 			'sessionsPrivacyAndSecurity.forwards' => 'Пересылка сообщений',
@@ -3872,9 +3874,9 @@ extension on TranslationsRu {
 			'authQr.phoneLogin' => 'Войти по номеру (debug)',
 			'deviceLink.linkDevice' => 'Подключить устройство',
 			'deviceLink.hint' => 'Откройте Iperon на компьютере и наведите камеру на QR-код',
-			'deviceLink.confirmTitle' => 'Войти на этом устройстве?',
 			_ => null,
 		} ?? switch (path) {
+			'deviceLink.confirmTitle' => 'Войти на этом устройстве?',
 			'deviceLink.confirmMessage' => 'Подтверждайте, только если это ваш компьютер и вы сами открыли на нём Iperon.',
 			'deviceLink.confirm' => 'Войти',
 			'deviceLink.linked' => 'Устройство подключено',

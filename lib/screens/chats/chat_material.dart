@@ -1387,17 +1387,27 @@ class _ComposeBar extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(16, 6, 4, 0),
                 child: Row(
                   children: [
-                    Icon(
-                      editing
-                          ? Icons.edit_outlined
-                          : state.forwarding.isNotEmpty
-                          ? Icons.forward
-                          : banner.quote
-                          ? Icons.format_quote
-                          : Icons.reply,
-                      color: scheme.primary,
-                      size: 22,
-                    ),
+                    // Пересылка: вместо стрелки — кнопка настроек (тап по
+                    // плашке открывает их же, но это не очевидно).
+                    if (state.forwarding.isNotEmpty && !editing)
+                      IconButton(
+                        tooltip: t.screenChat.forwardOptions,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 22, minHeight: 40),
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => _showForwardOptions(context),
+                        icon: Icon(Icons.tune, color: scheme.primary, size: 22),
+                      )
+                    else
+                      Icon(
+                        editing
+                            ? Icons.edit_outlined
+                            : banner.quote
+                            ? Icons.format_quote
+                            : Icons.reply,
+                        color: scheme.primary,
+                        size: 22,
+                      ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: _forwardMenu(

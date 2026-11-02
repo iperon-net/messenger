@@ -637,6 +637,7 @@
   "forwardHideCaptions": "Скрыть подписи"
   "forwardShowCaptions": "Показать подписи"
   "forwardChangeRecipient": "Изменить получателя"
+  "forwardOptions": "Настройки пересылки"
   "savedToFavorites(plural)":
     one: "Сообщение сохранено в Избранном"
     few: "Сообщения сохранены в Избранном"

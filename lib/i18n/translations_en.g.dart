@@ -1958,6 +1958,9 @@ class Translations$screenChat$en {
 	/// en: 'Change recipient'
 	String get forwardChangeRecipient => 'Change recipient';
 
+	/// en: 'Forward options'
+	String get forwardOptions => 'Forward options';
+
 	/// en: '(one) {Message saved to Saved Messages} (other) {Messages saved to Saved Messages}'
 	String savedToFavorites({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
 		one: 'Message saved to Saved Messages',
@@ -6035,6 +6038,7 @@ extension on Translations {
 			'screenChat.forwardHideCaptions' => 'Hide captions',
 			'screenChat.forwardShowCaptions' => 'Show captions',
 			'screenChat.forwardChangeRecipient' => 'Change recipient',
+			'screenChat.forwardOptions' => 'Forward options',
 			'screenChat.savedToFavorites' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Message saved to Saved Messages', other: 'Messages saved to Saved Messages', ), 
 			'screenChat.forwardMessages' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Forward ${n} message', other: 'Forward ${n} messages', ), 
 			'screenChat.deleteSelectedTitle' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'Delete ${n} message?', other: 'Delete ${n} messages?', ), 
@@ -6484,9 +6488,9 @@ extension on Translations {
 			'sessionsPrivacyAndSecurity.lastSeenPreviewContacts' => 'How your contacts see you',
 			'sessionsPrivacyAndSecurity.lastSeenPreviewOthers' => 'How everyone else sees you',
 			'sessionsPrivacyAndSecurity.lastSeenReciprocityNote' => 'If you choose Nobody, you won\'t see others\' last seen or online status either.',
-			'sessionsPrivacyAndSecurity.messages' => 'Messages',
 			_ => null,
 		} ?? switch (path) {
+			'sessionsPrivacyAndSecurity.messages' => 'Messages',
 			'sessionsPrivacyAndSecurity.whoCanMessage' => 'Who can message me',
 			'sessionsPrivacyAndSecurity.messagesReplyNote' => 'People you message first can always reply to you.',
 			'sessionsPrivacyAndSecurity.forwards' => 'Forwarded messages',
@@ -6998,9 +7002,9 @@ extension on Translations {
 			'authQr.phoneLogin' => 'Log in with phone number (debug)',
 			'deviceLink.linkDevice' => 'Link a device',
 			'deviceLink.hint' => 'Open Iperon on your computer and point the camera at the QR code',
-			'deviceLink.confirmTitle' => 'Log in on this device?',
 			_ => null,
 		} ?? switch (path) {
+			'deviceLink.confirmTitle' => 'Log in on this device?',
 			'deviceLink.confirmMessage' => 'Confirm only if this is your computer and you opened Iperon on it yourself.',
 			'deviceLink.confirm' => 'Log in',
 			'deviceLink.linked' => 'Device linked',

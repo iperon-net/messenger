@@ -1171,17 +1171,29 @@ class _ComposeBar extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(12, 8, 4, 0),
                 child: Row(
                   children: [
-                    FaIcon(
-                      editing
-                          ? FontAwesomeIcons.pen
-                          : state.forwarding.isNotEmpty
-                          ? FontAwesomeIcons.share
-                          : banner.quote
-                          ? FontAwesomeIcons.quoteLeft
-                          : FontAwesomeIcons.reply,
-                      size: 16,
-                      color: primary,
-                    ),
+                    // Пересылка: вместо стрелки — кнопка настроек (тап по
+                    // плашке открывает их же, но это не очевидно).
+                    if (state.forwarding.isNotEmpty && !editing)
+                      Semantics(
+                        label: t.screenChat.forwardOptions,
+                        button: true,
+                        child: CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          minimumSize: const Size(20, 32),
+                          onPressed: () => _showForwardOptions(context),
+                          child: Icon(CupertinoIcons.slider_horizontal_3, size: 20, color: primary),
+                        ),
+                      )
+                    else
+                      FaIcon(
+                        editing
+                            ? FontAwesomeIcons.pen
+                            : banner.quote
+                            ? FontAwesomeIcons.quoteLeft
+                            : FontAwesomeIcons.reply,
+                        size: 16,
+                        color: primary,
+                      ),
                     const SizedBox(width: 10),
                     Container(width: 2, height: 32, color: primary),
                     const SizedBox(width: 8),
