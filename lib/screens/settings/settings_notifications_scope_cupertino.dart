@@ -2,9 +2,11 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../components.dart';
+import '../../constants.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
+import 'settings_notifications_skeleton.dart';
 
 /// Настройка уведомлений одного типа чатов (drill-down с «Уведомлений и
 /// звуков»): показывать / предпросмотр / звук. Пока уведомления выключены,
@@ -56,63 +58,67 @@ class SettingsNotificationsScopeCupertino extends StatelessWidget {
             ),
           ),
           child: SafeArea(
-            child: ListView(
-              children: [
-                CupertinoListSection.insetGrouped(
-                  footer: Padding(
-                    padding: const EdgeInsets.only(left: 13, right: 13),
-                    child: Text(
-                      state.readOnly
-                          ? context.t.screenSettingsNotifications.offlineNote
-                          : context.t.screenSettingsNotifications.messagePreviewNote,
-                      style: TextStyle(fontSize: AppFontSizes.caption),
-                    ),
+            child: state.status == Status.initialization || state.status == Status.loading
+                ? const SettingsNotificationsSkeleton(scope: true)
+                : ListView(
+                    children: [
+                      CupertinoListSection.insetGrouped(
+                        footer: Padding(
+                          padding: const EdgeInsets.only(left: 13, right: 13),
+                          child: Text(
+                            state.readOnly
+                                ? context.t.screenSettingsNotifications.offlineNote
+                                : context.t.screenSettingsNotifications.messagePreviewNote,
+                            style: TextStyle(fontSize: AppFontSizes.caption),
+                          ),
+                        ),
+                        backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                        decoration: BoxDecoration(
+                          color: ThemesCupertino.groupedCard.resolveFrom(context),
+                          borderRadius: const BorderRadius.all(Radius.circular(10)),
+                        ),
+                        children: state.loadError
+                            ? [
+                                CupertinoListTile(
+                                  title: Text(context.t.screenSettingsNotifications.loadError),
+                                  trailing: CupertinoButton(
+                                    sizeStyle: CupertinoButtonSize.small,
+                                    padding: EdgeInsets.zero,
+                                    onPressed: () => context.read<SettingsNotificationsCubit>().reload(),
+                                    child: Text(context.t.screenSettingsNotifications.retry),
+                                  ),
+                                ),
+                              ]
+                            : [
+                                CupertinoListTile(
+                                  title: Text(context.t.screenSettingsNotifications.showNotifications),
+                                  trailing: CupertinoSwitch(
+                                    value: settings.enabled,
+                                    onChanged: locked ? null : (value) => _set(context, settings.copyWith(enabled: value)),
+                                  ),
+                                ),
+                                CupertinoListTile(
+                                  title: Text(context.t.screenSettingsNotifications.messagePreview),
+                                  trailing: CupertinoSwitch(
+                                    value: settings.showPreviews,
+                                    onChanged: locked || !settings.enabled
+                                        ? null
+                                        : (value) => _set(context, settings.copyWith(showPreviews: value)),
+                                  ),
+                                ),
+                                CupertinoListTile(
+                                  title: Text(context.t.screenSettingsNotifications.sound),
+                                  trailing: CupertinoSwitch(
+                                    value: settings.sound,
+                                    onChanged: locked || !settings.enabled
+                                        ? null
+                                        : (value) => _set(context, settings.copyWith(sound: value)),
+                                  ),
+                                ),
+                              ],
+                      ),
+                    ],
                   ),
-                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-                  decoration: BoxDecoration(
-                    color: ThemesCupertino.groupedCard.resolveFrom(context),
-                    borderRadius: const BorderRadius.all(Radius.circular(10)),
-                  ),
-                  children: state.loadError
-                      ? [
-                          CupertinoListTile(
-                            title: Text(context.t.screenSettingsNotifications.loadError),
-                            trailing: CupertinoButton(
-                              sizeStyle: CupertinoButtonSize.small,
-                              padding: EdgeInsets.zero,
-                              onPressed: () => context.read<SettingsNotificationsCubit>().reload(),
-                              child: Text(context.t.screenSettingsNotifications.retry),
-                            ),
-                          ),
-                        ]
-                      : [
-                          CupertinoListTile(
-                            title: Text(context.t.screenSettingsNotifications.showNotifications),
-                            trailing: CupertinoSwitch(
-                              value: settings.enabled,
-                              onChanged: locked ? null : (value) => _set(context, settings.copyWith(enabled: value)),
-                            ),
-                          ),
-                          CupertinoListTile(
-                            title: Text(context.t.screenSettingsNotifications.messagePreview),
-                            trailing: CupertinoSwitch(
-                              value: settings.showPreviews,
-                              onChanged: locked || !settings.enabled
-                                  ? null
-                                  : (value) => _set(context, settings.copyWith(showPreviews: value)),
-                            ),
-                          ),
-                          CupertinoListTile(
-                            title: Text(context.t.screenSettingsNotifications.sound),
-                            trailing: CupertinoSwitch(
-                              value: settings.sound,
-                              onChanged: locked || !settings.enabled ? null : (value) => _set(context, settings.copyWith(sound: value)),
-                            ),
-                          ),
-                        ],
-                ),
-              ],
-            ),
           ),
         );
       },

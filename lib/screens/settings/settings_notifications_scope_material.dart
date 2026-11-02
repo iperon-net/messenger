@@ -1,9 +1,11 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../constants.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
+import 'settings_notifications_skeleton.dart';
 
 /// Настройка уведомлений одного типа чатов (drill-down с «Уведомлений и
 /// звуков»): показывать / предпросмотр / звук. Пока уведомления выключены,
@@ -40,54 +42,58 @@ class SettingsNotificationsScopeMaterial extends StatelessWidget {
           appBar: AppBar(title: Text(_title(context))),
           backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
           body: SafeArea(
-            child: ListView(
-              children: [
-                const SizedBox(height: 16),
-                Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Column(
-                    children: state.loadError
-                        ? [
-                            ListTile(
-                              title: Text(context.t.screenSettingsNotifications.loadError),
-                              trailing: TextButton(
-                                onPressed: () => context.read<SettingsNotificationsCubit>().reload(),
-                                child: Text(context.t.screenSettingsNotifications.retry),
-                              ),
-                            ),
-                          ]
-                        : [
-                            SwitchListTile(
-                              title: Text(context.t.screenSettingsNotifications.showNotifications),
-                              value: settings.enabled,
-                              onChanged: locked ? null : (value) => _set(context, settings.copyWith(enabled: value)),
-                            ),
-                            SwitchListTile(
-                              title: Text(context.t.screenSettingsNotifications.messagePreview),
-                              value: settings.showPreviews,
-                              onChanged: locked || !settings.enabled
-                                  ? null
-                                  : (value) => _set(context, settings.copyWith(showPreviews: value)),
-                            ),
-                            SwitchListTile(
-                              title: Text(context.t.screenSettingsNotifications.sound),
-                              value: settings.sound,
-                              onChanged: locked || !settings.enabled ? null : (value) => _set(context, settings.copyWith(sound: value)),
-                            ),
-                          ],
+            child: state.status == Status.initialization || state.status == Status.loading
+                ? const SettingsNotificationsSkeleton(scope: true)
+                : ListView(
+                    children: [
+                      const SizedBox(height: 16),
+                      Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Column(
+                          children: state.loadError
+                              ? [
+                                  ListTile(
+                                    title: Text(context.t.screenSettingsNotifications.loadError),
+                                    trailing: TextButton(
+                                      onPressed: () => context.read<SettingsNotificationsCubit>().reload(),
+                                      child: Text(context.t.screenSettingsNotifications.retry),
+                                    ),
+                                  ),
+                                ]
+                              : [
+                                  SwitchListTile(
+                                    title: Text(context.t.screenSettingsNotifications.showNotifications),
+                                    value: settings.enabled,
+                                    onChanged: locked ? null : (value) => _set(context, settings.copyWith(enabled: value)),
+                                  ),
+                                  SwitchListTile(
+                                    title: Text(context.t.screenSettingsNotifications.messagePreview),
+                                    value: settings.showPreviews,
+                                    onChanged: locked || !settings.enabled
+                                        ? null
+                                        : (value) => _set(context, settings.copyWith(showPreviews: value)),
+                                  ),
+                                  SwitchListTile(
+                                    title: Text(context.t.screenSettingsNotifications.sound),
+                                    value: settings.sound,
+                                    onChanged: locked || !settings.enabled
+                                        ? null
+                                        : (value) => _set(context, settings.copyWith(sound: value)),
+                                  ),
+                                ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
+                        child: Text(
+                          state.readOnly
+                              ? context.t.screenSettingsNotifications.offlineNote
+                              : context.t.screenSettingsNotifications.messagePreviewNote,
+                          style: TextStyle(fontSize: AppFontSizes.caption, color: muted),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
-                  child: Text(
-                    state.readOnly
-                        ? context.t.screenSettingsNotifications.offlineNote
-                        : context.t.screenSettingsNotifications.messagePreviewNote,
-                    style: TextStyle(fontSize: AppFontSizes.caption, color: muted),
-                  ),
-                ),
-              ],
-            ),
           ),
         );
       },

@@ -5,9 +5,11 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../split_layout.dart';
 import '../../components.dart';
+import '../../constants.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
+import 'settings_notifications_skeleton.dart';
 
 /// «Уведомления и звуки»: типы чатов (drill-down на [SettingsNotificationsScopeMaterial]),
 /// события («Новые контакты», «Пропущенные звонки») и предупреждение, если
@@ -126,79 +128,83 @@ class _SettingsNotificationsMaterial extends State<SettingsNotificationsMaterial
           ),
           backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
           body: SafeArea(
-            child: ListView(
-              children: [
-                if (state.permissionMissing)
-                  PermissionBannerMaterial(
-                    icon: HugeIcons.strokeRoundedNotificationOff03,
-                    title: context.t.screenSettingsNotifications.permissionMissingTitle,
-                    message: context.t.screenSettingsNotifications.permissionMissingMessage,
-                    actionLabel: context.t.screenSettingsNotifications.enable,
-                    onAction: () => context.read<SettingsNotificationsCubit>().requestPermission(),
-                  ),
-                if (state.loadError) ...[
-                  const SizedBox(height: 16),
-                  _card([
-                    ListTile(
-                      title: Text(context.t.screenSettingsNotifications.loadError),
-                      trailing: TextButton(
-                        onPressed: () => context.read<SettingsNotificationsCubit>().reload(),
-                        child: Text(context.t.screenSettingsNotifications.retry),
-                      ),
-                    ),
-                  ]),
-                ] else ...[
-                  _header(context, context.t.screenSettingsNotifications.messageNotifications),
-                  _card([
-                    for (final scope in NotifyScope.values)
-                      ListTile(
-                        title: Text(_scopeTitle(context, scope)),
-                        subtitle: Text(
-                          state.scope(scope).enabled ? context.t.screenSettingsNotifications.on : context.t.screenSettingsNotifications.off,
+            child: state.status == Status.initialization || state.status == Status.loading
+                ? const SettingsNotificationsSkeleton()
+                : ListView(
+                    children: [
+                      if (state.permissionMissing)
+                        PermissionBannerMaterial(
+                          icon: HugeIcons.strokeRoundedNotificationOff03,
+                          title: context.t.screenSettingsNotifications.permissionMissingTitle,
+                          message: context.t.screenSettingsNotifications.permissionMissingMessage,
+                          actionLabel: context.t.screenSettingsNotifications.enable,
+                          onAction: () => context.read<SettingsNotificationsCubit>().requestPermission(),
                         ),
-                        trailing: Icon(Icons.chevron_right, color: muted),
-                        onTap: () => _openScope(context, scope),
-                      ),
-                  ]),
-                  _header(context, context.t.screenSettingsNotifications.reactions),
-                  _reactionsCard(context, state),
-                  _note(context, context.t.screenSettingsNotifications.reactionsNote),
-                  _header(context, context.t.screenSettingsNotifications.events),
-                  _card([
-                    SwitchListTile(
-                      title: Text(context.t.screenSettingsNotifications.contactJoined),
-                      value: state.contactJoined,
-                      onChanged: state.readOnly ? null : (value) => _apply(context, (cubit) => cubit.setContactJoined(value)),
-                    ),
-                    SwitchListTile(
-                      title: Text(context.t.screenSettingsNotifications.missedCalls),
-                      value: state.missedCalls,
-                      onChanged: state.readOnly ? null : (value) => _apply(context, (cubit) => cubit.setMissedCalls(value)),
-                    ),
-                  ]),
-                  if (state.readOnly)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 8, 12, 8),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              context.t.screenSettingsNotifications.offlineNote,
-                              style: TextStyle(fontSize: AppFontSizes.caption, color: muted),
+                      if (state.loadError) ...[
+                        const SizedBox(height: 16),
+                        _card([
+                          ListTile(
+                            title: Text(context.t.screenSettingsNotifications.loadError),
+                            trailing: TextButton(
+                              onPressed: () => context.read<SettingsNotificationsCubit>().reload(),
+                              child: Text(context.t.screenSettingsNotifications.retry),
                             ),
                           ),
-                          IconButton(
-                            onPressed: () => context.read<SettingsNotificationsCubit>().reload(),
-                            icon: const Icon(Icons.refresh, size: 20),
+                        ]),
+                      ] else ...[
+                        _header(context, context.t.screenSettingsNotifications.messageNotifications),
+                        _card([
+                          for (final scope in NotifyScope.values)
+                            ListTile(
+                              title: Text(_scopeTitle(context, scope)),
+                              subtitle: Text(
+                                state.scope(scope).enabled
+                                    ? context.t.screenSettingsNotifications.on
+                                    : context.t.screenSettingsNotifications.off,
+                              ),
+                              trailing: Icon(Icons.chevron_right, color: muted),
+                              onTap: () => _openScope(context, scope),
+                            ),
+                        ]),
+                        _header(context, context.t.screenSettingsNotifications.reactions),
+                        _reactionsCard(context, state),
+                        _note(context, context.t.screenSettingsNotifications.reactionsNote),
+                        _header(context, context.t.screenSettingsNotifications.events),
+                        _card([
+                          SwitchListTile(
+                            title: Text(context.t.screenSettingsNotifications.contactJoined),
+                            value: state.contactJoined,
+                            onChanged: state.readOnly ? null : (value) => _apply(context, (cubit) => cubit.setContactJoined(value)),
                           ),
-                        ],
-                      ),
-                    )
-                  else
-                    _note(context, context.t.screenSettingsNotifications.settingsSyncNote),
-                ],
-              ],
-            ),
+                          SwitchListTile(
+                            title: Text(context.t.screenSettingsNotifications.missedCalls),
+                            value: state.missedCalls,
+                            onChanged: state.readOnly ? null : (value) => _apply(context, (cubit) => cubit.setMissedCalls(value)),
+                          ),
+                        ]),
+                        if (state.readOnly)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 8, 12, 8),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    context.t.screenSettingsNotifications.offlineNote,
+                                    style: TextStyle(fontSize: AppFontSizes.caption, color: muted),
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () => context.read<SettingsNotificationsCubit>().reload(),
+                                  icon: const Icon(Icons.refresh, size: 20),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          _note(context, context.t.screenSettingsNotifications.settingsSyncNote),
+                      ],
+                    ],
+                  ),
           ),
         );
       },

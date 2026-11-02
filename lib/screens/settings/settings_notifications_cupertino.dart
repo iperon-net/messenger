@@ -5,9 +5,11 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../split_layout.dart';
 import '../../components.dart';
+import '../../constants.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
+import 'settings_notifications_skeleton.dart';
 
 /// «Уведомления и звуки»: типы чатов (drill-down на [SettingsNotificationsScopeCupertino]),
 /// события («Новые контакты», «Пропущенные звонки») и предупреждение, если
@@ -157,95 +159,97 @@ class _SettingsNotificationsCupertino extends State<SettingsNotificationsCuperti
             ),
           ),
           child: SafeArea(
-            child: ListView(
-              children: [
-                if (state.permissionMissing)
-                  PermissionBannerCupertino(
-                    icon: HugeIcons.strokeRoundedNotificationOff03,
-                    title: context.t.screenSettingsNotifications.permissionMissingTitle,
-                    message: context.t.screenSettingsNotifications.permissionMissingMessage,
-                    actionLabel: context.t.screenSettingsNotifications.enable,
-                    onAction: () => context.read<SettingsNotificationsCubit>().requestPermission(),
-                  ),
-                if (state.loadError)
-                  _section(
-                    context,
+            child: state.status == Status.initialization || state.status == Status.loading
+                ? const SettingsNotificationsSkeleton()
+                : ListView(
                     children: [
-                      CupertinoListTile(
-                        title: Text(context.t.screenSettingsNotifications.loadError),
-                        trailing: CupertinoButton(
-                          sizeStyle: CupertinoButtonSize.small,
-                          padding: EdgeInsets.zero,
-                          onPressed: () => context.read<SettingsNotificationsCubit>().reload(),
-                          child: Text(context.t.screenSettingsNotifications.retry),
+                      if (state.permissionMissing)
+                        PermissionBannerCupertino(
+                          icon: HugeIcons.strokeRoundedNotificationOff03,
+                          title: context.t.screenSettingsNotifications.permissionMissingTitle,
+                          message: context.t.screenSettingsNotifications.permissionMissingMessage,
+                          actionLabel: context.t.screenSettingsNotifications.enable,
+                          onAction: () => context.read<SettingsNotificationsCubit>().requestPermission(),
                         ),
-                      ),
-                    ],
-                  )
-                else ...[
-                  _section(
-                    context,
-                    header: context.t.screenSettingsNotifications.messageNotifications,
-                    children: [
-                      for (final scope in NotifyScope.values)
-                        CupertinoListTile(
-                          title: Text(_scopeTitle(context, scope)),
-                          additionalInfo: Text(
-                            state.scope(scope).enabled
-                                ? context.t.screenSettingsNotifications.on
-                                : context.t.screenSettingsNotifications.off,
-                            style: TextStyle(color: secondary),
-                          ),
-                          trailing: const CupertinoListTileChevron(),
-                          onTap: () => _openScope(context, scope),
-                        ),
-                    ],
-                  ),
-                  ..._reactionsSections(context, state),
-                  _section(
-                    context,
-                    header: context.t.screenSettingsNotifications.events,
-                    footer: state.readOnly
-                        ? Padding(
-                            padding: const EdgeInsets.only(left: 13),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    context.t.screenSettingsNotifications.offlineNote,
-                                    style: TextStyle(fontSize: AppFontSizes.caption),
-                                  ),
-                                ),
-                                CupertinoButton(
-                                  sizeStyle: CupertinoButtonSize.small,
-                                  padding: EdgeInsets.zero,
-                                  onPressed: () => context.read<SettingsNotificationsCubit>().reload(),
-                                  child: const Icon(CupertinoIcons.arrow_clockwise, size: 20),
-                                ),
-                              ],
+                      if (state.loadError)
+                        _section(
+                          context,
+                          children: [
+                            CupertinoListTile(
+                              title: Text(context.t.screenSettingsNotifications.loadError),
+                              trailing: CupertinoButton(
+                                sizeStyle: CupertinoButtonSize.small,
+                                padding: EdgeInsets.zero,
+                                onPressed: () => context.read<SettingsNotificationsCubit>().reload(),
+                                child: Text(context.t.screenSettingsNotifications.retry),
+                              ),
                             ),
-                          )
-                        : _note(context.t.screenSettingsNotifications.settingsSyncNote),
-                    children: [
-                      CupertinoListTile(
-                        title: Text(context.t.screenSettingsNotifications.contactJoined),
-                        trailing: CupertinoSwitch(
-                          value: state.contactJoined,
-                          onChanged: state.readOnly ? null : (value) => _apply(context, (cubit) => cubit.setContactJoined(value)),
+                          ],
+                        )
+                      else ...[
+                        _section(
+                          context,
+                          header: context.t.screenSettingsNotifications.messageNotifications,
+                          children: [
+                            for (final scope in NotifyScope.values)
+                              CupertinoListTile(
+                                title: Text(_scopeTitle(context, scope)),
+                                additionalInfo: Text(
+                                  state.scope(scope).enabled
+                                      ? context.t.screenSettingsNotifications.on
+                                      : context.t.screenSettingsNotifications.off,
+                                  style: TextStyle(color: secondary),
+                                ),
+                                trailing: const CupertinoListTileChevron(),
+                                onTap: () => _openScope(context, scope),
+                              ),
+                          ],
                         ),
-                      ),
-                      CupertinoListTile(
-                        title: Text(context.t.screenSettingsNotifications.missedCalls),
-                        trailing: CupertinoSwitch(
-                          value: state.missedCalls,
-                          onChanged: state.readOnly ? null : (value) => _apply(context, (cubit) => cubit.setMissedCalls(value)),
+                        ..._reactionsSections(context, state),
+                        _section(
+                          context,
+                          header: context.t.screenSettingsNotifications.events,
+                          footer: state.readOnly
+                              ? Padding(
+                                  padding: const EdgeInsets.only(left: 13),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          context.t.screenSettingsNotifications.offlineNote,
+                                          style: TextStyle(fontSize: AppFontSizes.caption),
+                                        ),
+                                      ),
+                                      CupertinoButton(
+                                        sizeStyle: CupertinoButtonSize.small,
+                                        padding: EdgeInsets.zero,
+                                        onPressed: () => context.read<SettingsNotificationsCubit>().reload(),
+                                        child: const Icon(CupertinoIcons.arrow_clockwise, size: 20),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : _note(context.t.screenSettingsNotifications.settingsSyncNote),
+                          children: [
+                            CupertinoListTile(
+                              title: Text(context.t.screenSettingsNotifications.contactJoined),
+                              trailing: CupertinoSwitch(
+                                value: state.contactJoined,
+                                onChanged: state.readOnly ? null : (value) => _apply(context, (cubit) => cubit.setContactJoined(value)),
+                              ),
+                            ),
+                            CupertinoListTile(
+                              title: Text(context.t.screenSettingsNotifications.missedCalls),
+                              trailing: CupertinoSwitch(
+                                value: state.missedCalls,
+                                onChanged: state.readOnly ? null : (value) => _apply(context, (cubit) => cubit.setMissedCalls(value)),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
+                      ],
                     ],
                   ),
-                ],
-              ],
-            ),
           ),
         );
       },
