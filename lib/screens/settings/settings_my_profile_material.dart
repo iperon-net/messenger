@@ -210,7 +210,11 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
                         ? EmojiStatusLabel(status: state.emojiStatus)
                         : Text(context.t.screenMyProfile.add),
                     isTrailing: true,
-                    onTab: () => context.push('/settings/profile/status'),
+                    onTab: () async {
+                      final cubit = context.read<SettingsMyProfileCubit>();
+                      await context.push('/settings/profile/status');
+                      await cubit.reload();
+                    },
                   ),
                 ),
                 const SizedBox(height: 16),

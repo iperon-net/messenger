@@ -383,7 +383,17 @@ class Routers {
             GoRoute(
               path: "status",
               parentNavigatorKey: pane,
-              pageBuilder: (context, state) => _page(state, const SettingsEmojiStatusCupertino()),
+              pageBuilder: (context, state) => _page(
+                state,
+                BlocProvider<SettingsMyProfileCubit>(
+                  create: (_) =>
+                      SettingsMyProfileCubit()
+                        ..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
+                  child: const SettingsEmojiStatusCupertino(),
+                ),
+                pane: split,
+                context: context,
+              ),
             ),
             GoRoute(
               path: "edit",
@@ -1565,7 +1575,17 @@ class Routers {
             GoRoute(
               path: "status",
               parentNavigatorKey: pane,
-              pageBuilder: (context, state) => _pageMaterial(state, const SettingsEmojiStatusMaterial()),
+              pageBuilder: (context, state) => _pageMaterial(
+                state,
+                BlocProvider<SettingsMyProfileCubit>(
+                  create: (_) =>
+                      SettingsMyProfileCubit()
+                        ..initialization(locale: context.read<CommonCubit>().state.settingsDevice.locale ?? AppLocale.en),
+                  child: const SettingsEmojiStatusMaterial(),
+                ),
+                pane: split,
+                context: context,
+              ),
             ),
             GoRoute(
               path: "edit",
