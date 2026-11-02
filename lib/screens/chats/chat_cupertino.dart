@@ -1019,6 +1019,10 @@ class _Header extends StatelessWidget {
           children: [
             Flexible(child: Text(ChatTileContent.title(t, chat), maxLines: 1, overflow: TextOverflow.ellipsis)),
             if (chat.verified) VerifiedBadge(color: CupertinoTheme.of(context).primaryColor),
+            if (chat.type == models.ChatType.private && !chat.isSelf) ...[
+              const SizedBox(width: 4),
+              Flexible(child: EmojiStatusForUser(userID: chat.peerUserID)),
+            ],
           ],
         ),
         if (subtitle.text.isNotEmpty)

@@ -8,7 +8,7 @@ class MyProfile {
 
   Future<models.MyProfile> getByUserID({required List<int> userID}) async {
     final sqlMyProfile = await db.execute(
-      "SELECT username, fistName, lastName, birthDate, aboutMe, avatarCdnID FROM myProfile WHERE userID = ?;",
+      "SELECT username, fistName, lastName, birthDate, aboutMe, emojiStatus, emojiStatusExpiresAt, emojiStatusDoNotDisturb, avatarCdnID FROM myProfile WHERE userID = ?;",
       [userID],
     );
     if (sqlMyProfile.isEmpty) return models.MyProfile();
@@ -27,6 +27,20 @@ class MyProfile {
         aboutMe = excluded.aboutMe;
       """,
       [userID, fistName, lastName, birthDate?.millisecondsSinceEpoch, aboutMe],
+    );
+  }
+
+  Future<void> setEmojiStatus({required List<int> userID, required models.EmojiStatus status}) async {
+    await db.execute(
+      """
+      INSERT INTO myProfile (userID, emojiStatus, emojiStatusExpiresAt, emojiStatusDoNotDisturb)
+      VALUES(?, ?, ?, ?)
+      ON CONFLICT(userID) DO UPDATE SET
+        emojiStatus = excluded.emojiStatus,
+        emojiStatusExpiresAt = excluded.emojiStatusExpiresAt,
+        emojiStatusDoNotDisturb = excluded.emojiStatusDoNotDisturb;
+      """,
+      [userID, status.emoji, status.expiresAt?.millisecondsSinceEpoch, status.doNotDisturb ? 1 : 0],
     );
   }
 

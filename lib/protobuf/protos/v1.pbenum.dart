@@ -220,6 +220,7 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType CLOUD_PASSWORD_AUTH_FINISH = MessageType._(104, _omitEnumNames ? '' : 'CLOUD_PASSWORD_AUTH_FINISH');
   static const MessageType CLOUD_PASSWORD_REGISTER_START = MessageType._(105, _omitEnumNames ? '' : 'CLOUD_PASSWORD_REGISTER_START');
   static const MessageType CLOUD_PASSWORD_REGISTER_FINISH = MessageType._(106, _omitEnumNames ? '' : 'CLOUD_PASSWORD_REGISTER_FINISH');
+  static const MessageType MY_PROFILE_STATUS_UPDATE = MessageType._(107, _omitEnumNames ? '' : 'MY_PROFILE_STATUS_UPDATE');
 
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
@@ -322,9 +323,10 @@ class MessageType extends $pb.ProtobufEnum {
     CLOUD_PASSWORD_AUTH_FINISH,
     CLOUD_PASSWORD_REGISTER_START,
     CLOUD_PASSWORD_REGISTER_FINISH,
+    MY_PROFILE_STATUS_UPDATE,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 106);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 107);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

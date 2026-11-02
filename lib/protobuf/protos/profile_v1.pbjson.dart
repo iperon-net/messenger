@@ -49,6 +49,7 @@ const Profile_Response$json = {
     {'1': 'official', '3': 10, '4': 1, '5': 8, '10': 'official'},
     {'1': 'avatarThumbhash', '3': 11, '4': 1, '5': 9, '10': 'avatarThumbhash'},
     {'1': 'accountBlocked', '3': 12, '4': 1, '5': 8, '10': 'accountBlocked'},
+    {'1': 'emojiStatus', '3': 13, '4': 1, '5': 11, '6': '.iperon.v1.EmojiStatus', '9': 8, '10': 'emojiStatus', '17': true},
   ],
   '8': [
     {'1': '_firstName'},
@@ -59,13 +60,14 @@ const Profile_Response$json = {
     {'1': '_username'},
     {'1': '_phoneNumber'},
     {'1': '_userID'},
+    {'1': '_emojiStatus'},
   ],
 };
 
 /// Descriptor for `Profile`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List profileDescriptor =
     $convert.base64Decode('CgdQcm9maWxlGk8KB1JlcXVlc3QSGAoGdXNlcklEGAEgASgMSABSBnVzZXJJRBIcCgh1c2Vybm'
-        'FtZRgCIAEoCUgAUgh1c2VybmFtZUIMCgppZGVudGlmaWVyGrwECghSZXNwb25zZRIhCglmaXJz'
+        'FtZRgCIAEoCUgAUgh1c2VybmFtZUIMCgppZGVudGlmaWVyGosFCghSZXNwb25zZRIhCglmaXJz'
         'dE5hbWUYASABKAlIAFIJZmlyc3ROYW1liAEBEh8KCGxhc3ROYW1lGAIgASgJSAFSCGxhc3ROYW'
         '1liAEBEh0KB2Fib3V0TWUYBCABKAlIAlIHYWJvdXRNZYgBARI9CgliaXJ0aERhdGUYAyABKAsy'
         'Gi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wSANSCWJpcnRoRGF0ZYgBARIrCgZhdmF0YXIYBS'
@@ -74,5 +76,7 @@ final $typed_data.Uint8List profileDescriptor =
         'VySUQYCCABKAxIB1IGdXNlcklEiAEBEiYKD2hpZGVfYmlydGhfeWVhchgJIAEoCFINaGlkZUJp'
         'cnRoWWVhchIaCghvZmZpY2lhbBgKIAEoCFIIb2ZmaWNpYWwSKAoPYXZhdGFyVGh1bWJoYXNoGA'
         'sgASgJUg9hdmF0YXJUaHVtYmhhc2gSJgoOYWNjb3VudEJsb2NrZWQYDCABKAhSDmFjY291bnRC'
-        'bG9ja2VkQgwKCl9maXJzdE5hbWVCCwoJX2xhc3ROYW1lQgoKCF9hYm91dE1lQgwKCl9iaXJ0aE'
-        'RhdGVCCQoHX2F2YXRhckILCglfdXNlcm5hbWVCDgoMX3Bob25lTnVtYmVyQgkKB191c2VySUQ=');
+        'bG9ja2VkEj0KC2Vtb2ppU3RhdHVzGA0gASgLMhYuaXBlcm9uLnYxLkVtb2ppU3RhdHVzSAhSC2'
+        'Vtb2ppU3RhdHVziAEBQgwKCl9maXJzdE5hbWVCCwoJX2xhc3ROYW1lQgoKCF9hYm91dE1lQgwK'
+        'Cl9iaXJ0aERhdGVCCQoHX2F2YXRhckILCglfdXNlcm5hbWVCDgoMX3Bob25lTnVtYmVyQgkKB1'
+        '91c2VySURCDgoMX2Vtb2ppU3RhdHVz');

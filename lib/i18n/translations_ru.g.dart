@@ -1523,6 +1523,21 @@ class _Translations$screenMyProfile$ru extends Translations$screenMyProfile$en {
 	@override String birthDayFormat({required Object date}) => '${date}';
 	@override String get birthDayRemove => 'Удалить дату рождения';
 	@override String get editPhoto => 'Изменить фото';
+	@override String get emojiStatus => 'Эмодзи-статус';
+	@override String get changeEmojiStatus => 'Сменить эмодзи-статус';
+	@override String get setEmojiStatus => 'Установить статус';
+	@override String get removeEmojiStatus => 'Удалить статус';
+	@override String get emojiStatusDuration => 'Срок действия';
+	@override String get emojiStatusUnlimited => 'Без срока';
+	@override String get emojiStatusHour => '1 час';
+	@override String get emojiStatusFourHours => '4 часа';
+	@override String get emojiStatusEightHours => '8 часов';
+	@override String get emojiStatusDay => '1 день';
+	@override String get doNotDisturb => 'Не беспокоить';
+	@override String get doNotDisturbHint => 'До конца срока статуса не будут приходить уведомления и входящие звонки. Без срока действия уведомления не отключаются.';
+	@override String emojiStatusUntil({required Object emoji, required Object until}) => '${emoji} (до ${until})';
+	@override String get errorSavingStatus => 'Не удалось сохранить эмодзи-статус';
+	@override String get emojiStatusInvalid => 'Выберите эмодзи и срок действия для режима «Не беспокоить»';
 	@override String get takePhoto => 'Сделать фото';
 	@override String get chooseFromGallery => 'Выбрать из галереи';
 	@override String get chooseFile => 'Файл';
@@ -3456,6 +3471,21 @@ extension on TranslationsRu {
 			'screenMyProfile.birthDayFormat' => ({required Object date}) => '${date}',
 			'screenMyProfile.birthDayRemove' => 'Удалить дату рождения',
 			'screenMyProfile.editPhoto' => 'Изменить фото',
+			'screenMyProfile.emojiStatus' => 'Эмодзи-статус',
+			'screenMyProfile.changeEmojiStatus' => 'Сменить эмодзи-статус',
+			'screenMyProfile.setEmojiStatus' => 'Установить статус',
+			'screenMyProfile.removeEmojiStatus' => 'Удалить статус',
+			'screenMyProfile.emojiStatusDuration' => 'Срок действия',
+			'screenMyProfile.emojiStatusUnlimited' => 'Без срока',
+			'screenMyProfile.emojiStatusHour' => '1 час',
+			'screenMyProfile.emojiStatusFourHours' => '4 часа',
+			'screenMyProfile.emojiStatusEightHours' => '8 часов',
+			'screenMyProfile.emojiStatusDay' => '1 день',
+			'screenMyProfile.doNotDisturb' => 'Не беспокоить',
+			'screenMyProfile.doNotDisturbHint' => 'До конца срока статуса не будут приходить уведомления и входящие звонки. Без срока действия уведомления не отключаются.',
+			'screenMyProfile.emojiStatusUntil' => ({required Object emoji, required Object until}) => '${emoji} (до ${until})',
+			'screenMyProfile.errorSavingStatus' => 'Не удалось сохранить эмодзи-статус',
+			'screenMyProfile.emojiStatusInvalid' => 'Выберите эмодзи и срок действия для режима «Не беспокоить»',
 			'screenMyProfile.takePhoto' => 'Сделать фото',
 			'screenMyProfile.chooseFromGallery' => 'Выбрать из галереи',
 			'screenMyProfile.chooseFile' => 'Файл',
@@ -3859,6 +3889,8 @@ extension on TranslationsRu {
 			'systemNotice.notMeTitle' => 'Завершить этот сеанс?',
 			'systemNotice.notMeMessage' => ({required Object device}) => 'Устройство «${device}» выйдет из вашего аккаунта.',
 			'systemNotice.notMeMessageUnknown' => 'Это устройство выйдет из вашего аккаунта.',
+			_ => null,
+		} ?? switch (path) {
 			'systemNotice.terminate' => 'Завершить',
 			'systemNotice.terminatedTitle' => 'Сеанс завершён',
 			'systemNotice.terminatedMessage' => 'Включите облачный пароль: с ним никто не войдёт в аккаунт на новом устройстве, даже зная код входа.',
@@ -3874,8 +3906,6 @@ extension on TranslationsRu {
 			'authQr.phoneLogin' => 'Войти по номеру (debug)',
 			'deviceLink.linkDevice' => 'Подключить устройство',
 			'deviceLink.hint' => 'Откройте Iperon на компьютере и наведите камеру на QR-код',
-			_ => null,
-		} ?? switch (path) {
 			'deviceLink.confirmTitle' => 'Войти на этом устройстве?',
 			'deviceLink.confirmMessage' => 'Подтверждайте, только если это ваш компьютер и вы сами открыли на нём Iperon.',
 			'deviceLink.confirm' => 'Войти',

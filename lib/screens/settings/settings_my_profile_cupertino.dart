@@ -261,6 +261,27 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                     color: ThemesCupertino.groupedCard.resolveFrom(context),
                     borderRadius: const BorderRadius.all(Radius.circular(18)),
                   ),
+                  children: [
+                    CupertinoListTileIcon(
+                      title: Text(context.t.screenMyProfile.changeEmojiStatus),
+                      color: const Color(0xFFFF9500),
+                      icon: FontAwesomeIcons.faceSmile,
+                      additionalInfo: state.emojiStatus.active
+                          ? EmojiStatusLabel(status: state.emojiStatus)
+                          : Text(context.t.screenMyProfile.add),
+                      isTrailing: true,
+                      onTab: () => context.push('/settings/profile/status'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                CupertinoListSection.insetGrouped(
+                  clipBehavior: Clip.antiAlias,
+                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                  decoration: BoxDecoration(
+                    color: ThemesCupertino.groupedCard.resolveFrom(context),
+                    borderRadius: const BorderRadius.all(Radius.circular(18)),
+                  ),
                   // footer: Text("Удалить"),
                   children: [
                     // В русской локали принят порядок «фамилия, имя», в остальных — «имя, фамилия».

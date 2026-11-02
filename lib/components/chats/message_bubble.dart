@@ -17,6 +17,7 @@ import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../dust_effect.dart';
+import '../emoji_status.dart';
 import '../user_avatar.dart';
 import 'chat_avatar.dart' show chatImage;
 import 'media_actions.dart' show chatFileRevealLabel;
@@ -936,19 +937,27 @@ class MessageBubble extends StatelessWidget {
         content.add(
           Padding(
             padding: EdgeInsets.fromLTRB(captionInset, captionInset / 2, captionInset, 2),
-            // Звание — серым мелким справа от имени (как в Telegram).
-            child: senderBadge.isEmpty
-                ? name
-                : Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Flexible(child: name),
-                      const SizedBox(width: 8),
-                      Text(senderBadge, maxLines: 1, style: style.textStyle.copyWith(fontSize: 12, color: style.incomingMeta)),
-                    ],
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Flexible(child: name),
+                if (m.senderUserID.isNotEmpty) ...[
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: EmojiStatusForUser(
+                      userID: m.senderUserID,
+                      style: style.textStyle.copyWith(fontSize: 12, color: style.incomingMeta),
+                    ),
                   ),
+                ],
+                if (senderBadge.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  Text(senderBadge, maxLines: 1, style: style.textStyle.copyWith(fontSize: 12, color: style.incomingMeta)),
+                ],
+              ],
+            ),
           ),
         );
       }

@@ -381,6 +381,11 @@ class Routers {
           ),
           routes: [
             GoRoute(
+              path: "status",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _page(state, const SettingsEmojiStatusCupertino()),
+            ),
+            GoRoute(
               path: "edit",
               parentNavigatorKey: pane,
               pageBuilder: (context, state) => _page(
@@ -1557,6 +1562,11 @@ class Routers {
             context: context,
           ),
           routes: [
+            GoRoute(
+              path: "status",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(state, const SettingsEmojiStatusMaterial()),
+            ),
             GoRoute(
               path: "edit",
               parentNavigatorKey: pane,

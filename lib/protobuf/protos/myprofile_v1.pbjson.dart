@@ -38,6 +38,7 @@ const MyProfile_Response$json = {
     {'1': 'username', '3': 6, '4': 1, '5': 9, '9': 5, '10': 'username', '17': true},
     {'1': 'isPremium', '3': 7, '4': 1, '5': 8, '10': 'isPremium'},
     {'1': 'avatarThumbhash', '3': 8, '4': 1, '5': 9, '10': 'avatarThumbhash'},
+    {'1': 'emojiStatus', '3': 9, '4': 1, '5': 11, '6': '.iperon.v1.EmojiStatus', '9': 6, '10': 'emojiStatus', '17': true},
   ],
   '8': [
     {'1': '_firstName'},
@@ -46,19 +47,50 @@ const MyProfile_Response$json = {
     {'1': '_birthDate'},
     {'1': '_avatar'},
     {'1': '_username'},
+    {'1': '_emojiStatus'},
   ],
 };
 
 /// Descriptor for `MyProfile`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List myProfileDescriptor =
-    $convert.base64Decode('CglNeVByb2ZpbGUaCQoHUmVxdWVzdBqPAwoIUmVzcG9uc2USIQoJZmlyc3ROYW1lGAEgASgJSA'
+    $convert.base64Decode('CglNeVByb2ZpbGUaCQoHUmVxdWVzdBreAwoIUmVzcG9uc2USIQoJZmlyc3ROYW1lGAEgASgJSA'
         'BSCWZpcnN0TmFtZYgBARIfCghsYXN0TmFtZRgCIAEoCUgBUghsYXN0TmFtZYgBARIdCgdhYm91'
         'dE1lGAQgASgJSAJSB2Fib3V0TWWIAQESPQoJYmlydGhEYXRlGAMgASgLMhouZ29vZ2xlLnByb3'
         'RvYnVmLlRpbWVzdGFtcEgDUgliaXJ0aERhdGWIAQESKwoGYXZhdGFyGAUgASgLMg4uaXBlcm9u'
         'LnYxLkNETkgEUgZhdmF0YXKIAQESHwoIdXNlcm5hbWUYBiABKAlIBVIIdXNlcm5hbWWIAQESHA'
         'oJaXNQcmVtaXVtGAcgASgIUglpc1ByZW1pdW0SKAoPYXZhdGFyVGh1bWJoYXNoGAggASgJUg9h'
-        'dmF0YXJUaHVtYmhhc2hCDAoKX2ZpcnN0TmFtZUILCglfbGFzdE5hbWVCCgoIX2Fib3V0TWVCDA'
-        'oKX2JpcnRoRGF0ZUIJCgdfYXZhdGFyQgsKCV91c2VybmFtZQ==');
+        'dmF0YXJUaHVtYmhhc2gSPQoLZW1vamlTdGF0dXMYCSABKAsyFi5pcGVyb24udjEuRW1vamlTdG'
+        'F0dXNIBlILZW1vamlTdGF0dXOIAQFCDAoKX2ZpcnN0TmFtZUILCglfbGFzdE5hbWVCCgoIX2Fi'
+        'b3V0TWVCDAoKX2JpcnRoRGF0ZUIJCgdfYXZhdGFyQgsKCV91c2VybmFtZUIOCgxfZW1vamlTdG'
+        'F0dXM=');
+
+@$core.Deprecated('Use myProfileStatusUpdateDescriptor instead')
+const MyProfileStatusUpdate$json = {
+  '1': 'MyProfileStatusUpdate',
+  '3': [MyProfileStatusUpdate_Request$json, MyProfileStatusUpdate_Response$json],
+};
+
+@$core.Deprecated('Use myProfileStatusUpdateDescriptor instead')
+const MyProfileStatusUpdate_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'emojiStatus', '3': 1, '4': 1, '5': 11, '6': '.iperon.v1.EmojiStatus', '9': 0, '10': 'emojiStatus', '17': true},
+  ],
+  '8': [
+    {'1': '_emojiStatus'},
+  ],
+};
+
+@$core.Deprecated('Use myProfileStatusUpdateDescriptor instead')
+const MyProfileStatusUpdate_Response$json = {
+  '1': 'Response',
+};
+
+/// Descriptor for `MyProfileStatusUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List myProfileStatusUpdateDescriptor =
+    $convert.base64Decode('ChVNeVByb2ZpbGVTdGF0dXNVcGRhdGUaWAoHUmVxdWVzdBI9CgtlbW9qaVN0YXR1cxgBIAEoCz'
+        'IWLmlwZXJvbi52MS5FbW9qaVN0YXR1c0gAUgtlbW9qaVN0YXR1c4gBAUIOCgxfZW1vamlTdGF0'
+        'dXMaCgoIUmVzcG9uc2U=');
 
 @$core.Deprecated('Use myProfileUpdateDescriptor instead')
 const MyProfileUpdate$json = {

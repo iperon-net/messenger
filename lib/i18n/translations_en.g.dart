@@ -3700,6 +3700,51 @@ class Translations$screenMyProfile$en {
 	/// en: 'Edit photo'
 	String get editPhoto => 'Edit photo';
 
+	/// en: 'Emoji status'
+	String get emojiStatus => 'Emoji status';
+
+	/// en: 'Change emoji status'
+	String get changeEmojiStatus => 'Change emoji status';
+
+	/// en: 'Set status'
+	String get setEmojiStatus => 'Set status';
+
+	/// en: 'Remove status'
+	String get removeEmojiStatus => 'Remove status';
+
+	/// en: 'Duration'
+	String get emojiStatusDuration => 'Duration';
+
+	/// en: 'No time limit'
+	String get emojiStatusUnlimited => 'No time limit';
+
+	/// en: '1 hour'
+	String get emojiStatusHour => '1 hour';
+
+	/// en: '4 hours'
+	String get emojiStatusFourHours => '4 hours';
+
+	/// en: '8 hours'
+	String get emojiStatusEightHours => '8 hours';
+
+	/// en: '1 day'
+	String get emojiStatusDay => '1 day';
+
+	/// en: 'Do Not Disturb'
+	String get doNotDisturb => 'Do Not Disturb';
+
+	/// en: 'Notifications and incoming calls are muted until the status expires. Without a time limit, notifications stay enabled.'
+	String get doNotDisturbHint => 'Notifications and incoming calls are muted until the status expires. Without a time limit, notifications stay enabled.';
+
+	/// en: '{emoji} (until {until})'
+	String emojiStatusUntil({required Object emoji, required Object until}) => '${emoji} (until ${until})';
+
+	/// en: 'Couldn’t save emoji status'
+	String get errorSavingStatus => 'Couldn’t save emoji status';
+
+	/// en: 'Choose an emoji and a duration for Do Not Disturb'
+	String get emojiStatusInvalid => 'Choose an emoji and a duration for Do Not Disturb';
+
 	/// en: 'Take photo'
 	String get takePhoto => 'Take photo';
 
@@ -6584,6 +6629,21 @@ extension on Translations {
 			'screenMyProfile.birthDayFormat' => ({required Object date}) => '${date}',
 			'screenMyProfile.birthDayRemove' => 'Remove date birth',
 			'screenMyProfile.editPhoto' => 'Edit photo',
+			'screenMyProfile.emojiStatus' => 'Emoji status',
+			'screenMyProfile.changeEmojiStatus' => 'Change emoji status',
+			'screenMyProfile.setEmojiStatus' => 'Set status',
+			'screenMyProfile.removeEmojiStatus' => 'Remove status',
+			'screenMyProfile.emojiStatusDuration' => 'Duration',
+			'screenMyProfile.emojiStatusUnlimited' => 'No time limit',
+			'screenMyProfile.emojiStatusHour' => '1 hour',
+			'screenMyProfile.emojiStatusFourHours' => '4 hours',
+			'screenMyProfile.emojiStatusEightHours' => '8 hours',
+			'screenMyProfile.emojiStatusDay' => '1 day',
+			'screenMyProfile.doNotDisturb' => 'Do Not Disturb',
+			'screenMyProfile.doNotDisturbHint' => 'Notifications and incoming calls are muted until the status expires. Without a time limit, notifications stay enabled.',
+			'screenMyProfile.emojiStatusUntil' => ({required Object emoji, required Object until}) => '${emoji} (until ${until})',
+			'screenMyProfile.errorSavingStatus' => 'Couldn’t save emoji status',
+			'screenMyProfile.emojiStatusInvalid' => 'Choose an emoji and a duration for Do Not Disturb',
 			'screenMyProfile.takePhoto' => 'Take photo',
 			'screenMyProfile.chooseFromGallery' => 'Choose from gallery',
 			'screenMyProfile.chooseFile' => 'File',
@@ -6987,6 +7047,8 @@ extension on Translations {
 			'systemNotice.notMeTitle' => 'End this session?',
 			'systemNotice.notMeMessage' => ({required Object device}) => '“${device}” will be logged out of your account.',
 			'systemNotice.notMeMessageUnknown' => 'This device will be logged out of your account.',
+			_ => null,
+		} ?? switch (path) {
 			'systemNotice.terminate' => 'End session',
 			'systemNotice.terminatedTitle' => 'Session ended',
 			'systemNotice.terminatedMessage' => 'Turn on a cloud password: with it, nobody can log in on a new device, even with your login code.',
@@ -7002,8 +7064,6 @@ extension on Translations {
 			'authQr.phoneLogin' => 'Log in with phone number (debug)',
 			'deviceLink.linkDevice' => 'Link a device',
 			'deviceLink.hint' => 'Open Iperon on your computer and point the camera at the QR code',
-			_ => null,
-		} ?? switch (path) {
 			'deviceLink.confirmTitle' => 'Log in on this device?',
 			'deviceLink.confirmMessage' => 'Confirm only if this is your computer and you opened Iperon on it yourself.',
 			'deviceLink.confirm' => 'Log in',

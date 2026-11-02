@@ -17,6 +17,12 @@ message Date {
   int32 day = 3;    // 17
 }
 
+message EmojiStatus {
+  string emoji = 1;
+  optional google.protobuf.Timestamp expiresAt = 2;
+  bool doNotDisturb = 3;
+}
+
 message CDN {
   bytes cdnID = 1;
   string url = 2;

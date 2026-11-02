@@ -72,6 +72,7 @@ class ProfileCubit extends Cubit<ProfileState> {
         state.copyWith(
           status: Status.success,
           displayName: displayName,
+          emojiStatus: models.EmojiStatus.fromProto(response.hasEmojiStatus() ? response.emojiStatus : null),
           firstName: response.firstName,
           lastName: response.lastName,
           aboutMe: response.aboutMe,
@@ -130,6 +131,7 @@ class ProfileCubit extends Cubit<ProfileState> {
     if (isClosed) return;
     var next = state.copyWith(
       displayName: displayName,
+      emojiStatus: profile.status,
       firstName: profile.fistName,
       lastName: profile.lastName,
       aboutMe: profile.aboutMe,

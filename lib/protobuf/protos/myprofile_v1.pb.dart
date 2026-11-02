@@ -61,6 +61,7 @@ class MyProfile_Response extends $pb.GeneratedMessage {
     $core.String? username,
     $core.bool? isPremium,
     $core.String? avatarThumbhash,
+    $1.EmojiStatus? emojiStatus,
   }) {
     final result = create();
     if (firstName != null) result.firstName = firstName;
@@ -71,6 +72,7 @@ class MyProfile_Response extends $pb.GeneratedMessage {
     if (username != null) result.username = username;
     if (isPremium != null) result.isPremium = isPremium;
     if (avatarThumbhash != null) result.avatarThumbhash = avatarThumbhash;
+    if (emojiStatus != null) result.emojiStatus = emojiStatus;
     return result;
   }
 
@@ -91,6 +93,7 @@ class MyProfile_Response extends $pb.GeneratedMessage {
     ..aOS(6, _omitFieldNames ? '' : 'username')
     ..aOB(7, _omitFieldNames ? '' : 'isPremium', protoName: 'isPremium')
     ..aOS(8, _omitFieldNames ? '' : 'avatarThumbhash', protoName: 'avatarThumbhash')
+    ..aOM<$1.EmojiStatus>(9, _omitFieldNames ? '' : 'emojiStatus', protoName: 'emojiStatus', subBuilder: $1.EmojiStatus.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -187,6 +190,17 @@ class MyProfile_Response extends $pb.GeneratedMessage {
   $core.bool hasAvatarThumbhash() => $_has(7);
   @$pb.TagNumber(8)
   void clearAvatarThumbhash() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $1.EmojiStatus get emojiStatus => $_getN(8);
+  @$pb.TagNumber(9)
+  set emojiStatus($1.EmojiStatus value) => $_setField(9, value);
+  @$pb.TagNumber(9)
+  $core.bool hasEmojiStatus() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearEmojiStatus() => $_clearField(9);
+  @$pb.TagNumber(9)
+  $1.EmojiStatus ensureEmojiStatus() => $_ensure(8);
 }
 
 class MyProfile extends $pb.GeneratedMessage {
@@ -218,6 +232,124 @@ class MyProfile extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static MyProfile getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MyProfile>(create);
   static MyProfile? _defaultInstance;
+}
+
+class MyProfileStatusUpdate_Request extends $pb.GeneratedMessage {
+  factory MyProfileStatusUpdate_Request({
+    $1.EmojiStatus? emojiStatus,
+  }) {
+    final result = create();
+    if (emojiStatus != null) result.emojiStatus = emojiStatus;
+    return result;
+  }
+
+  MyProfileStatusUpdate_Request._();
+
+  factory MyProfileStatusUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MyProfileStatusUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MyProfileStatusUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOM<$1.EmojiStatus>(1, _omitFieldNames ? '' : 'emojiStatus', protoName: 'emojiStatus', subBuilder: $1.EmojiStatus.create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MyProfileStatusUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MyProfileStatusUpdate_Request copyWith(void Function(MyProfileStatusUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as MyProfileStatusUpdate_Request)) as MyProfileStatusUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MyProfileStatusUpdate_Request create() => MyProfileStatusUpdate_Request._();
+  @$core.override
+  MyProfileStatusUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MyProfileStatusUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MyProfileStatusUpdate_Request>(create);
+  static MyProfileStatusUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $1.EmojiStatus get emojiStatus => $_getN(0);
+  @$pb.TagNumber(1)
+  set emojiStatus($1.EmojiStatus value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasEmojiStatus() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearEmojiStatus() => $_clearField(1);
+  @$pb.TagNumber(1)
+  $1.EmojiStatus ensureEmojiStatus() => $_ensure(0);
+}
+
+class MyProfileStatusUpdate_Response extends $pb.GeneratedMessage {
+  factory MyProfileStatusUpdate_Response() => create();
+
+  MyProfileStatusUpdate_Response._();
+
+  factory MyProfileStatusUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MyProfileStatusUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MyProfileStatusUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MyProfileStatusUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MyProfileStatusUpdate_Response copyWith(void Function(MyProfileStatusUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as MyProfileStatusUpdate_Response)) as MyProfileStatusUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MyProfileStatusUpdate_Response create() => MyProfileStatusUpdate_Response._();
+  @$core.override
+  MyProfileStatusUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MyProfileStatusUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MyProfileStatusUpdate_Response>(create);
+  static MyProfileStatusUpdate_Response? _defaultInstance;
+}
+
+class MyProfileStatusUpdate extends $pb.GeneratedMessage {
+  factory MyProfileStatusUpdate() => create();
+
+  MyProfileStatusUpdate._();
+
+  factory MyProfileStatusUpdate.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MyProfileStatusUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'MyProfileStatusUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MyProfileStatusUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MyProfileStatusUpdate copyWith(void Function(MyProfileStatusUpdate) updates) =>
+      super.copyWith((message) => updates(message as MyProfileStatusUpdate)) as MyProfileStatusUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MyProfileStatusUpdate create() => MyProfileStatusUpdate._();
+  @$core.override
+  MyProfileStatusUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MyProfileStatusUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MyProfileStatusUpdate>(create);
+  static MyProfileStatusUpdate? _defaultInstance;
 }
 
 class MyProfileUpdate_Request extends $pb.GeneratedMessage {

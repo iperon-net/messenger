@@ -90,6 +90,79 @@ class Date extends $pb.GeneratedMessage {
   void clearDay() => $_clearField(3);
 }
 
+class EmojiStatus extends $pb.GeneratedMessage {
+  factory EmojiStatus({
+    $core.String? emoji,
+    $0.Timestamp? expiresAt,
+    $core.bool? doNotDisturb,
+  }) {
+    final result = create();
+    if (emoji != null) result.emoji = emoji;
+    if (expiresAt != null) result.expiresAt = expiresAt;
+    if (doNotDisturb != null) result.doNotDisturb = doNotDisturb;
+    return result;
+  }
+
+  EmojiStatus._();
+
+  factory EmojiStatus.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory EmojiStatus.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'EmojiStatus',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'emoji')
+    ..aOM<$0.Timestamp>(2, _omitFieldNames ? '' : 'expiresAt', protoName: 'expiresAt', subBuilder: $0.Timestamp.create)
+    ..aOB(3, _omitFieldNames ? '' : 'doNotDisturb', protoName: 'doNotDisturb')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  EmojiStatus clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  EmojiStatus copyWith(void Function(EmojiStatus) updates) => super.copyWith((message) => updates(message as EmojiStatus)) as EmojiStatus;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static EmojiStatus create() => EmojiStatus._();
+  @$core.override
+  EmojiStatus createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static EmojiStatus getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<EmojiStatus>(create);
+  static EmojiStatus? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get emoji => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set emoji($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasEmoji() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearEmoji() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $0.Timestamp get expiresAt => $_getN(1);
+  @$pb.TagNumber(2)
+  set expiresAt($0.Timestamp value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasExpiresAt() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearExpiresAt() => $_clearField(2);
+  @$pb.TagNumber(2)
+  $0.Timestamp ensureExpiresAt() => $_ensure(1);
+
+  @$pb.TagNumber(3)
+  $core.bool get doNotDisturb => $_getBF(2);
+  @$pb.TagNumber(3)
+  set doNotDisturb($core.bool value) => $_setBool(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasDoNotDisturb() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearDoNotDisturb() => $_clearField(3);
+}
+
 class CDN extends $pb.GeneratedMessage {
   factory CDN({
     $core.List<$core.int>? cdnID,

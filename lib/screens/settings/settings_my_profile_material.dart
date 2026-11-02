@@ -202,6 +202,21 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
                 Card(
                   margin: const EdgeInsets.symmetric(horizontal: 12),
                   clipBehavior: Clip.antiAlias,
+                  child: MaterialListTileIcon(
+                    title: Text(context.t.screenMyProfile.changeEmojiStatus),
+                    color: const Color(0xFFFF9500),
+                    icon: FontAwesomeIcons.faceSmile,
+                    additionalInfo: state.emojiStatus.active
+                        ? EmojiStatusLabel(status: state.emojiStatus)
+                        : Text(context.t.screenMyProfile.add),
+                    isTrailing: true,
+                    onTab: () => context.push('/settings/profile/status'),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 12),
+                  clipBehavior: Clip.antiAlias,
                   child: Column(
                     children: [
                       ...nameTiles,

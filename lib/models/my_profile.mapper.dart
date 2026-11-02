@@ -15,7 +15,7 @@ class MyProfileMapper extends ClassMapperBase<MyProfile> {
   static MyProfileMapper ensureInitialized() {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = MyProfileMapper._());
-      MapperContainer.globals.useAll([EpochDateTimeMapper()]);
+      MapperContainer.globals.useAll([EpochDateTimeMapper(), BoolMapper()]);
     }
     return _instance!;
   }
@@ -64,6 +64,28 @@ class MyProfileMapper extends ClassMapperBase<MyProfile> {
     opt: true,
     def: "",
   );
+  static String _$emojiStatus(MyProfile v) => v.emojiStatus;
+  static const Field<MyProfile, String> _f$emojiStatus = Field(
+    'emojiStatus',
+    _$emojiStatus,
+    opt: true,
+    def: "",
+  );
+  static DateTime? _$emojiStatusExpiresAt(MyProfile v) =>
+      v.emojiStatusExpiresAt;
+  static const Field<MyProfile, DateTime> _f$emojiStatusExpiresAt = Field(
+    'emojiStatusExpiresAt',
+    _$emojiStatusExpiresAt,
+    opt: true,
+  );
+  static bool _$emojiStatusDoNotDisturb(MyProfile v) =>
+      v.emojiStatusDoNotDisturb;
+  static const Field<MyProfile, bool> _f$emojiStatusDoNotDisturb = Field(
+    'emojiStatusDoNotDisturb',
+    _$emojiStatusDoNotDisturb,
+    opt: true,
+    def: false,
+  );
   static List<int>? _$avatarCdnID(MyProfile v) => v.avatarCdnID;
   static const Field<MyProfile, List<int>> _f$avatarCdnID = Field(
     'avatarCdnID',
@@ -79,6 +101,9 @@ class MyProfileMapper extends ClassMapperBase<MyProfile> {
     #lastName: _f$lastName,
     #birthDate: _f$birthDate,
     #aboutMe: _f$aboutMe,
+    #emojiStatus: _f$emojiStatus,
+    #emojiStatusExpiresAt: _f$emojiStatusExpiresAt,
+    #emojiStatusDoNotDisturb: _f$emojiStatusDoNotDisturb,
     #avatarCdnID: _f$avatarCdnID,
   };
 
@@ -90,6 +115,9 @@ class MyProfileMapper extends ClassMapperBase<MyProfile> {
       lastName: data.dec(_f$lastName),
       birthDate: data.dec(_f$birthDate),
       aboutMe: data.dec(_f$aboutMe),
+      emojiStatus: data.dec(_f$emojiStatus),
+      emojiStatusExpiresAt: data.dec(_f$emojiStatusExpiresAt),
+      emojiStatusDoNotDisturb: data.dec(_f$emojiStatusDoNotDisturb),
       avatarCdnID: data.dec(_f$avatarCdnID),
     );
   }
@@ -162,6 +190,9 @@ abstract class MyProfileCopyWith<$R, $In extends MyProfile, $Out>
     String? lastName,
     DateTime? birthDate,
     String? aboutMe,
+    String? emojiStatus,
+    DateTime? emojiStatusExpiresAt,
+    bool? emojiStatusDoNotDisturb,
     List<int>? avatarCdnID,
   });
   MyProfileCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
@@ -199,6 +230,9 @@ class _MyProfileCopyWithImpl<$R, $Out>
     String? lastName,
     Object? birthDate = $none,
     String? aboutMe,
+    String? emojiStatus,
+    Object? emojiStatusExpiresAt = $none,
+    bool? emojiStatusDoNotDisturb,
     Object? avatarCdnID = $none,
   }) => $apply(
     FieldCopyWithData({
@@ -208,6 +242,11 @@ class _MyProfileCopyWithImpl<$R, $Out>
       if (lastName != null) #lastName: lastName,
       if (birthDate != $none) #birthDate: birthDate,
       if (aboutMe != null) #aboutMe: aboutMe,
+      if (emojiStatus != null) #emojiStatus: emojiStatus,
+      if (emojiStatusExpiresAt != $none)
+        #emojiStatusExpiresAt: emojiStatusExpiresAt,
+      if (emojiStatusDoNotDisturb != null)
+        #emojiStatusDoNotDisturb: emojiStatusDoNotDisturb,
       if (avatarCdnID != $none) #avatarCdnID: avatarCdnID,
     }),
   );
@@ -219,6 +258,15 @@ class _MyProfileCopyWithImpl<$R, $Out>
     lastName: data.get(#lastName, or: $value.lastName),
     birthDate: data.get(#birthDate, or: $value.birthDate),
     aboutMe: data.get(#aboutMe, or: $value.aboutMe),
+    emojiStatus: data.get(#emojiStatus, or: $value.emojiStatus),
+    emojiStatusExpiresAt: data.get(
+      #emojiStatusExpiresAt,
+      or: $value.emojiStatusExpiresAt,
+    ),
+    emojiStatusDoNotDisturb: data.get(
+      #emojiStatusDoNotDisturb,
+      or: $value.emojiStatusDoNotDisturb,
+    ),
     avatarCdnID: data.get(#avatarCdnID, or: $value.avatarCdnID),
   );
 

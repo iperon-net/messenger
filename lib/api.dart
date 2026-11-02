@@ -801,6 +801,7 @@ class API {
       hideBirthYear: payload.hideBirthYear,
       aboutMe: payload.aboutMe,
       phoneNumber: payload.phoneNumber,
+      status: models.EmojiStatus.fromProto(payload.hasEmojiStatus() ? payload.emojiStatus : null),
       accountBlocked: payload.accountBlocked,
     );
     // Размытое превью — сразу, до скачивания картинки: строки покажут его
@@ -897,6 +898,10 @@ class API {
           aboutMe: payload.aboutMe,
         );
         await repositories.myProfile.setPremium(userID: session.userID, isPremium: payload.isPremium);
+        await repositories.myProfile.setEmojiStatus(
+          userID: session.userID,
+          status: models.EmojiStatus.fromProto(payload.hasEmojiStatus() ? payload.emojiStatus : null),
+        );
         // Аватар привязываем к профилю, как у чужих (cacheProfile): иначе
         // avatarCdnID знает только устройство, которое его загрузило, и превью
         // приватности / пересылки показывают заглушку. Качаем в фоне — не

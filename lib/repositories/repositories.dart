@@ -1061,6 +1061,16 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(53, (tx) async {
+        for (final table in ['myProfile', 'profiles']) {
+          await tx.execute("ALTER TABLE $table ADD COLUMN emojiStatus TEXT NOT NULL DEFAULT '';");
+          await tx.execute('ALTER TABLE $table ADD COLUMN emojiStatusExpiresAt INTEGER NULL;');
+          await tx.execute('ALTER TABLE $table ADD COLUMN emojiStatusDoNotDisturb INTEGER NOT NULL DEFAULT 0;');
+        }
+      }),
+    );
+
     return migrations;
   }
 }

@@ -21,7 +21,16 @@ message MyProfile {
     bool isPremium = 7;
     // ThumbHash аватара (как Profile.Response.avatarThumbhash).
     string avatarThumbhash = 8;
+    optional EmojiStatus emojiStatus = 9;
   }
+}
+
+message MyProfileStatusUpdate {
+  message Request {
+    optional EmojiStatus emojiStatus = 1;
+  }
+
+  message Response {}
 }
 
 message MyProfileUpdate {

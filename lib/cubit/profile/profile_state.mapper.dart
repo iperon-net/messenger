@@ -16,6 +16,7 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = ProfileStateMapper._());
       MapperContainer.globals.useAll([Uint8ListMapper()]);
+      EmojiStatusMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -57,6 +58,13 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
     _$displayName,
     opt: true,
     def: "",
+  );
+  static EmojiStatus _$emojiStatus(ProfileState v) => v.emojiStatus;
+  static const Field<ProfileState, EmojiStatus> _f$emojiStatus = Field(
+    'emojiStatus',
+    _$emojiStatus,
+    opt: true,
+    def: const EmojiStatus(),
   );
   static String _$firstName(ProfileState v) => v.firstName;
   static const Field<ProfileState, String> _f$firstName = Field(
@@ -205,6 +213,7 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
     #locale: _f$locale,
     #userID: _f$userID,
     #displayName: _f$displayName,
+    #emojiStatus: _f$emojiStatus,
     #firstName: _f$firstName,
     #lastName: _f$lastName,
     #aboutMe: _f$aboutMe,
@@ -234,6 +243,7 @@ class ProfileStateMapper extends ClassMapperBase<ProfileState> {
       locale: data.dec(_f$locale),
       userID: data.dec(_f$userID),
       displayName: data.dec(_f$displayName),
+      emojiStatus: data.dec(_f$emojiStatus),
       firstName: data.dec(_f$firstName),
       lastName: data.dec(_f$lastName),
       aboutMe: data.dec(_f$aboutMe),
@@ -320,12 +330,14 @@ extension ProfileStateValueCopy<$R, $Out>
 abstract class ProfileStateCopyWith<$R, $In extends ProfileState, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   ListCopyWith<$R, int, ObjectCopyWith<$R, int, int>> get userID;
+  EmojiStatusCopyWith<$R, EmojiStatus, EmojiStatus> get emojiStatus;
   $R call({
     Status? status,
     String? error,
     AppLocale? locale,
     List<int>? userID,
     String? displayName,
+    EmojiStatus? emojiStatus,
     String? firstName,
     String? lastName,
     String? aboutMe,
@@ -366,12 +378,16 @@ class _ProfileStateCopyWithImpl<$R, $Out>
         (v) => call(userID: v),
       );
   @override
+  EmojiStatusCopyWith<$R, EmojiStatus, EmojiStatus> get emojiStatus =>
+      $value.emojiStatus.copyWith.$chain((v) => call(emojiStatus: v));
+  @override
   $R call({
     Status? status,
     String? error,
     AppLocale? locale,
     List<int>? userID,
     String? displayName,
+    EmojiStatus? emojiStatus,
     String? firstName,
     String? lastName,
     String? aboutMe,
@@ -399,6 +415,7 @@ class _ProfileStateCopyWithImpl<$R, $Out>
       if (locale != null) #locale: locale,
       if (userID != null) #userID: userID,
       if (displayName != null) #displayName: displayName,
+      if (emojiStatus != null) #emojiStatus: emojiStatus,
       if (firstName != null) #firstName: firstName,
       if (lastName != null) #lastName: lastName,
       if (aboutMe != null) #aboutMe: aboutMe,
@@ -428,6 +445,7 @@ class _ProfileStateCopyWithImpl<$R, $Out>
     locale: data.get(#locale, or: $value.locale),
     userID: data.get(#userID, or: $value.userID),
     displayName: data.get(#displayName, or: $value.displayName),
+    emojiStatus: data.get(#emojiStatus, or: $value.emojiStatus),
     firstName: data.get(#firstName, or: $value.firstName),
     lastName: data.get(#lastName, or: $value.lastName),
     aboutMe: data.get(#aboutMe, or: $value.aboutMe),

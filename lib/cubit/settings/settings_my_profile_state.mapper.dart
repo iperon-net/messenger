@@ -17,6 +17,7 @@ class SettingsMyProfileStateMapper
     if (_instance == null) {
       MapperContainer.globals.use(_instance = SettingsMyProfileStateMapper._());
       MapperContainer.globals.useAll([Uint8ListMapper()]);
+      EmojiStatusMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -100,6 +101,9 @@ class SettingsMyProfileStateMapper
     opt: true,
     def: "",
   );
+  static EmojiStatus _$emojiStatus(SettingsMyProfileState v) => v.emojiStatus;
+  static const Field<SettingsMyProfileState, EmojiStatus> _f$emojiStatus =
+      Field('emojiStatus', _$emojiStatus, opt: true, def: const EmojiStatus());
   static String _$boringAvatarHash(SettingsMyProfileState v) =>
       v.boringAvatarHash;
   static const Field<SettingsMyProfileState, String> _f$boringAvatarHash =
@@ -140,6 +144,7 @@ class SettingsMyProfileStateMapper
     #birthDate: _f$birthDate,
     #username: _f$username,
     #phoneNumber: _f$phoneNumber,
+    #emojiStatus: _f$emojiStatus,
     #boringAvatarHash: _f$boringAvatarHash,
     #boringAvatarType: _f$boringAvatarType,
     #aboutMeLength: _f$aboutMeLength,
@@ -159,6 +164,7 @@ class SettingsMyProfileStateMapper
       birthDate: data.dec(_f$birthDate),
       username: data.dec(_f$username),
       phoneNumber: data.dec(_f$phoneNumber),
+      emojiStatus: data.dec(_f$emojiStatus),
       boringAvatarHash: data.dec(_f$boringAvatarHash),
       boringAvatarType: data.dec(_f$boringAvatarType),
       aboutMeLength: data.dec(_f$aboutMeLength),
@@ -236,6 +242,7 @@ abstract class SettingsMyProfileStateCopyWith<
   $Out
 >
     implements ClassCopyWith<$R, $In, $Out> {
+  EmojiStatusCopyWith<$R, EmojiStatus, EmojiStatus> get emojiStatus;
   $R call({
     Status? status,
     Status? networkStatus,
@@ -248,6 +255,7 @@ abstract class SettingsMyProfileStateCopyWith<
     DateTime? birthDate,
     String? username,
     String? phoneNumber,
+    EmojiStatus? emojiStatus,
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
     int? aboutMeLength,
@@ -268,6 +276,9 @@ class _SettingsMyProfileStateCopyWithImpl<$R, $Out>
   late final ClassMapperBase<SettingsMyProfileState> $mapper =
       SettingsMyProfileStateMapper.ensureInitialized();
   @override
+  EmojiStatusCopyWith<$R, EmojiStatus, EmojiStatus> get emojiStatus =>
+      $value.emojiStatus.copyWith.$chain((v) => call(emojiStatus: v));
+  @override
   $R call({
     Status? status,
     Status? networkStatus,
@@ -280,6 +291,7 @@ class _SettingsMyProfileStateCopyWithImpl<$R, $Out>
     Object? birthDate = $none,
     String? username,
     String? phoneNumber,
+    EmojiStatus? emojiStatus,
     String? boringAvatarHash,
     BoringAvatarType? boringAvatarType,
     int? aboutMeLength,
@@ -297,6 +309,7 @@ class _SettingsMyProfileStateCopyWithImpl<$R, $Out>
       if (birthDate != $none) #birthDate: birthDate,
       if (username != null) #username: username,
       if (phoneNumber != null) #phoneNumber: phoneNumber,
+      if (emojiStatus != null) #emojiStatus: emojiStatus,
       if (boringAvatarHash != null) #boringAvatarHash: boringAvatarHash,
       if (boringAvatarType != null) #boringAvatarType: boringAvatarType,
       if (aboutMeLength != null) #aboutMeLength: aboutMeLength,
@@ -316,6 +329,7 @@ class _SettingsMyProfileStateCopyWithImpl<$R, $Out>
     birthDate: data.get(#birthDate, or: $value.birthDate),
     username: data.get(#username, or: $value.username),
     phoneNumber: data.get(#phoneNumber, or: $value.phoneNumber),
+    emojiStatus: data.get(#emojiStatus, or: $value.emojiStatus),
     boringAvatarHash: data.get(#boringAvatarHash, or: $value.boringAvatarHash),
     boringAvatarType: data.get(#boringAvatarType, or: $value.boringAvatarType),
     aboutMeLength: data.get(#aboutMeLength, or: $value.aboutMeLength),

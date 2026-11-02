@@ -45,6 +45,25 @@ final $typed_data.Uint8List dateDescriptor =
     $convert.base64Decode('CgREYXRlEhIKBHllYXIYASABKAVSBHllYXISFAoFbW9udGgYAiABKAVSBW1vbnRoEhAKA2RheR'
         'gDIAEoBVIDZGF5');
 
+@$core.Deprecated('Use emojiStatusDescriptor instead')
+const EmojiStatus$json = {
+  '1': 'EmojiStatus',
+  '2': [
+    {'1': 'emoji', '3': 1, '4': 1, '5': 9, '10': 'emoji'},
+    {'1': 'expiresAt', '3': 2, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '9': 0, '10': 'expiresAt', '17': true},
+    {'1': 'doNotDisturb', '3': 3, '4': 1, '5': 8, '10': 'doNotDisturb'},
+  ],
+  '8': [
+    {'1': '_expiresAt'},
+  ],
+};
+
+/// Descriptor for `EmojiStatus`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List emojiStatusDescriptor =
+    $convert.base64Decode('CgtFbW9qaVN0YXR1cxIUCgVlbW9qaRgBIAEoCVIFZW1vamkSPQoJZXhwaXJlc0F0GAIgASgLMh'
+        'ouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEgAUglleHBpcmVzQXSIAQESIgoMZG9Ob3REaXN0'
+        'dXJiGAMgASgIUgxkb05vdERpc3R1cmJCDAoKX2V4cGlyZXNBdA==');
+
 @$core.Deprecated('Use cDNDescriptor instead')
 const CDN$json = {
   '1': 'CDN',

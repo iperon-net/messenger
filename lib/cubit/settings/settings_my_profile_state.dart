@@ -4,6 +4,7 @@ import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:messenger/i18n/translations.g.dart';
 import 'package:messenger/models/mapper.dart';
+import 'package:messenger/models/emoji_status.dart';
 
 import '../../constants.dart';
 
@@ -24,6 +25,7 @@ class SettingsMyProfileState with SettingsMyProfileStateMappable {
   final DateTime? birthDate;
   final String username;
   final String phoneNumber;
+  final EmojiStatus emojiStatus;
 
   final String boringAvatarHash;
   final BoringAvatarType boringAvatarType;
@@ -46,6 +48,7 @@ class SettingsMyProfileState with SettingsMyProfileStateMappable {
     this.birthDate,
     this.username = "",
     this.phoneNumber = "",
+    this.emojiStatus = const EmojiStatus(),
 
     this.boringAvatarHash = "",
     this.boringAvatarType = BoringAvatarType.ring,

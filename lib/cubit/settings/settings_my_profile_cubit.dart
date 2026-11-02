@@ -39,7 +39,13 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
       final response = MyProfile_Response.fromBuffer(payload);
 
       emit(
-        state.copyWith(firstName: response.firstName, lastName: response.lastName, aboutMe: response.aboutMe, username: response.username),
+        state.copyWith(
+          firstName: response.firstName,
+          lastName: response.lastName,
+          aboutMe: response.aboutMe,
+          username: response.username,
+          emojiStatus: models.EmojiStatus.fromProto(response.hasEmojiStatus() ? response.emojiStatus : null),
+        ),
       );
 
       // username приходит в этом же MY_PROFILE-сообщении (в т.ч. после
@@ -84,6 +90,7 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
         birthDate: myProfile.birthDate,
         aboutMe: myProfile.aboutMe,
         username: myProfile.username,
+        emojiStatus: myProfile.status,
         boringAvatarHash: phoneNormalization.international,
       ),
     );
@@ -127,8 +134,34 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
         birthDate: myProfile.birthDate,
         aboutMe: myProfile.aboutMe,
         username: myProfile.username,
+        emojiStatus: myProfile.status,
       ),
     );
+  }
+
+  Future<bool> setEmojiStatus(models.EmojiStatus status) async {
+    emit(state.copyWith(error: '', networkStatus: Status.loading));
+    if (!await utils.hasNetwork()) {
+      emit(state.copyWith(error: 'common.noConnectionMessage', networkStatus: Status.initialization));
+      return false;
+    }
+    final result = await api.unaryEncoded(
+      MessageType.MY_PROFILE_STATUS_UPDATE,
+      MyProfileStatusUpdate_Request(emojiStatus: status.toProto()).writeToBuffer(),
+    );
+    if (isClosed) return false;
+    if (result.status == APIStatus.error) {
+      emit(
+        state.copyWith(
+          error: result.error.isNotEmpty ? result.error : 'screenMyProfile.errorSavingStatus',
+          networkStatus: Status.initialization,
+        ),
+      );
+      return false;
+    }
+    await repositories.myProfile.setEmojiStatus(userID: auth.session.userID, status: status);
+    if (!isClosed) emit(state.copyWith(emojiStatus: status, networkStatus: Status.success));
+    return true;
   }
 
   /// Сохраняет обрезанный аватар как локальный превью и заливает его на

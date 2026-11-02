@@ -4,6 +4,7 @@ import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:messenger/i18n/translations.g.dart';
 import 'package:messenger/models/mapper.dart';
+import 'package:messenger/models/emoji_status.dart';
 
 import '../../constants.dart';
 
@@ -23,6 +24,7 @@ class ProfileState with ProfileStateMappable {
   /// Имя по общему правилу (как я его записал → профиль → @username → номер)
   /// — заголовок под аватаром; поля профиля ниже — его настоящие данные.
   final String displayName;
+  final EmojiStatus emojiStatus;
 
   final String firstName;
   final String lastName;
@@ -80,6 +82,7 @@ class ProfileState with ProfileStateMappable {
     this.userID = const [],
 
     this.displayName = "",
+    this.emojiStatus = const EmojiStatus(),
     this.firstName = "",
     this.lastName = "",
     this.aboutMe = "",

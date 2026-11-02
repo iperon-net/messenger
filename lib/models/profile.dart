@@ -1,6 +1,7 @@
 import 'package:dart_mappable/dart_mappable.dart';
 
 import 'mapper.dart';
+import 'emoji_status.dart';
 
 part 'profile.mapper.dart';
 
@@ -22,6 +23,11 @@ class Profile with ProfileMappable {
 
   final String aboutMe;
   final String phoneNumber;
+  final String emojiStatus;
+  final DateTime? emojiStatusExpiresAt;
+  final bool emojiStatusDoNotDisturb;
+
+  EmojiStatus get status => EmojiStatus(emoji: emojiStatus, expiresAt: emojiStatusExpiresAt, doNotDisturb: emojiStatusDoNotDisturb);
 
   /// `cdn_id` привязанного аватара (колонка `avatarCdnID`, FK на
   /// `downloads(cdnID)`). `null`, пока аватар не задан. По нему [CDNManager]
@@ -52,6 +58,9 @@ class Profile with ProfileMappable {
     this.hideBirthYear = false,
     this.aboutMe = "",
     this.phoneNumber = "",
+    this.emojiStatus = "",
+    this.emojiStatusExpiresAt,
+    this.emojiStatusDoNotDisturb = false,
     this.avatarCdnID,
     this.avatarThumbhash = "",
     this.lastSeenAt,

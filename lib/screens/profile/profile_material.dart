@@ -437,6 +437,14 @@ class _ProfileViewState extends State<_ProfileView> {
               child: Text(name, textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineSmall),
             ),
           ],
+          if (profile.emojiStatus.active)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: EmojiStatusLabel(
+                status: profile.emojiStatus,
+                style: TextStyle(color: scheme.onSurfaceVariant),
+              ),
+            ),
           if (subtitle != null && subtitle.text.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 2),

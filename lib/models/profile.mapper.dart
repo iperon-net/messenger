@@ -78,6 +78,26 @@ class ProfileMapper extends ClassMapperBase<Profile> {
     opt: true,
     def: "",
   );
+  static String _$emojiStatus(Profile v) => v.emojiStatus;
+  static const Field<Profile, String> _f$emojiStatus = Field(
+    'emojiStatus',
+    _$emojiStatus,
+    opt: true,
+    def: "",
+  );
+  static DateTime? _$emojiStatusExpiresAt(Profile v) => v.emojiStatusExpiresAt;
+  static const Field<Profile, DateTime> _f$emojiStatusExpiresAt = Field(
+    'emojiStatusExpiresAt',
+    _$emojiStatusExpiresAt,
+    opt: true,
+  );
+  static bool _$emojiStatusDoNotDisturb(Profile v) => v.emojiStatusDoNotDisturb;
+  static const Field<Profile, bool> _f$emojiStatusDoNotDisturb = Field(
+    'emojiStatusDoNotDisturb',
+    _$emojiStatusDoNotDisturb,
+    opt: true,
+    def: false,
+  );
   static List<int>? _$avatarCdnID(Profile v) => v.avatarCdnID;
   static const Field<Profile, List<int>> _f$avatarCdnID = Field(
     'avatarCdnID',
@@ -115,6 +135,9 @@ class ProfileMapper extends ClassMapperBase<Profile> {
     #hideBirthYear: _f$hideBirthYear,
     #aboutMe: _f$aboutMe,
     #phoneNumber: _f$phoneNumber,
+    #emojiStatus: _f$emojiStatus,
+    #emojiStatusExpiresAt: _f$emojiStatusExpiresAt,
+    #emojiStatusDoNotDisturb: _f$emojiStatusDoNotDisturb,
     #avatarCdnID: _f$avatarCdnID,
     #avatarThumbhash: _f$avatarThumbhash,
     #lastSeenAt: _f$lastSeenAt,
@@ -131,6 +154,9 @@ class ProfileMapper extends ClassMapperBase<Profile> {
       hideBirthYear: data.dec(_f$hideBirthYear),
       aboutMe: data.dec(_f$aboutMe),
       phoneNumber: data.dec(_f$phoneNumber),
+      emojiStatus: data.dec(_f$emojiStatus),
+      emojiStatusExpiresAt: data.dec(_f$emojiStatusExpiresAt),
+      emojiStatusDoNotDisturb: data.dec(_f$emojiStatusDoNotDisturb),
       avatarCdnID: data.dec(_f$avatarCdnID),
       avatarThumbhash: data.dec(_f$avatarThumbhash),
       lastSeenAt: data.dec(_f$lastSeenAt),
@@ -206,6 +232,9 @@ abstract class ProfileCopyWith<$R, $In extends Profile, $Out>
     bool? hideBirthYear,
     String? aboutMe,
     String? phoneNumber,
+    String? emojiStatus,
+    DateTime? emojiStatusExpiresAt,
+    bool? emojiStatusDoNotDisturb,
     List<int>? avatarCdnID,
     String? avatarThumbhash,
     DateTime? lastSeenAt,
@@ -248,6 +277,9 @@ class _ProfileCopyWithImpl<$R, $Out>
     bool? hideBirthYear,
     String? aboutMe,
     String? phoneNumber,
+    String? emojiStatus,
+    Object? emojiStatusExpiresAt = $none,
+    bool? emojiStatusDoNotDisturb,
     Object? avatarCdnID = $none,
     String? avatarThumbhash,
     Object? lastSeenAt = $none,
@@ -262,6 +294,11 @@ class _ProfileCopyWithImpl<$R, $Out>
       if (hideBirthYear != null) #hideBirthYear: hideBirthYear,
       if (aboutMe != null) #aboutMe: aboutMe,
       if (phoneNumber != null) #phoneNumber: phoneNumber,
+      if (emojiStatus != null) #emojiStatus: emojiStatus,
+      if (emojiStatusExpiresAt != $none)
+        #emojiStatusExpiresAt: emojiStatusExpiresAt,
+      if (emojiStatusDoNotDisturb != null)
+        #emojiStatusDoNotDisturb: emojiStatusDoNotDisturb,
       if (avatarCdnID != $none) #avatarCdnID: avatarCdnID,
       if (avatarThumbhash != null) #avatarThumbhash: avatarThumbhash,
       if (lastSeenAt != $none) #lastSeenAt: lastSeenAt,
@@ -278,6 +315,15 @@ class _ProfileCopyWithImpl<$R, $Out>
     hideBirthYear: data.get(#hideBirthYear, or: $value.hideBirthYear),
     aboutMe: data.get(#aboutMe, or: $value.aboutMe),
     phoneNumber: data.get(#phoneNumber, or: $value.phoneNumber),
+    emojiStatus: data.get(#emojiStatus, or: $value.emojiStatus),
+    emojiStatusExpiresAt: data.get(
+      #emojiStatusExpiresAt,
+      or: $value.emojiStatusExpiresAt,
+    ),
+    emojiStatusDoNotDisturb: data.get(
+      #emojiStatusDoNotDisturb,
+      or: $value.emojiStatusDoNotDisturb,
+    ),
     avatarCdnID: data.get(#avatarCdnID, or: $value.avatarCdnID),
     avatarThumbhash: data.get(#avatarThumbhash, or: $value.avatarThumbhash),
     lastSeenAt: data.get(#lastSeenAt, or: $value.lastSeenAt),
