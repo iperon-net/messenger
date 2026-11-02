@@ -74,11 +74,9 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
 
     final myProfileFuture = repositories.myProfile.getByUserID(userID: auth.session.userID);
     final userFuture = repositories.users.getBySession(session: auth.session);
-    final sendFuture = api.sendEncoded(MessageType.MY_PROFILE, MyProfile_Request().writeToBuffer());
 
     final myProfile = await myProfileFuture;
     final user = await userFuture;
-    await sendFuture;
 
     final phoneNormalization = utils.phoneNormalization(phoneNumber: user.phoneNumber);
     emit(
@@ -96,6 +94,7 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
     );
 
     if (isClosed) return;
+    unawaited(api.sendEncoded(MessageType.MY_PROFILE, MyProfile_Request().writeToBuffer()));
 
     // Аватар из кэша: если профиль уже привязан к CDN и расшифрованный файл
     // лежит на диске — показываем сразу, без сети. Актуальную версию всё равно

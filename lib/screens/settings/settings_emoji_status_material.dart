@@ -19,6 +19,8 @@ class _SettingsEmojiStatusMaterialState extends State<SettingsEmojiStatusMateria
   late String _emoji;
   late Duration? _duration;
   late bool _doNotDisturb;
+  final _search = TextEditingController();
+  EmojiStatusCategory _category = EmojiStatusCategory.popular;
 
   @override
   void initState() {
@@ -27,6 +29,13 @@ class _SettingsEmojiStatusMaterialState extends State<SettingsEmojiStatusMateria
     _emoji = status.active ? status.emoji : emojiStatusChoices.first;
     _duration = status.active && status.expiresAt != null ? const Duration(hours: 4) : null;
     _doNotDisturb = status.mutes;
+    _search.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
   }
 
   Future<void> _save({bool remove = false}) async {
@@ -43,6 +52,7 @@ class _SettingsEmojiStatusMaterialState extends State<SettingsEmojiStatusMateria
   @override
   Widget build(BuildContext context) {
     final t = context.t.screenMyProfile;
+    final items = emojiStatusItems(_category, _search.text);
     return BlocBuilder<SettingsMyProfileCubit, SettingsMyProfileState>(
       builder: (context, state) => Scaffold(
         appBar: AppBar(
@@ -60,30 +70,60 @@ class _SettingsEmojiStatusMaterialState extends State<SettingsEmojiStatusMateria
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Text(t.setEmojiStatus, style: Theme.of(context).textTheme.titleMedium),
+              EmojiStatusPreview(emoji: _emoji),
               const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final emoji in emojiStatusChoices)
-                    InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () => setState(() => _emoji = emoji),
-                      child: Container(
-                        width: 48,
-                        height: 48,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: emoji == _emoji ? Theme.of(context).colorScheme.primaryContainer : null,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(emoji, style: const TextStyle(fontSize: 30)),
-                      ),
-                    ),
-                ],
+              TextField(
+                controller: _search,
+                decoration: InputDecoration(
+                  hintText: t.emojiStatusSearch,
+                  prefixIcon: const Icon(Icons.search),
+                  border: const OutlineInputBorder(),
+                  isDense: true,
+                ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    for (final category in EmojiStatusCategory.values)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: ChoiceChip(
+                          label: Text(emojiStatusCategoryTitle(context.t, category)),
+                          selected: category == _category,
+                          onSelected: (_) => setState(() => _category = category),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 280,
+                child: items.isEmpty
+                    ? Center(child: Text(t.emojiStatusNotFound))
+                    : GridView.builder(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 6),
+                        itemCount: items.length,
+                        itemBuilder: (context, index) {
+                          final emoji = items[index].toUnicodeEmoji();
+                          return InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () => setState(() => _emoji = emoji),
+                            child: Container(
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: emoji == _emoji ? Theme.of(context).colorScheme.primaryContainer : null,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(emoji, style: const TextStyle(fontSize: 30)),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+              const SizedBox(height: 16),
               Text(t.emojiStatusDuration, style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               Card(

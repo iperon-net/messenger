@@ -462,9 +462,11 @@ class _ProfileViewState extends State<_ProfileView> {
             if (profile.emojiStatus.active)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
-                child: EmojiStatusLabel(
-                  status: profile.emojiStatus,
-                  style: TextStyle(fontSize: 15, color: secondary),
+                child: Center(
+                  child: EmojiStatusLabel(
+                    status: profile.emojiStatus,
+                    style: TextStyle(fontSize: 15, color: secondary),
+                  ),
                 ),
               ),
             if (subtitle != null && subtitle.text.isNotEmpty)

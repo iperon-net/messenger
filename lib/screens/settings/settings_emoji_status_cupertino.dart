@@ -21,6 +21,8 @@ class _SettingsEmojiStatusCupertinoState extends State<SettingsEmojiStatusCupert
   late String _emoji;
   late Duration? _duration;
   late bool _doNotDisturb;
+  final _search = TextEditingController();
+  EmojiStatusCategory _category = EmojiStatusCategory.popular;
 
   @override
   void initState() {
@@ -29,6 +31,13 @@ class _SettingsEmojiStatusCupertinoState extends State<SettingsEmojiStatusCupert
     _emoji = status.active ? status.emoji : emojiStatusChoices.first;
     _duration = status.active && status.expiresAt != null ? const Duration(hours: 4) : null;
     _doNotDisturb = status.mutes;
+    _search.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
   }
 
   Future<void> _save({bool remove = false}) async {
@@ -45,9 +54,10 @@ class _SettingsEmojiStatusCupertinoState extends State<SettingsEmojiStatusCupert
   @override
   Widget build(BuildContext context) {
     final t = context.t.screenMyProfile;
+    final items = emojiStatusItems(_category, _search.text);
     return BlocBuilder<SettingsMyProfileCubit, SettingsMyProfileState>(
       builder: (context, state) => CupertinoPageScaffold(
-        backgroundColor: ThemesCupertino.groupedBackground,
+        backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
         navigationBar: AppCupertinoNavigationBar(
           child: CupertinoNavigationBar(
             middle: Text(t.emojiStatus),
@@ -64,34 +74,74 @@ class _SettingsEmojiStatusCupertinoState extends State<SettingsEmojiStatusCupert
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Text(t.setEmojiStatus, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+              EmojiStatusPreview(emoji: _emoji),
               const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final emoji in emojiStatusChoices)
-                    CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      onPressed: () => setState(() => _emoji = emoji),
-                      child: Container(
-                        width: 48,
-                        height: 48,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: emoji == _emoji ? CupertinoTheme.of(context).primaryColor.withValues(alpha: 0.18) : null,
-                          borderRadius: BorderRadius.circular(12),
+              CupertinoSearchTextField(controller: _search, placeholder: t.emojiStatusSearch),
+              const SizedBox(height: 12),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    for (final category in EmojiStatusCategory.values)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: CupertinoButton(
+                          sizeStyle: CupertinoButtonSize.small,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          color: category == _category ? CupertinoTheme.of(context).primaryColor.withValues(alpha: 0.18) : null,
+                          onPressed: () => setState(() => _category = category),
+                          child: Text(
+                            emojiStatusCategoryTitle(context.t, category),
+                            style: TextStyle(
+                              fontSize: AppFontSizes.caption,
+                              color: category == _category
+                                  ? CupertinoTheme.of(context).primaryColor
+                                  : CupertinoColors.label.resolveFrom(context),
+                            ),
+                          ),
                         ),
-                        child: Text(emoji, style: const TextStyle(fontSize: 30)),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
-              const SizedBox(height: 24),
-              Text(t.emojiStatusDuration, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 280,
+                child: items.isEmpty
+                    ? Center(child: Text(t.emojiStatusNotFound))
+                    : GridView.builder(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 6),
+                        itemCount: items.length,
+                        itemBuilder: (context, index) {
+                          final emoji = items[index].toUnicodeEmoji();
+                          return CupertinoButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: () => setState(() => _emoji = emoji),
+                            child: Container(
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: emoji == _emoji ? CupertinoTheme.of(context).primaryColor.withValues(alpha: 0.18) : null,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(emoji, style: const TextStyle(fontSize: 30)),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                t.emojiStatusDuration,
+                style: const TextStyle(fontSize: AppFontSizes.base, fontWeight: FontWeight.normal),
+              ),
               const SizedBox(height: 8),
               CupertinoListSection.insetGrouped(
                 margin: EdgeInsets.zero,
+                backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                decoration: BoxDecoration(
+                  color: ThemesCupertino.groupedCard.resolveFrom(context),
+                  borderRadius: const BorderRadius.all(Radius.circular(10)),
+                ),
                 children: [
                   for (final item in emojiStatusDurations(context.t))
                     CupertinoListTile(
@@ -107,7 +157,18 @@ class _SettingsEmojiStatusCupertinoState extends State<SettingsEmojiStatusCupert
               const SizedBox(height: 16),
               CupertinoListSection.insetGrouped(
                 margin: EdgeInsets.zero,
-                footer: Padding(padding: const EdgeInsets.only(top: 8), child: Text(t.doNotDisturbHint)),
+                backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                decoration: BoxDecoration(
+                  color: ThemesCupertino.groupedCard.resolveFrom(context),
+                  borderRadius: const BorderRadius.all(Radius.circular(10)),
+                ),
+                footer: Padding(
+                  padding: const EdgeInsets.only(left: 13, top: 8),
+                  child: Text(
+                    t.doNotDisturbHint,
+                    style: TextStyle(fontSize: AppFontSizes.caption, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+                  ),
+                ),
                 children: [
                   CupertinoListTile(
                     title: Text(t.doNotDisturb),

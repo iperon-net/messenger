@@ -3709,6 +3709,39 @@ class Translations$screenMyProfile$en {
 	/// en: 'Set status'
 	String get setEmojiStatus => 'Set status';
 
+	/// en: 'Search emoji'
+	String get emojiStatusSearch => 'Search emoji';
+
+	/// en: 'Nothing found'
+	String get emojiStatusNotFound => 'Nothing found';
+
+	/// en: 'Popular'
+	String get emojiStatusCategoryPopular => 'Popular';
+
+	/// en: 'Smileys'
+	String get emojiStatusCategorySmileys => 'Smileys';
+
+	/// en: 'People'
+	String get emojiStatusCategoryPeople => 'People';
+
+	/// en: 'Animals & Nature'
+	String get emojiStatusCategoryAnimals => 'Animals & Nature';
+
+	/// en: 'Food & Drink'
+	String get emojiStatusCategoryFood => 'Food & Drink';
+
+	/// en: 'Activities'
+	String get emojiStatusCategoryActivities => 'Activities';
+
+	/// en: 'Travel & Places'
+	String get emojiStatusCategoryTravel => 'Travel & Places';
+
+	/// en: 'Objects'
+	String get emojiStatusCategoryObjects => 'Objects';
+
+	/// en: 'Symbols'
+	String get emojiStatusCategorySymbols => 'Symbols';
+
 	/// en: 'Remove status'
 	String get removeEmojiStatus => 'Remove status';
 
@@ -6632,6 +6665,17 @@ extension on Translations {
 			'screenMyProfile.emojiStatus' => 'Emoji status',
 			'screenMyProfile.changeEmojiStatus' => 'Change emoji status',
 			'screenMyProfile.setEmojiStatus' => 'Set status',
+			'screenMyProfile.emojiStatusSearch' => 'Search emoji',
+			'screenMyProfile.emojiStatusNotFound' => 'Nothing found',
+			'screenMyProfile.emojiStatusCategoryPopular' => 'Popular',
+			'screenMyProfile.emojiStatusCategorySmileys' => 'Smileys',
+			'screenMyProfile.emojiStatusCategoryPeople' => 'People',
+			'screenMyProfile.emojiStatusCategoryAnimals' => 'Animals & Nature',
+			'screenMyProfile.emojiStatusCategoryFood' => 'Food & Drink',
+			'screenMyProfile.emojiStatusCategoryActivities' => 'Activities',
+			'screenMyProfile.emojiStatusCategoryTravel' => 'Travel & Places',
+			'screenMyProfile.emojiStatusCategoryObjects' => 'Objects',
+			'screenMyProfile.emojiStatusCategorySymbols' => 'Symbols',
 			'screenMyProfile.removeEmojiStatus' => 'Remove status',
 			'screenMyProfile.emojiStatusDuration' => 'Duration',
 			'screenMyProfile.emojiStatusUnlimited' => 'No time limit',
@@ -7036,6 +7080,8 @@ extension on Translations {
 			'systemNotice.recoveryEmailSetTitle' => 'Recovery email confirmed',
 			'systemNotice.recoveryEmailSet' => ({required Object email}) => 'You can now reset your cloud password via ${email}.',
 			'systemNotice.recoveryEmailSetNoEmail' => 'You can now reset your cloud password via email.',
+			_ => null,
+		} ?? switch (path) {
 			'systemNotice.passkeyAddedTitle' => 'Passkey added',
 			'systemNotice.passkeyAdded' => ({required Object label}) => 'Passkey “${label}” was added to your account: it lets you log in without a phone call.',
 			'systemNotice.passkeyAddedNoLabel' => 'A passkey was added to your account: it lets you log in without a phone call.',
@@ -7047,8 +7093,6 @@ extension on Translations {
 			'systemNotice.notMeTitle' => 'End this session?',
 			'systemNotice.notMeMessage' => ({required Object device}) => '“${device}” will be logged out of your account.',
 			'systemNotice.notMeMessageUnknown' => 'This device will be logged out of your account.',
-			_ => null,
-		} ?? switch (path) {
 			'systemNotice.terminate' => 'End session',
 			'systemNotice.terminatedTitle' => 'Session ended',
 			'systemNotice.terminatedMessage' => 'Turn on a cloud password: with it, nobody can log in on a new device, even with your login code.',

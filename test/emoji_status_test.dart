@@ -1,5 +1,8 @@
+import 'package:animated_emoji/animated_emoji.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:messenger/chats/animated_emoji.dart';
 import 'package:messenger/models/emoji_status.dart';
+import 'package:messenger/screens/settings/settings_emoji_status_common.dart';
 
 void main() {
   test('emoji status expires and mutes only with a duration', () {
@@ -14,5 +17,25 @@ void main() {
     expect(expired.active, isFalse);
     expect(expired.mutes, isFalse);
     expect(expired.toProto(), isNull);
+  });
+
+  test('emoji status choices contain every animated emoji with popular ones first', () {
+    expect(emojiStatusChoices.length, AnimatedEmojis.values.length);
+    expect(emojiStatusChoices.toSet().length, AnimatedEmojis.values.length);
+    expect(emojiStatusChoices.every((emoji) => AnimatedEmojiStore.lookup(emoji) != null), isTrue);
+    expect(bundledAnimatedEmoji.contains(AnimatedEmojiStore.lookup(emojiStatusChoices.first)!.name), isTrue);
+  });
+
+  test('emoji status categories and search filter the catalog', () {
+    expect(emojiStatusItems(EmojiStatusCategory.popular, ''), hasLength(bundledAnimatedEmoji.length));
+    expect(emojiStatusItems(EmojiStatusCategory.smileys, ''), isNotEmpty);
+    expect(
+      emojiStatusItems(
+        EmojiStatusCategory.popular,
+        'heart',
+      ).every((emoji) => emoji.name.toLowerCase().contains('heart') || emoji.tags.any((tag) => tag.contains('heart'))),
+      isTrue,
+    );
+    expect(emojiStatusItems(EmojiStatusCategory.popular, 'definitely-no-such-emoji'), isEmpty);
   });
 }

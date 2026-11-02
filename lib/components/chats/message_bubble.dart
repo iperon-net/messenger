@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart' as mi show Icons;
 import 'package:url_launcher/url_launcher.dart';
@@ -16,8 +17,8 @@ import '../../chats/voice_player.dart';
 import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
+import '../../split_layout.dart';
 import '../dust_effect.dart';
-import '../emoji_status.dart';
 import '../user_avatar.dart';
 import 'chat_avatar.dart' show chatImage;
 import 'media_actions.dart' show chatFileRevealLabel;
@@ -130,6 +131,9 @@ class ChatMessagesView extends StatelessWidget {
   /// Тап по «Переслано от …» — к автору оригинала (или «аккаунт скрыт»).
   final ValueChanged<models.Message>? onForwardTap;
 
+  /// Тап по аватару канала — страница информации о нём.
+  final VoidCallback? onChannelAvatarTap;
+
   /// Тап по строке сообщения вне режима выделения (экран «Закреплённые»).
   final ValueChanged<models.Message>? onTap;
 
@@ -219,6 +223,7 @@ class ChatMessagesView extends StatelessWidget {
     this.onReply,
     this.onReplyTap,
     this.onForwardTap,
+    this.onChannelAvatarTap,
     this.onTap,
     this.onPinnedServiceTap,
     this.onNoForwardsAnswer,
@@ -364,7 +369,7 @@ class ChatMessagesView extends StatelessWidget {
                                     tail: !groupedWithNewer,
                                     showSender: group && !m.outgoing && !groupedWithOlder,
                                     senderBadge: senderBadges[m.senderUserID] ?? '',
-                                    avatar: group && !m.outgoing
+                                    avatar: (group && !m.outgoing) || chatType == models.ChatType.channel
                                         ? (groupedWithNewer
                                               ? const SizedBox(width: 34)
                                               : _SenderAvatar(
@@ -372,6 +377,7 @@ class ChatMessagesView extends StatelessWidget {
                                                   name: m.senderName.isNotEmpty ? m.senderName : (m.forward?.name ?? ''),
                                                   userID: m.senderUserID,
                                                   path: m.senderAvatarPath,
+                                                  onChannelTap: chatType == models.ChatType.channel ? onChannelAvatarTap : null,
                                                 ))
                                         : null,
                                     onLongPress: () => onLongPress(m),
@@ -460,22 +466,27 @@ class _SenderAvatar extends StatelessWidget {
 
   /// Аватар файлом (канал у поста в шапке ветки).
   final String path;
+  final VoidCallback? onChannelTap;
 
-  const _SenderAvatar({required this.name, this.userID = '', this.path = ''});
+  const _SenderAvatar({required this.name, this.userID = '', this.path = '', this.onChannelTap});
 
   @override
   Widget build(BuildContext context) {
     final id = userID.isEmpty ? null : idBytes(userID);
     return Padding(
       padding: const EdgeInsets.only(right: 4),
-      child: SizedBox(
-        width: 30,
-        height: 30,
-        child: path.isNotEmpty
-            ? ClipOval(child: chatImage(path, width: 30, height: 30, fit: BoxFit.cover, cacheWidth: 90))
-            : id != null && id.isNotEmpty
-            ? UserAvatar(userID: id, placeholderName: userID, size: 30)
-            : BoringAvatar(name: name, type: BoringAvatarType.beam, shape: const CircleBorder()),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onChannelTap ?? (id == null || id.isEmpty ? null : () => context.push(profileRoute(context, userID))),
+        child: SizedBox(
+          width: 30,
+          height: 30,
+          child: path.isNotEmpty
+              ? ClipOval(child: chatImage(path, width: 30, height: 30, fit: BoxFit.cover, cacheWidth: 90))
+              : id != null && id.isNotEmpty
+              ? UserAvatar(userID: id, placeholderName: userID, size: 30)
+              : BoringAvatar(name: name, type: BoringAvatarType.beam, shape: const CircleBorder()),
+        ),
       ),
     );
   }
@@ -943,15 +954,7 @@ class MessageBubble extends StatelessWidget {
               textBaseline: TextBaseline.alphabetic,
               children: [
                 Flexible(child: name),
-                if (m.senderUserID.isNotEmpty) ...[
-                  const SizedBox(width: 4),
-                  Flexible(
-                    child: EmojiStatusForUser(
-                      userID: m.senderUserID,
-                      style: style.textStyle.copyWith(fontSize: 12, color: style.incomingMeta),
-                    ),
-                  ),
-                ],
+                if (m.senderUserID.isNotEmpty) ...[],
                 if (senderBadge.isNotEmpty) ...[
                   const SizedBox(width: 8),
                   Text(senderBadge, maxLines: 1, style: style.textStyle.copyWith(fontSize: 12, color: style.incomingMeta)),

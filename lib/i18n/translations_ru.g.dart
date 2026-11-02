@@ -1526,6 +1526,17 @@ class _Translations$screenMyProfile$ru extends Translations$screenMyProfile$en {
 	@override String get emojiStatus => 'Эмодзи-статус';
 	@override String get changeEmojiStatus => 'Сменить эмодзи-статус';
 	@override String get setEmojiStatus => 'Установить статус';
+	@override String get emojiStatusSearch => 'Поиск эмодзи';
+	@override String get emojiStatusNotFound => 'Ничего не найдено';
+	@override String get emojiStatusCategoryPopular => 'Популярные';
+	@override String get emojiStatusCategorySmileys => 'Смайлы';
+	@override String get emojiStatusCategoryPeople => 'Люди';
+	@override String get emojiStatusCategoryAnimals => 'Животные и природа';
+	@override String get emojiStatusCategoryFood => 'Еда и напитки';
+	@override String get emojiStatusCategoryActivities => 'Активность';
+	@override String get emojiStatusCategoryTravel => 'Путешествия';
+	@override String get emojiStatusCategoryObjects => 'Предметы';
+	@override String get emojiStatusCategorySymbols => 'Символы';
 	@override String get removeEmojiStatus => 'Удалить статус';
 	@override String get emojiStatusDuration => 'Срок действия';
 	@override String get emojiStatusUnlimited => 'Без срока';
@@ -3474,6 +3485,17 @@ extension on TranslationsRu {
 			'screenMyProfile.emojiStatus' => 'Эмодзи-статус',
 			'screenMyProfile.changeEmojiStatus' => 'Сменить эмодзи-статус',
 			'screenMyProfile.setEmojiStatus' => 'Установить статус',
+			'screenMyProfile.emojiStatusSearch' => 'Поиск эмодзи',
+			'screenMyProfile.emojiStatusNotFound' => 'Ничего не найдено',
+			'screenMyProfile.emojiStatusCategoryPopular' => 'Популярные',
+			'screenMyProfile.emojiStatusCategorySmileys' => 'Смайлы',
+			'screenMyProfile.emojiStatusCategoryPeople' => 'Люди',
+			'screenMyProfile.emojiStatusCategoryAnimals' => 'Животные и природа',
+			'screenMyProfile.emojiStatusCategoryFood' => 'Еда и напитки',
+			'screenMyProfile.emojiStatusCategoryActivities' => 'Активность',
+			'screenMyProfile.emojiStatusCategoryTravel' => 'Путешествия',
+			'screenMyProfile.emojiStatusCategoryObjects' => 'Предметы',
+			'screenMyProfile.emojiStatusCategorySymbols' => 'Символы',
 			'screenMyProfile.removeEmojiStatus' => 'Удалить статус',
 			'screenMyProfile.emojiStatusDuration' => 'Срок действия',
 			'screenMyProfile.emojiStatusUnlimited' => 'Без срока',
@@ -3878,6 +3900,8 @@ extension on TranslationsRu {
 			'systemNotice.recoveryEmailSetTitle' => 'Почта для восстановления подтверждена',
 			'systemNotice.recoveryEmailSet' => ({required Object email}) => 'Сбросить облачный пароль теперь можно через ${email}.',
 			'systemNotice.recoveryEmailSetNoEmail' => 'Сбросить облачный пароль теперь можно через почту.',
+			_ => null,
+		} ?? switch (path) {
 			'systemNotice.passkeyAddedTitle' => 'Добавлен ключ доступа',
 			'systemNotice.passkeyAdded' => ({required Object label}) => 'К аккаунту добавлен ключ доступа «${label}»: с ним можно входить без звонка.',
 			'systemNotice.passkeyAddedNoLabel' => 'К аккаунту добавлен ключ доступа: с ним можно входить без звонка.',
@@ -3889,8 +3913,6 @@ extension on TranslationsRu {
 			'systemNotice.notMeTitle' => 'Завершить этот сеанс?',
 			'systemNotice.notMeMessage' => ({required Object device}) => 'Устройство «${device}» выйдет из вашего аккаунта.',
 			'systemNotice.notMeMessageUnknown' => 'Это устройство выйдет из вашего аккаунта.',
-			_ => null,
-		} ?? switch (path) {
 			'systemNotice.terminate' => 'Завершить',
 			'systemNotice.terminatedTitle' => 'Сеанс завершён',
 			'systemNotice.terminatedMessage' => 'Включите облачный пароль: с ним никто не войдёт в аккаунт на новом устройстве, даже зная код входа.',
