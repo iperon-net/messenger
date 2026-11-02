@@ -253,7 +253,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 CupertinoListSection.insetGrouped(
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   clipBehavior: Clip.antiAlias,

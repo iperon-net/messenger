@@ -28,7 +28,9 @@ void main() {
 
   test('emoji status categories and search filter the catalog', () {
     expect(emojiStatusItems(EmojiStatusCategory.popular, ''), hasLength(bundledAnimatedEmoji.length));
-    expect(emojiStatusItems(EmojiStatusCategory.smileys, ''), isNotEmpty);
+    for (final category in EmojiStatusCategory.values) {
+      expect(emojiStatusItems(category, ''), isNotEmpty, reason: '$category must contain emoji');
+    }
     expect(
       emojiStatusItems(
         EmojiStatusCategory.popular,

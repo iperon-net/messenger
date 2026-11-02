@@ -174,7 +174,7 @@ class _SettingsEmojiStatusCupertinoState extends State<SettingsEmojiStatusCupert
                     borderRadius: const BorderRadius.all(Radius.circular(10)),
                   ),
                   footer: Padding(
-                    padding: const EdgeInsets.only(left: 13, top: 8),
+                    padding: const EdgeInsets.only(top: 8),
                     child: Text(
                       t.doNotDisturbHint,
                       style: TextStyle(fontSize: AppFontSizes.caption, color: CupertinoColors.secondaryLabel.resolveFrom(context)),

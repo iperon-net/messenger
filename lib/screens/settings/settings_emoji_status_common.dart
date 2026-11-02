@@ -32,10 +32,10 @@ List<AnimatedEmojiData> emojiStatusItems(EmojiStatusCategory category, String qu
   final categoryName = switch (category) {
     EmojiStatusCategory.popular => null,
     EmojiStatusCategory.smileys => 'Smileys and emotions',
-    EmojiStatusCategory.people => 'People and body',
+    EmojiStatusCategory.people => 'People',
     EmojiStatusCategory.animals => 'Animals and nature',
     EmojiStatusCategory.food => 'Food and drink',
-    EmojiStatusCategory.activities => 'Activities',
+    EmojiStatusCategory.activities => 'Activities and events',
     EmojiStatusCategory.travel => 'Travel and places',
     EmojiStatusCategory.objects => 'Objects',
     EmojiStatusCategory.symbols => 'Symbols',
