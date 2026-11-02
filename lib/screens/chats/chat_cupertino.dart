@@ -1621,8 +1621,10 @@ class _ForwardOptionsCupertino extends StatelessWidget {
     final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
     final primary = CupertinoTheme.of(context).primaryColor;
     final size = MediaQuery.sizeOf(context);
+    // Место под галочку есть всегда: иначе текст невыбранного пункта
+    // съезжает влево относительно выбранного.
     Widget option(String label, {required bool selected, required VoidCallback onTap}) => CupertinoListTile(
-      leading: selected ? Icon(CupertinoIcons.check_mark, color: primary, size: 20) : null,
+      leading: Icon(CupertinoIcons.check_mark, color: selected ? primary : const Color(0x00000000), size: 20),
       title: Text(label),
       onTap: onTap,
     );
