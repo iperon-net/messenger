@@ -254,8 +254,11 @@ mixin SearchHideOnScroll<T extends StatefulWidget> on State<T> {
         key: key,
         controller: searchListController(listKey),
         slivers: [
+          // Снизу — под клавиатуру: экраны списков её высоту не вычитают
+          // (resizeToAvoidBottomInset: false), а результаты поиска должны
+          // докручиваться над ней.
           SliverPadding(
-            padding: EdgeInsets.only(top: top),
+            padding: EdgeInsets.only(top: top, bottom: MediaQuery.viewInsetsOf(context).bottom),
             sliver: sliver,
           ),
           SliverLayoutBuilder(

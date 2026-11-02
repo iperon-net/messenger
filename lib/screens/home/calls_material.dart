@@ -69,6 +69,9 @@ class _CallsMaterialState extends State<CallsMaterial> with WidgetsBindingObserv
     final background = isDark ? ThemesCupertino.groupedCard.darkColor : ThemesCupertino.groupedCard.color;
 
     return Scaffold(
+      // Клавиатура не ужимает список (её закрытие после чата — «пропадающие»
+      // нижние чаты): его низ под клавиатурой — отступ в searchListView.
+      resizeToAvoidBottomInset: false,
       backgroundColor: background,
       appBar: AppBar(
         backgroundColor: background,

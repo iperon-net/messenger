@@ -56,6 +56,9 @@ class _ChatsCupertino extends State<ChatsCupertino> with SearchHideOnScroll, Cha
           listenWhen: (previous, current) => previous.settingsDevice.chatsDemo != current.settingsDevice.chatsDemo,
           listener: (context, state) => context.read<ChatsCubit>().setDemo(state.settingsDevice.chatsDemo),
           child: CupertinoPageScaffold(
+            // Клавиатура не ужимает список (её закрытие после чата — «пропадающие»
+            // нижние чаты): его низ под клавиатурой — отступ в searchListView.
+            resizeToAvoidBottomInset: false,
             backgroundColor: ThemesCupertino.appBackground,
             navigationBar: AppCupertinoNavigationBar(
               child: CupertinoNavigationBar(

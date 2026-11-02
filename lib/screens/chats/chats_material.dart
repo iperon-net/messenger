@@ -59,6 +59,9 @@ class _ChatsMaterial extends State<ChatsMaterial> with SearchHideOnScroll, Chats
           listenWhen: (previous, current) => previous.settingsDevice.chatsDemo != current.settingsDevice.chatsDemo,
           listener: (context, state) => context.read<ChatsCubit>().setDemo(state.settingsDevice.chatsDemo),
           child: Scaffold(
+            // Клавиатура не ужимает список (её закрытие после чата — «пропадающие»
+            // нижние чаты): его низ под клавиатурой — отступ в searchListView.
+            resizeToAvoidBottomInset: false,
             backgroundColor: background,
             appBar: AppBar(
               backgroundColor: background,

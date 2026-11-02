@@ -43,6 +43,9 @@ class _CallsCupertinoState extends State<CallsCupertino> with SearchHideOnScroll
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
+      // Клавиатура не ужимает список (её закрытие после чата — «пропадающие»
+      // нижние чаты): его низ под клавиатурой — отступ в searchListView.
+      resizeToAvoidBottomInset: false,
       backgroundColor: ThemesCupertino.appBackground,
       navigationBar: AppCupertinoNavigationBar(
         child: CupertinoNavigationBar(

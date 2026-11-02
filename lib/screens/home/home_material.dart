@@ -107,7 +107,9 @@ class _HomeMaterialState extends State<HomeMaterial> {
             ),
           ],
         );
-        if (!wide) return Scaffold(body: widget.navigationShell, bottomNavigationBar: bar);
+        // Клавиатура не поднимает панель вкладок (как в HomeCupertino): экраны
+        // вкладок сами отступают от неё, а панель остаётся у низа экрана.
+        if (!wide) return Scaffold(resizeToAvoidBottomInset: false, body: widget.navigationShell, bottomNavigationBar: bar);
         return Scaffold(
           // Клавиатура поднимает экраны вкладок (их Scaffold), а не панель
           // вкладок над ней — как в HomeCupertino.
