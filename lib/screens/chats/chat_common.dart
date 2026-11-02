@@ -1456,6 +1456,80 @@ Future<void> changeForwardRecipient(BuildContext context) async {
   context.pushReplacement('/chats/chat/${target.id}');
 }
 
+/// Пересылаемые так, как их увидит получатель: мои исходящие, без ответа и
+/// реакций, с «Переслано от» или без ([ChatState.forwardDropAuthor]), у медиа
+/// без подписей ([ChatState.forwardDropCaptions]) — те же правила, что у
+/// `forwardMessages`.
+List<models.Message> forwardPreviewMessages(ChatState state) {
+  final now = DateTime.now();
+  return [
+    for (final (i, m) in state.forwarding.indexed)
+      () {
+        final noCaption = state.forwardDropCaptions && messageMediaCount(m) > 0;
+        return models.Message(
+          id: 'forward-preview-$i',
+          chatID: 'forward-preview',
+          kind: m.kind,
+          text: noCaption ? '' : m.text,
+          entities: noCaption ? const [] : m.entities,
+          outgoing: true,
+          status: models.MessageStatus.read,
+          date: now,
+          localPath: m.localPath,
+          fileName: m.fileName,
+          duration: m.duration,
+          waveform: m.waveform,
+          media: m.media,
+          fileSize: m.fileSize,
+          poll: m.poll,
+          linkPreview: noCaption ? null : m.linkPreview,
+          forward: state.forwardDropAuthor || state.forwardDropCaptions ? null : m.forward,
+        );
+      }(),
+  ];
+}
+
+/// Превью пересылки в меню плашки: [messages] ([forwardPreviewMessages]) на
+/// обоях чата, не выше [maxHeight] (дальше — прокрутка); пузыри только для
+/// вида.
+class ForwardPreview extends StatelessWidget {
+  final List<models.Message> messages;
+  final MessageBubbleStyle style;
+  final bool dark;
+  final double maxHeight;
+
+  const ForwardPreview({super.key, required this.messages, required this.style, required this.dark, required this.maxHeight});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: ConstrainedBox(
+        // На всю ширину: обои — не только под пузырями.
+        constraints: BoxConstraints(minWidth: double.infinity, maxHeight: maxHeight),
+        child: Stack(
+          children: [
+            Positioned.fill(child: ChatWallpaperLayer(dark: dark)),
+            SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final (i, m) in messages.indexed)
+                    IgnorePointer(
+                      key: ValueKey(m.id),
+                      child: MessageBubble(message: m, style: style, tail: i == messages.length - 1, showSender: false, onLongPress: () {}),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Плашка над полем ввода: «Ответ Анне: …» / «Редактирование: …».
 ///
 /// [quote] — отвечаем на фрагмент («Цитировать»): в [text] — цитата, её

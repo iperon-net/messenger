@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' show ImageFilter;
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -1069,37 +1070,28 @@ class _ComposeBar extends StatelessWidget {
     required this.onScheduled,
   });
 
-  /// Пересылка: тап по плашке — меню (как в Telegram): показать / скрыть имя
-  /// отправителя, подписи (если есть у медиа), «Изменить получателя».
+  /// Пересылка: тап по плашке — превью и настройки ([_showForwardOptions]).
   Widget _forwardMenu(BuildContext context, Widget child) {
     if (state.forwarding.isEmpty || state.editing != null) return child;
-    final t = context.t.screenChat;
+    return GestureDetector(behavior: HitTestBehavior.opaque, onTap: () => _showForwardOptions(context), child: child);
+  }
+
+  /// Как в Telegram: поверх размытого чата — пересылаемые так, как их увидит
+  /// получатель (меняются сразу), под ними — показать / скрыть имя
+  /// отправителя, подписи (если есть у медиа) и «Изменить получателя».
+  Future<void> _showForwardOptions(BuildContext context) async {
     final cubit = context.read<ChatCubit>();
-    CupertinoMenuItem option(String label, {required bool selected, required VoidCallback onPressed}) =>
-        CupertinoMenuItem(leading: selected ? const Icon(CupertinoIcons.check_mark) : null, onPressed: onPressed, child: Text(label));
-    return CupertinoMenuAnchor(
-      consumeOutsideTaps: true,
-      menuChildren: [
-        option(t.forwardShowSender, selected: !state.forwardDropAuthor, onPressed: () => cubit.setForwardDropAuthor(false)),
-        option(t.forwardHideSender, selected: state.forwardDropAuthor, onPressed: () => cubit.setForwardDropAuthor(true)),
-        if (state.forwardHasCaptions) ...[
-          const CupertinoMenuDivider(),
-          option(t.forwardShowCaptions, selected: !state.forwardDropCaptions, onPressed: () => cubit.setForwardDropCaptions(false)),
-          option(t.forwardHideCaptions, selected: state.forwardDropCaptions, onPressed: () => cubit.setForwardDropCaptions(true)),
-        ],
-        const CupertinoMenuDivider(),
-        CupertinoMenuItem(
-          trailing: const Icon(CupertinoIcons.arrowshape_turn_up_right),
-          onPressed: () => changeForwardRecipient(context),
-          child: Text(t.forwardChangeRecipient),
-        ),
-      ],
-      builder: (context, controller, _) => GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => controller.isOpen ? controller.close() : controller.open(),
-        child: child,
-      ),
+    final changeRecipient = await showGeneralDialog<bool>(
+      context: context,
+      useRootNavigator: true,
+      barrierDismissible: true,
+      barrierLabel: '',
+      barrierColor: const Color(0x00000000),
+      transitionDuration: const Duration(milliseconds: 200),
+      transitionBuilder: (context, animation, _, child) => FadeTransition(opacity: animation, child: child),
+      pageBuilder: (dialogContext, _, _) => BlocProvider.value(value: cubit, child: const _ForwardOptionsCupertino()),
     );
+    if (changeRecipient == true && context.mounted) await changeForwardRecipient(context);
   }
 
   @override
@@ -1610,6 +1602,122 @@ class _SearchBar extends StatelessWidget {
                 child: const Icon(CupertinoIcons.chevron_down, size: 22),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Экран настроек пересылки (iOS): размытый фон, превью, список пунктов.
+/// Закрывается тапом мимо; `true` — выбрали «Изменить получателя».
+class _ForwardOptionsCupertino extends StatelessWidget {
+  const _ForwardOptionsCupertino();
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t.screenChat;
+    final cubit = context.read<ChatCubit>();
+    final dark = CupertinoTheme.brightnessOf(context) == Brightness.dark;
+    final primary = CupertinoTheme.of(context).primaryColor;
+    final size = MediaQuery.sizeOf(context);
+    Widget option(String label, {required bool selected, required VoidCallback onTap}) => CupertinoListTile(
+      leading: selected ? Icon(CupertinoIcons.check_mark, color: primary, size: 20) : null,
+      title: Text(label),
+      onTap: onTap,
+    );
+    BoxDecoration card() =>
+        BoxDecoration(color: ThemesCupertino.groupedCard.resolveFrom(context), borderRadius: const BorderRadius.all(Radius.circular(13)));
+    return BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => Navigator.of(context).pop(),
+        child: ColoredBox(
+          color: dark ? const Color(0x66000000) : const Color(0x33000000),
+          child: SafeArea(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 480),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  // Тапы по превью и пунктам не закрывают экран.
+                  child: GestureDetector(
+                    onTap: () {},
+                    child: BlocBuilder<ChatCubit, ChatState>(
+                      buildWhen: (previous, current) =>
+                          previous.forwarding != current.forwarding ||
+                          previous.forwardDropAuthor != current.forwardDropAuthor ||
+                          previous.forwardDropCaptions != current.forwardDropCaptions,
+                      builder: (context, state) {
+                        // Пересылку сняли (не должно, но) — закрываемся.
+                        if (state.forwarding.isEmpty) return const SizedBox.shrink();
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            ForwardPreview(
+                              messages: forwardPreviewMessages(state),
+                              style: ChatCupertino.bubbleStyle(context),
+                              dark: dark,
+                              maxHeight: size.height * 0.5,
+                            ),
+                            const SizedBox(height: 12),
+                            CupertinoListSection(
+                              margin: EdgeInsets.zero,
+                              topMargin: 0,
+                              hasLeading: true,
+                              backgroundColor: const Color(0x00000000),
+                              decoration: card(),
+                              clipBehavior: Clip.antiAlias,
+                              children: [
+                                option(
+                                  t.forwardShowSender,
+                                  selected: !state.forwardDropAuthor,
+                                  onTap: () => cubit.setForwardDropAuthor(false),
+                                ),
+                                option(
+                                  t.forwardHideSender,
+                                  selected: state.forwardDropAuthor,
+                                  onTap: () => cubit.setForwardDropAuthor(true),
+                                ),
+                                if (state.forwardHasCaptions) ...[
+                                  option(
+                                    t.forwardShowCaptions,
+                                    selected: !state.forwardDropCaptions,
+                                    onTap: () => cubit.setForwardDropCaptions(false),
+                                  ),
+                                  option(
+                                    t.forwardHideCaptions,
+                                    selected: state.forwardDropCaptions,
+                                    onTap: () => cubit.setForwardDropCaptions(true),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            CupertinoListSection(
+                              margin: EdgeInsets.zero,
+                              topMargin: 0,
+                              backgroundColor: const Color(0x00000000),
+                              decoration: card(),
+                              clipBehavior: Clip.antiAlias,
+                              children: [
+                                CupertinoListTile(
+                                  title: Text(t.forwardChangeRecipient),
+                                  trailing: const Icon(CupertinoIcons.arrowshape_turn_up_right),
+                                  onTap: () => Navigator.of(context).pop(true),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),

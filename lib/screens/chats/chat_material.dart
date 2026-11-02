@@ -1299,34 +1299,25 @@ class _ComposeBar extends StatelessWidget {
     required this.color,
   });
 
-  /// Пересылка: тап по плашке — меню (как в Telegram): показать / скрыть имя
-  /// отправителя, подписи (если есть у медиа), «Изменить получателя».
+  /// Пересылка: тап по плашке — превью и настройки ([_showForwardOptions]).
   Widget _forwardMenu(BuildContext context, Widget child) {
     if (state.forwarding.isEmpty || state.editing != null) return child;
-    final t = context.t.screenChat;
+    return InkWell(onTap: () => _showForwardOptions(context), child: child);
+  }
+
+  /// Как в Telegram: лист — пересылаемые так, как их увидит получатель
+  /// (меняются сразу), под ними — показать / скрыть имя отправителя, подписи
+  /// (если есть у медиа) и «Изменить получателя».
+  Future<void> _showForwardOptions(BuildContext context) async {
     final cubit = context.read<ChatCubit>();
-    PopupMenuEntry<VoidCallback> option(String label, {required bool selected, required VoidCallback onSelected}) =>
-        CheckedPopupMenuItem(value: onSelected, checked: selected, child: Text(label));
-    return PopupMenuButton<VoidCallback>(
+    final changeRecipient = await showModalBottomSheet<bool>(
+      context: context,
       useRootNavigator: true,
-      tooltip: '',
-      onSelected: (action) => action(),
-      itemBuilder: (_) => [
-        option(t.forwardShowSender, selected: !state.forwardDropAuthor, onSelected: () => cubit.setForwardDropAuthor(false)),
-        option(t.forwardHideSender, selected: state.forwardDropAuthor, onSelected: () => cubit.setForwardDropAuthor(true)),
-        if (state.forwardHasCaptions) ...[
-          const PopupMenuDivider(),
-          option(t.forwardShowCaptions, selected: !state.forwardDropCaptions, onSelected: () => cubit.setForwardDropCaptions(false)),
-          option(t.forwardHideCaptions, selected: state.forwardDropCaptions, onSelected: () => cubit.setForwardDropCaptions(true)),
-        ],
-        const PopupMenuDivider(),
-        PopupMenuItem(
-          value: () => changeForwardRecipient(context),
-          child: ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.forward), title: Text(t.forwardChangeRecipient)),
-        ),
-      ],
-      child: child,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) => BlocProvider.value(value: cubit, child: const _ForwardOptionsMaterial()),
     );
+    if (changeRecipient == true && context.mounted) await changeForwardRecipient(context);
   }
 
   @override
@@ -1749,6 +1740,65 @@ class _SearchBar extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Лист настроек пересылки (Android): превью и пункты с галочками; `true` —
+/// выбрали «Изменить получателя».
+class _ForwardOptionsMaterial extends StatelessWidget {
+  const _ForwardOptionsMaterial();
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t.screenChat;
+    final cubit = context.read<ChatCubit>();
+    final scheme = Theme.of(context).colorScheme;
+    Widget option(String label, {required bool selected, required VoidCallback onTap}) => ListTile(
+      leading: Icon(Icons.check, color: selected ? scheme.primary : const Color(0x00000000)),
+      title: Text(label),
+      onTap: onTap,
+    );
+    return SafeArea(
+      child: BlocBuilder<ChatCubit, ChatState>(
+        buildWhen: (previous, current) =>
+            previous.forwarding != current.forwarding ||
+            previous.forwardDropAuthor != current.forwardDropAuthor ||
+            previous.forwardDropCaptions != current.forwardDropCaptions,
+        builder: (context, state) {
+          if (state.forwarding.isEmpty) return const SizedBox.shrink();
+          return SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: ForwardPreview(
+                    messages: forwardPreviewMessages(state),
+                    style: ChatMaterial.bubbleStyle(context),
+                    dark: Theme.of(context).brightness == Brightness.dark,
+                    maxHeight: MediaQuery.sizeOf(context).height * 0.45,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                option(t.forwardShowSender, selected: !state.forwardDropAuthor, onTap: () => cubit.setForwardDropAuthor(false)),
+                option(t.forwardHideSender, selected: state.forwardDropAuthor, onTap: () => cubit.setForwardDropAuthor(true)),
+                if (state.forwardHasCaptions) ...[
+                  const Divider(height: 1),
+                  option(t.forwardShowCaptions, selected: !state.forwardDropCaptions, onTap: () => cubit.setForwardDropCaptions(false)),
+                  option(t.forwardHideCaptions, selected: state.forwardDropCaptions, onTap: () => cubit.setForwardDropCaptions(true)),
+                ],
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.forward),
+                  title: Text(t.forwardChangeRecipient),
+                  onTap: () => Navigator.of(context).pop(true),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
