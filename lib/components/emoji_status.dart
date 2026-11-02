@@ -4,8 +4,11 @@ import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
 import '../chats/animated_emoji.dart';
+import '../chats/chats_mapping.dart' show idBytes;
+import '../di.dart';
 import '../i18n/translations.g.dart';
 import '../models.dart' as models;
+import '../repositories/repositories.dart';
 
 String emojiStatusText(BuildContext context, models.EmojiStatus status) {
   if (!status.active) return '';
@@ -63,9 +66,15 @@ class _EmojiStatusLabelState extends State<EmojiStatusLabel> {
     if (!widget.status.active) return const SizedBox.shrink();
     final style = widget.style ?? DefaultTextStyle.of(context).style;
     final data = AnimatedEmojiStore.lookup(widget.status.emoji);
-    final emoji = data != null && bundledAnimatedEmoji.contains(data.name)
+    final content = data != null && bundledAnimatedEmoji.contains(data.name)
         ? AnimatedBigEmoji(text: widget.status.emoji, style: style)
         : Text(widget.status.emoji, style: style);
+    final size = (style.fontSize ?? 14) * 1.4;
+    final emoji = SizedBox(
+      width: size,
+      height: size,
+      child: FittedBox(child: content),
+    );
     if (!widget.showUntil || widget.status.expiresAt == null) return emoji;
     final until = emojiStatusText(context, widget.status).substring(widget.status.emoji.length);
     return Row(
@@ -78,4 +87,47 @@ class _EmojiStatusLabelState extends State<EmojiStatusLabel> {
       ],
     );
   }
+}
+
+class EmojiStatusForUser extends StatefulWidget {
+  final String userID;
+  final TextStyle? style;
+
+  const EmojiStatusForUser({super.key, required this.userID, this.style});
+
+  @override
+  State<EmojiStatusForUser> createState() => _EmojiStatusForUserState();
+}
+
+class _EmojiStatusForUserState extends State<EmojiStatusForUser> {
+  models.EmojiStatus _status = const models.EmojiStatus();
+  StreamSubscription<Object?>? _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _read();
+    _subscription = getIt.get<Repositories>().db.onChange(['profiles'], triggerImmediately: false).listen((_) => _read());
+  }
+
+  @override
+  void didUpdateWidget(covariant EmojiStatusForUser oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.userID != widget.userID) _read();
+  }
+
+  Future<void> _read() async {
+    if (widget.userID.isEmpty) return;
+    final profile = await getIt.get<Repositories>().profiles.getByUserID(userID: idBytes(widget.userID));
+    if (mounted) setState(() => _status = profile.status);
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => EmojiStatusLabel(status: _status, style: widget.style, showUntil: false);
 }

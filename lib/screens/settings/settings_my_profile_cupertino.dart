@@ -253,8 +253,9 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 8),
                 CupertinoListSection.insetGrouped(
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
                   clipBehavior: Clip.antiAlias,
                   backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
                   decoration: BoxDecoration(
@@ -267,7 +268,7 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                       color: const Color(0xFFFF9500),
                       icon: FontAwesomeIcons.faceSmile,
                       additionalInfo: state.emojiStatus.active
-                          ? EmojiStatusLabel(status: state.emojiStatus)
+                          ? EmojiStatusLabel(status: state.emojiStatus, showUntil: false)
                           : Text(context.t.screenMyProfile.add),
                       isTrailing: true,
                       onTab: () async {
@@ -278,8 +279,9 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 8),
                 CupertinoListSection.insetGrouped(
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
                   clipBehavior: Clip.antiAlias,
                   backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
                   decoration: BoxDecoration(
@@ -334,8 +336,9 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                     ),
                   ],
                 ),
-
+                const SizedBox(height: 8),
                 CupertinoListSection.insetGrouped(
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
                   clipBehavior: Clip.antiAlias,
                   backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
                   decoration: BoxDecoration(
@@ -367,8 +370,9 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                     ),
                   ],
                 ),
-
+                const SizedBox(height: 8),
                 CupertinoListSection.insetGrouped(
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
                   clipBehavior: Clip.antiAlias,
                   backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
                   decoration: BoxDecoration(

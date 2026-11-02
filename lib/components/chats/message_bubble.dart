@@ -19,6 +19,7 @@ import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../split_layout.dart';
 import '../dust_effect.dart';
+import '../emoji_status.dart';
 import '../user_avatar.dart';
 import 'chat_avatar.dart' show chatImage;
 import 'media_actions.dart' show chatFileRevealLabel;
@@ -954,7 +955,13 @@ class MessageBubble extends StatelessWidget {
               textBaseline: TextBaseline.alphabetic,
               children: [
                 Flexible(child: name),
-                if (m.senderUserID.isNotEmpty) ...[],
+                if (m.senderUserID.isNotEmpty) ...[
+                  const SizedBox(width: 4),
+                  EmojiStatusForUser(
+                    userID: m.senderUserID,
+                    style: style.textStyle.copyWith(fontSize: 12, color: style.incomingMeta),
+                  ),
+                ],
                 if (senderBadge.isNotEmpty) ...[
                   const SizedBox(width: 8),
                   Text(senderBadge, maxLines: 1, style: style.textStyle.copyWith(fontSize: 12, color: style.incomingMeta)),

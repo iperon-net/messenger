@@ -207,7 +207,7 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
                     color: const Color(0xFFFF9500),
                     icon: FontAwesomeIcons.faceSmile,
                     additionalInfo: state.emojiStatus.active
-                        ? EmojiStatusLabel(status: state.emojiStatus)
+                        ? EmojiStatusLabel(status: state.emojiStatus, showUntil: false)
                         : Text(context.t.screenMyProfile.add),
                     isTrailing: true,
                     onTab: () async {

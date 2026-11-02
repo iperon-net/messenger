@@ -465,6 +465,7 @@ class _ProfileViewState extends State<_ProfileView> {
                 child: Center(
                   child: EmojiStatusLabel(
                     status: profile.emojiStatus,
+                    showUntil: false,
                     style: TextStyle(fontSize: 15, color: secondary),
                   ),
                 ),
