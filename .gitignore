@@ -11,6 +11,7 @@
 .history
 .idea/
 .claude/
+.kimi-code/
 .env
 lib/settings.g.dart
 
