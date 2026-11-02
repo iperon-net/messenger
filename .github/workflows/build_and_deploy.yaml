@@ -39,9 +39,17 @@ jobs:
     secrets:
       firebase_options_dart_base64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
 
+  Test:
+    needs: [Linter]
+    uses: iperon-net/messenger/.github/workflows/_test.yaml@main
+    with:
+      flutter_version: "3.47.8"
+    secrets:
+      firebase_options_dart_base64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
+
   TestFlight:
     uses: iperon-net/messenger/.github/workflows/_deploy_testflight.yaml@main
-    needs: [Version, Linter]
+    needs: [Version, Test]
     with:
       flutter_version: "3.47.8"
       build_number: ${{ needs.Version.outputs.build_number }}
@@ -60,7 +68,7 @@ jobs:
   # секретов нет — неподписанный DMG только артефактом, релиз не создаётся.
   macOS:
     uses: iperon-net/messenger/.github/workflows/_deploy_macos.yaml@main
-    needs: [Version, Linter]
+    needs: [Version, Test]
     # Публикация — GitHub Release этого репо.
     permissions:
       contents: write
@@ -79,7 +87,7 @@ jobs:
   # Android: APK по ABI (--split-per-abi) в тот же GitHub Release, что и macOS.
   Android:
     uses: iperon-net/messenger/.github/workflows/_deploy_android.yaml@main
-    needs: [Version, Linter]
+    needs: [Version, Test]
     permissions:
       contents: write
     with:
