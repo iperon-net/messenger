@@ -109,10 +109,21 @@ class _HomeMaterialState extends State<HomeMaterial> {
         );
         if (!wide) return Scaffold(body: widget.navigationShell, bottomNavigationBar: bar);
         return Scaffold(
+          // Клавиатура поднимает экраны вкладок (их Scaffold), а не панель
+          // вкладок над ней — как в HomeCupertino.
+          resizeToAvoidBottomInset: false,
           body: Stack(
             children: [
               Positioned.fill(child: widget.navigationShell),
-              Positioned(left: 0, bottom: 0, width: barWidth, child: bar),
+              // Без верхнего отступа (строка состояния): иначе NavigationBar
+              // добавляет его себе сверху и закрывает низ списка (в слоте
+              // bottomNavigationBar его снимает Scaffold).
+              Positioned(
+                left: 0,
+                bottom: 0,
+                width: barWidth,
+                child: MediaQuery.removePadding(context: context, removeTop: true, child: bar),
+              ),
             ],
           ),
         );
