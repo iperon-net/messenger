@@ -171,9 +171,14 @@ class EmojiPanel extends StatelessWidget {
           // Поиск: своя высота (результаты + поле) над клавиатурой. Тот же
           // SizedBox (height: null) — состояние панели (открытый поиск) не
           // теряется при смене.
-          child: SizedBox(
-            height: controller.searching ? null : height,
-            child: controller.open ? _picker(context, controller.height) : null,
+          child: AnimatedSize(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOut,
+            alignment: Alignment.topCenter,
+            child: SizedBox(
+              height: controller.searching ? null : height,
+              child: controller.open ? _picker(context, controller.height) : null,
+            ),
           ),
         );
       },
