@@ -29,10 +29,10 @@ packages:
     dependency: transitive
     description:
       name: android_file_picker
-      sha256: "03d3dd3cb578ab26b1e528aeea27bf6b976942f5a24e3da82d270369b8e161a8"
+      sha256: "868183c959e754e915954d8074c20cfa4cfdb4684b35ecc08378437be1a542d8"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.2"
+    version: "2.1.3"
   animated_emoji:
     dependency: "direct main"
     description:
@@ -53,10 +53,10 @@ packages:
     dependency: transitive
     description:
       name: archive
-      sha256: "0d58d1fa1fddf6588251ccf2819f3fb3b6d0452c1b2813ac7413a05592bfbefe"
+      sha256: de5ac590b8155e4e676088d714bd41ea620449a6adc0f7950c5073874b287ddb
       url: "https://pub.dev"
     source: hosted
-    version: "4.5.2"
+    version: "4.6.0"
   args:
     dependency: transitive
     description:
@@ -484,10 +484,10 @@ packages:
     dependency: "direct main"
     description:
       name: device_marketing_names
-      sha256: "10b75de7b3014971692a2cb540116680db7fba6b6eaa9b7ba05283c5b9d79c5d"
+      sha256: "27d784f99b83b856aad9b15c4741c33dc2d77e7f428597759f30427e88ca3885"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.4"
+    version: "2.0.5"
   dlibphonenumber:
     dependency: "direct main"
     description:
@@ -548,26 +548,26 @@ packages:
     dependency: "direct main"
     description:
       name: file_picker
-      sha256: e67f1bcbef00f8b28f3b6ce09a1f0d2d9de37cf1e1e7e73b70df7a20d3eee8be
+      sha256: c64036857780d7125f011d543f89eedcb5df61da473668bace4eee9ab875284d
       url: "https://pub.dev"
     source: hosted
-    version: "13.3.0"
+    version: "13.3.2"
   file_picker_darwin:
     dependency: transitive
     description:
       name: file_picker_darwin
-      sha256: "13e731433fb3e59c1aff5a1197e41c5c5f930fad16342d101579086271a70d7b"
+      sha256: daeb0219f6279c73eb9c63ae9a566beef04ae13d59b8feba0be2a7f3b258d3d4
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.0"
+    version: "2.4.2"
   file_picker_linux:
     dependency: transitive
     description:
       name: file_picker_linux
-      sha256: c6562fc7d426db2fb85ea66fe2627953d2709932df5584ceaacf0aa5e39cf4da
+      sha256: eb00de71b123e91d3c61f389a05b8cc90f9cbe7e4c88da30ebe2f0442b281b61
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.2"
+    version: "2.0.3"
   file_picker_platform_interface:
     dependency: transitive
     description:
@@ -893,10 +893,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_slidable
-      sha256: ea369262929d3cc6ebf9d8a00c196127966f117fe433a5e5cb47fb08008ca203
+      sha256: "373a94a50169bc4732267539af312b3cc6c5ab5b5b240364163255ff4c9a8adc"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.3"
+    version: "5.2.0"
   flutter_svg:
     dependency: "direct main"
     description:
@@ -1063,10 +1063,10 @@ packages:
     dependency: "direct main"
     description:
       name: hugeicons
-      sha256: a5953782b6065e16b56ea832229135a548fd46022d7df56b985c7b1be2883ca9
+      sha256: b93f0b14acf5d7491a84950907ae93be56aa35a20cd5619fe1d706aa340d690b
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.0"
+    version: "4.4.0"
   image:
     dependency: transitive
     description:
@@ -1319,10 +1319,10 @@ packages:
     dependency: "direct main"
     description:
       name: lottie
-      sha256: b23dd887cb1d167c3be37cdfad5ec27c012e77bcf7c02c01518cf4b76f384bcd
+      sha256: "3ce005da56c2ce38b97d2fe8ca812627d12aae3d13bb611f735c4a506cdf46b9"
       url: "https://pub.dev"
     source: hosted
-    version: "3.8.0"
+    version: "3.8.2"
   matcher:
     dependency: transitive
     description:
@@ -1375,10 +1375,10 @@ packages:
     dependency: "direct main"
     description:
       name: mobile_scanner
-      sha256: "5a51ea79f0cf8293f616a5d08baae185b59b5e6bb24df01f2a63037ade0bade0"
+      sha256: "175c62fc813c2bd762757359a2088f8cbdb72020cf85d4cd27fc4d3fe59be058"
       url: "https://pub.dev"
     source: hosted
-    version: "7.4.2"
+    version: "7.5.0"
   native_toolchain_c:
     dependency: transitive
     description:
@@ -1599,10 +1599,10 @@ packages:
     dependency: transitive
     description:
       name: permission_handler_apple
-      sha256: b69e6b8300f9584af5ab81b41cdaa544e1b45e6fca0a30b0f9a9a120d90fc8a5
+      sha256: "82d31c9b321c45785ccd73bce9c63af17037116193b4000b998a4363059adb6e"
       url: "https://pub.dev"
     source: hosted
-    version: "9.6.4"
+    version: "9.6.5"
   permission_handler_html:
     dependency: transitive
     description:
@@ -1987,10 +1987,10 @@ packages:
     dependency: "direct main"
     description:
       name: sodium
-      sha256: "221bf472ac36cb6703f8236a71714c1496d1e3da7e4d833ccf44a15a4ce3a8d2"
+      sha256: ecfcfc444ba1651c9b58cb3a84c6d925ab86c6206e40ab1ce0f5d674207d15d2
       url: "https://pub.dev"
     source: hosted
-    version: "4.1.2"
+    version: "4.1.2+1"
   source_gen:
     dependency: transitive
     description:
@@ -2019,10 +2019,10 @@ packages:
     dependency: transitive
     description:
       name: sqlite3_connection_pool
-      sha256: "7196d9630f78e8f2d66e4cf46129ad8d3abaffebd7dd5ca10c1fec19dbed4513"
+      sha256: af7dbfd341f760cda2d42fadf0be75e0e5932abd40a23b3589f3ed478789ee50
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.15"
+    version: "0.2.16"
   sqlite3_web:
     dependency: transitive
     description:

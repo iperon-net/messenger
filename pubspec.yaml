@@ -87,7 +87,7 @@ dependencies:
   audioplayers: ^6.1.0
   font_awesome_flutter: ^11.0.0
   badges: ^4.0.1
-  flutter_slidable: ^4.0.3
+  flutter_slidable: ^5.2.0
   flutter_screen_lock: ^9.2.2+2
   wakelock_plus: ^1.8.0
   local_auth: ^3.0.2
@@ -127,7 +127,7 @@ dependencies:
   # корня AAA Certificate Services (скомпрометированные CA eMudhra) в TURN/TLS.
   flutter_webrtc: 1.6.3
   livekit_client: ^2.13.2
-  hugeicons: ^1.2.0
+  hugeicons: ^4.4.0
   passkeys: ^2.23.1
   flutter_image_compress: ^2.5.1
   thumbhash: ^0.1.0+1
@@ -147,7 +147,7 @@ dependencies:
   # ristretto255 для OPAQUE облачного пароля и OPRF поиска контактов — чистый
   # Dart (пакет ristretto255) считал умножение точки ~140 мс. См.
   # lib/crypto/ristretto.dart.
-  sodium: 4.1.2
+  sodium: ^4.1.2+1
   ffi: ^2.2.0
 
 dev_dependencies:
