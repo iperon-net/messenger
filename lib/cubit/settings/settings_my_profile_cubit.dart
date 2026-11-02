@@ -81,6 +81,7 @@ class SettingsMyProfileCubit extends Cubit<SettingsMyProfileState> {
     final phoneNormalization = utils.phoneNormalization(phoneNumber: user.phoneNumber);
     emit(
       state.copyWith(
+        status: Status.success,
         locale: locale,
         phoneNumber: phoneNormalization.international,
         firstName: myProfile.fistName,
