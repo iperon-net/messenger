@@ -698,6 +698,7 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
                                                 onLongPress: (_) {},
                                                 menuWrapper: (message, bubble, preview) => _menu(context, chat, message, bubble, preview),
                                                 controller: _scroll,
+                                                onDrag: _emoji.close,
                                                 keyFor: _keyFor,
                                                 onCancelUpload: _cubit.cancelUpload,
                                                 onReaction: _cubit.features.reactions ? _cubit.toggleReaction : null,

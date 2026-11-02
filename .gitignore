@@ -1,4 +1,4 @@
-# Miscellaneous
+Так# Miscellaneous
 *.class
 *.lock
 # Lock-файл зависимостей приложения коммитим: CI собирает с теми же
@@ -164,3 +164,5 @@ ios/ExportOptions.plist
 
 # Local MCP config (not shared)
 .mcp.json
+/AGENTS.local.md
+/AGENTS.md

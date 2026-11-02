@@ -97,6 +97,7 @@ class ChatMessagesView extends StatelessWidget {
   final void Function(models.Message message, int index)? onMediaTap;
   final EdgeInsets padding;
   final ScrollController? controller;
+  final VoidCallback? onDrag;
 
   /// Поиск по чату: подсветка вхождений [highlight], у [focusedID] (текущее
   /// найденное) — ярче.
@@ -205,6 +206,7 @@ class ChatMessagesView extends StatelessWidget {
     this.onMediaTap,
     this.padding = EdgeInsets.zero,
     this.controller,
+    this.onDrag,
     this.highlight = '',
     this.focusedID,
     this.keyFor,
@@ -431,13 +433,19 @@ class ChatMessagesView extends StatelessWidget {
       }
     }
 
-    return ListView.builder(
-      controller: controller,
-      reverse: true,
-      padding: padding,
-      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      itemCount: items.length,
-      itemBuilder: (context, index) => items[index],
+    return NotificationListener<ScrollStartNotification>(
+      onNotification: (notification) {
+        if (notification.dragDetails != null) onDrag?.call();
+        return false;
+      },
+      child: ListView.builder(
+        controller: controller,
+        reverse: true,
+        padding: padding,
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        itemCount: items.length,
+        itemBuilder: (context, index) => items[index],
+      ),
     );
   }
 }

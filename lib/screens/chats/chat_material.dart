@@ -766,6 +766,7 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
                                             ),
                                             onLongPress: (message) => _actions(context, chat, message),
                                             controller: _scroll,
+                                            onDrag: _emoji.close,
                                             keyFor: _keyFor,
                                             onCancelUpload: _cubit.cancelUpload,
                                             onReaction: _cubit.features.reactions ? _cubit.toggleReaction : null,
