@@ -25,7 +25,6 @@ const AccountDeletionRequest$json = {
 const AccountDeletionRequest_Request$json = {
   '1': 'Request',
   '2': [
-    {'1': 'phoneNumber', '3': 1, '4': 1, '5': 9, '10': 'phoneNumber'},
     {'1': 'cloudPasswordToken', '3': 2, '4': 1, '5': 12, '10': 'cloudPasswordToken'},
   ],
 };
@@ -41,11 +40,10 @@ const AccountDeletionRequest_Response$json = {
 
 /// Descriptor for `AccountDeletionRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List accountDeletionRequestDescriptor =
-    $convert.base64Decode('ChZBY2NvdW50RGVsZXRpb25SZXF1ZXN0GlsKB1JlcXVlc3QSIAoLcGhvbmVOdW1iZXIYASABKA'
-        'lSC3Bob25lTnVtYmVyEi4KEmNsb3VkUGFzc3dvcmRUb2tlbhgCIAEoDFISY2xvdWRQYXNzd29y'
-        'ZFRva2VuGoABCghSZXNwb25zZRJIChFtYW51YWxEZWxldGVBZnRlchgBIAEoCzIaLmdvb2dsZS'
-        '5wcm90b2J1Zi5UaW1lc3RhbXBSEW1hbnVhbERlbGV0ZUFmdGVyEioKEGFscmVhZHlTY2hlZHVs'
-        'ZWQYAiABKAhSEGFscmVhZHlTY2hlZHVsZWQ=');
+    $convert.base64Decode('ChZBY2NvdW50RGVsZXRpb25SZXF1ZXN0GjkKB1JlcXVlc3QSLgoSY2xvdWRQYXNzd29yZFRva2'
+        'VuGAIgASgMUhJjbG91ZFBhc3N3b3JkVG9rZW4agAEKCFJlc3BvbnNlEkgKEW1hbnVhbERlbGV0'
+        'ZUFmdGVyGAEgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcFIRbWFudWFsRGVsZXRlQW'
+        'Z0ZXISKgoQYWxyZWFkeVNjaGVkdWxlZBgCIAEoCFIQYWxyZWFkeVNjaGVkdWxlZA==');
 
 @$core.Deprecated('Use accountDeletionCancelDescriptor instead')
 const AccountDeletionCancel$json = {

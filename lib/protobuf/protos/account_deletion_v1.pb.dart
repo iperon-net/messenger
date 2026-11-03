@@ -19,11 +19,9 @@ export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
 class AccountDeletionRequest_Request extends $pb.GeneratedMessage {
   factory AccountDeletionRequest_Request({
-    $core.String? phoneNumber,
     $core.List<$core.int>? cloudPasswordToken,
   }) {
     final result = create();
-    if (phoneNumber != null) result.phoneNumber = phoneNumber;
     if (cloudPasswordToken != null) result.cloudPasswordToken = cloudPasswordToken;
     return result;
   }
@@ -38,7 +36,6 @@ class AccountDeletionRequest_Request extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'AccountDeletionRequest.Request',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'phoneNumber', protoName: 'phoneNumber')
     ..a<$core.List<$core.int>>(2, _omitFieldNames ? '' : 'cloudPasswordToken', $pb.PbFieldType.OY, protoName: 'cloudPasswordToken')
     ..hasRequiredFields = false;
 
@@ -60,21 +57,12 @@ class AccountDeletionRequest_Request extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AccountDeletionRequest_Request>(create);
   static AccountDeletionRequest_Request? _defaultInstance;
 
-  @$pb.TagNumber(1)
-  $core.String get phoneNumber => $_getSZ(0);
-  @$pb.TagNumber(1)
-  set phoneNumber($core.String value) => $_setString(0, value);
-  @$pb.TagNumber(1)
-  $core.bool hasPhoneNumber() => $_has(0);
-  @$pb.TagNumber(1)
-  void clearPhoneNumber() => $_clearField(1);
-
   @$pb.TagNumber(2)
-  $core.List<$core.int> get cloudPasswordToken => $_getN(1);
+  $core.List<$core.int> get cloudPasswordToken => $_getN(0);
   @$pb.TagNumber(2)
-  set cloudPasswordToken($core.List<$core.int> value) => $_setBytes(1, value);
+  set cloudPasswordToken($core.List<$core.int> value) => $_setBytes(0, value);
   @$pb.TagNumber(2)
-  $core.bool hasCloudPasswordToken() => $_has(1);
+  $core.bool hasCloudPasswordToken() => $_has(0);
   @$pb.TagNumber(2)
   void clearCloudPasswordToken() => $_clearField(2);
 }
