@@ -119,11 +119,28 @@ class _SettingsMyProfileEditCupertino extends State<SettingsMyProfileEditCuperti
         }
       },
       builder: (context, state) {
+        // Кнопка «Готово» на клавиатуре срабатывает как «Сохранить».
+        Future<void> submit() async {
+          if (formKey.currentState!.validate()) {
+            logger.debug(birthDateController.text);
+
+            await context.read<SettingsMyProfileEditCubit>().setProfile(
+              birthDate: birthDateController.text,
+              firstName: firstNameController.text,
+              lastName: lastNameController.text,
+              aboutMe: aboutMeController.text,
+            );
+          }
+        }
+
         final firstNameField = CupertinoTextFormFieldRow(
           placeholder: context.t.screenMyProfile.firstName,
           controller: firstNameController,
           focusNode: firstNameFocus,
           autofillHints: [AutofillHints.givenName],
+          // Для русской локали фамилия идёт выше имени, и «Готово» — на имени.
+          textInputAction: LocaleSettings.currentLocale == AppLocale.ru ? TextInputAction.done : TextInputAction.next,
+          onFieldSubmitted: LocaleSettings.currentLocale == AppLocale.ru ? (_) => submit() : null,
           validator: (value) {
             final error = switch (context.read<SettingsMyProfileEditCubit>().validateFirstName(value)) {
               FirstNameValidationError.maxLength => context.t.screenMyProfile.validationFirstNameMaxLength,
@@ -137,6 +154,8 @@ class _SettingsMyProfileEditCupertino extends State<SettingsMyProfileEditCuperti
           controller: lastNameController,
           focusNode: lastNameFocus,
           autofillHints: [AutofillHints.familyName],
+          textInputAction: LocaleSettings.currentLocale == AppLocale.ru ? TextInputAction.next : TextInputAction.done,
+          onFieldSubmitted: LocaleSettings.currentLocale == AppLocale.ru ? null : (_) => submit(),
           validator: (value) {
             final error = switch (context.read<SettingsMyProfileEditCubit>().validateFirstName(value)) {
               FirstNameValidationError.maxLength => context.t.screenMyProfile.validationLastNameMaxLength,
@@ -160,18 +179,7 @@ class _SettingsMyProfileEditCupertino extends State<SettingsMyProfileEditCuperti
                 NavBarAction.done,
                 label: context.t.common.save,
                 loading: state.networkStatus == Status.loading,
-                onPressed: () async {
-                  if (formKey.currentState!.validate()) {
-                    logger.debug(birthDateController.text);
-
-                    await context.read<SettingsMyProfileEditCubit>().setProfile(
-                      birthDate: birthDateController.text,
-                      firstName: firstNameController.text,
-                      lastName: lastNameController.text,
-                      aboutMe: aboutMeController.text,
-                    );
-                  }
-                },
+                onPressed: submit,
               ),
             ),
           ),

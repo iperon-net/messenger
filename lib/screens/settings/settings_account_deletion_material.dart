@@ -112,6 +112,14 @@ class _SettingsAccountDeletionMaterialState extends State<SettingsAccountDeletio
                                   obscureText: true,
                                   autofillHints: null,
                                   autofocus: true,
+                                  // Кнопка «Готово»/галочка на клавиатуре срабатывает как «Продолжить».
+                                  textInputAction: TextInputAction.done,
+                                  onFieldSubmitted: state.loading
+                                      ? null
+                                      : (_) async {
+                                          final cubit = context.read<AccountDeletionCubit>();
+                                          if (!await cubit.unlock(password.text) && cubit.state.error.isEmpty) _error();
+                                        },
                                 ),
                               ),
                             ),

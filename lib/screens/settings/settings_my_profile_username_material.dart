@@ -95,6 +95,13 @@ class _SettingsMyProfileUsernameMaterial extends State<SettingsMyProfileUsername
                         autofocus: true,
                         autocorrect: false,
                         enableSuggestions: false,
+                        // Кнопка «Готово»/галочка на клавиатуре срабатывает как «Сохранить».
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) async {
+                          if (formKey.currentState!.validate()) {
+                            await context.read<SettingsMyProfileUsernameCubit>().setUsername(username: usernameController.text);
+                          }
+                        },
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9_]')),
                           TextInputFormatter.withFunction((oldValue, newValue) => newValue.copyWith(text: newValue.text.toLowerCase())),

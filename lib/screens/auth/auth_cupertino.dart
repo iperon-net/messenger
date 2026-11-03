@@ -182,6 +182,16 @@ class _AuthCupertinoScreen extends State<AuthCupertinoScreen> {
                                   prefix: Padding(padding: EdgeInsets.fromLTRB(0, 0, 10, 0), child: Icon(CupertinoIcons.phone)),
                                   inputFormatters: [PhoneInputFormatter()],
                                   autofillHints: const [AutofillHints.telephoneNumber],
+                                  // Кнопка «Готово» на клавиатуре срабатывает как «Продолжить».
+                                  textInputAction: TextInputAction.done,
+                                  onFieldSubmitted: [Status.success, Status.initialization].contains(state.status)
+                                      ? (_) async {
+                                          serverError = null;
+                                          if (formKey.currentState!.validate()) {
+                                            await context.read<AuthCubit>().onPressed(phoneNumberController.text);
+                                          }
+                                        }
+                                      : null,
                                   placeholder: context.t.common.mobilePhone,
                                   validator: (value) {
                                     final error = switch (context.read<AuthCubit>().validatePhoneNumber(value)) {

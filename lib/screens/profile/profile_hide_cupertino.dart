@@ -87,6 +87,9 @@ class _ProfileHideCupertino extends State<ProfileHideCupertino> {
                       autofocus: true,
                       autocorrect: false,
                       enableSuggestions: false,
+                      // Кнопка «Готово» на клавиатуре срабатывает как «Скрыть».
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) => context.read<ProfileHideCubit>().hide(_phraseController.text),
                     ),
                   ],
                 ),

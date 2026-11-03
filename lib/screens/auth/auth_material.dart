@@ -153,6 +153,16 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                                 keyboardAppearance: Theme.of(context).brightness,
                                 inputFormatters: [PhoneInputFormatter()],
                                 autofillHints: const [AutofillHints.telephoneNumber],
+                                // Кнопка «Готово»/галочка на клавиатуре срабатывает как «Продолжить».
+                                textInputAction: TextInputAction.done,
+                                onFieldSubmitted: isReady
+                                    ? (_) async {
+                                        serverError = null;
+                                        if (formKey.currentState!.validate()) {
+                                          await context.read<AuthCubit>().onPressed(phoneNumberController.text);
+                                        }
+                                      }
+                                    : null,
                                 decoration: InputDecoration(
                                   errorMaxLines: 2,
                                   prefixIcon: const Icon(Icons.phone),

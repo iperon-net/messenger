@@ -111,6 +111,13 @@ class _SettingsMyProfileUsernameCupertino extends State<SettingsMyProfileUsernam
                         autofocus: true,
                         autocorrect: false,
                         enableSuggestions: false,
+                        // Кнопка «Готово» на клавиатуре срабатывает как «Сохранить».
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) async {
+                          if (formKey.currentState!.validate()) {
+                            await context.read<SettingsMyProfileUsernameCubit>().setUsername(username: usernameController.text);
+                          }
+                        },
                         // Приводим ввод к нижнему регистру и ограничиваем допустимые символы —
                         // те же правила, что и на сервере.
                         inputFormatters: [

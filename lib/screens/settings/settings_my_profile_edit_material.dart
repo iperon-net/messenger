@@ -134,11 +134,25 @@ class _SettingsMyProfileEditMaterial extends State<SettingsMyProfileEditMaterial
         // оно всё равно участвует в автозаполнении Android. Система угадывает поле
         // имени и открывает поверх приложения окно с подсказкой, оно забирает фокус
         // окна — и клавиатура закрывалась после первой буквы.
+        // Кнопка «Готово»/галочка на клавиатуре срабатывает как «Сохранить».
+        Future<void> submit() async {
+          if (formKey.currentState!.validate()) {
+            await context.read<SettingsMyProfileEditCubit>().setProfile(
+              birthDate: birthDateController.text,
+              firstName: firstNameController.text,
+              lastName: lastNameController.text,
+              aboutMe: aboutMeController.text,
+            );
+          }
+        }
+
         final firstNameField = TextFormField(
           controller: firstNameController,
           focusNode: firstNameFocus,
           autofillHints: null,
-          textInputAction: TextInputAction.next,
+          // Для русской локали фамилия выше имени, и «Готово» — на имени.
+          textInputAction: LocaleSettings.currentLocale == AppLocale.ru ? TextInputAction.done : TextInputAction.next,
+          onFieldSubmitted: LocaleSettings.currentLocale == AppLocale.ru ? (_) => submit() : null,
           decoration: decoration(label: context.t.screenMyProfile.firstName),
           validator: (value) => switch (context.read<SettingsMyProfileEditCubit>().validateFirstName(value)) {
             FirstNameValidationError.maxLength => context.t.screenMyProfile.validationFirstNameMaxLength,
@@ -149,7 +163,8 @@ class _SettingsMyProfileEditMaterial extends State<SettingsMyProfileEditMaterial
           controller: lastNameController,
           focusNode: lastNameFocus,
           autofillHints: null,
-          textInputAction: TextInputAction.next,
+          textInputAction: LocaleSettings.currentLocale == AppLocale.ru ? TextInputAction.next : TextInputAction.done,
+          onFieldSubmitted: LocaleSettings.currentLocale == AppLocale.ru ? null : (_) => submit(),
           decoration: decoration(label: context.t.screenMyProfile.lastName),
           validator: (value) => switch (context.read<SettingsMyProfileEditCubit>().validateFirstName(value)) {
             FirstNameValidationError.maxLength => context.t.screenMyProfile.validationLastNameMaxLength,
@@ -169,16 +184,7 @@ class _SettingsMyProfileEditMaterial extends State<SettingsMyProfileEditMaterial
                       child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
                     )
                   : TextButton(
-                      onPressed: () async {
-                        if (formKey.currentState!.validate()) {
-                          await context.read<SettingsMyProfileEditCubit>().setProfile(
-                            birthDate: birthDateController.text,
-                            firstName: firstNameController.text,
-                            lastName: lastNameController.text,
-                            aboutMe: aboutMeController.text,
-                          );
-                        }
-                      },
+                      onPressed: submit,
                       child: FaIcon(FontAwesomeIcons.check, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
             ],

@@ -120,6 +120,14 @@ class _SettingsAccountDeletionCupertinoState extends State<SettingsAccountDeleti
                                     obscureText: true,
                                     autofillHints: const [AutofillHints.password],
                                     autofocus: true,
+                                    // Кнопка «Готово» на клавиатуре срабатывает как «Продолжить».
+                                    textInputAction: TextInputAction.done,
+                                    onFieldSubmitted: state.loading
+                                        ? null
+                                        : (_) async {
+                                            final cubit = context.read<AccountDeletionCubit>();
+                                            if (!await cubit.unlock(password.text) && cubit.state.error.isEmpty) await _error();
+                                          },
                                   ),
                                 ],
                               )
