@@ -109,6 +109,7 @@ class Profile_Response extends $pb.GeneratedMessage {
     $core.String? avatarThumbhash,
     $core.bool? accountBlocked,
     $1.EmojiStatus? emojiStatus,
+    $core.bool? accountDeleted,
   }) {
     final result = create();
     if (firstName != null) result.firstName = firstName;
@@ -124,6 +125,7 @@ class Profile_Response extends $pb.GeneratedMessage {
     if (avatarThumbhash != null) result.avatarThumbhash = avatarThumbhash;
     if (accountBlocked != null) result.accountBlocked = accountBlocked;
     if (emojiStatus != null) result.emojiStatus = emojiStatus;
+    if (accountDeleted != null) result.accountDeleted = accountDeleted;
     return result;
   }
 
@@ -149,6 +151,7 @@ class Profile_Response extends $pb.GeneratedMessage {
     ..aOS(11, _omitFieldNames ? '' : 'avatarThumbhash', protoName: 'avatarThumbhash')
     ..aOB(12, _omitFieldNames ? '' : 'accountBlocked', protoName: 'accountBlocked')
     ..aOM<$1.EmojiStatus>(13, _omitFieldNames ? '' : 'emojiStatus', protoName: 'emojiStatus', subBuilder: $1.EmojiStatus.create)
+    ..aOB(14, _omitFieldNames ? '' : 'accountDeleted', protoName: 'accountDeleted')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -305,6 +308,15 @@ class Profile_Response extends $pb.GeneratedMessage {
   void clearEmojiStatus() => $_clearField(13);
   @$pb.TagNumber(13)
   $1.EmojiStatus ensureEmojiStatus() => $_ensure(12);
+
+  @$pb.TagNumber(14)
+  $core.bool get accountDeleted => $_getBF(13);
+  @$pb.TagNumber(14)
+  set accountDeleted($core.bool value) => $_setBool(13, value);
+  @$pb.TagNumber(14)
+  $core.bool hasAccountDeleted() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearAccountDeleted() => $_clearField(14);
 }
 
 class Profile extends $pb.GeneratedMessage {

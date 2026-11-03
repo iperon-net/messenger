@@ -262,6 +262,23 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
                     ),
                   ],
                 ),
+                CupertinoListSection.insetGrouped(
+                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                  decoration: BoxDecoration(
+                    color: ThemesCupertino.groupedCard.resolveFrom(context),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  children: [
+                    CupertinoListTileIcon(
+                      title: Text(context.t.accountDeletion.autoDeleteTitle),
+                      color: const Color(0xFFFF3B30),
+                      icon: FontAwesomeIcons.userClock,
+                      isTrailing: true,
+                      additionalInfo: Text(context.t.accountDeletion.months(count: state.autoDeletePeriodMonths)),
+                      onTab: () => context.push('/settings/privacy_and_security/auto_delete'),
+                    ),
+                  ],
+                ),
                 // Автоудаление по умолчанию для новых чатов (как в Telegram).
                 CupertinoListSection.insetGrouped(
                   backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),

@@ -119,6 +119,7 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
   /// Автоудаление по умолчанию для новых чатов (секунды; 0 — выключено): чат,
   /// который я начинаю, получает такой таймер.
   final int messagesTTL;
+  final int autoDeletePeriodMonths;
 
   /// Заблокированные пользователи (userID) — строка «Заблокированные» и её
   /// счётчик; меняются поштучно (`PrivacyBlocks.setBlocked`).
@@ -167,6 +168,7 @@ class SettingsPrivacyAndSecurityState with SettingsPrivacyAndSecurityStateMappab
     this.groupInvitesDeny = const [],
     this.hideReadTime = false,
     this.messagesTTL = 0,
+    this.autoDeletePeriodMonths = 12,
     this.blocked = const [],
     this.phoneNumberAudience = CallsPrivacyAudience.contacts,
     this.phoneNumberAllow = const [],

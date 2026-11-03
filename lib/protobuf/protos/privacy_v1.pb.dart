@@ -84,6 +84,7 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     PrivacySettings_Audience? groupInvites,
     $core.Iterable<$core.List<$core.int>>? groupInvitesAllow,
     $core.Iterable<$core.List<$core.int>>? groupInvitesDeny,
+    $core.int? autoDeletePeriodMonths,
   }) {
     final result = create();
     if (calls != null) result.calls = calls;
@@ -115,6 +116,7 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     if (groupInvites != null) result.groupInvites = groupInvites;
     if (groupInvitesAllow != null) result.groupInvitesAllow.addAll(groupInvitesAllow);
     if (groupInvitesDeny != null) result.groupInvitesDeny.addAll(groupInvitesDeny);
+    if (autoDeletePeriodMonths != null) result.autoDeletePeriodMonths = autoDeletePeriodMonths;
     return result;
   }
 
@@ -156,6 +158,7 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
     ..aE<PrivacySettings_Audience>(27, _omitFieldNames ? '' : 'groupInvites', enumValues: PrivacySettings_Audience.values)
     ..p<$core.List<$core.int>>(28, _omitFieldNames ? '' : 'groupInvitesAllow', $pb.PbFieldType.PY)
     ..p<$core.List<$core.int>>(29, _omitFieldNames ? '' : 'groupInvitesDeny', $pb.PbFieldType.PY)
+    ..aI(30, _omitFieldNames ? '' : 'autoDeletePeriodMonths')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -388,6 +391,16 @@ class PrivacySettings_Response extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(29)
   $pb.PbList<$core.List<$core.int>> get groupInvitesDeny => $_getList(28);
+
+  /// Удалить аккаунт после 3, 6 или 12 календарных месяцев неактивности.
+  @$pb.TagNumber(30)
+  $core.int get autoDeletePeriodMonths => $_getIZ(29);
+  @$pb.TagNumber(30)
+  set autoDeletePeriodMonths($core.int value) => $_setSignedInt32(29, value);
+  @$pb.TagNumber(30)
+  $core.bool hasAutoDeletePeriodMonths() => $_has(29);
+  @$pb.TagNumber(30)
+  void clearAutoDeletePeriodMonths() => $_clearField(30);
 }
 
 /// Настройки приватности per-channel (этап 1 — только звонки). Проверка «кто
@@ -423,6 +436,122 @@ class PrivacySettings extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static PrivacySettings getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacySettings>(create);
   static PrivacySettings? _defaultInstance;
+}
+
+class PrivacyAutoDeleteUpdate_Request extends $pb.GeneratedMessage {
+  factory PrivacyAutoDeleteUpdate_Request({
+    $core.int? periodMonths,
+  }) {
+    final result = create();
+    if (periodMonths != null) result.periodMonths = periodMonths;
+    return result;
+  }
+
+  PrivacyAutoDeleteUpdate_Request._();
+
+  factory PrivacyAutoDeleteUpdate_Request.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyAutoDeleteUpdate_Request.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyAutoDeleteUpdate.Request',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'periodMonths')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyAutoDeleteUpdate_Request clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyAutoDeleteUpdate_Request copyWith(void Function(PrivacyAutoDeleteUpdate_Request) updates) =>
+      super.copyWith((message) => updates(message as PrivacyAutoDeleteUpdate_Request)) as PrivacyAutoDeleteUpdate_Request;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyAutoDeleteUpdate_Request create() => PrivacyAutoDeleteUpdate_Request._();
+  @$core.override
+  PrivacyAutoDeleteUpdate_Request createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyAutoDeleteUpdate_Request getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyAutoDeleteUpdate_Request>(create);
+  static PrivacyAutoDeleteUpdate_Request? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get periodMonths => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set periodMonths($core.int value) => $_setSignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasPeriodMonths() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearPeriodMonths() => $_clearField(1);
+}
+
+class PrivacyAutoDeleteUpdate_Response extends $pb.GeneratedMessage {
+  factory PrivacyAutoDeleteUpdate_Response() => create();
+
+  PrivacyAutoDeleteUpdate_Response._();
+
+  factory PrivacyAutoDeleteUpdate_Response.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyAutoDeleteUpdate_Response.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyAutoDeleteUpdate.Response',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyAutoDeleteUpdate_Response clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyAutoDeleteUpdate_Response copyWith(void Function(PrivacyAutoDeleteUpdate_Response) updates) =>
+      super.copyWith((message) => updates(message as PrivacyAutoDeleteUpdate_Response)) as PrivacyAutoDeleteUpdate_Response;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyAutoDeleteUpdate_Response create() => PrivacyAutoDeleteUpdate_Response._();
+  @$core.override
+  PrivacyAutoDeleteUpdate_Response createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyAutoDeleteUpdate_Response getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyAutoDeleteUpdate_Response>(create);
+  static PrivacyAutoDeleteUpdate_Response? _defaultInstance;
+}
+
+class PrivacyAutoDeleteUpdate extends $pb.GeneratedMessage {
+  factory PrivacyAutoDeleteUpdate() => create();
+
+  PrivacyAutoDeleteUpdate._();
+
+  factory PrivacyAutoDeleteUpdate.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory PrivacyAutoDeleteUpdate.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'PrivacyAutoDeleteUpdate',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'iperon.v1'), createEmptyInstance: create)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyAutoDeleteUpdate clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  PrivacyAutoDeleteUpdate copyWith(void Function(PrivacyAutoDeleteUpdate) updates) =>
+      super.copyWith((message) => updates(message as PrivacyAutoDeleteUpdate)) as PrivacyAutoDeleteUpdate;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static PrivacyAutoDeleteUpdate create() => PrivacyAutoDeleteUpdate._();
+  @$core.override
+  PrivacyAutoDeleteUpdate createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static PrivacyAutoDeleteUpdate getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<PrivacyAutoDeleteUpdate>(create);
+  static PrivacyAutoDeleteUpdate? _defaultInstance;
 }
 
 class PrivacySettingsUpdate_Request extends $pb.GeneratedMessage {

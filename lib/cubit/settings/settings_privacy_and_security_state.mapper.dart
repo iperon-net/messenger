@@ -249,6 +249,15 @@ class SettingsPrivacyAndSecurityStateMapper
   static int _$messagesTTL(SettingsPrivacyAndSecurityState v) => v.messagesTTL;
   static const Field<SettingsPrivacyAndSecurityState, int> _f$messagesTTL =
       Field('messagesTTL', _$messagesTTL, opt: true, def: 0);
+  static int _$autoDeletePeriodMonths(SettingsPrivacyAndSecurityState v) =>
+      v.autoDeletePeriodMonths;
+  static const Field<SettingsPrivacyAndSecurityState, int>
+  _f$autoDeletePeriodMonths = Field(
+    'autoDeletePeriodMonths',
+    _$autoDeletePeriodMonths,
+    opt: true,
+    def: 12,
+  );
   static List<Uint8List> _$blocked(SettingsPrivacyAndSecurityState v) =>
       v.blocked;
   static const Field<SettingsPrivacyAndSecurityState, List<Uint8List>>
@@ -323,6 +332,7 @@ class SettingsPrivacyAndSecurityStateMapper
     #groupInvitesDeny: _f$groupInvitesDeny,
     #hideReadTime: _f$hideReadTime,
     #messagesTTL: _f$messagesTTL,
+    #autoDeletePeriodMonths: _f$autoDeletePeriodMonths,
     #blocked: _f$blocked,
     #phoneNumberAudience: _f$phoneNumberAudience,
     #phoneNumberAllow: _f$phoneNumberAllow,
@@ -360,6 +370,7 @@ class SettingsPrivacyAndSecurityStateMapper
       groupInvitesDeny: data.dec(_f$groupInvitesDeny),
       hideReadTime: data.dec(_f$hideReadTime),
       messagesTTL: data.dec(_f$messagesTTL),
+      autoDeletePeriodMonths: data.dec(_f$autoDeletePeriodMonths),
       blocked: data.dec(_f$blocked),
       phoneNumberAudience: data.dec(_f$phoneNumberAudience),
       phoneNumberAllow: data.dec(_f$phoneNumberAllow),
@@ -509,6 +520,7 @@ abstract class SettingsPrivacyAndSecurityStateCopyWith<
     List<Uint8List>? groupInvitesDeny,
     bool? hideReadTime,
     int? messagesTTL,
+    int? autoDeletePeriodMonths,
     List<Uint8List>? blocked,
     CallsPrivacyAudience? phoneNumberAudience,
     List<Uint8List>? phoneNumberAllow,
@@ -686,6 +698,7 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     List<Uint8List>? groupInvitesDeny,
     bool? hideReadTime,
     int? messagesTTL,
+    int? autoDeletePeriodMonths,
     List<Uint8List>? blocked,
     CallsPrivacyAudience? phoneNumberAudience,
     List<Uint8List>? phoneNumberAllow,
@@ -723,6 +736,8 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
       if (groupInvitesDeny != null) #groupInvitesDeny: groupInvitesDeny,
       if (hideReadTime != null) #hideReadTime: hideReadTime,
       if (messagesTTL != null) #messagesTTL: messagesTTL,
+      if (autoDeletePeriodMonths != null)
+        #autoDeletePeriodMonths: autoDeletePeriodMonths,
       if (blocked != null) #blocked: blocked,
       if (phoneNumberAudience != null)
         #phoneNumberAudience: phoneNumberAudience,
@@ -772,6 +787,10 @@ class _SettingsPrivacyAndSecurityStateCopyWithImpl<$R, $Out>
     groupInvitesDeny: data.get(#groupInvitesDeny, or: $value.groupInvitesDeny),
     hideReadTime: data.get(#hideReadTime, or: $value.hideReadTime),
     messagesTTL: data.get(#messagesTTL, or: $value.messagesTTL),
+    autoDeletePeriodMonths: data.get(
+      #autoDeletePeriodMonths,
+      or: $value.autoDeletePeriodMonths,
+    ),
     blocked: data.get(#blocked, or: $value.blocked),
     phoneNumberAudience: data.get(
       #phoneNumberAudience,

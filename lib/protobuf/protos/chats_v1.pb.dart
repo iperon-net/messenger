@@ -14,6 +14,7 @@ import 'dart:core' as $core;
 
 import 'package:fixnum/fixnum.dart' as $fixnum;
 import 'package:protobuf/protobuf.dart' as $pb;
+import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart' as $2;
 
 import 'chats_v1.pbenum.dart';
 import 'models.pb.dart' as $0;
@@ -1305,6 +1306,7 @@ class MessageSystemNotice extends $pb.GeneratedMessage {
     MessageSystemNotice_LoginMethod? loginMethod,
     $core.String? email,
     $core.String? passkeyLabel,
+    $2.Timestamp? deletionAfter,
   }) {
     final result = create();
     if (kind != null) result.kind = kind;
@@ -1319,6 +1321,7 @@ class MessageSystemNotice extends $pb.GeneratedMessage {
     if (loginMethod != null) result.loginMethod = loginMethod;
     if (email != null) result.email = email;
     if (passkeyLabel != null) result.passkeyLabel = passkeyLabel;
+    if (deletionAfter != null) result.deletionAfter = deletionAfter;
     return result;
   }
 
@@ -1344,6 +1347,7 @@ class MessageSystemNotice extends $pb.GeneratedMessage {
         protoName: 'loginMethod', enumValues: MessageSystemNotice_LoginMethod.values)
     ..aOS(11, _omitFieldNames ? '' : 'email')
     ..aOS(12, _omitFieldNames ? '' : 'passkeyLabel', protoName: 'passkeyLabel')
+    ..aOM<$2.Timestamp>(13, _omitFieldNames ? '' : 'deletionAfter', protoName: 'deletionAfter', subBuilder: $2.Timestamp.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1477,6 +1481,17 @@ class MessageSystemNotice extends $pb.GeneratedMessage {
   $core.bool hasPasskeyLabel() => $_has(11);
   @$pb.TagNumber(12)
   void clearPasskeyLabel() => $_clearField(12);
+
+  @$pb.TagNumber(13)
+  $2.Timestamp get deletionAfter => $_getN(12);
+  @$pb.TagNumber(13)
+  set deletionAfter($2.Timestamp value) => $_setField(13, value);
+  @$pb.TagNumber(13)
+  $core.bool hasDeletionAfter() => $_has(12);
+  @$pb.TagNumber(13)
+  void clearDeletionAfter() => $_clearField(13);
+  @$pb.TagNumber(13)
+  $2.Timestamp ensureDeletionAfter() => $_ensure(12);
 }
 
 /// Разметка текста (как MessageEntity на клиенте, смещения — в UTF-16).

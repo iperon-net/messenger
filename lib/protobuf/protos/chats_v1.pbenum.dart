@@ -195,6 +195,14 @@ class MessageSystemNotice_Kind extends $pb.ProtobufEnum {
   static const MessageSystemNotice_Kind RECOVERY_EMAIL_SET = MessageSystemNotice_Kind._(7, _omitEnumNames ? '' : 'RECOVERY_EMAIL_SET');
   static const MessageSystemNotice_Kind PASSKEY_ADDED = MessageSystemNotice_Kind._(8, _omitEnumNames ? '' : 'PASSKEY_ADDED');
   static const MessageSystemNotice_Kind PASSKEY_REMOVED = MessageSystemNotice_Kind._(9, _omitEnumNames ? '' : 'PASSKEY_REMOVED');
+  static const MessageSystemNotice_Kind ACCOUNT_DELETION_SCHEDULED =
+      MessageSystemNotice_Kind._(10, _omitEnumNames ? '' : 'ACCOUNT_DELETION_SCHEDULED');
+  static const MessageSystemNotice_Kind ACCOUNT_DELETION_CANCELLED =
+      MessageSystemNotice_Kind._(11, _omitEnumNames ? '' : 'ACCOUNT_DELETION_CANCELLED');
+  static const MessageSystemNotice_Kind ACCOUNT_AUTO_DELETE_WARNING =
+      MessageSystemNotice_Kind._(12, _omitEnumNames ? '' : 'ACCOUNT_AUTO_DELETE_WARNING');
+  static const MessageSystemNotice_Kind ACCOUNT_AUTO_DELETE_EXTENDED =
+      MessageSystemNotice_Kind._(13, _omitEnumNames ? '' : 'ACCOUNT_AUTO_DELETE_EXTENDED');
 
   static const $core.List<MessageSystemNotice_Kind> values = <MessageSystemNotice_Kind>[
     UNKNOWN,
@@ -207,9 +215,13 @@ class MessageSystemNotice_Kind extends $pb.ProtobufEnum {
     RECOVERY_EMAIL_SET,
     PASSKEY_ADDED,
     PASSKEY_REMOVED,
+    ACCOUNT_DELETION_SCHEDULED,
+    ACCOUNT_DELETION_CANCELLED,
+    ACCOUNT_AUTO_DELETE_WARNING,
+    ACCOUNT_AUTO_DELETE_EXTENDED,
   ];
 
-  static final $core.List<MessageSystemNotice_Kind?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 9);
+  static final $core.List<MessageSystemNotice_Kind?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 13);
   static MessageSystemNotice_Kind? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageSystemNotice_Kind._(super.value, super.name);

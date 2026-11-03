@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cupertino_ui/cupertino_ui.dart';
@@ -30,9 +31,31 @@ List<(String, VoidCallback)> systemNoticeActions(BuildContext context, models.Me
   final notice = message.systemNotice;
   if (notice == null) return const [];
   final t = context.t.systemNotice;
+  if (notice.kind == models.SystemNoticeKind.accountDeletionScheduled) {
+    return [(context.t.accountDeletion.cancel, () => unawaited(_accountAction(context, cancel: true)))];
+  }
+  if (notice.kind == models.SystemNoticeKind.accountAutoDeleteWarning) {
+    return [(context.t.accountDeletion.keep, () => unawaited(_accountAction(context, cancel: false)))];
+  }
+  if (notice.kind == models.SystemNoticeKind.accountDeletionCancelled || notice.kind == models.SystemNoticeKind.accountAutoDeleteExtended) {
+    return const [];
+  }
   final current = idHex(getIt.get<Auth>().session.sessionID);
   final foreign = notice.sessionID.isNotEmpty && notice.sessionID != current;
   return [(t.devices, () => _openDeviceSessions(context)), if (foreign) (t.notMe, () => _notMe(context, notice))];
+}
+
+Future<void> _accountAction(BuildContext context, {required bool cancel}) async {
+  if (!await getIt.get<Utils>().hasNetwork()) {
+    if (context.mounted) await showNoConnectionAlert(context);
+    return;
+  }
+  final api = getIt.get<API>();
+  final status = await api.unaryEncoded(
+    cancel ? MessageType.ACCOUNT_DELETION_CANCEL : MessageType.ACCOUNT_ACTIVITY,
+    (cancel ? AccountDeletionCancel_Request() : AccountActivity_Request()).writeToBuffer(),
+  );
+  if (context.mounted && status.status != APIStatus.success) await showNoConnectionAlert(context);
 }
 
 void _openDeviceSessions(BuildContext context) {

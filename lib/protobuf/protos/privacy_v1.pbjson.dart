@@ -60,6 +60,7 @@ const PrivacySettings_Response$json = {
     {'1': 'group_invites', '3': 27, '4': 1, '5': 14, '6': '.iperon.v1.PrivacySettings.Audience', '10': 'groupInvites'},
     {'1': 'group_invites_allow', '3': 28, '4': 3, '5': 12, '10': 'groupInvitesAllow'},
     {'1': 'group_invites_deny', '3': 29, '4': 3, '5': 12, '10': 'groupInvitesDeny'},
+    {'1': 'auto_delete_period_months', '3': 30, '4': 1, '5': 5, '10': 'autoDeletePeriodMonths'},
   ],
 };
 
@@ -75,7 +76,7 @@ const PrivacySettings_Audience$json = {
 
 /// Descriptor for `PrivacySettings`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List privacySettingsDescriptor =
-    $convert.base64Decode('Cg9Qcml2YWN5U2V0dGluZ3MaCQoHUmVxdWVzdBrsCgoIUmVzcG9uc2USOQoFY2FsbHMYASABKA'
+    $convert.base64Decode('Cg9Qcml2YWN5U2V0dGluZ3MaCQoHUmVxdWVzdBqnCwoIUmVzcG9uc2USOQoFY2FsbHMYASABKA'
         '4yIy5pcGVyb24udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUgVjYWxscxIfCgtjYWxsc19h'
         'bGxvdxgCIAMoDFIKY2FsbHNBbGxvdxIdCgpjYWxsc19kZW55GAMgAygMUgljYWxsc0RlbnkSPw'
         'oIYmlydGhkYXkYBCABKA4yIy5pcGVyb24udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUghi'
@@ -100,8 +101,33 @@ final $typed_data.Uint8List privacySettingsDescriptor =
         'aW5ncy5BdWRpZW5jZVIPcGhvbmVOdW1iZXJGaW5kEkgKDWdyb3VwX2ludml0ZXMYGyABKA4yIy'
         '5pcGVyb24udjEuUHJpdmFjeVNldHRpbmdzLkF1ZGllbmNlUgxncm91cEludml0ZXMSLgoTZ3Jv'
         'dXBfaW52aXRlc19hbGxvdxgcIAMoDFIRZ3JvdXBJbnZpdGVzQWxsb3cSLAoSZ3JvdXBfaW52aX'
-        'Rlc19kZW55GB0gAygMUhBncm91cEludml0ZXNEZW55IjMKCEF1ZGllbmNlEg0KCUVWRVJZQk9E'
-        'WRAAEgwKCENPTlRBQ1RTEAESCgoGTk9CT0RZEAI=');
+        'Rlc19kZW55GB0gAygMUhBncm91cEludml0ZXNEZW55EjkKGWF1dG9fZGVsZXRlX3BlcmlvZF9t'
+        'b250aHMYHiABKAVSFmF1dG9EZWxldGVQZXJpb2RNb250aHMiMwoIQXVkaWVuY2USDQoJRVZFUl'
+        'lCT0RZEAASDAoIQ09OVEFDVFMQARIKCgZOT0JPRFkQAg==');
+
+@$core.Deprecated('Use privacyAutoDeleteUpdateDescriptor instead')
+const PrivacyAutoDeleteUpdate$json = {
+  '1': 'PrivacyAutoDeleteUpdate',
+  '3': [PrivacyAutoDeleteUpdate_Request$json, PrivacyAutoDeleteUpdate_Response$json],
+};
+
+@$core.Deprecated('Use privacyAutoDeleteUpdateDescriptor instead')
+const PrivacyAutoDeleteUpdate_Request$json = {
+  '1': 'Request',
+  '2': [
+    {'1': 'period_months', '3': 1, '4': 1, '5': 5, '10': 'periodMonths'},
+  ],
+};
+
+@$core.Deprecated('Use privacyAutoDeleteUpdateDescriptor instead')
+const PrivacyAutoDeleteUpdate_Response$json = {
+  '1': 'Response',
+};
+
+/// Descriptor for `PrivacyAutoDeleteUpdate`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List privacyAutoDeleteUpdateDescriptor =
+    $convert.base64Decode('ChdQcml2YWN5QXV0b0RlbGV0ZVVwZGF0ZRouCgdSZXF1ZXN0EiMKDXBlcmlvZF9tb250aHMYAS'
+        'ABKAVSDHBlcmlvZE1vbnRocxoKCghSZXNwb25zZQ==');
 
 @$core.Deprecated('Use privacySettingsUpdateDescriptor instead')
 const PrivacySettingsUpdate$json = {

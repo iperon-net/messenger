@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+import "google/protobuf/timestamp.proto";
+
+message AccountDeletionRequest {
+  message Request {
+    string phoneNumber = 1;
+    bytes cloudPasswordToken = 2;
+  }
+  message Response {
+    google.protobuf.Timestamp manualDeleteAfter = 1;
+    bool alreadyScheduled = 2;
+  }
+}
+
+message AccountDeletionCancel {
+  message Request {}
+  message Response { bool cancelled = 1; }
+}
+
+message AccountDeletionStatus {
+  message Request {}
+  message Response {
+    google.protobuf.Timestamp manualDeleteAfter = 1;
+    google.protobuf.Timestamp autoDeleteAfter = 2;
+    string deletionState = 3;
+  }
+}
+
+message AccountActivity {
+  message Request {}
+  message Response { google.protobuf.Timestamp autoDeleteAfter = 1; }
+}

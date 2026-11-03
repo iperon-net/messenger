@@ -201,9 +201,16 @@ String systemNoticeTitle(Translations t, pb.MessageSystemNotice notice) {
     pb.MessageSystemNotice_Kind.RECOVERY_EMAIL_SET => s.recoveryEmailSetTitle,
     pb.MessageSystemNotice_Kind.PASSKEY_ADDED => s.passkeyAddedTitle,
     pb.MessageSystemNotice_Kind.PASSKEY_REMOVED => s.passkeyRemovedTitle,
+    pb.MessageSystemNotice_Kind.ACCOUNT_DELETION_SCHEDULED ||
+    pb.MessageSystemNotice_Kind.ACCOUNT_DELETION_CANCELLED ||
+    pb.MessageSystemNotice_Kind.ACCOUNT_AUTO_DELETE_WARNING ||
+    pb.MessageSystemNotice_Kind.ACCOUNT_AUTO_DELETE_EXTENDED => t.accountDeletion.title,
     _ => s.unknown,
   };
 }
+
+String _deletionDate(pb.MessageSystemNotice notice) =>
+    notice.hasDeletionAfter() ? notice.deletionAfter.toDateTime().toLocal().toString() : '—';
 
 /// Текст уведомления «Iperon» (как сервисные 777000 в Telegram): заголовок
 /// жирным, что произошло, затем устройство, место, IP, способ входа (что
@@ -227,6 +234,10 @@ String systemNoticeTitle(Translations t, pb.MessageSystemNotice notice) {
     pb.MessageSystemNotice_Kind.PASSKEY_ADDED =>
       notice.passkeyLabel.isEmpty ? s.passkeyAddedNoLabel : s.passkeyAdded(label: notice.passkeyLabel),
     pb.MessageSystemNotice_Kind.PASSKEY_REMOVED => s.passkeyRemoved,
+    pb.MessageSystemNotice_Kind.ACCOUNT_DELETION_SCHEDULED => t.accountDeletion.scheduledNotice(date: _deletionDate(notice)),
+    pb.MessageSystemNotice_Kind.ACCOUNT_DELETION_CANCELLED => t.accountDeletion.cancelledNotice,
+    pb.MessageSystemNotice_Kind.ACCOUNT_AUTO_DELETE_WARNING => t.accountDeletion.autoWarningNotice(date: _deletionDate(notice)),
+    pb.MessageSystemNotice_Kind.ACCOUNT_AUTO_DELETE_EXTENDED => t.accountDeletion.autoExtendedNotice(date: _deletionDate(notice)),
     _ => '',
   };
   if (body.isEmpty) return (text: title, entities: const []);

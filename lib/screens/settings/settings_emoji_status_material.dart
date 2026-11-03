@@ -59,7 +59,13 @@ class _SettingsEmojiStatusMaterialState extends State<SettingsEmojiStatusMateria
   Widget build(BuildContext context) {
     final t = context.t.screenMyProfile;
     final items = emojiStatusItems(_category, _search.text);
-    return BlocBuilder<SettingsMyProfileCubit, SettingsMyProfileState>(
+    return BlocConsumer<SettingsMyProfileCubit, SettingsMyProfileState>(
+      listenWhen: (previous, current) => previous.error != current.error && current.error.isNotEmpty,
+      listener: (context, state) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(context.t[state.error])));
+      },
       builder: (context, state) {
         if (!_statusRestored && state.status == Status.success) {
           _statusRestored = true;

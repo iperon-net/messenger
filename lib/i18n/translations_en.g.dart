@@ -94,6 +94,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$appUpdate$en appUpdate = Translations$appUpdate$en.internal(_root);
 	late final Translations$screenAuthBlocked$en screenAuthBlocked = Translations$screenAuthBlocked$en.internal(_root);
 	late final Translations$report$en report = Translations$report$en.internal(_root);
+	late final Translations$accountDeletion$en accountDeletion = Translations$accountDeletion$en.internal(_root);
 }
 
 // Path: common
@@ -5409,6 +5410,66 @@ class Translations$report$en {
 	late final Translations$report$reasons$en reasons = Translations$report$reasons$en.internal(_root);
 }
 
+// Path: accountDeletion
+class Translations$accountDeletion$en {
+	Translations$accountDeletion$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Delete account'
+	String get title => 'Delete account';
+
+	/// en: 'Delete account if inactive'
+	String get autoDeleteTitle => 'Delete account if inactive';
+
+	/// en: 'If you do not open Iperon during the selected period, your account and personal data will be deleted. Messages will remain with your contacts.'
+	String get autoDeleteDescription => 'If you do not open Iperon during the selected period, your account and personal data will be deleted. Messages will remain with your contacts.';
+
+	/// en: '{count} months'
+	String months({required Object count}) => '${count} months';
+
+	/// en: 'Your account will be deleted after 7 days. You can cancel until deletion starts. Your profile, contacts, settings, cloud password and secret chats will be deleted. Messages in regular chats will remain with your contacts.'
+	String get warning => 'Your account will be deleted after 7 days. You can cancel until deletion starts. Your profile, contacts, settings, cloud password and secret chats will be deleted. Messages in regular chats will remain with your contacts.';
+
+	/// en: 'Full phone number'
+	String get phonePlaceholder => 'Full phone number';
+
+	/// en: 'Cloud password (if enabled)'
+	String get passwordPlaceholder => 'Cloud password (if enabled)';
+
+	/// en: 'Delete my account in 7 days'
+	String get confirm => 'Delete my account in 7 days';
+
+	/// en: 'Cancel account deletion'
+	String get cancel => 'Cancel account deletion';
+
+	/// en: 'Account deletion is scheduled for {date}.'
+	String scheduled({required Object date}) => 'Account deletion is scheduled for ${date}.';
+
+	/// en: 'Could not complete the operation. Check the network, phone number and cloud password.'
+	String get requestError => 'Could not complete the operation. Check the network, phone number and cloud password.';
+
+	/// en: 'Keep account'
+	String get keep => 'Keep account';
+
+	/// en: 'Your account is scheduled for deletion on {date}. You can cancel until deletion starts.'
+	String scheduledNotice({required Object date}) => 'Your account is scheduled for deletion on ${date}. You can cancel until deletion starts.';
+
+	/// en: 'Account deletion has been cancelled.'
+	String get cancelledNotice => 'Account deletion has been cancelled.';
+
+	/// en: 'Your account will be deleted due to inactivity on {date}.'
+	String autoWarningNotice({required Object date}) => 'Your account will be deleted due to inactivity on ${date}.';
+
+	/// en: 'Account auto-deletion has been moved to {date}.'
+	String autoExtendedNotice({required Object date}) => 'Account auto-deletion has been moved to ${date}.';
+
+	/// en: 'Deleted account'
+	String get deletedAccount => 'Deleted account';
+}
+
 // Path: screenChat.textMenu
 class Translations$screenChat$textMenu$en {
 	Translations$screenChat$textMenu$en.internal(this._root);
@@ -7159,6 +7220,23 @@ extension on Translations {
 			'report.reasons.fake' => 'Fake or impersonation',
 			'report.reasons.copyright' => 'Copyright infringement',
 			'report.reasons.other' => 'Other',
+			'accountDeletion.title' => 'Delete account',
+			'accountDeletion.autoDeleteTitle' => 'Delete account if inactive',
+			'accountDeletion.autoDeleteDescription' => 'If you do not open Iperon during the selected period, your account and personal data will be deleted. Messages will remain with your contacts.',
+			'accountDeletion.months' => ({required Object count}) => '${count} months',
+			'accountDeletion.warning' => 'Your account will be deleted after 7 days. You can cancel until deletion starts. Your profile, contacts, settings, cloud password and secret chats will be deleted. Messages in regular chats will remain with your contacts.',
+			'accountDeletion.phonePlaceholder' => 'Full phone number',
+			'accountDeletion.passwordPlaceholder' => 'Cloud password (if enabled)',
+			'accountDeletion.confirm' => 'Delete my account in 7 days',
+			'accountDeletion.cancel' => 'Cancel account deletion',
+			'accountDeletion.scheduled' => ({required Object date}) => 'Account deletion is scheduled for ${date}.',
+			'accountDeletion.requestError' => 'Could not complete the operation. Check the network, phone number and cloud password.',
+			'accountDeletion.keep' => 'Keep account',
+			'accountDeletion.scheduledNotice' => ({required Object date}) => 'Your account is scheduled for deletion on ${date}. You can cancel until deletion starts.',
+			'accountDeletion.cancelledNotice' => 'Account deletion has been cancelled.',
+			'accountDeletion.autoWarningNotice' => ({required Object date}) => 'Your account will be deleted due to inactivity on ${date}.',
+			'accountDeletion.autoExtendedNotice' => ({required Object date}) => 'Account auto-deletion has been moved to ${date}.',
+			'accountDeletion.deletedAccount' => 'Deleted account',
 			_ => null,
 		};
 	}

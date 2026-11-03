@@ -23,6 +23,7 @@ export 'settings/settings_device_sessions_cubit.dart';
 export 'settings/settings_device_sessions_state.dart';
 export 'settings/settings_privacy_and_security_cubit.dart';
 export 'settings/settings_privacy_and_security_state.dart';
+export 'settings/account_deletion_cubit.dart';
 export 'settings/settings_blocked_cubit.dart';
 export 'settings/settings_blocked_state.dart';
 export 'settings/settings_notifications_cubit.dart';

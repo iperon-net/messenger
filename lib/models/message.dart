@@ -293,6 +293,10 @@ enum SystemNoticeKind {
   recoveryEmailSet,
   passkeyAdded,
   passkeyRemoved,
+  accountDeletionScheduled,
+  accountDeletionCancelled,
+  accountAutoDeleteWarning,
+  accountAutoDeleteExtended,
 }
 
 /// Служебное уведомление «Iperon» ([Message.systemNotice]): текст уже в

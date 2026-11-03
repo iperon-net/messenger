@@ -196,6 +196,17 @@ class _SettingsPrivacyAndSecurityMaterial extends State<SettingsPrivacyAndSecuri
                     ],
                   ),
                 ),
+                Card(
+                  margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+                  child: MaterialListTileIcon(
+                    title: Text(context.t.accountDeletion.autoDeleteTitle),
+                    color: const Color(0xFFFF3B30),
+                    icon: FontAwesomeIcons.userClock,
+                    isTrailing: true,
+                    additionalInfo: Text(context.t.accountDeletion.months(count: state.autoDeletePeriodMonths)),
+                    onTab: () => context.push('/settings/privacy_and_security/auto_delete'),
+                  ),
+                ),
                 // Автоудаление по умолчанию для новых чатов (как в Telegram).
                 Card(
                   margin: const EdgeInsets.fromLTRB(12, 16, 12, 0),

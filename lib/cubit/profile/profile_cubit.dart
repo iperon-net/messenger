@@ -66,7 +66,10 @@ class ProfileCubit extends Cubit<ProfileState> {
       if (!listEquals(response.userID, userID)) return;
 
       final phoneNormalization = utils.phoneNormalization(phoneNumber: response.phoneNumber);
-      final displayName = await peerDisplayName(userID, fresh: response);
+      final translations = await state.locale.build();
+      final displayName = response.accountDeleted
+          ? translations.accountDeletion.deletedAccount
+          : await peerDisplayName(userID, fresh: response);
       if (isClosed) return;
       emit(
         state.copyWith(

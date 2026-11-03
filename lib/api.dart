@@ -469,6 +469,17 @@ class API {
     if (_appActive == value) return;
     _appActive = value;
     _reconcile();
+    if (value && _authorized) unawaited(recordAccountActivity());
+  }
+
+  DateTime? _lastAccountActivity;
+
+  Future<void> recordAccountActivity() async {
+    final now = DateTime.now();
+    if (!_authorized || (_lastAccountActivity != null && now.difference(_lastAccountActivity!) < const Duration(hours: 24))) return;
+    _lastAccountActivity = now;
+    final status = await unaryEncoded(MessageType.ACCOUNT_ACTIVITY, AccountActivity_Request().writeToBuffer());
+    if (status.status != APIStatus.success) _lastAccountActivity = null;
   }
 
   /// Десктоп: человек за компьютером ([DesktopPresence]) — presence сессии

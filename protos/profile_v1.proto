@@ -46,5 +46,6 @@ message Profile {
     // поля ввода. Свой профиль так не приходит (заблокированный не входит).
     bool accountBlocked = 12;
     optional EmojiStatus emojiStatus = 13;
+    bool accountDeleted = 14;
   }
 }

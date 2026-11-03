@@ -104,7 +104,14 @@ message PrivacySettings {
     Audience group_invites = 27;
     repeated bytes group_invites_allow = 28;
     repeated bytes group_invites_deny = 29;
+    // Удалить аккаунт после 3, 6 или 12 календарных месяцев неактивности.
+    int32 auto_delete_period_months = 30;
   }
+}
+
+message PrivacyAutoDeleteUpdate {
+  message Request { int32 period_months = 1; }
+  message Response {}
 }
 
 // Изменение аудитории «кто может звонить».

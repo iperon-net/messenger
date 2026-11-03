@@ -145,6 +145,14 @@ class SystemNoticeKindMapper extends EnumMapper<SystemNoticeKind> {
         return SystemNoticeKind.passkeyAdded;
       case r'passkeyRemoved':
         return SystemNoticeKind.passkeyRemoved;
+      case r'accountDeletionScheduled':
+        return SystemNoticeKind.accountDeletionScheduled;
+      case r'accountDeletionCancelled':
+        return SystemNoticeKind.accountDeletionCancelled;
+      case r'accountAutoDeleteWarning':
+        return SystemNoticeKind.accountAutoDeleteWarning;
+      case r'accountAutoDeleteExtended':
+        return SystemNoticeKind.accountAutoDeleteExtended;
       default:
         throw MapperException.unknownEnumValue(value);
     }
@@ -173,6 +181,14 @@ class SystemNoticeKindMapper extends EnumMapper<SystemNoticeKind> {
         return r'passkeyAdded';
       case SystemNoticeKind.passkeyRemoved:
         return r'passkeyRemoved';
+      case SystemNoticeKind.accountDeletionScheduled:
+        return r'accountDeletionScheduled';
+      case SystemNoticeKind.accountDeletionCancelled:
+        return r'accountDeletionCancelled';
+      case SystemNoticeKind.accountAutoDeleteWarning:
+        return r'accountAutoDeleteWarning';
+      case SystemNoticeKind.accountAutoDeleteExtended:
+        return r'accountAutoDeleteExtended';
     }
   }
 }

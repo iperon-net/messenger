@@ -221,6 +221,11 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType CLOUD_PASSWORD_REGISTER_START = MessageType._(105, _omitEnumNames ? '' : 'CLOUD_PASSWORD_REGISTER_START');
   static const MessageType CLOUD_PASSWORD_REGISTER_FINISH = MessageType._(106, _omitEnumNames ? '' : 'CLOUD_PASSWORD_REGISTER_FINISH');
   static const MessageType MY_PROFILE_STATUS_UPDATE = MessageType._(107, _omitEnumNames ? '' : 'MY_PROFILE_STATUS_UPDATE');
+  static const MessageType PRIVACY_AUTO_DELETE_UPDATE = MessageType._(108, _omitEnumNames ? '' : 'PRIVACY_AUTO_DELETE_UPDATE');
+  static const MessageType ACCOUNT_DELETION_REQUEST = MessageType._(109, _omitEnumNames ? '' : 'ACCOUNT_DELETION_REQUEST');
+  static const MessageType ACCOUNT_DELETION_CANCEL = MessageType._(110, _omitEnumNames ? '' : 'ACCOUNT_DELETION_CANCEL');
+  static const MessageType ACCOUNT_DELETION_STATUS = MessageType._(111, _omitEnumNames ? '' : 'ACCOUNT_DELETION_STATUS');
+  static const MessageType ACCOUNT_ACTIVITY = MessageType._(112, _omitEnumNames ? '' : 'ACCOUNT_ACTIVITY');
 
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
@@ -324,9 +329,14 @@ class MessageType extends $pb.ProtobufEnum {
     CLOUD_PASSWORD_REGISTER_START,
     CLOUD_PASSWORD_REGISTER_FINISH,
     MY_PROFILE_STATUS_UPDATE,
+    PRIVACY_AUTO_DELETE_UPDATE,
+    ACCOUNT_DELETION_REQUEST,
+    ACCOUNT_DELETION_CANCEL,
+    ACCOUNT_DELETION_STATUS,
+    ACCOUNT_ACTIVITY,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 107);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 112);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

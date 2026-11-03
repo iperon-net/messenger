@@ -134,6 +134,7 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
         groupInvitesDeny: response.groupInvitesDeny.map(Uint8List.fromList).toList(growable: false),
         hideReadTime: response.hideReadTime,
         messagesTTL: response.messagesTtl,
+        autoDeletePeriodMonths: response.autoDeletePeriodMonths == 0 ? 12 : response.autoDeletePeriodMonths,
         blocked: response.blocked.map(Uint8List.fromList).toList(growable: false),
         phoneNumberAudience: _fromProto(response.phoneNumber),
         phoneNumberAllow: response.phoneNumberAllow.map(Uint8List.fromList).toList(growable: false),
@@ -178,6 +179,7 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
         groupInvitesDeny: state.groupInvitesDeny,
         hideReadTime: state.hideReadTime,
         messagesTtl: state.messagesTTL,
+        autoDeletePeriodMonths: state.autoDeletePeriodMonths,
         blocked: state.blocked,
         phoneNumber: _toProto(state.phoneNumberAudience),
         phoneNumberAllow: state.phoneNumberAllow,
@@ -332,6 +334,20 @@ class SettingsPrivacyAndSecurityCubit extends Cubit<SettingsPrivacyAndSecuritySt
     }
 
     if (!isClosed) emit(state.copyWith(birthdayDeny: List<Uint8List>.unmodifiable(userIDs)));
+    await _persistFromState();
+    return true;
+  }
+
+  Future<bool> setAutoDeletePeriod(int months) async {
+    if (months != 3 && months != 6 && months != 12) return false;
+    if (months == state.autoDeletePeriodMonths && !state.callsLoadError && !state.callsReadOnly) return true;
+    if (!await utils.hasNetwork()) return false;
+    final status = await api.unaryEncoded(
+      MessageType.PRIVACY_AUTO_DELETE_UPDATE,
+      PrivacyAutoDeleteUpdate_Request(periodMonths: months).writeToBuffer(),
+    );
+    if (status.status != APIStatus.success) return false;
+    if (!isClosed) emit(state.copyWith(autoDeletePeriodMonths: months, callsLoadError: false, callsReadOnly: false));
     await _persistFromState();
     return true;
   }

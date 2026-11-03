@@ -645,6 +645,16 @@ class Routers {
               ],
             ),
             GoRoute(
+              path: "auto_delete",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _page(state, const SettingsPrivacyAutoDeleteCupertino()),
+            ),
+            GoRoute(
+              path: "account_deletion",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _page(state, const SettingsAccountDeletionCupertino()),
+            ),
+            GoRoute(
               path: "messages",
               parentNavigatorKey: pane,
               pageBuilder: (context, state) => _page(
@@ -1835,6 +1845,16 @@ class Routers {
                   ),
                 ),
               ],
+            ),
+            GoRoute(
+              path: "auto_delete",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(state, const SettingsPrivacyAutoDeleteMaterial()),
+            ),
+            GoRoute(
+              path: "account_deletion",
+              parentNavigatorKey: pane,
+              pageBuilder: (context, state) => _pageMaterial(state, const SettingsAccountDeletionMaterial()),
             ),
             GoRoute(
               path: "messages",

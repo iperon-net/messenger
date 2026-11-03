@@ -157,6 +157,22 @@ class _SettingsCupertino extends State<SettingsCupertino> {
                     ),
                   ],
                 ),
+                CupertinoListSection.insetGrouped(
+                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                  decoration: BoxDecoration(
+                    color: ThemesCupertino.groupedCard.resolveFrom(context),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  children: [
+                    CupertinoListTileIcon(
+                      title: Text(context.t.accountDeletion.title, style: const TextStyle(color: CupertinoColors.systemRed)),
+                      color: const Color(0xFFFF3B30),
+                      icon: FontAwesomeIcons.userXmark,
+                      isTrailing: true,
+                      onTab: () => context.push('/settings/privacy_and_security/account_deletion'),
+                    ),
+                  ],
+                ),
                 // Отдельной группой: версии приложения, Flutter, Dart и лицензии библиотек.
                 CupertinoListSection.insetGrouped(
                   backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),

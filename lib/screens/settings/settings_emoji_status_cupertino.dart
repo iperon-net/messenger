@@ -53,7 +53,24 @@ class _SettingsEmojiStatusCupertinoState extends State<SettingsEmojiStatusCupert
   Widget build(BuildContext context) {
     final t = context.t.screenMyProfile;
     final items = emojiStatusItems(_category, '');
-    return BlocBuilder<SettingsMyProfileCubit, SettingsMyProfileState>(
+    return BlocConsumer<SettingsMyProfileCubit, SettingsMyProfileState>(
+      listenWhen: (previous, current) => previous.error != current.error && current.error.isNotEmpty,
+      listener: (context, state) {
+        showCupertinoDialog<void>(
+          context: context,
+          builder: (dialogContext) => CupertinoAlertDialog(
+            title: Text(state.error == 'common.noConnectionMessage' ? context.t.common.noConnectionTitle : t.error),
+            content: Text(context.t[state.error]),
+            actions: [
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(context.t.common.close),
+              ),
+            ],
+          ),
+        );
+      },
       builder: (context, state) {
         if (!_statusRestored && state.status == Status.success) {
           _statusRestored = true;

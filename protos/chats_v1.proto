@@ -5,6 +5,7 @@ option go_package = "internal/api/v1";
 
 import "protos/models.proto";
 import "protos/profile_v1.proto";
+import "google/protobuf/timestamp.proto";
 
 // Чаты и сообщения — первый срез: личные чаты (и «Избранное» — личный чат с
 // самим собой). Модель как в Telegram: сервер — источник истины, у каждого
@@ -290,6 +291,10 @@ message MessageSystemNotice {
     RECOVERY_EMAIL_SET = 7;      // подтверждена почта восстановления (email)
     PASSKEY_ADDED = 8;           // добавлен ключ доступа (passkeyLabel)
     PASSKEY_REMOVED = 9;         // удалён ключ доступа
+    ACCOUNT_DELETION_SCHEDULED = 10;
+    ACCOUNT_DELETION_CANCELLED = 11;
+    ACCOUNT_AUTO_DELETE_WARNING = 12;
+    ACCOUNT_AUTO_DELETE_EXTENDED = 13;
   }
 
   enum LoginMethod {
@@ -319,6 +324,7 @@ message MessageSystemNotice {
   string email = 11;
   // Название ключа доступа (PASSKEY_ADDED).
   string passkeyLabel = 12;
+  google.protobuf.Timestamp deletionAfter = 13;
 }
 
 enum MessageKind {
