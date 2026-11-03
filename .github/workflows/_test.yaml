@@ -45,5 +45,14 @@ jobs:
           set -euo pipefail
           touch .env .env.development
 
-      - name: Run tests
-        run: flutter test --no-pub
+      - name: Run tests with coverage
+        run: flutter test --no-pub --coverage
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: flutter-test-coverage
+          path: coverage/lcov.info
+          if-no-files-found: warn
+          retention-days: 14
