@@ -266,6 +266,17 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
                   margin: const EdgeInsets.symmetric(horizontal: 12),
                   clipBehavior: Clip.antiAlias,
                   child: MaterialListTileIcon(
+                    title: Text(context.t.accountDeletion.title, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                    color: const Color(0xFFFF3B30),
+                    icon: FontAwesomeIcons.userXmark,
+                    isTrailing: true,
+                    onTab: () => context.push('/settings/privacy_and_security/account_deletion'),
+                  ),
+                ),
+                Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 12),
+                  clipBehavior: Clip.antiAlias,
+                  child: MaterialListTileIcon(
                     title: Text(context.t.screenSettings.logout),
                     color: const Color(0xFF5A48E6),
                     icon: FontAwesomeIcons.rightFromBracket,

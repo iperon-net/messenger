@@ -11,14 +11,31 @@ class AccountDeletionState {
   final DateTime? autoDeleteAfter;
   final bool loading;
   final bool loaded;
+  final bool cloudPasswordEnabled;
+  final bool cloudPasswordUnlocked;
+  final List<int> cloudPasswordToken;
+  final String error;
 
-  const AccountDeletionState({this.manualDeleteAfter, this.autoDeleteAfter, this.loading = false, this.loaded = false});
+  const AccountDeletionState({
+    this.manualDeleteAfter,
+    this.autoDeleteAfter,
+    this.loading = false,
+    this.loaded = false,
+    this.cloudPasswordEnabled = false,
+    this.cloudPasswordUnlocked = false,
+    this.cloudPasswordToken = const [],
+    this.error = '',
+  });
 
   AccountDeletionState copyWith({
     DateTime? manualDeleteAfter,
     DateTime? autoDeleteAfter,
     bool? loading,
     bool? loaded,
+    bool? cloudPasswordEnabled,
+    bool? cloudPasswordUnlocked,
+    List<int>? cloudPasswordToken,
+    String? error,
     bool clearManual = false,
   }) {
     return AccountDeletionState(
@@ -26,6 +43,10 @@ class AccountDeletionState {
       autoDeleteAfter: autoDeleteAfter ?? this.autoDeleteAfter,
       loading: loading ?? this.loading,
       loaded: loaded ?? this.loaded,
+      cloudPasswordEnabled: cloudPasswordEnabled ?? this.cloudPasswordEnabled,
+      cloudPasswordUnlocked: cloudPasswordUnlocked ?? this.cloudPasswordUnlocked,
+      cloudPasswordToken: cloudPasswordToken ?? this.cloudPasswordToken,
+      error: error ?? this.error,
     );
   }
 }
@@ -49,30 +70,49 @@ class AccountDeletionCubit extends Cubit<AccountDeletionState> {
       return;
     }
     final response = AccountDeletionStatus_Response.fromBuffer(payload);
+    final (passwordStatus, passwordPayload) = await api.unaryEncodedWithResponse(
+      MessageType.CLOUD_PASSWORD_INFO,
+      CloudPasswordInfo_Request().writeToBuffer(),
+    );
+    if (isClosed) return;
+    if (passwordStatus.status != APIStatus.success || passwordPayload == null) {
+      emit(state.copyWith(loading: false));
+      return;
+    }
+    final passwordInfo = CloudPasswordInfo_Response.fromBuffer(passwordPayload);
     emit(
       AccountDeletionState(
         manualDeleteAfter: response.hasManualDeleteAfter() ? response.manualDeleteAfter.toDateTime() : null,
         autoDeleteAfter: response.hasAutoDeleteAfter() ? response.autoDeleteAfter.toDateTime() : null,
+        cloudPasswordEnabled: passwordInfo.isEnabled,
         loaded: true,
       ),
     );
   }
 
-  Future<bool> request(String phone, String password) async {
-    if (!await utils.hasNetwork()) return false;
-    emit(state.copyWith(loading: true));
-    List<int> token = const [];
-    if (password.isNotEmpty) {
-      final unlocked = await CloudPassword.unlock(api, password);
-      if (unlocked.error.isNotEmpty) {
-        if (!isClosed) emit(state.copyWith(loading: false));
-        return false;
-      }
-      token = unlocked.token;
+  Future<bool> unlock(String password) async {
+    if (password.isEmpty) {
+      emit(state.copyWith(error: 'cloudPassword.passwordRequired'));
+      return false;
     }
+    if (!await utils.hasNetwork()) return false;
+    emit(state.copyWith(loading: true, error: ''));
+    final unlocked = await CloudPassword.unlock(api, password);
+    if (isClosed) return false;
+    if (unlocked.error.isNotEmpty) {
+      emit(state.copyWith(loading: false, error: unlocked.error));
+      return false;
+    }
+    emit(state.copyWith(loading: false, cloudPasswordUnlocked: true, cloudPasswordToken: unlocked.token, error: ''));
+    return true;
+  }
+
+  Future<bool> request(String phone) async {
+    if (!await utils.hasNetwork()) return false;
+    emit(state.copyWith(loading: true, error: ''));
     final (status, payload) = await api.unaryEncodedWithResponse(
       MessageType.ACCOUNT_DELETION_REQUEST,
-      AccountDeletionRequest_Request(phoneNumber: phone, cloudPasswordToken: token).writeToBuffer(),
+      AccountDeletionRequest_Request(phoneNumber: phone, cloudPasswordToken: state.cloudPasswordToken).writeToBuffer(),
     );
     if (isClosed) return false;
     if (status.status != APIStatus.success || payload == null) {

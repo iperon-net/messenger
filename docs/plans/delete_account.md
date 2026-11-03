@@ -333,6 +333,8 @@ Offline поведение:
 - отображение «Удалённый аккаунт» вместо удалённого профиля.
 
 Общую логику держать в `*_common.dart`, новые экраны добавить в обе ветки роутера.
+Во всех Cupertino-экранах передавать панель через
+`navigationBar: AppCupertinoNavigationBar(child: CupertinoNavigationBar(...))`.
 Для full-screen push routes использовать `pageBuilder` и существующие `_page` /
 `_pageMaterial`. Все строки добавить в `en.i18n.yaml` и `ru.i18n.yaml`, затем запустить
 slang. Состояния, меняющиеся через `@MappableClass()`, перегенерировать build_runner.

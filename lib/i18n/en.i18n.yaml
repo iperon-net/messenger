@@ -1777,7 +1777,7 @@ dateTime:
     "other": "Other"
 
 "accountDeletion":
-  "title": "Delete account"
+  "title": "Account deletion"
   "autoDeleteTitle": "Delete account if inactive"
   "autoDeleteDescription": "If you do not open Iperon during the selected period, your account and personal data will be deleted. Messages will remain with your contacts."
   "months": "{count} months"

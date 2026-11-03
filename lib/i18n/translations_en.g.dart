@@ -5418,8 +5418,8 @@ class Translations$accountDeletion$en {
 
 	// Translations
 
-	/// en: 'Delete account'
-	String get title => 'Delete account';
+	/// en: 'Account deletion'
+	String get title => 'Account deletion';
 
 	/// en: 'Delete account if inactive'
 	String get autoDeleteTitle => 'Delete account if inactive';
@@ -7220,7 +7220,7 @@ extension on Translations {
 			'report.reasons.fake' => 'Fake or impersonation',
 			'report.reasons.copyright' => 'Copyright infringement',
 			'report.reasons.other' => 'Other',
-			'accountDeletion.title' => 'Delete account',
+			'accountDeletion.title' => 'Account deletion',
 			'accountDeletion.autoDeleteTitle' => 'Delete account if inactive',
 			'accountDeletion.autoDeleteDescription' => 'If you do not open Iperon during the selected period, your account and personal data will be deleted. Messages will remain with your contacts.',
 			'accountDeletion.months' => ({required Object count}) => '${count} months',

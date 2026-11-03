@@ -1,5 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../components.dart';
 import '../../cubit.dart';
@@ -16,7 +17,13 @@ class SettingsPrivacyAutoDeleteCupertino extends StatelessWidget {
       child: BlocBuilder<SettingsPrivacyAndSecurityCubit, SettingsPrivacyAndSecurityState>(
         builder: (context, state) => CupertinoPageScaffold(
           backgroundColor: ThemesCupertino.groupedBackground,
-          navigationBar: AppCupertinoNavigationBar(child: CupertinoNavigationBar(middle: Text(context.t.accountDeletion.autoDeleteTitle))),
+          navigationBar: AppCupertinoNavigationBar(
+            child: CupertinoNavigationBar(
+              automaticBackgroundVisibility: false,
+              backgroundColor: ThemesCupertino.groupedBackground,
+              middle: Text(context.t.accountDeletion.autoDeleteTitle),
+            ),
+          ),
           child: SafeArea(
             child: ListView(
               children: [
@@ -34,7 +41,9 @@ class SettingsPrivacyAutoDeleteCupertino extends StatelessWidget {
                     for (final months in const [3, 6, 12])
                       CupertinoListTile(
                         title: Text(context.t.accountDeletion.months(count: months)),
-                        additionalInfo: state.autoDeletePeriodMonths == months ? const Icon(CupertinoIcons.check_mark) : null,
+                        additionalInfo: state.autoDeletePeriodMonths == months
+                            ? FaIcon(FontAwesomeIcons.solidCircleCheck, size: 18, color: CupertinoTheme.of(context).primaryColor)
+                            : null,
                         onTap: state.callsReadOnly || state.callsLoadError
                             ? null
                             : () async {

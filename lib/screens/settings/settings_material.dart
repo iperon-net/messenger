@@ -131,16 +131,6 @@ class _SettingsMaterial extends State<SettingsMaterial> {
                   ),
                 ]),
                 const SizedBox(height: 6),
-                _group(context, [
-                  MaterialListTileIcon(
-                    title: Text(context.t.accountDeletion.title, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                    color: const Color(0xFFFF3B30),
-                    icon: FontAwesomeIcons.userXmark,
-                    isTrailing: true,
-                    onTab: () => context.push('/settings/privacy_and_security/account_deletion'),
-                  ),
-                ]),
-                const SizedBox(height: 6),
                 // Отдельной группой: версии приложения, Flutter, Dart и лицензии библиотек.
                 _group(context, [
                   MaterialListTileIcon(

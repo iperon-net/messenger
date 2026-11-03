@@ -381,6 +381,25 @@ class _SettingsMyProfileCupertino extends State<SettingsMyProfileCupertino> {
                   ),
                   children: [
                     CupertinoListTileIcon(
+                      title: Text(context.t.accountDeletion.title, style: const TextStyle(color: CupertinoColors.systemRed)),
+                      color: const Color(0xFFFF3B30),
+                      icon: FontAwesomeIcons.userXmark,
+                      isTrailing: true,
+                      onTab: () => context.push('/settings/privacy_and_security/account_deletion'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                CupertinoListSection.insetGrouped(
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  clipBehavior: Clip.antiAlias,
+                  backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                  decoration: BoxDecoration(
+                    color: ThemesCupertino.groupedCard.resolveFrom(context),
+                    borderRadius: const BorderRadius.all(Radius.circular(18)),
+                  ),
+                  children: [
+                    CupertinoListTileIcon(
                       title: Text(context.t.screenSettings.logout),
                       color: Color(0xFF5A48E6),
                       isTrailing: false,

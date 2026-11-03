@@ -13,6 +13,7 @@ class SettingsAccountDeletionCupertino extends StatefulWidget {
 }
 
 class _SettingsAccountDeletionCupertinoState extends State<SettingsAccountDeletionCupertino> {
+  final formKey = GlobalKey<FormState>();
   final phone = TextEditingController();
   final password = TextEditingController();
 
@@ -41,56 +42,117 @@ class _SettingsAccountDeletionCupertinoState extends State<SettingsAccountDeleti
       child: BlocBuilder<AccountDeletionCubit, AccountDeletionState>(
         builder: (context, state) {
           final scheduled = state.manualDeleteAfter;
+          final passwordRequired = state.cloudPasswordEnabled && !state.cloudPasswordUnlocked;
           return CupertinoPageScaffold(
             backgroundColor: ThemesCupertino.groupedBackground,
-            navigationBar: AppCupertinoNavigationBar(child: CupertinoNavigationBar(middle: Text(context.t.accountDeletion.title))),
-            child: SafeArea(
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  Text(context.t.accountDeletion.warning),
-                  const SizedBox(height: 20),
-                  if (scheduled != null) ...[
-                    Text(context.t.accountDeletion.scheduled(date: scheduled.toLocal().toString())),
-                    CupertinoButton(
-                      color: CupertinoColors.systemRed,
-                      onPressed: state.loading
-                          ? null
-                          : () async {
-                              if (!await context.read<AccountDeletionCubit>().cancel()) await _error();
-                            },
-                      child: Text(context.t.accountDeletion.cancel),
-                    ),
-                  ] else ...[
-                    CupertinoTextField(
-                      key: ObjectKey(phone),
-                      controller: phone,
-                      placeholder: context.t.accountDeletion.phonePlaceholder,
-                      keyboardType: TextInputType.phone,
-                      decoration: const BoxDecoration(),
-                    ),
-                    const SizedBox(height: 12),
-                    CupertinoTextField(
-                      key: ObjectKey(password),
-                      controller: password,
-                      placeholder: context.t.accountDeletion.passwordPlaceholder,
-                      obscureText: true,
-                      autofillHints: null,
-                      decoration: const BoxDecoration(),
-                    ),
-                    const SizedBox(height: 20),
-                    CupertinoButton.filled(
-                      onPressed: state.loading
-                          ? null
-                          : () async {
-                              if (!await context.read<AccountDeletionCubit>().request(phone.text, password.text)) await _error();
-                            },
-                      child: Text(context.t.accountDeletion.confirm),
-                    ),
-                  ],
-                ],
+            navigationBar: AppCupertinoNavigationBar(
+              child: CupertinoNavigationBar(
+                automaticBackgroundVisibility: false,
+                backgroundColor: ThemesCupertino.groupedBackground,
+                middle: Text(context.t.accountDeletion.title),
+                trailing: state.loaded && scheduled == null && passwordRequired
+                    ? NavBarButtonCupertino(
+                        NavBarAction.done,
+                        label: context.t.common.kContinue,
+                        loading: state.loading,
+                        onPressed: () async {
+                          final cubit = context.read<AccountDeletionCubit>();
+                          if (!await cubit.unlock(password.text) && cubit.state.error.isEmpty) await _error();
+                        },
+                      )
+                    : null,
               ),
             ),
+            child: !state.loaded
+                ? Center(
+                    child: state.loading
+                        ? const CupertinoActivityIndicator()
+                        : CupertinoButton(
+                            onPressed: () => context.read<AccountDeletionCubit>().load(),
+                            child: Text(context.t.cloudPassword.retry),
+                          ),
+                  )
+                : Form(
+                    key: formKey,
+                    child: SafeArea(
+                      child: ListView(
+                        children: [
+                          const SizedBox(height: 20),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Text(
+                              scheduled == null && passwordRequired
+                                  ? context.t.cloudPassword.unlockInfo
+                                  : context.t.accountDeletion.warning,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          if (scheduled != null) ...[
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: Text(context.t.accountDeletion.scheduled(date: scheduled.toLocal().toString())),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: CupertinoButton(
+                                color: CupertinoColors.systemRed,
+                                onPressed: state.loading
+                                    ? null
+                                    : () async {
+                                        if (!await context.read<AccountDeletionCubit>().cancel()) await _error();
+                                      },
+                                child: Text(context.t.accountDeletion.cancel),
+                              ),
+                            ),
+                          ] else ...[
+                            CupertinoFormSection.insetGrouped(
+                              clipBehavior: Clip.antiAlias,
+                              backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                              decoration: BoxDecoration(
+                                color: ThemesCupertino.groupedCard.resolveFrom(context),
+                                borderRadius: const BorderRadius.all(Radius.circular(18)),
+                              ),
+                              children: [
+                                if (passwordRequired)
+                                  CupertinoTextFormFieldRow(
+                                    key: ObjectKey(password),
+                                    controller: password,
+                                    placeholder: context.t.cloudPassword.passwordPlaceholder,
+                                    obscureText: true,
+                                    autofillHints: const [AutofillHints.password],
+                                    autofocus: true,
+                                  )
+                                else
+                                  CupertinoTextFormFieldRow(
+                                    key: ObjectKey(phone),
+                                    controller: phone,
+                                    placeholder: context.t.accountDeletion.phonePlaceholder,
+                                    keyboardType: TextInputType.phone,
+                                  ),
+                              ],
+                            ),
+                            if (state.error.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(35, 8, 35, 0),
+                                child: Text(context.t[state.error], style: const TextStyle(color: CupertinoColors.systemRed)),
+                              ),
+                            if (!passwordRequired)
+                              Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: CupertinoButton.filled(
+                                  onPressed: state.loading
+                                      ? null
+                                      : () async {
+                                          if (!await context.read<AccountDeletionCubit>().request(phone.text)) await _error();
+                                        },
+                                  child: Text(context.t.accountDeletion.confirm),
+                                ),
+                              ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
           );
         },
       ),
