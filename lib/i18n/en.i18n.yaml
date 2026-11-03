@@ -1787,7 +1787,16 @@ dateTime:
   "passwordPlaceholder": "Cloud password (if enabled)"
   "confirm": "Delete my account in 7 days"
   "cancel": "Cancel account deletion"
-  "scheduled": "Account deletion is scheduled for {date}."
+  "scheduled": "Account deletion is scheduled for {date} ({remaining})."
+  "remainingDays(plural)":
+    one: "{n} day left"
+    other: "{n} days left"
+  "remainingHours(plural)":
+    one: "{n} hour left"
+    other: "{n} hours left"
+  "remainingMinutes(plural)":
+    one: "{n} minute left"
+    other: "{n} minutes left"
   "requestError": "Could not complete the operation. Check the network and cloud password."
   "keep": "Keep account"
   "scheduledNotice": "Your account is scheduled for deletion on {date}. You can cancel until deletion starts."

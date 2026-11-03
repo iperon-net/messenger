@@ -5,6 +5,7 @@ import '../../components.dart';
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
 import '../../themes.dart';
+import 'settings_account_deletion_common.dart';
 
 class SettingsAccountDeletionCupertino extends StatefulWidget {
   const SettingsAccountDeletionCupertino({super.key});
@@ -83,7 +84,10 @@ class _SettingsAccountDeletionCupertinoState extends State<SettingsAccountDeleti
                             ),
                             Padding(
                               padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                              child: Text(context.t.accountDeletion.scheduled(date: scheduled.toLocal().toString())),
+                              child: Text(
+                                accountDeletionScheduledText(context.t, scheduled),
+                                style: const TextStyle(fontSize: AppFontSizes.caption),
+                              ),
                             ),
                             Padding(
                               padding: const EdgeInsets.all(20),

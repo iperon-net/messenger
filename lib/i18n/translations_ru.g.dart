@@ -2311,7 +2311,25 @@ class _Translations$accountDeletion$ru extends Translations$accountDeletion$en {
 	@override String get passwordPlaceholder => 'Облачный пароль (если установлен)';
 	@override String get confirm => 'Удалить аккаунт через 7 дней';
 	@override String get cancel => 'Отменить удаление аккаунта';
-	@override String scheduled({required Object date}) => 'Удаление аккаунта запланировано на ${date}.';
+	@override String scheduled({required Object date, required Object remaining}) => 'Удаление аккаунта запланировано на ${date} (${remaining}).';
+	@override String remainingDays({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: 'осталось ${n} день',
+		few: 'осталось ${n} дня',
+		many: 'осталось ${n} дней',
+		other: 'осталось ${n} дня',
+	);
+	@override String remainingHours({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: 'остался ${n} час',
+		few: 'осталось ${n} часа',
+		many: 'осталось ${n} часов',
+		other: 'осталось ${n} часа',
+	);
+	@override String remainingMinutes({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n,
+		one: 'осталась ${n} минута',
+		few: 'осталось ${n} минуты',
+		many: 'осталось ${n} минут',
+		other: 'осталось ${n} минуты',
+	);
 	@override String get requestError => 'Не удалось выполнить операцию. Проверьте сеть и облачный пароль.';
 	@override String get keep => 'Оставить аккаунт';
 	@override String scheduledNotice({required Object date}) => 'Удаление аккаунта запланировано на ${date}. До начала очистки его можно отменить.';
@@ -4017,7 +4035,10 @@ extension on TranslationsRu {
 			'accountDeletion.passwordPlaceholder' => 'Облачный пароль (если установлен)',
 			'accountDeletion.confirm' => 'Удалить аккаунт через 7 дней',
 			'accountDeletion.cancel' => 'Отменить удаление аккаунта',
-			'accountDeletion.scheduled' => ({required Object date}) => 'Удаление аккаунта запланировано на ${date}.',
+			'accountDeletion.scheduled' => ({required Object date, required Object remaining}) => 'Удаление аккаунта запланировано на ${date} (${remaining}).',
+			'accountDeletion.remainingDays' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'осталось ${n} день', few: 'осталось ${n} дня', many: 'осталось ${n} дней', other: 'осталось ${n} дня', ),
+			'accountDeletion.remainingHours' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'остался ${n} час', few: 'осталось ${n} часа', many: 'осталось ${n} часов', other: 'осталось ${n} часа', ),
+			'accountDeletion.remainingMinutes' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('ru'))(n, one: 'осталась ${n} минута', few: 'осталось ${n} минуты', many: 'осталось ${n} минут', other: 'осталось ${n} минуты', ),
 			'accountDeletion.requestError' => 'Не удалось выполнить операцию. Проверьте сеть и облачный пароль.',
 			'accountDeletion.keep' => 'Оставить аккаунт',
 			'accountDeletion.scheduledNotice' => ({required Object date}) => 'Удаление аккаунта запланировано на ${date}. До начала очистки его можно отменить.',

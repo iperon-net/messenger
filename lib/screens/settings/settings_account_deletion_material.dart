@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../cubit.dart';
 import '../../i18n/translations.g.dart';
+import '../../themes.dart';
+import 'settings_account_deletion_common.dart';
 
 class SettingsAccountDeletionMaterial extends StatefulWidget {
   const SettingsAccountDeletionMaterial({super.key});
@@ -70,7 +72,10 @@ class _SettingsAccountDeletionMaterialState extends State<SettingsAccountDeletio
                         if (scheduled != null) ...[
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Text(context.t.accountDeletion.scheduled(date: scheduled.toLocal().toString())),
+                            child: Text(
+                              accountDeletionScheduledText(context.t, scheduled),
+                              style: const TextStyle(fontSize: AppFontSizes.caption),
+                            ),
                           ),
                           const SizedBox(height: 16),
                           FilledButton(
