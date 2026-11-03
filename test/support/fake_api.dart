@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:grpc/grpc.dart';
 import 'package:messenger/api.dart';
-import 'package:messenger/protobuf/protos/v1.pb.dart';
+import 'package:messenger/protobuf/protos/v1.pbgrpc.dart';
 
 final class FakeApiCall {
   final MessageType type;
@@ -16,6 +17,7 @@ final class FakeApi implements API {
   final _connectionStatus = StreamController<ApiConnectionStatus>.broadcast();
   final _unaryResults = <MessageType, List<APICallStatus>>{};
   final _callResults = <APICallStatus>[];
+  final _client = FakeIperonClient();
 
   final unaryCalls = <FakeApiCall>[];
   final sentMessages = <FakeApiCall>[];
@@ -49,10 +51,20 @@ final class FakeApi implements API {
     _callResults.add(status);
   }
 
+  void enqueueResponse(MessageType type, Message response) {
+    _client.responses.putIfAbsent(type, () => []).add(response);
+  }
+
+  List<Message> get requests => _client.requests;
+
+  @override
+  IperonClient get client => _client;
+
   @override
   Future<APICallStatus> call(Function() func, {bool retryTransient = false, dynamic session}) async {
     callCount++;
     if (_callResults.isNotEmpty) return _callResults.removeAt(0);
+    await func();
     return const APICallStatus(status: APIStatus.success, statusCode: 0);
   }
 
@@ -78,4 +90,49 @@ final class FakeApi implements API {
   dynamic noSuchMethod(Invocation invocation) {
     throw UnsupportedError('FakeApi: ${invocation.memberName} is not configured');
   }
+}
+
+final class FakeIperonClient implements IperonClient {
+  final responses = <MessageType, List<Message>>{};
+  final requests = <Message>[];
+
+  @override
+  ResponseFuture<Message> unary(Message request, {CallOptions? options}) {
+    requests.add(request);
+    final responsesForType = responses[request.messageType];
+    if (responsesForType == null || responsesForType.isEmpty) {
+      throw UnsupportedError('FakeApi: no response for ${request.messageType}');
+    }
+    return FakeResponseFuture(Future.value(responsesForType.removeAt(0)));
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    throw UnsupportedError('FakeIperonClient: ${invocation.memberName} is not configured');
+  }
+}
+
+final class FakeResponseFuture implements ResponseFuture<Message> {
+  final Future<Message> _future;
+
+  const FakeResponseFuture(this._future);
+
+  @override
+  Stream<Message> asStream() => _future.asStream();
+
+  @override
+  Future<Message> catchError(Function onError, {bool Function(Object error)? test}) => _future.catchError(onError, test: test);
+
+  @override
+  Future<R> then<R>(FutureOr<R> Function(Message value) onValue, {Function? onError}) => _future.then(onValue, onError: onError);
+
+  @override
+  Future<Message> timeout(Duration timeLimit, {FutureOr<Message> Function()? onTimeout}) =>
+      _future.timeout(timeLimit, onTimeout: onTimeout);
+
+  @override
+  Future<Message> whenComplete(FutureOr<void> Function() action) => _future.whenComplete(action);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
