@@ -1779,6 +1779,7 @@ dateTime:
 "accountDeletion":
   "title": "Account deletion"
   "autoDeleteTitle": "Delete account if inactive"
+  "autoDeleteShortTitle": "Delete account after"
   "autoDeleteDescription": "If you do not open Iperon during the selected period, your account and personal data will be deleted. Messages will remain with your contacts."
   "months": "{count} months"
   "warning": "Your account will be deleted after 7 days. You can cancel until deletion starts. Your profile, contacts, settings, cloud password and secret chats will be deleted. Messages in regular chats will remain with your contacts."
@@ -1787,7 +1788,7 @@ dateTime:
   "confirm": "Delete my account in 7 days"
   "cancel": "Cancel account deletion"
   "scheduled": "Account deletion is scheduled for {date}."
-  "requestError": "Could not complete the operation. Check the network, phone number and cloud password."
+  "requestError": "Could not complete the operation. Check the network and cloud password."
   "keep": "Keep account"
   "scheduledNotice": "Your account is scheduled for deletion on {date}. You can cancel until deletion starts."
   "cancelledNotice": "Account deletion has been cancelled."

@@ -274,7 +274,7 @@ class _SettingsMyProfileMaterial extends State<SettingsMyProfileMaterial> {
                   ),
                 ),
                 Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 12),
+                  margin: const EdgeInsets.fromLTRB(12, 16, 12, 12),
                   clipBehavior: Clip.antiAlias,
                   child: MaterialListTileIcon(
                     title: Text(context.t.screenSettings.logout),

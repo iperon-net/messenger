@@ -12,11 +12,9 @@ class SettingsAccountDeletionMaterial extends StatefulWidget {
 
 class _SettingsAccountDeletionMaterialState extends State<SettingsAccountDeletionMaterial> {
   final formKey = GlobalKey<FormState>();
-  final phone = TextEditingController();
   final password = TextEditingController();
   @override
   void dispose() {
-    phone.dispose();
     password.dispose();
     super.dispose();
   }
@@ -31,18 +29,6 @@ class _SettingsAccountDeletionMaterialState extends State<SettingsAccountDeletio
         builder: (context, state) {
           final scheduled = state.manualDeleteAfter;
           final passwordRequired = state.cloudPasswordEnabled && !state.cloudPasswordUnlocked;
-          InputDecoration decoration(String label) => InputDecoration(
-            labelText: label,
-            floatingLabelBehavior: FloatingLabelBehavior.always,
-            border: InputBorder.none,
-            enabledBorder: InputBorder.none,
-            focusedBorder: InputBorder.none,
-            errorBorder: InputBorder.none,
-            focusedErrorBorder: InputBorder.none,
-            disabledBorder: InputBorder.none,
-            contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            errorStyle: const TextStyle(height: 0.8),
-          );
           return Scaffold(
             appBar: AppBar(
               title: Text(context.t.accountDeletion.title),
@@ -97,27 +83,32 @@ class _SettingsAccountDeletionMaterialState extends State<SettingsAccountDeletio
                             child: Text(context.t.accountDeletion.cancel),
                           ),
                         ] else ...[
-                          Card(
-                            clipBehavior: Clip.antiAlias,
-                            child: Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: passwordRequired
-                                  ? TextFormField(
-                                      key: ObjectKey(password),
-                                      controller: password,
-                                      decoration: decoration(context.t.cloudPassword.passwordPlaceholder),
-                                      obscureText: true,
-                                      autofillHints: null,
-                                      autofocus: true,
-                                    )
-                                  : TextFormField(
-                                      key: ObjectKey(phone),
-                                      controller: phone,
-                                      decoration: decoration(context.t.accountDeletion.phonePlaceholder),
-                                      keyboardType: TextInputType.phone,
-                                    ),
+                          if (passwordRequired)
+                            Card(
+                              clipBehavior: Clip.antiAlias,
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: TextFormField(
+                                  key: ObjectKey(password),
+                                  controller: password,
+                                  decoration: InputDecoration(
+                                    labelText: context.t.cloudPassword.passwordPlaceholder,
+                                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                                    border: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    errorBorder: InputBorder.none,
+                                    focusedErrorBorder: InputBorder.none,
+                                    disabledBorder: InputBorder.none,
+                                    contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                                    errorStyle: const TextStyle(height: 0.8),
+                                  ),
+                                  obscureText: true,
+                                  autofillHints: null,
+                                  autofocus: true,
+                                ),
+                              ),
                             ),
-                          ),
                           if (state.error.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -130,7 +121,7 @@ class _SettingsAccountDeletionMaterialState extends State<SettingsAccountDeletio
                               onPressed: state.loading
                                   ? null
                                   : () async {
-                                      if (!await context.read<AccountDeletionCubit>().request(phone.text)) _error();
+                                      if (!await context.read<AccountDeletionCubit>().request()) _error();
                                     },
                               child: Text(context.t.accountDeletion.confirm),
                             ),

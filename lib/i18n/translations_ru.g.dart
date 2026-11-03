@@ -2303,6 +2303,7 @@ class _Translations$accountDeletion$ru extends Translations$accountDeletion$en {
 	// Translations
 	@override String get title => 'Удаление аккаунта';
 	@override String get autoDeleteTitle => 'Удалить аккаунт, если я не захожу';
+	@override String get autoDeleteShortTitle => 'Удалить аккаунт, через';
 	@override String get autoDeleteDescription => 'Если вы не будете заходить в Iperon в течение выбранного периода, аккаунт и его личные данные будут удалены. Сообщения останутся у собеседников.';
 	@override String months({required Object count}) => '${count} мес.';
 	@override String get warning => 'Аккаунт будет удалён через 7 дней. До начала удаления его можно отменить. Профиль, контакты, настройки, облачный пароль и секретные чаты будут удалены. Сообщения в обычных чатах останутся у собеседников.';
@@ -2311,7 +2312,7 @@ class _Translations$accountDeletion$ru extends Translations$accountDeletion$en {
 	@override String get confirm => 'Удалить аккаунт через 7 дней';
 	@override String get cancel => 'Отменить удаление аккаунта';
 	@override String scheduled({required Object date}) => 'Удаление аккаунта запланировано на ${date}.';
-	@override String get requestError => 'Не удалось выполнить операцию. Проверьте сеть, номер телефона и облачный пароль.';
+	@override String get requestError => 'Не удалось выполнить операцию. Проверьте сеть и облачный пароль.';
 	@override String get keep => 'Оставить аккаунт';
 	@override String scheduledNotice({required Object date}) => 'Удаление аккаунта запланировано на ${date}. До начала очистки его можно отменить.';
 	@override String get cancelledNotice => 'Удаление аккаунта отменено.';
@@ -4008,6 +4009,7 @@ extension on TranslationsRu {
 			'report.reasons.other' => 'Другое',
 			'accountDeletion.title' => 'Удаление аккаунта',
 			'accountDeletion.autoDeleteTitle' => 'Удалить аккаунт, если я не захожу',
+			'accountDeletion.autoDeleteShortTitle' => 'Удалить аккаунт, через',
 			'accountDeletion.autoDeleteDescription' => 'Если вы не будете заходить в Iperon в течение выбранного периода, аккаунт и его личные данные будут удалены. Сообщения останутся у собеседников.',
 			'accountDeletion.months' => ({required Object count}) => '${count} мес.',
 			'accountDeletion.warning' => 'Аккаунт будет удалён через 7 дней. До начала удаления его можно отменить. Профиль, контакты, настройки, облачный пароль и секретные чаты будут удалены. Сообщения в обычных чатах останутся у собеседников.',
@@ -4016,7 +4018,7 @@ extension on TranslationsRu {
 			'accountDeletion.confirm' => 'Удалить аккаунт через 7 дней',
 			'accountDeletion.cancel' => 'Отменить удаление аккаунта',
 			'accountDeletion.scheduled' => ({required Object date}) => 'Удаление аккаунта запланировано на ${date}.',
-			'accountDeletion.requestError' => 'Не удалось выполнить операцию. Проверьте сеть, номер телефона и облачный пароль.',
+			'accountDeletion.requestError' => 'Не удалось выполнить операцию. Проверьте сеть и облачный пароль.',
 			'accountDeletion.keep' => 'Оставить аккаунт',
 			'accountDeletion.scheduledNotice' => ({required Object date}) => 'Удаление аккаунта запланировано на ${date}. До начала очистки его можно отменить.',
 			'accountDeletion.cancelledNotice' => 'Удаление аккаунта отменено.',

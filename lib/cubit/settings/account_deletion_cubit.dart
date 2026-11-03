@@ -107,12 +107,12 @@ class AccountDeletionCubit extends Cubit<AccountDeletionState> {
     return true;
   }
 
-  Future<bool> request(String phone) async {
+  Future<bool> request() async {
     if (!await utils.hasNetwork()) return false;
     emit(state.copyWith(loading: true, error: ''));
     final (status, payload) = await api.unaryEncodedWithResponse(
       MessageType.ACCOUNT_DELETION_REQUEST,
-      AccountDeletionRequest_Request(phoneNumber: phone, cloudPasswordToken: state.cloudPasswordToken).writeToBuffer(),
+      AccountDeletionRequest_Request(cloudPasswordToken: state.cloudPasswordToken).writeToBuffer(),
     );
     if (isClosed) return false;
     if (status.status != APIStatus.success || payload == null) {

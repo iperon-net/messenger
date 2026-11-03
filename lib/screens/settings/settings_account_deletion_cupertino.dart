@@ -14,12 +14,10 @@ class SettingsAccountDeletionCupertino extends StatefulWidget {
 
 class _SettingsAccountDeletionCupertinoState extends State<SettingsAccountDeletionCupertino> {
   final formKey = GlobalKey<FormState>();
-  final phone = TextEditingController();
   final password = TextEditingController();
 
   @override
   void dispose() {
-    phone.dispose();
     password.dispose();
     super.dispose();
   }
@@ -78,18 +76,13 @@ class _SettingsAccountDeletionCupertinoState extends State<SettingsAccountDeleti
                       child: ListView(
                         children: [
                           const SizedBox(height: 20),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Text(
-                              scheduled == null && passwordRequired
-                                  ? context.t.cloudPassword.unlockInfo
-                                  : context.t.accountDeletion.warning,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
                           if (scheduled != null) ...[
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: Text(context.t.accountDeletion.warning, style: const TextStyle(fontSize: AppFontSizes.caption)),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                               child: Text(context.t.accountDeletion.scheduled(date: scheduled.toLocal().toString())),
                             ),
                             Padding(
@@ -105,15 +98,16 @@ class _SettingsAccountDeletionCupertinoState extends State<SettingsAccountDeleti
                               ),
                             ),
                           ] else ...[
-                            CupertinoFormSection.insetGrouped(
-                              clipBehavior: Clip.antiAlias,
-                              backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
-                              decoration: BoxDecoration(
-                                color: ThemesCupertino.groupedCard.resolveFrom(context),
-                                borderRadius: const BorderRadius.all(Radius.circular(18)),
-                              ),
-                              children: [
-                                if (passwordRequired)
+                            if (passwordRequired)
+                              CupertinoFormSection.insetGrouped(
+                                clipBehavior: Clip.antiAlias,
+                                backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
+                                decoration: BoxDecoration(
+                                  color: ThemesCupertino.groupedCard.resolveFrom(context),
+                                  borderRadius: const BorderRadius.all(Radius.circular(18)),
+                                ),
+                                footer: Padding(padding: const EdgeInsets.only(top: 8), child: Text(context.t.cloudPassword.unlockInfo)),
+                                children: [
                                   CupertinoTextFormFieldRow(
                                     key: ObjectKey(password),
                                     controller: password,
@@ -121,16 +115,14 @@ class _SettingsAccountDeletionCupertinoState extends State<SettingsAccountDeleti
                                     obscureText: true,
                                     autofillHints: const [AutofillHints.password],
                                     autofocus: true,
-                                  )
-                                else
-                                  CupertinoTextFormFieldRow(
-                                    key: ObjectKey(phone),
-                                    controller: phone,
-                                    placeholder: context.t.accountDeletion.phonePlaceholder,
-                                    keyboardType: TextInputType.phone,
                                   ),
-                              ],
-                            ),
+                                ],
+                              )
+                            else
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 35),
+                                child: Text(context.t.accountDeletion.warning, style: const TextStyle(fontSize: AppFontSizes.caption)),
+                              ),
                             if (state.error.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.fromLTRB(35, 8, 35, 0),
@@ -140,10 +132,11 @@ class _SettingsAccountDeletionCupertinoState extends State<SettingsAccountDeleti
                               Padding(
                                 padding: const EdgeInsets.all(20),
                                 child: CupertinoButton.filled(
+                                  color: CupertinoColors.systemRed,
                                   onPressed: state.loading
                                       ? null
                                       : () async {
-                                          if (!await context.read<AccountDeletionCubit>().request(phone.text)) await _error();
+                                          if (!await context.read<AccountDeletionCubit>().request()) await _error();
                                         },
                                   child: Text(context.t.accountDeletion.confirm),
                                 ),

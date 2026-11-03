@@ -5424,6 +5424,9 @@ class Translations$accountDeletion$en {
 	/// en: 'Delete account if inactive'
 	String get autoDeleteTitle => 'Delete account if inactive';
 
+	/// en: 'Delete account after'
+	String get autoDeleteShortTitle => 'Delete account after';
+
 	/// en: 'If you do not open Iperon during the selected period, your account and personal data will be deleted. Messages will remain with your contacts.'
 	String get autoDeleteDescription => 'If you do not open Iperon during the selected period, your account and personal data will be deleted. Messages will remain with your contacts.';
 
@@ -5448,8 +5451,8 @@ class Translations$accountDeletion$en {
 	/// en: 'Account deletion is scheduled for {date}.'
 	String scheduled({required Object date}) => 'Account deletion is scheduled for ${date}.';
 
-	/// en: 'Could not complete the operation. Check the network, phone number and cloud password.'
-	String get requestError => 'Could not complete the operation. Check the network, phone number and cloud password.';
+	/// en: 'Could not complete the operation. Check the network and cloud password.'
+	String get requestError => 'Could not complete the operation. Check the network and cloud password.';
 
 	/// en: 'Keep account'
 	String get keep => 'Keep account';
@@ -7222,6 +7225,7 @@ extension on Translations {
 			'report.reasons.other' => 'Other',
 			'accountDeletion.title' => 'Account deletion',
 			'accountDeletion.autoDeleteTitle' => 'Delete account if inactive',
+			'accountDeletion.autoDeleteShortTitle' => 'Delete account after',
 			'accountDeletion.autoDeleteDescription' => 'If you do not open Iperon during the selected period, your account and personal data will be deleted. Messages will remain with your contacts.',
 			'accountDeletion.months' => ({required Object count}) => '${count} months',
 			'accountDeletion.warning' => 'Your account will be deleted after 7 days. You can cancel until deletion starts. Your profile, contacts, settings, cloud password and secret chats will be deleted. Messages in regular chats will remain with your contacts.',
@@ -7230,7 +7234,7 @@ extension on Translations {
 			'accountDeletion.confirm' => 'Delete my account in 7 days',
 			'accountDeletion.cancel' => 'Cancel account deletion',
 			'accountDeletion.scheduled' => ({required Object date}) => 'Account deletion is scheduled for ${date}.',
-			'accountDeletion.requestError' => 'Could not complete the operation. Check the network, phone number and cloud password.',
+			'accountDeletion.requestError' => 'Could not complete the operation. Check the network and cloud password.',
 			'accountDeletion.keep' => 'Keep account',
 			'accountDeletion.scheduledNotice' => ({required Object date}) => 'Your account is scheduled for deletion on ${date}. You can cancel until deletion starts.',
 			'accountDeletion.cancelledNotice' => 'Account deletion has been cancelled.',

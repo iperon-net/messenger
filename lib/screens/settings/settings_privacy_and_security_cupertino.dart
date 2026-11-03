@@ -270,7 +270,7 @@ class _SettingsPrivacyAndSecurityCupertino extends State<SettingsPrivacyAndSecur
                   ),
                   children: [
                     CupertinoListTileIcon(
-                      title: Text(context.t.accountDeletion.autoDeleteTitle),
+                      title: Text(context.t.accountDeletion.autoDeleteShortTitle),
                       color: const Color(0xFFFF3B30),
                       icon: FontAwesomeIcons.userClock,
                       isTrailing: true,
