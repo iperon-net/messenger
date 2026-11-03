@@ -165,6 +165,7 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
               autofocus: true,
               enabled: !loading,
               error: state.error,
+              onSubmitted: () => _submitNext(state.step),
             ),
           ]),
           _desc(context, context.t.cloudPassword.setupEmailHint),
@@ -181,6 +182,7 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
               autofocus: true,
               enabled: !loading,
               error: state.error,
+              onSubmitted: () => _submitNext(state.step),
             ),
           ]),
           _desc(context, context.t.cloudPassword.recoveryHint(email: state.pendingEmail)),
@@ -196,6 +198,7 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
               autofocus: true,
               enabled: !loading,
               error: state.error,
+              onSubmitted: () => _cubit.submitSetupPassword(passwordController.text),
             ),
           ]),
           _desc(context, context.t.cloudPassword.newPasswordDescription),
@@ -211,6 +214,7 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
               autofocus: true,
               enabled: !loading,
               error: state.error,
+              onSubmitted: () => _cubit.submitChangePassword(passwordController.text),
             ),
           ]),
           _desc(context, context.t.cloudPassword.changePasswordHint),
@@ -226,6 +230,7 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
               autofocus: true,
               enabled: !loading,
               error: state.error,
+              onSubmitted: () => _cubit.unlock(passwordController.text),
             ),
           ]),
           _desc(context, context.t.cloudPassword.unlockInfo),
@@ -259,6 +264,7 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
               obscure: true,
               enabled: !loading,
               error: state.error,
+              onSubmitted: () => _cubit.submitRecovery(code: codeController.text, newPassword: passwordController.text),
             ),
           ]),
           _desc(context, context.t.cloudPassword.recoveryHint(email: state.maskedEmail)),
@@ -380,6 +386,7 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
     bool autofocus = false,
     bool enabled = true,
     String? error,
+    VoidCallback? onSubmitted,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -398,6 +405,9 @@ class _SettingsCloudPasswordMaterial extends State<SettingsCloudPasswordMaterial
         autofillHints: null,
         autofocus: autofocus,
         enabled: enabled,
+        // Кнопка «Готово»/галочка на клавиатуре срабатывает как «Далее»/«Сохранить».
+        textInputAction: onSubmitted == null ? TextInputAction.newline : TextInputAction.done,
+        onFieldSubmitted: onSubmitted == null ? null : (_) => onSubmitted(),
         decoration: InputDecoration(
           labelText: label,
           // Лейбл всегда сверху (как в форме профиля), а не по центру пустого поля.
