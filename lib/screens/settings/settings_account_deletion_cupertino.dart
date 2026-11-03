@@ -151,7 +151,7 @@ class _SettingsAccountDeletionCupertinoState extends State<SettingsAccountDeleti
                                       : () async {
                                           if (!await context.read<AccountDeletionCubit>().request()) await _error();
                                         },
-                                  child: Text(context.t.accountDeletion.confirm),
+                                  child: Text(context.t.accountDeletion.confirm, style: const TextStyle(color: CupertinoColors.white)),
                                 ),
                               ),
                           ],
