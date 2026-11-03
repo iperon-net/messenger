@@ -71,6 +71,8 @@ class _SettingsEmojiStatusCupertinoState extends State<SettingsEmojiStatusCupert
           backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
           navigationBar: AppCupertinoNavigationBar(
             child: CupertinoNavigationBar(
+              automaticBackgroundVisibility: false,
+              backgroundColor: ThemesCupertino.groupedBackground,
               middle: Text(t.emojiStatus),
               previousPageTitle: '',
               trailing: NavBarButtonCupertino(
@@ -140,7 +142,7 @@ class _SettingsEmojiStatusCupertinoState extends State<SettingsEmojiStatusCupert
                           },
                         ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
                 Text(
                   t.emojiStatusDuration,
                   style: const TextStyle(fontSize: AppFontSizes.base, fontWeight: FontWeight.normal),
@@ -165,7 +167,7 @@ class _SettingsEmojiStatusCupertinoState extends State<SettingsEmojiStatusCupert
                       ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
                 CupertinoListSection.insetGrouped(
                   margin: EdgeInsets.zero,
                   backgroundColor: ThemesCupertino.groupedBackground.resolveFrom(context),
