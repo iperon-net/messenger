@@ -5451,22 +5451,25 @@ class Translations$accountDeletion$en {
 	/// en: 'Account deletion is scheduled for {date} ({remaining}).'
 	String scheduled({required Object date, required Object remaining}) => 'Account deletion is scheduled for ${date} (${remaining}).';
 
-	/// en: '(one) {{n} day left} (other) {{n} days left}'
+	/// en: '{parts} left'
+	String remaining({required Object parts}) => '${parts} left';
+
+	/// en: '(one) {{n} day} (other) {{n} days}'
 	String remainingDays({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
-		one: '${n} day left',
-		other: '${n} days left',
+		one: '${n} day',
+		other: '${n} days',
 	);
 
-	/// en: '(one) {{n} hour left} (other) {{n} hours left}'
+	/// en: '(one) {{n} hour} (other) {{n} hours}'
 	String remainingHours({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
-		one: '${n} hour left',
-		other: '${n} hours left',
+		one: '${n} hour',
+		other: '${n} hours',
 	);
 
-	/// en: '(one) {{n} minute left} (other) {{n} minutes left}'
+	/// en: '(one) {{n} minute} (other) {{n} minutes}'
 	String remainingMinutes({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
-		one: '${n} minute left',
-		other: '${n} minutes left',
+		one: '${n} minute',
+		other: '${n} minutes',
 	);
 
 	/// en: 'Could not complete the operation. Check the network and cloud password.'
@@ -7252,9 +7255,10 @@ extension on Translations {
 			'accountDeletion.confirm' => 'Delete my account in 7 days',
 			'accountDeletion.cancel' => 'Cancel account deletion',
 			'accountDeletion.scheduled' => ({required Object date, required Object remaining}) => 'Account deletion is scheduled for ${date} (${remaining}).',
-			'accountDeletion.remainingDays' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} day left', other: '${n} days left', ), 
-			'accountDeletion.remainingHours' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} hour left', other: '${n} hours left', ), 
-			'accountDeletion.remainingMinutes' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} minute left', other: '${n} minutes left', ), 
+			'accountDeletion.remaining' => ({required Object parts}) => '${parts} left',
+			'accountDeletion.remainingDays' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} day', other: '${n} days', ), 
+			'accountDeletion.remainingHours' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} hour', other: '${n} hours', ), 
+			'accountDeletion.remainingMinutes' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} minute', other: '${n} minutes', ), 
 			'accountDeletion.requestError' => 'Could not complete the operation. Check the network and cloud password.',
 			'accountDeletion.keep' => 'Keep account',
 			'accountDeletion.scheduledNotice' => ({required Object date}) => 'Your account is scheduled for deletion on ${date}. You can cancel until deletion starts.',

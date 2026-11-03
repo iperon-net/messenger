@@ -84,8 +84,9 @@ class _SettingsAccountDeletionCupertinoState extends State<SettingsAccountDeleti
                             ),
                             Padding(
                               padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                              child: Text(
-                                accountDeletionScheduledText(context.t, scheduled),
+                              child: AccountDeletionScheduledText(
+                                t: context.t,
+                                scheduled: scheduled,
                                 style: const TextStyle(fontSize: AppFontSizes.caption),
                               ),
                             ),

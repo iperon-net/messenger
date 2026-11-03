@@ -72,8 +72,9 @@ class _SettingsAccountDeletionMaterialState extends State<SettingsAccountDeletio
                         if (scheduled != null) ...[
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Text(
-                              accountDeletionScheduledText(context.t, scheduled),
+                            child: AccountDeletionScheduledText(
+                              t: context.t,
+                              scheduled: scheduled,
                               style: const TextStyle(fontSize: AppFontSizes.caption),
                             ),
                           ),
