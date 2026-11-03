@@ -107,18 +107,28 @@ class _SettingsCloudPasswordCupertino extends State<SettingsCloudPasswordCuperti
           onPopInvokedWithResult: (didPop, _) {
             if (!didPop) _cubit.back();
           },
-          child: CupertinoPageScaffold(
-            backgroundColor: ThemesCupertino.groupedBackground,
-            navigationBar: AppCupertinoNavigationBar(
-              child: CupertinoNavigationBar(
-                previousPageTitle: '',
-                automaticBackgroundVisibility: false,
-                backgroundColor: ThemesCupertino.groupedBackground,
-                middle: Text(_title(context, state.step)),
-                trailing: _trailing(context, state),
+          child: GestureDetector(
+            // Свайп «назад» не работает при canPop: false (PopScope отключает
+            // системный жест iOS), поэтому на вложенных шагах ловим свайп
+            // вправо сами и делаем шаг назад — как кнопка «Назад».
+            behavior: HitTestBehavior.opaque,
+            onHorizontalDragEnd: (details) {
+              final velocity = details.primaryVelocity ?? 0;
+              if (!state.isRootStep && velocity > 200) _cubit.back();
+            },
+            child: CupertinoPageScaffold(
+              backgroundColor: ThemesCupertino.groupedBackground,
+              navigationBar: AppCupertinoNavigationBar(
+                child: CupertinoNavigationBar(
+                  previousPageTitle: '',
+                  automaticBackgroundVisibility: false,
+                  backgroundColor: ThemesCupertino.groupedBackground,
+                  middle: Text(_title(context, state.step)),
+                  trailing: _trailing(context, state),
+                ),
               ),
+              child: SafeArea(child: _body(context, state)),
             ),
-            child: SafeArea(child: _body(context, state)),
           ),
         );
       },
