@@ -132,7 +132,7 @@ class _SettingsEmojiStatusCupertinoState extends State<SettingsEmojiStatusCupert
                           },
                         ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
                 Text(
                   t.emojiStatusDuration,
                   style: const TextStyle(fontSize: AppFontSizes.base, fontWeight: FontWeight.normal),
