@@ -129,22 +129,28 @@ class _SettingsEmojiStatusCupertinoState extends State<SettingsEmojiStatusCupert
                   height: 280,
                   child: items.isEmpty
                       ? Center(child: Text(t.emojiStatusNotFound))
-                      : GridView.builder(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 6),
-                          itemCount: items.length,
-                          itemBuilder: (context, index) {
-                            final emoji = items[index].toUnicodeEmoji();
-                            return CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              onPressed: () => setState(() => _emoji = emoji),
-                              child: Container(
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: emoji == _emoji ? CupertinoTheme.of(context).primaryColor.withValues(alpha: 0.18) : null,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(emoji, style: const TextStyle(fontSize: 30)),
-                              ),
+                      : LayoutBuilder(
+                          builder: (context, constraints) {
+                            final columns = (constraints.maxWidth / 60).ceil().clamp(6, 12);
+                            final tile = constraints.maxWidth / columns;
+                            return GridView.builder(
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: columns),
+                              itemCount: items.length,
+                              itemBuilder: (context, index) {
+                                final emoji = items[index].toUnicodeEmoji();
+                                return CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () => setState(() => _emoji = emoji),
+                                  child: Container(
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: emoji == _emoji ? CupertinoTheme.of(context).primaryColor.withValues(alpha: 0.18) : null,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(emoji, style: TextStyle(fontSize: tile * 0.55)),
+                                  ),
+                                );
+                              },
                             );
                           },
                         ),

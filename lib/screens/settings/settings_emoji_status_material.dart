@@ -120,22 +120,28 @@ class _SettingsEmojiStatusMaterialState extends State<SettingsEmojiStatusMateria
                   height: 280,
                   child: items.isEmpty
                       ? Center(child: Text(t.emojiStatusNotFound))
-                      : GridView.builder(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 6),
-                          itemCount: items.length,
-                          itemBuilder: (context, index) {
-                            final emoji = items[index].toUnicodeEmoji();
-                            return InkWell(
-                              borderRadius: BorderRadius.circular(12),
-                              onTap: () => setState(() => _emoji = emoji),
-                              child: Container(
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: emoji == _emoji ? Theme.of(context).colorScheme.primaryContainer : null,
+                      : LayoutBuilder(
+                          builder: (context, constraints) {
+                            final columns = (constraints.maxWidth / 60).ceil().clamp(6, 12);
+                            final tile = constraints.maxWidth / columns;
+                            return GridView.builder(
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: columns),
+                              itemCount: items.length,
+                              itemBuilder: (context, index) {
+                                final emoji = items[index].toUnicodeEmoji();
+                                return InkWell(
                                   borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(emoji, style: const TextStyle(fontSize: 30)),
-                              ),
+                                  onTap: () => setState(() => _emoji = emoji),
+                                  child: Container(
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: emoji == _emoji ? Theme.of(context).colorScheme.primaryContainer : null,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(emoji, style: TextStyle(fontSize: tile * 0.55)),
+                                  ),
+                                );
+                              },
                             );
                           },
                         ),
