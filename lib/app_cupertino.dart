@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 // GlobalCupertinoLocalizations уже приходит из cupertino_ui — прячем дубликат.
 import 'package:flutter_localizations/flutter_localizations.dart' hide GlobalCupertinoLocalizations;
 // Настоящий Flutter-овский CupertinoLocalizations. cupertino_ui поставляет
@@ -60,6 +61,12 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
   late final GoRouter goRouter;
 
   bool isBlur = false;
+
+  // Эпоха блюра: увеличивается при каждом включении, ключ слоя заставляет
+  // BackdropFilter пересоздаваться, а не переиспользовать кэшированный снапшот
+  // — иначе после долгого сна iPhone первый кадр композитится с растянутым
+  // снимком устаревшей геометрии (Impeller), картинка «плывёт» пару секунд.
+  int _blurEpoch = 0;
 
   // Снимок звонка для passcode-гейта: при блокировке экран `/call` из роутера не
   // рисуется (builder возвращает ScreenLock ВМЕСТО child — весь навигатор уходит
@@ -143,7 +150,13 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
 
     switch (state) {
       case AppLifecycleState.resumed:
-        setState(() => isBlur = false);
+        // Убираем блюр не мгновенно: первый после разблокировки кадр движок
+        // композитит с устаревшим снапшотом BackdropFilter (растянутая
+        // геометрия после сна) — держим слой ещё один кадр, пока свежий кадр
+        // не отрисуется, и только потом снимаем.
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          if (mounted) setState(() => isBlur = false);
+        });
 
         // Приложение снова на переднем плане — стрим поднимется через координатор.
         api.setForeground(true);
@@ -159,7 +172,10 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
         context.read<CommonCubit>().onAppResumed();
       case AppLifecycleState.paused:
       case AppLifecycleState.hidden:
-        setState(() => isBlur = true);
+        setState(() {
+          isBlur = true;
+          _blurEpoch++;
+        });
 
         // Досбрасываем файловый лог: при убийстве процесса из фона хвост буфера
         // иначе теряется — а это как раз момент диагностики звонков.
@@ -189,7 +205,10 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
         // ловим на `paused`/`hidden`/`detached`, возврат — на `resumed`. Блюр и
         // авто-блокировку по `inactive` оставляем — безвредны и нужны для превью в
         // переключателе.
-        setState(() => isBlur = true);
+        setState(() {
+          isBlur = true;
+          _blurEpoch++;
+        });
         context.read<CommonCubit>().onAppBackgrounded();
     }
   }
@@ -309,6 +328,10 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                   // и закрывает клавиатуру в поле ввода.
                   if (state.settingsDevice.isBlurOnInactive && isBlur)
                     Positioned.fill(
+                      // Ключ пересоздаёт фильтр на каждый цикл inactive→resumed:
+                      // без него Impeller переиспользует снапшот, снятый до сна,
+                      // и после разблокировки кадр растянут до пары секунд.
+                      key: ValueKey(_blurEpoch),
                       child: BlurLayer(
                         blur: 5,
                         blurColor: CupertinoTheme.brightnessOf(context) == Brightness.dark

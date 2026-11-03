@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 // show, чтобы не тянуть конфликтующие с material_ui символы.
 import 'package:cupertino_ui/cupertino_ui.dart' show GlobalCupertinoLocalizations;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 // GlobalMaterialLocalizations уже приходит из material_ui — прячем дубликат.
 // GlobalCupertinoLocalizations берём из cupertino_ui — тоже прячем flutter-версию.
 import 'package:flutter_localizations/flutter_localizations.dart' hide GlobalMaterialLocalizations, GlobalCupertinoLocalizations;
@@ -69,6 +70,12 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
   late final GoRouter goRouter;
 
   bool isBlur = false;
+
+  // Эпоха блюра: увеличивается при каждом включении, ключ слоя заставляет
+  // BackdropFilter пересоздаваться, а не переиспользовать кэшированный снапшот
+  // — иначе после долгого сна iPhone первый кадр композитится с растянутым
+  // снимком устаревшей геометрии (Impeller), картинка «плывёт» пару секунд.
+  int _blurEpoch = 0;
 
   // Снимок звонка для passcode-гейта: при блокировке экран `/call` из роутера не
   // рисуется (builder возвращает ScreenLock ВМЕСТО child — весь навигатор уходит
@@ -150,7 +157,13 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
 
     switch (state) {
       case AppLifecycleState.resumed:
-        setState(() => isBlur = false);
+        // Убираем блюр не мгновенно: первый после разблокировки кадр движок
+        // композитит с устаревшим снапшотом BackdropFilter (растянутая
+        // геометрия после сна) — держим слой ещё один кадр, пока свежий кадр
+        // не отрисуется, и только потом снимаем.
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          if (mounted) setState(() => isBlur = false);
+        });
         api.setForeground(true);
         // Push-токен мог смениться, пока приложение было в фоне/выгружено.
         unawaited(getIt.get<PushManager>().syncTokens());
@@ -161,7 +174,10 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
         context.read<CommonCubit>().onAppResumed();
       case AppLifecycleState.paused:
       case AppLifecycleState.hidden:
-        setState(() => isBlur = true);
+        setState(() {
+          isBlur = true;
+          _blurEpoch++;
+        });
         // Досбрасываем файловый лог перед возможным убийством процесса из фона.
         unawaited(logger.fileLogger.flush());
         // Десктоп: окно свёрнуто или закрыто другим, но приложение работает —
@@ -181,7 +197,10 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
         // Десктоп: inactive — окно просто потеряло фокус (переключились в
         // другое приложение), это не уход в фон.
         if (AppPlatform.isDesktop) break;
-        setState(() => isBlur = true);
+        setState(() {
+          isBlur = true;
+          _blurEpoch++;
+        });
         context.read<CommonCubit>().onAppBackgrounded();
     }
   }
@@ -299,6 +318,10 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
                   // приложений», где его надо прятать, а свёрнутое и так не видно.
                   if (!AppPlatform.isDesktop && state.settingsDevice.isBlurOnInactive && isBlur)
                     Positioned.fill(
+                      // Ключ пересоздаёт фильтр на каждый цикл inactive→resumed:
+                      // без него Impeller переиспользует снапшот, снятый до сна,
+                      // и после разблокировки кадр растянут до пары секунд.
+                      key: ValueKey(_blurEpoch),
                       child: BlurLayer(
                         blur: 5,
                         blurColor: Theme.of(context).brightness == Brightness.dark ? Colors.black54 : Colors.white54,
