@@ -99,7 +99,7 @@ class _SettingsAccountDeletionCupertinoState extends State<SettingsAccountDeleti
                                     : () async {
                                         if (!await context.read<AccountDeletionCubit>().cancel()) await _error();
                                       },
-                                child: Text(context.t.accountDeletion.cancel),
+                                child: Text(context.t.accountDeletion.cancel, style: const TextStyle(color: CupertinoColors.white)),
                               ),
                             ),
                           ] else ...[

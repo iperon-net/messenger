@@ -17,7 +17,7 @@ String accountDeletionScheduledText(Translations t, DateTime scheduled, {DateTim
     if (minutes > 0 || (days == 0 && hours == 0)) t.accountDeletion.remainingMinutes(n: minutes),
   ];
   return t.accountDeletion.scheduled(
-    date: DateFormat('d MMMM y, HH:mm').format(scheduled.toLocal()),
+    date: DateFormat('d MMMM y, HH:mm', LocaleSettings.currentLocale.languageCode).format(scheduled.toLocal()),
     remaining: t.accountDeletion.remaining(parts: parts.join(', ')),
   );
 }

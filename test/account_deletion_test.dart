@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:messenger/i18n/translations.g.dart';
 import 'package:messenger/screens/settings/settings_account_deletion_common.dart';
 
@@ -8,6 +9,7 @@ void main() {
 
   group('ru', () {
     setUpAll(() async {
+      await initializeDateFormatting('ru');
       await AppLocale.ru.build();
     });
 

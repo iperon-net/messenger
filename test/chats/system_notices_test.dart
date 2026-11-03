@@ -1,5 +1,7 @@
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart';
 import 'package:messenger/chats/chats_mapping.dart';
 import 'package:messenger/i18n/translations.g.dart';
 import 'package:messenger/models.dart' as models;
@@ -9,6 +11,7 @@ void main() {
   late Translations t;
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
+    await initializeDateFormatting('ru');
     await LocaleSettings.setLocale(AppLocale.ru);
     t = await AppLocale.ru.build();
   });
@@ -55,6 +58,18 @@ void main() {
     expect(systemNoticeText(t, wrong, russian: true).text, endsWith(t.systemNotice.cloudPasswordWrongHint));
     final email = pb.MessageSystemNotice(kind: pb.MessageSystemNotice_Kind.RECOVERY_EMAIL_SET, email: 'k***@yandex.ru');
     expect(systemNoticeText(t, email, russian: true).text, contains('через k***@yandex.ru.'));
+  });
+
+  test('удаление аккаунта: дата, устройство, приложение, место и IP', () {
+    final notice = login()
+      ..kind = pb.MessageSystemNotice_Kind.ACCOUNT_DELETION_SCHEDULED
+      ..deletionAfter = Timestamp.fromDateTime(DateTime(2026, 11, 10, 22, 38));
+    final text = systemNoticeText(t, notice, russian: true).text;
+    expect(text, contains('Удаление аккаунта запланировано на 10 ноября 2026, 22:38.'));
+    expect(text, contains('Устройство: Pixel 9, Android 16'));
+    expect(text, contains('Приложение: Iperon 0.0.240'));
+    expect(text, contains('Место: Казань, Россия'));
+    expect(text, contains('IP-адрес: 185.12.34.56'));
   });
 
   test('неизвестный вид (сервер новее) — «обновите приложение»', () {

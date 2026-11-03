@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:fixnum/fixnum.dart';
+import 'package:intl/intl.dart';
 
 import '../i18n/translations.g.dart';
 import '../models.dart' as models;
@@ -209,8 +210,9 @@ String systemNoticeTitle(Translations t, pb.MessageSystemNotice notice) {
   };
 }
 
-String _deletionDate(pb.MessageSystemNotice notice) =>
-    notice.hasDeletionAfter() ? notice.deletionAfter.toDateTime().toLocal().toString() : '—';
+String _deletionDate(pb.MessageSystemNotice notice) => notice.hasDeletionAfter()
+    ? DateFormat('d MMMM y, HH:mm', LocaleSettings.currentLocale.languageCode).format(notice.deletionAfter.toDateTime().toLocal())
+    : '—';
 
 /// Текст уведомления «Iperon» (как сервисные 777000 в Telegram): заголовок
 /// жирным, что произошло, затем устройство, место, IP, способ входа (что
