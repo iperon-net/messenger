@@ -21,7 +21,6 @@ class _SettingsEmojiStatusCupertinoState extends State<SettingsEmojiStatusCupert
   late String _emoji;
   late Duration? _duration;
   late bool _doNotDisturb;
-  final _search = TextEditingController();
   EmojiStatusCategory _category = EmojiStatusCategory.popular;
   late bool _statusRestored;
 
@@ -31,19 +30,12 @@ class _SettingsEmojiStatusCupertinoState extends State<SettingsEmojiStatusCupert
     final state = context.read<SettingsMyProfileCubit>().state;
     _statusRestored = state.status == Status.success;
     _restoreStatus(state.emojiStatus);
-    _search.addListener(() => setState(() {}));
   }
 
   void _restoreStatus(models.EmojiStatus status) {
     _emoji = status.active ? status.emoji : emojiStatusChoices.first;
     _duration = status.active && status.expiresAt != null ? const Duration(hours: 4) : null;
     _doNotDisturb = status.mutes;
-  }
-
-  @override
-  void dispose() {
-    _search.dispose();
-    super.dispose();
   }
 
   Future<void> _save({bool remove = false}) async {
@@ -60,7 +52,7 @@ class _SettingsEmojiStatusCupertinoState extends State<SettingsEmojiStatusCupert
   @override
   Widget build(BuildContext context) {
     final t = context.t.screenMyProfile;
-    final items = emojiStatusItems(_category, _search.text);
+    final items = emojiStatusItems(_category, '');
     return BlocBuilder<SettingsMyProfileCubit, SettingsMyProfileState>(
       builder: (context, state) {
         if (!_statusRestored && state.status == Status.success) {
@@ -88,8 +80,6 @@ class _SettingsEmojiStatusCupertinoState extends State<SettingsEmojiStatusCupert
               padding: const EdgeInsets.all(16),
               children: [
                 EmojiStatusPreview(emoji: _emoji),
-                const SizedBox(height: 12),
-                CupertinoSearchTextField(controller: _search, placeholder: t.emojiStatusSearch),
                 const SizedBox(height: 12),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
