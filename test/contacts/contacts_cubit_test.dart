@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:messenger/api.dart';
 import 'package:messenger/auth.dart';
@@ -110,6 +112,138 @@ void main() {
     expect(await cubit.removeByPhone('+79000000002'), ContactRemoveResult.noConnection);
     expect(api.unaryCalls, isEmpty);
   });
+
+  test('добавление: OPRF, upsert и match сохраняют зарегистрированный контакт', () async {
+    final cubit = await createCubit();
+    utils.network = true;
+    api.enqueueUnaryResponse(
+      MessageType.CONTACTS_DISCOVERY_EVALUATE,
+      ContactsDiscoveryEvaluate_Response(
+        evaluatedElements: [
+          [1],
+        ],
+      ).writeToBuffer(),
+    );
+    api.enqueueUnaryResponse(
+      MessageType.CONTACTS_DISCOVERY_MATCH,
+      ContactsDiscoveryMatch_Response(
+        matches: [
+          ContactsDiscoveryMatch_Match(oprf: [9], userID: [7]),
+        ],
+      ).writeToBuffer(),
+    );
+
+    final result = await cubit.addByNumber(firstName: ' Анна ', lastName: ' Смирнова ', rawNumber: '+79000000002');
+
+    expect(result, ContactAddResult.addedRegistered);
+    expect(cubit.state.cloud.single.displayName, 'Анна Смирнова');
+    expect(cubit.state.cloud.single.userID, [7]);
+    expect(contacts.rows.single.oprf, [9]);
+    final upsert = ContactsUpsert_Request.fromBuffer(
+      api.unaryCalls.singleWhere((call) => call.type == MessageType.CONTACTS_UPSERT).payload,
+    );
+    expect(upsert.items.single.source, ContactsUpsert_Source.MANUAL);
+    expect(upsert.items.single.phoneNumber, '+79000000002');
+  });
+
+  test('добавление: пустой match означает ожидание, лимит не меняет кэш', () async {
+    final cubit = await createCubit();
+    utils.network = true;
+    api.enqueueUnaryResponse(
+      MessageType.CONTACTS_DISCOVERY_EVALUATE,
+      ContactsDiscoveryEvaluate_Response(
+        evaluatedElements: [
+          [1],
+        ],
+      ).writeToBuffer(),
+    );
+    api.enqueueUnaryResponse(MessageType.CONTACTS_DISCOVERY_MATCH, ContactsDiscoveryMatch_Response().writeToBuffer());
+
+    expect(await cubit.addByNumber(firstName: '', lastName: '', rawNumber: '+79000000002'), ContactAddResult.addedPending);
+    expect(cubit.state.cloud.single.userID, isNull);
+
+    api.enqueueUnaryResponse(
+      MessageType.CONTACTS_DISCOVERY_EVALUATE,
+      ContactsDiscoveryEvaluate_Response(
+        evaluatedElements: [
+          [1],
+        ],
+      ).writeToBuffer(),
+    );
+    api.enqueueUnaryResult(MessageType.CONTACTS_UPSERT, const APICallStatus(status: APIStatus.error, statusCode: 8));
+    expect(await cubit.addByNumber(firstName: '', lastName: '', rawNumber: '+79000000003'), ContactAddResult.limitReached);
+    expect(contacts.rows, hasLength(1));
+  });
+
+  test('удаление восстанавливает книжную запись, ручной контакт попадает в exclusion-set', () async {
+    contacts.rows.addAll([
+      const ContactCacheEntry(phoneE164: '+79000000002', displayName: 'Книжная Анна', phone: '+79000000002', userID: [7]),
+      const ContactCacheEntry(phoneE164: '+79000000003', displayName: 'Иван', phone: '+79000000003', isCloud: true, oprf: [9]),
+    ]);
+    final cubit = await createCubit();
+    await cubit.preload();
+    utils.network = true;
+    for (var index = 0; index < 2; index++) {
+      api.enqueueUnaryResponse(
+        MessageType.CONTACTS_DISCOVERY_EVALUATE,
+        ContactsDiscoveryEvaluate_Response(
+          evaluatedElements: [
+            [1],
+          ],
+        ).writeToBuffer(),
+      );
+    }
+
+    expect(await cubit.removeByPhone('+79000000002'), ContactRemoveResult.removed);
+    expect(contacts.rows.singleWhere((row) => row.phoneE164 == '+79000000002').displayName, 'Книжная Анна');
+    expect(contacts.rows.singleWhere((row) => row.phoneE164 == '+79000000002').isCloud, isFalse);
+
+    expect(await cubit.removeByPhone('+79000000003'), ContactRemoveResult.removed);
+    expect(contacts.rows.map((row) => row.phoneE164), ['+79000000002']);
+    expect(cubit.repositories.cache, isA<FakeCache>());
+    final cache = cubit.repositories.cache as FakeCache;
+    expect(jsonDecode(cache.values['contacts_excluded_e164']!), ['+79000000003']);
+  });
+
+  test('присутствие обновляется ответом и push, кодовая фраза остаётся локальной', () async {
+    final cubit = await createCubit();
+    api.emitMessage(
+      MessageType.CONTACTS_UPDATED,
+      ContactsUpdated(
+        upserted: [
+          Contact(phoneNumber: '+79000000002', firstName: 'Анна', contactUserID: [7], oprf: [9]),
+        ],
+      ).writeToBuffer(),
+    );
+    await Future<void>.delayed(Duration.zero);
+    api.enqueueUnaryResponse(
+      MessageType.PRESENCE,
+      Presence_Response(
+        items: [
+          Presence_Item(userID: [7], online: true),
+        ],
+      ).writeToBuffer(),
+    );
+
+    await cubit.refreshPresence();
+    expect(cubit.state.cloud.single.online, isTrue);
+
+    api.emitMessage(
+      MessageType.PRESENCE,
+      Presence_Response(
+        items: [
+          Presence_Item(userID: [7], lastSeen: Int64(100)),
+        ],
+      ).writeToBuffer(),
+    );
+    await Future<void>.delayed(Duration.zero);
+    expect(cubit.state.cloud.single.online, isFalse);
+    expect(cubit.state.cloud.single.lastSeen, DateTime.fromMillisecondsSinceEpoch(100000));
+
+    await cubit.search('/secret');
+    expect(cubit.state.revealedHex, {'07'});
+    expect(api.unaryCalls.where((call) => call.type == MessageType.CHATS), isEmpty);
+  });
 }
 
 final class FakeContacts implements Contacts {
@@ -137,6 +271,12 @@ final class FakeContacts implements Contacts {
   }
 
   @override
+  Future<void> upsertBookOne(ContactCacheEntry entry) async {
+    rows.removeWhere((row) => row.phoneE164 == entry.phoneE164);
+    rows.add(entry);
+  }
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -145,7 +285,9 @@ final class FakeHiddenProfiles implements HiddenProfiles {
   Stream<void> get changes => const Stream.empty();
 
   @override
-  Future<List<HiddenProfileEntry>> getAll() async => const [];
+  Future<List<HiddenProfileEntry>> getAll() async => const [
+    HiddenProfileEntry(userID: [7], phraseHash: 'hash:secret'),
+  ];
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -157,15 +299,25 @@ final class FakeProfiles implements Profiles {
       const {};
 
   @override
+  Future<void> updateLastSeen({required List<int> userID, required DateTime lastSeen}) async {}
+
+  @override
+  Future<void> clearLastSeen({required List<int> userID}) async {}
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 final class FakeCache implements Cache {
-  @override
-  Future<String?> getString({required Uint8List userID, required String key}) async => null;
+  final values = <String, String>{};
 
   @override
-  Future<void> setString({required Uint8List userID, required String key, required String value, Duration? ttl}) async {}
+  Future<String?> getString({required Uint8List userID, required String key}) async => values[key];
+
+  @override
+  Future<void> setString({required Uint8List userID, required String key, required String value, Duration? ttl}) async {
+    values[key] = value;
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -212,6 +364,9 @@ final class FakeUtils implements Utils {
       Uint8List.fromList([for (var index = 0; index < hex.length; index += 2) int.parse(hex.substring(index, index + 2), radix: 16)]);
 
   @override
+  Future<String> passphraseHash(String phrase) async => 'hash:${phrase.trim().toLowerCase()}';
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -224,6 +379,31 @@ final class FakeAuth implements Auth {
 }
 
 final class FakeCrypto implements Crypto {
+  @override
+  late final Oprf oprf = FakeOprf();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+final class FakeOprf implements Oprf {
+  @override
+  Future<(List<Uint8List> blinds, List<Uint8List> blindedElements)> blindBatch(List<List<int>> inputs) async => (
+    [for (final _ in inputs) Uint8List(0)],
+    [
+      for (final _ in inputs) Uint8List.fromList([1]),
+    ],
+  );
+
+  @override
+  Future<List<Uint8List>> finalizeBatch({
+    required List<List<int>> inputs,
+    required List<Uint8List> blinds,
+    required List<Uint8List> evaluations,
+  }) async => [
+    for (final _ in inputs) Uint8List.fromList([9]),
+  ];
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
