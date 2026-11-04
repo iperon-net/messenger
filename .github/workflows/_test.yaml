@@ -55,7 +55,7 @@ jobs:
         run: flutter test --no-pub --coverage
 
       - name: Check coverage threshold
-        run: lcov --summary coverage/lcov.info --fail-under-lines 16.25
+        run: lcov --summary coverage/lcov.info --fail-under-lines 17.40
 
       - name: Generate HTML coverage report
         run: genhtml coverage/lcov.info --output-directory coverage/html

@@ -8,6 +8,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:messenger/account_scope.dart';
 import 'package:messenger/api.dart';
 import 'package:messenger/auth.dart';
+import 'package:messenger/chats/chats_mapping.dart';
+import 'package:messenger/chats/chats_remote_data_source.dart';
 import 'package:messenger/chats/chats_sync.dart';
 import 'package:messenger/di.dart';
 import 'package:messenger/logger.dart';
@@ -335,6 +337,100 @@ void main() {
     expect(pb.Messages_Request.fromBuffer(api.unaryCalls.last.payload).send.randomID.toInt(), 31);
     expect(await store.outbox(userID: me), isEmpty);
     expect((await store.message(userID: me, chatID: chat, messageID: 1))?.content.text, 'after restart');
+  });
+
+  test('remote: изменение диалога требует сети и применяет обновление сервера', () async {
+    final chatHex = idHex(chat);
+    await store.setPts(userID: me, pts: 5);
+    await store.upsertDialog(
+      userID: me,
+      dialog: pb.Dialog(chatID: chat, peerUserID: peer),
+    );
+    final source = ChatsRemoteDataSource.instance;
+
+    await expectLater(source.setPinned(chatHex, true), throwsA(isA<ChatsOfflineException>()));
+    expect(api.unaryCalls, isEmpty);
+    expect((await store.dialog(userID: me, chatID: chat))?.pinned, isFalse);
+
+    utils.network = true;
+    api.enqueueUnaryResponse(
+      MessageType.CHATS,
+      pb.Chats_Response(
+        setDialog: pb.Chats_SetDialogResult(
+          updates: pb.Updates(
+            updates: [
+              pb.Update(
+                pts: Int64(6),
+                dialogSettings: pb.Update_DialogSettings(
+                  dialog: pb.Dialog(chatID: chat, peerUserID: peer, pinned: true),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ).writeToBuffer(),
+    );
+    await source.setPinned(chatHex, true);
+
+    final request = pb.Chats_Request.fromBuffer(api.unaryCalls.single.payload);
+    expect(request.setDialog.chatID, chat);
+    expect(request.setDialog.pinned, isTrue);
+    expect((await store.dialog(userID: me, chatID: chat))?.pinned, isTrue);
+    expect(await store.getPts(userID: me), 6);
+  });
+
+  test('remote: прочтение шлёт верхний messageID, offline сохраняет непрочитанные', () async {
+    final chatHex = idHex(chat);
+    await store.setPts(userID: me, pts: 5);
+    await store.upsertDialog(
+      userID: me,
+      dialog: pb.Dialog(chatID: chat, peerUserID: peer, unreadCount: 2, topMessage: message(8)),
+    );
+    final source = ChatsRemoteDataSource.instance;
+
+    await source.setRead(chatHex, true);
+    expect(api.unaryCalls, isEmpty);
+    expect((await store.dialog(userID: me, chatID: chat))?.unreadCount, 2);
+
+    utils.network = true;
+    api.enqueueUnaryResponse(
+      MessageType.CHATS,
+      pb.Chats_Response(
+        readHistory: pb.Chats_ReadHistoryResult(
+          updates: pb.Updates(
+            updates: [
+              pb.Update(
+                pts: Int64(6),
+                readInbox: pb.Update_ReadInbox(chatID: chat, maxID: Int64(8), unreadCount: 0),
+              ),
+            ],
+          ),
+        ),
+      ).writeToBuffer(),
+    );
+    await source.setRead(chatHex, true);
+
+    final request = pb.Chats_Request.fromBuffer(api.unaryCalls.single.payload);
+    expect(request.readHistory.maxID.toInt(), 8);
+    expect((await store.dialog(userID: me, chatID: chat))?.unreadCount, 0);
+  });
+
+  test('remote: offline сообщение правится и удаляется в outbox без серверных вызовов', () async {
+    final chatHex = idHex(chat);
+    final source = ChatsRemoteDataSource.instance;
+
+    await source.sendMessage(chatHex, text: 'draft');
+
+    final queued = (await store.outbox(userID: me)).single;
+    expect(pb.MessageContent.fromBuffer(queued.content).text, 'draft');
+    final localID = localMessageID(queued.randomID);
+
+    await source.editMessage(chatHex, localID, 'edited', const []);
+    expect(pb.MessageContent.fromBuffer((await store.outbox(userID: me)).single.content).text, 'edited');
+
+    await source.deleteMessage(chatHex, localID);
+    expect(await store.outbox(userID: me), isEmpty);
+    expect(api.unaryCalls, isEmpty);
   });
 }
 
