@@ -225,6 +225,14 @@ class _CallGateState extends State<CallGate> {
         _setRouteOpen(false);
         return;
       }
+      // Пока ждали post-frame, звонок мог завершиться (например, на другом
+      // устройстве). Не открываем маршрут, который pop по ended уже не сможет
+      // найти в навигаторе до следующего кадра.
+      if (!_isActive(_calls.snapshot.status)) {
+        _logger.info('call_gate: openCall aborted (call ended before push)');
+        _setRouteOpen(false);
+        return;
+      }
       _logger.info('call_gate: pushing /call');
       final future = GoRouter.of(context).push('/call');
       // Когда экран звонка закрыт (pop / свайп-назад), сбрасываем флаг, чтобы

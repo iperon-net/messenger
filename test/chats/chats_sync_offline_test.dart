@@ -843,6 +843,209 @@ void main() {
     expect(source.historyDetached(chatHex), isFalse);
     expect(await store.message(userID: me, chatID: chat, messageID: 2), isNotNull);
   });
+
+  test('группа: исключение участника применяет chatMembers, offline кэш сохраняется', () async {
+    final chatHex = idHex(chat);
+    final dialog = pb.Dialog(
+      chatID: chat,
+      type: pb.ChatType.CHAT_TYPE_GROUP,
+      chat: pb.ChatInfo(chatID: chat, type: pb.ChatType.CHAT_TYPE_GROUP, title: 'Group'),
+    );
+    await store.setPts(userID: me, pts: 5);
+    await store.upsertGroup(userID: me, dialog: dialog);
+    await store.upsertGroupMembers(
+      userID: me,
+      chatID: chat,
+      members: [pb.ChatMember(userID: peer)],
+    );
+    final source = ChatsRemoteDataSource.instance;
+
+    await expectLater(source.removeMember(chatHex, idHex(peer)), throwsA(isA<ChatsOfflineException>()));
+    expect(await store.groupMembers(userID: me, chatID: chat), hasLength(1));
+
+    utils.network = true;
+    api.enqueueUnaryResponse(
+      MessageType.CHATS,
+      pb.Chats_Response(
+        removeMember: pb.Chats_RemoveMemberResult(
+          updates: pb.Updates(
+            updates: [
+              pb.Update(
+                chatID: chat,
+                chatPts: Int64(1),
+                chatMembers: pb.Update_ChatMembersChanged(chatID: chat, removedUserIDs: [peer]),
+              ),
+            ],
+          ),
+        ),
+      ).writeToBuffer(),
+    );
+    await source.removeMember(chatHex, idHex(peer));
+
+    expect(pb.Chats_Request.fromBuffer(api.unaryCalls.single.payload).removeMember.userID, peer);
+    expect(await store.groupMembers(userID: me, chatID: chat), isEmpty);
+  });
+
+  test('группа: частично добавленные применяются, об ограниченных сообщает исключение', () async {
+    final chatHex = idHex(chat);
+    await store.setPts(userID: me, pts: 5);
+    await store.upsertGroup(
+      userID: me,
+      dialog: pb.Dialog(
+        chatID: chat,
+        type: pb.ChatType.CHAT_TYPE_GROUP,
+        chat: pb.ChatInfo(chatID: chat, type: pb.ChatType.CHAT_TYPE_GROUP),
+      ),
+    );
+    final source = ChatsRemoteDataSource.instance;
+    utils.network = true;
+    api.enqueueUnaryResponse(
+      MessageType.CHATS,
+      pb.Chats_Response(
+        addMembers: pb.Chats_AddMembersResult(
+          restrictedUserIDs: [peer],
+          updates: pb.Updates(
+            updates: [
+              pb.Update(
+                chatID: chat,
+                chatPts: Int64(1),
+                chatMembers: pb.Update_ChatMembersChanged(
+                  chatID: chat,
+                  added: [pb.ChatMember(userID: me)],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ).writeToBuffer(),
+    );
+
+    await expectLater(
+      source.addMembers(chatHex, [idHex(me), idHex(peer)]),
+      throwsA(isA<ChatsMembersRestrictedException>().having((error) => error.count, 'count', 1)),
+    );
+
+    expect((await store.groupMembers(userID: me, chatID: chat)).single.userID, me);
+  });
+
+  test('канал: настройки реакций ограничивают максимум и применяют chatInfo', () async {
+    final chatHex = idHex(chat);
+    final info = pb.ChatInfo(chatID: chat, type: pb.ChatType.CHAT_TYPE_CHANNEL);
+    await store.setPts(userID: me, pts: 5);
+    await store.upsertGroup(
+      userID: me,
+      dialog: pb.Dialog(chatID: chat, type: pb.ChatType.CHAT_TYPE_CHANNEL, chat: info),
+    );
+    final source = ChatsRemoteDataSource.instance;
+
+    await expectLater(
+      source.setChatReactions(chatHex, models.ChatReactionsMode.some, ['👍'], maxReactions: 99),
+      throwsA(isA<ChatsOfflineException>()),
+    );
+
+    utils.network = true;
+    api.enqueueUnaryResponse(
+      MessageType.CHATS,
+      pb.Chats_Response(
+        editChat: pb.Chats_EditChatResult(
+          updates: pb.Updates(
+            updates: [
+              pb.Update(
+                chatID: chat,
+                chatPts: Int64(1),
+                chatInfo: pb.Update_ChatInfoChanged(
+                  chat: info.deepCopy()
+                    ..reactionsMode = pb.ChatReactionsMode.CHAT_REACTIONS_SOME
+                    ..reactions.add('👍')
+                    ..maxReactions = 11,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ).writeToBuffer(),
+    );
+    await source.setChatReactions(chatHex, models.ChatReactionsMode.some, ['👍'], maxReactions: 99);
+
+    final settings = pb.Chats_Request.fromBuffer(api.unaryCalls.single.payload).editChat.reactions;
+    expect(settings.maxReactions, 11);
+    expect(settings.emojis, ['👍']);
+    expect((await store.group(userID: me, chatID: chat))?.info.maxReactions, 11);
+  });
+
+  test('ссылки: создание с одобрением не имеет лимита, очистка удаляет отозванные', () async {
+    final chatHex = idHex(chat);
+    final source = ChatsRemoteDataSource.instance;
+
+    await expectLater(source.createInviteLink(chatHex, requestApproval: true, usageLimit: 10), throwsA(isA<ChatsOfflineException>()));
+
+    utils.network = true;
+    api.enqueueUnaryResponse(
+      MessageType.CHATS,
+      pb.Chats_Response(
+        createInviteLink: pb.Chats_CreateInviteLinkResult(link: pb.ChatInviteLink(code: 'invite', requestApproval: true)),
+      ).writeToBuffer(),
+    );
+    await source.createInviteLink(chatHex, requestApproval: true, usageLimit: 10);
+
+    expect(pb.Chats_Request.fromBuffer(api.unaryCalls.single.payload).createInviteLink.usageLimit, 0);
+    expect((await store.inviteLinks(userID: me, chatID: chat)).single.code, 'invite');
+
+    await store.upsertInviteLink(
+      userID: me,
+      chatID: chat,
+      link: pb.ChatInviteLink(code: 'old', revoked: true),
+    );
+    await source.deleteRevokedLinks(chatHex);
+    expect((await store.inviteLinks(userID: me, chatID: chat)).map((link) => link.code), ['invite']);
+  });
+
+  test('заявки: список обновляет счётчик, ответ запускает перечитывание', () async {
+    final chatHex = idHex(chat);
+    await store.setPts(userID: me, pts: 5);
+    await store.upsertGroup(
+      userID: me,
+      dialog: pb.Dialog(
+        chatID: chat,
+        type: pb.ChatType.CHAT_TYPE_GROUP,
+        chat: pb.ChatInfo(chatID: chat, type: pb.ChatType.CHAT_TYPE_GROUP),
+      ),
+    );
+    final source = ChatsRemoteDataSource.instance;
+    utils.network = true;
+    api.enqueueUnaryResponse(MessageType.CHATS, pb.Chats_Response(joinRequests: pb.Chats_JoinRequestsResult(total: 2)).writeToBuffer());
+    final emissions = <List<models.ChatJoinRequest>>[];
+    final subscription = source.watchJoinRequests(chatHex).listen(emissions.add);
+    addTearDown(subscription.cancel);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+
+    expect(emissions.single, isEmpty);
+    expect((await store.group(userID: me, chatID: chat))?.pendingRequests, 2);
+
+    api.enqueueUnaryResponse(
+      MessageType.CHATS,
+      pb.Chats_Response(
+        answerJoinRequest: pb.Chats_AnswerJoinRequestResult(
+          updates: pb.Updates(
+            updates: [
+              pb.Update(
+                pts: Int64(6),
+                joinRequests: pb.Update_JoinRequestsChanged(chatID: chat, pendingCount: 1),
+              ),
+            ],
+          ),
+        ),
+      ).writeToBuffer(),
+    );
+    for (var index = 0; index < 2; index++) {
+      api.enqueueUnaryResponse(MessageType.CHATS, pb.Chats_Response(joinRequests: pb.Chats_JoinRequestsResult(total: 1)).writeToBuffer());
+    }
+    await source.answerJoinRequest(chatHex, userID: idHex(peer), approve: true);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+
+    expect(emissions, hasLength(3), reason: 'updates и явное уведомление ответа запускают независимые перечитывания');
+    expect((await store.group(userID: me, chatID: chat))?.pendingRequests, 1);
+  });
 }
 
 final class GatedFakeApi extends FakeApi {
@@ -977,6 +1180,16 @@ Future<void> createSchema(SqliteDatabase db) async {
       PRIMARY KEY (userID, chatID)
     );
   ''');
+  await db.execute('''
+    CREATE TABLE chatGroupMembers (
+      userID BLOB NOT NULL, chatID BLOB NOT NULL, memberUserID BLOB NOT NULL, role INTEGER NOT NULL DEFAULT 0,
+      joinedAt INTEGER NOT NULL DEFAULT 0, inviterUserID BLOB, rights BLOB, rank TEXT NOT NULL DEFAULT '', promotedByUserID BLOB,
+      PRIMARY KEY (userID, chatID, memberUserID)
+    );
+  ''');
+  await db.execute(
+    'CREATE TABLE chatInviteLinks (userID BLOB NOT NULL, chatID BLOB NOT NULL, code TEXT NOT NULL, link BLOB NOT NULL, PRIMARY KEY (userID, chatID, code));',
+  );
   await db.execute('''
     CREATE TABLE chatPendingReactions (
       userID BLOB NOT NULL, chatID BLOB NOT NULL, messageID INTEGER NOT NULL, emojis TEXT NOT NULL, createdAt INTEGER NOT NULL,
