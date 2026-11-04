@@ -20,7 +20,15 @@ import 'settings_cloud_password_state.dart';
 /// После установки / смены пароля token гаснет — разблокируемся новым паролем
 /// сами, чтобы меню продолжало работать.
 class SettingsCloudPasswordCubit extends Cubit<SettingsCloudPasswordState> {
-  SettingsCloudPasswordCubit() : super(const SettingsCloudPasswordState());
+  SettingsCloudPasswordCubit({
+    Future<({List<int> token, String error})> Function(API, String)? unlockPassword,
+    Future<String> Function(API, String, List<int>)? registerPassword,
+  }) : _unlockPassword = unlockPassword ?? CloudPassword.unlock,
+       _registerPassword = registerPassword ?? CloudPassword.register,
+       super(const SettingsCloudPasswordState());
+
+  final Future<({List<int> token, String error})> Function(API, String) _unlockPassword;
+  final Future<String> Function(API, String, List<int>) _registerPassword;
 
   final logger = getIt.get<Logger>();
   final utils = getIt.get<Utils>();
@@ -137,7 +145,7 @@ class SettingsCloudPasswordCubit extends Cubit<SettingsCloudPasswordState> {
     if (!await _guard()) return;
 
     _busy();
-    final unlocked = await CloudPassword.unlock(api, password);
+    final unlocked = await _unlockPassword(api, password);
     if (unlocked.error.isNotEmpty) return _fail(unlocked.error);
 
     emit(state.copyWith(heldToken: unlocked.token, step: SettingsCloudPasswordStep.menu, networkStatus: Status.success, error: ""));
@@ -248,12 +256,12 @@ class SettingsCloudPasswordCubit extends Cubit<SettingsCloudPasswordState> {
   /// Регистрация пароля [password] (с [token], если пароль уже есть) и сразу
   /// разблокировка им же: прежний token сервер погасил. false — ошибка в state.
   Future<bool> _registerAndUnlock(String password, List<int> token) async {
-    final error = await CloudPassword.register(api, password, token);
+    final error = await _registerPassword(api, password, token);
     if (error.isNotEmpty) {
       _failAction(error);
       return false;
     }
-    final unlocked = await CloudPassword.unlock(api, password);
+    final unlocked = await _unlockPassword(api, password);
     if (unlocked.error.isNotEmpty) {
       // Пароль уже новый — меню без token'а не работает: на разблокировку.
       emit(

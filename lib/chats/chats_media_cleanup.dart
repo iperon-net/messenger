@@ -17,8 +17,9 @@ import '../account_scope.dart';
 /// проверка идёт пачкой после транзакции, с задержкой [_delay] (одно удаление
 /// чата — одна проверка). Ссылки ищутся по байтам cdnID в сохранённых
 /// сообщениях (`instr` по BLOB — без разбора каждого), в превью диалогов,
-/// закреплённых, неотправленных, отложенных и в аватарах (на их строки
-/// `downloads` ссылается внешний ключ с каскадом — такие не трогаем никогда).
+/// закреплённых, неотправленных, отложенных и в аватарах (у профилей на их
+/// строки `downloads` ссылается внешний ключ с каскадом, cdnID групп и
+/// каналов ищется в `chatGroups.info` — такие не трогаем никогда).
 class ChatsMediaCleanup {
   ChatsMediaCleanup._();
 
@@ -78,6 +79,15 @@ class ChatsMediaCleanup {
     for (final table in ['profiles', 'myProfile']) {
       for (final row in await db.getAll('SELECT avatarCdnID AS id FROM $table WHERE avatarCdnID IN ($any);', ids)) {
         found.add(_hex(row['id'] as List<int>));
+      }
+    }
+    // Аватарки групп и каналов: их cdnID лежит в ChatInfo (`info` BLOB) —
+    // ищем по байтам, как `StorageUsage._protectedAvatars` (у удалённых
+    // сообщений cdnID в ChatInfo не встречается, лишних совпадений нет).
+    final groupInfos = [for (final row in await db.getAll('SELECT info FROM chatGroups;')) row['info'] as List<int>];
+    if (groupInfos.isNotEmpty) {
+      for (final id in ids) {
+        if (groupInfos.any((info) => _contains(info, id))) found.add(_hex(id));
       }
     }
     final match = List.filled(ids.length, 'instr(c, ?) > 0').join(' OR ');

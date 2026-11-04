@@ -14,6 +14,7 @@ import 'package:messenger/repositories/repositories.dart';
 import 'package:messenger/settings.dart';
 import 'package:messenger/utils.dart';
 import 'package:passkeys/types.dart';
+import 'package:yandex_login_sdk/yandex_login_sdk.dart';
 
 import '../support/fake_api.dart';
 
@@ -24,6 +25,7 @@ void main() {
   late FakePasskeySdk passkeySdk;
   late FakeYandexSdk yandexSdk;
   late AuthCubit cubit;
+  late List<({Object error, String reason})> reportedErrors;
 
   setUp(() async {
     api = FakeApi();
@@ -31,13 +33,18 @@ void main() {
     utils = FakeUtils();
     passkeySdk = FakePasskeySdk();
     yandexSdk = FakeYandexSdk();
+    reportedErrors = [];
     await getIt.reset();
     getIt.registerSingleton<Logger>(Logger());
     getIt.registerSingleton<Utils>(utils);
     getIt.registerSingleton<API>(api);
     getIt.registerSingleton<Settings>(FakeSettings());
     getIt.registerSingleton<DeviceRepositories>(FakeDeviceRepositories(accounts));
-    cubit = AuthCubit(passkeySdk: passkeySdk, yandexSdk: yandexSdk);
+    cubit = AuthCubit(
+      passkeySdk: passkeySdk,
+      yandexSdk: yandexSdk,
+      reportError: (error, stackTrace, reason) => reportedErrors.add((error: error, reason: reason)),
+    );
   });
 
   tearDown(() async {
@@ -45,6 +52,24 @@ void main() {
     await api.dispose();
     await getIt.reset();
   });
+
+  void enqueuePasskeyBegin({String? publicKey}) {
+    api.enqueueResponse(
+      MessageType.PASSKEY_LOGIN_BEGIN,
+      Message(
+        messageType: MessageType.PASSKEY_LOGIN_BEGIN,
+        message: PasskeyLoginBegin_Response(
+          loginSession: [3, 4],
+          publicKey: utf8.encode(
+            publicKey ??
+                jsonEncode({
+                  'publicKey': {'challenge': 'Y2hhbGxlbmdl', 'rpId': 'iperon.net'},
+                }),
+          ),
+        ).writeToBuffer(),
+      ),
+    );
+  }
 
   test('успех: отправляет нормализованный телефон и открывает подтверждение', () async {
     api.enqueueResponse(
@@ -151,6 +176,7 @@ void main() {
 
     expect(result.error, 'grpcError.unableConnectServer');
     expect(result.redirectURI, isEmpty);
+    expect(passkeySdk.requests, isEmpty);
     expect(api.callCount, 0);
   });
 
@@ -159,25 +185,81 @@ void main() {
 
     expect(result.error, 'grpcError.unableConnectServer');
     expect(result.redirectURI, isEmpty);
+    expect(yandexSdk.clientIDs, isEmpty);
     expect(api.callCount, 0);
+  });
+
+  test('passkey: ошибка LOGIN_BEGIN не открывает нативный промпт', () async {
+    utils.network = true;
+    api.enqueueCallResult(
+      const APICallStatus(status: APIStatus.error, statusCode: StatusCode.unavailable, error: 'grpcError.errorConnectingServer'),
+    );
+
+    final result = await cubit.passkeySignIn();
+
+    expect(result.error, 'grpcError.errorConnectingServer');
+    expect(result.redirectURI, isEmpty);
+    expect(passkeySdk.requests, isEmpty);
+    expect(api.requests, isEmpty);
+    expect(api.calls.single.retryTransient, isTrue);
+  });
+
+  test('passkey: повреждённые WebAuthn options не доходят до SDK и LOGIN_FINISH', () async {
+    utils.network = true;
+    enqueuePasskeyBegin(publicKey: 'not-json');
+
+    final result = await cubit.passkeySignIn();
+
+    expect(result.error, 'passkey.verificationFailed');
+    expect(result.redirectURI, isEmpty);
+    expect(passkeySdk.requests, isEmpty);
+    expect(api.requests.map((request) => request.messageType), [MessageType.PASSKEY_LOGIN_BEGIN]);
+  });
+
+  test('passkey: отмена нативного промпта не считается ошибкой', () async {
+    utils.network = true;
+    enqueuePasskeyBegin();
+    passkeySdk.error = PasskeyAuthCancelledException();
+
+    final result = await cubit.passkeySignIn();
+
+    expect(result.error, isEmpty);
+    expect(result.redirectURI, isEmpty);
+    expect(passkeySdk.requests, hasLength(1));
+    expect(api.requests.map((request) => request.messageType), [MessageType.PASSKEY_LOGIN_BEGIN]);
+  });
+
+  test('passkey: ошибка SDK возвращает verificationFailed без LOGIN_FINISH', () async {
+    utils.network = true;
+    enqueuePasskeyBegin();
+    passkeySdk.error = StateError('authenticator unavailable');
+
+    final result = await cubit.passkeySignIn();
+
+    expect(result.error, 'passkey.verificationFailed');
+    expect(result.redirectURI, isEmpty);
+    expect(api.requests.map((request) => request.messageType), [MessageType.PASSKEY_LOGIN_BEGIN]);
+  });
+
+  test('passkey: ошибка LOGIN_FINISH сохраняет пользователя на экране входа', () async {
+    utils.network = true;
+    enqueuePasskeyBegin();
+    api.enqueueCallResult(const APICallStatus(status: APIStatus.success, statusCode: 0));
+    api.enqueueCallResult(
+      const APICallStatus(status: APIStatus.error, statusCode: StatusCode.unavailable, error: 'grpcError.errorConnectingServer'),
+    );
+
+    final result = await cubit.passkeySignIn();
+
+    expect(result.error, 'grpcError.errorConnectingServer');
+    expect(result.redirectURI, isEmpty);
+    expect(passkeySdk.requests, hasLength(1));
+    expect(api.requests.map((request) => request.messageType), [MessageType.PASSKEY_LOGIN_BEGIN]);
   });
 
   test('passkey успешно передаёт assertion и открывает облачный пароль', () async {
     utils.network = true;
-    api.enqueueResponse(
-      MessageType.PASSKEY_LOGIN_BEGIN,
-      Message(
-        messageType: MessageType.PASSKEY_LOGIN_BEGIN,
-        message: PasskeyLoginBegin_Response(
-          loginSession: [3, 4],
-          publicKey: utf8.encode(
-            jsonEncode({
-              'publicKey': {'challenge': 'Y2hhbGxlbmdl', 'rpId': 'iperon.net'},
-            }),
-          ),
-        ).writeToBuffer(),
-      ),
-    );
+    enqueuePasskeyBegin();
     api.enqueueResponse(
       MessageType.PASSKEY_LOGIN_FINISH,
       Message(
@@ -196,6 +278,57 @@ void main() {
     final finish = PasskeyLoginFinish_Request.fromBuffer(api.requests.last.message);
     expect(finish.loginSession, [3, 4]);
     expect(jsonDecode(utf8.decode(finish.credential))['id'], 'credential-id');
+  });
+
+  test('Yandex: отмена и повторный вход не показывают ошибку', () async {
+    utils.network = true;
+    yandexSdk.error = const YandexAuthCancelledException();
+
+    final cancelled = await cubit.yandexSignIn();
+    yandexSdk.error = const YandexAuthInProgressException();
+    final inProgress = await cubit.yandexSignIn();
+
+    expect(cancelled, (error: '', redirectURI: ''));
+    expect(inProgress, (error: '', redirectURI: ''));
+    expect(yandexSdk.clientIDs, hasLength(2));
+    expect(api.callCount, 0);
+  });
+
+  test('Yandex: ошибка SDK логируется и не вызывает API', () async {
+    utils.network = true;
+    yandexSdk.error = const YandexAuthException('native failure', code: 'FAILED');
+
+    final result = await cubit.yandexSignIn();
+
+    expect(result.error, 'yandex.failed');
+    expect(result.redirectURI, isEmpty);
+    expect(api.callCount, 0);
+    expect(reportedErrors.single.error, isA<YandexAuthException>());
+    expect(reportedErrors.single.reason, contains('FAILED native failure'));
+  });
+
+  test('Yandex: пустой OAuth token не отправляется на сервер', () async {
+    utils.network = true;
+    yandexSdk.token = '';
+
+    final result = await cubit.yandexSignIn();
+
+    expect(result.error, 'yandex.failed');
+    expect(result.redirectURI, isEmpty);
+    expect(api.callCount, 0);
+  });
+
+  test('Yandex: отсутствие подтверждённого телефона показывает ошибку сервера', () async {
+    utils.network = true;
+    api.enqueueCallResult(
+      const APICallStatus(status: APIStatus.error, statusCode: StatusCode.failedPrecondition, error: 'yandex.phoneMissing'),
+    );
+
+    final result = await cubit.yandexSignIn();
+
+    expect(result.error, 'yandex.phoneMissing');
+    expect(result.redirectURI, isEmpty);
+    expect(api.requests, isEmpty);
   });
 
   test('Yandex успешно передаёт OAuth token и открывает облачный пароль', () async {
@@ -221,10 +354,12 @@ void main() {
 
 final class FakePasskeySdk implements PasskeySdk {
   final requests = <AuthenticateRequestType>[];
+  Object? error;
 
   @override
   Future<AuthenticateResponseType> authenticate(AuthenticateRequestType request) async {
     requests.add(request);
+    if (error case final error?) throw error;
     return const AuthenticateResponseType(
       id: 'credential-id',
       rawId: 'cmF3LWlk',
@@ -238,11 +373,14 @@ final class FakePasskeySdk implements PasskeySdk {
 
 final class FakeYandexSdk implements YandexSdk {
   final clientIDs = <String>[];
+  Object? error;
+  String token = 'oauth-token';
 
   @override
   Future<String> signIn(String clientId) async {
     clientIDs.add(clientId);
-    return 'oauth-token';
+    if (error case final error?) throw error;
+    return token;
   }
 }
 

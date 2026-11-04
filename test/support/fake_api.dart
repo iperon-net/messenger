@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:grpc/grpc.dart';
 import 'package:messenger/api.dart';
+import 'package:messenger/models.dart' show Session;
 import 'package:messenger/protobuf/protos/v1.pbgrpc.dart';
 
 final class FakeApiCall {
@@ -22,7 +23,17 @@ final class FakeApi implements API {
 
   final unaryCalls = <FakeApiCall>[];
   final sentMessages = <FakeApiCall>[];
+  final calls = <({bool retryTransient, dynamic session})>[];
+  final sessionUpdates = <Session?>[];
   var callCount = 0;
+
+  @override
+  void Function(Session session)? onUnauthenticated;
+
+  @override
+  void setSession(Session? session) {
+    sessionUpdates.add(session);
+  }
 
   @override
   ApiConnectionStatus connectionStatus = ApiConnectionStatus.connecting;
@@ -72,6 +83,7 @@ final class FakeApi implements API {
   @override
   Future<APICallStatus> call(Function() func, {bool retryTransient = false, dynamic session}) async {
     callCount++;
+    calls.add((retryTransient: retryTransient, session: session));
     if (_callResults.isNotEmpty) {
       final result = _callResults.removeAt(0);
       if (result.status == APIStatus.success) await func();

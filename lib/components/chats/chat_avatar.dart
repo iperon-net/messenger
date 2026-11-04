@@ -219,7 +219,17 @@ Image chatImage(
 }) {
   final onError = errorBuilder ?? (context, error, stackTrace) => SizedBox(width: width, height: height);
   return path.startsWith('assets/')
-      ? Image.asset(path, width: width, height: height, fit: fit, cacheWidth: cacheWidth, frameBuilder: frameBuilder, errorBuilder: onError)
+      ? Image.asset(
+          path,
+          width: width,
+          height: height,
+          fit: fit,
+          cacheWidth: cacheWidth,
+          frameBuilder: frameBuilder,
+          errorBuilder: onError,
+          // При перестройке/вытеснении из ImageCache не мигать превью.
+          gaplessPlayback: true,
+        )
       : Image.file(
           File(path),
           width: width,
@@ -228,5 +238,7 @@ Image chatImage(
           cacheWidth: cacheWidth,
           frameBuilder: frameBuilder,
           errorBuilder: onError,
+          // При перестройке/вытеснении из ImageCache не мигать превью.
+          gaplessPlayback: true,
         );
 }

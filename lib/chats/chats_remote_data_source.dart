@@ -2542,6 +2542,10 @@ class ChatsRemoteDataSource implements ChatsDataSource {
     for (final key in keys) {
       _mediaPaths.remove(key);
       _downloadFailed.remove(key);
+      // Среди [keys] могут быть и аватарки: путь в памяти должен разъехаться
+      // с диском одновременно с вложениями, иначе список чатов рисует файл
+      // по несуществующему пути (заглушка вместо «прозрачной» докачки).
+      _avatarPaths.remove(key);
     }
     for (final chatID in chatIDs) {
       _windowChanged.add(chatID);

@@ -22,6 +22,12 @@ import 'auth.dart';
 import 'deep_links.dart';
 import 'utils.dart';
 
+String? redirectAuthLocation(String matchedLocation, {required bool isAuthorized}) {
+  final isAuthRoute = matchedLocation.startsWith('/auth');
+  if (!isAuthorized) return isAuthRoute ? null : '/auth';
+  return isAuthRoute ? '/chats' : null;
+}
+
 class Routers {
   final logger = getIt.get<Logger>();
   final repositories = getIt.get<Repositories>();
@@ -110,13 +116,7 @@ class Routers {
       return auth.isAuthorized ? "/chats" : "/auth";
     }
 
-    final isAuthRoute = state.matchedLocation.startsWith("/auth");
-
-    if (!auth.isAuthorized) {
-      return isAuthRoute ? null : "/auth";
-    }
-
-    return isAuthRoute ? "/chats" : null;
+    return redirectAuthLocation(state.matchedLocation, isAuthorized: auth.isAuthorized);
   }
 
   List<RouteBase> _common(GlobalKey<NavigatorState> rootNavigatorKey, {bool split = false}) => <RouteBase>[

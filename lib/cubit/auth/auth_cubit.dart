@@ -23,14 +23,20 @@ import 'auth_state.dart';
 
 enum PhoneValidationError { empty, notAllowRegion }
 
+void _reportCrashlyticsError(Object error, StackTrace stackTrace, String reason) {
+  unawaited(FirebaseCrashlytics.instance.recordError(error, stackTrace, reason: reason));
+}
+
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit({PasskeySdk? passkeySdk, YandexSdk? yandexSdk})
+  AuthCubit({PasskeySdk? passkeySdk, YandexSdk? yandexSdk, void Function(Object, StackTrace, String)? reportError})
     : _passkeySdk = passkeySdk ?? NativePasskeySdk(),
       _yandexSdk = yandexSdk ?? NativeYandexSdk(),
+      _reportError = reportError ?? _reportCrashlyticsError,
       super(AuthState());
 
   final PasskeySdk _passkeySdk;
   final YandexSdk _yandexSdk;
+  final void Function(Object, StackTrace, String) _reportError;
 
   final logger = getIt.get<Logger>();
   final utils = getIt.get<Utils>();
@@ -227,9 +233,7 @@ class AuthCubit extends Cubit<AuthState> {
       logger.handle(error, stackTrace, "yandex sign in failed");
       // Non-fatal в Crashlytics: причина сбоя SDK (код + текст) иначе не видна —
       // запрос до нашего сервера в этом случае не доходит.
-      unawaited(
-        FirebaseCrashlytics.instance.recordError(error, stackTrace, reason: "yandex sign in failed: ${error.code} ${error.message}"),
-      );
+      _reportError(error, stackTrace, "yandex sign in failed: ${error.code} ${error.message}");
       return (error: "yandex.failed", redirectURI: "");
     }
     if (token.isEmpty) {
