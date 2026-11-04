@@ -81,7 +81,10 @@ final class FakeApi implements API {
     sentMessages.add(FakeApiCall(type, payload));
   }
 
+  List<StreamController<Message>> get responseStreams => _client.responseStreams;
+
   Future<void> dispose() async {
+    await _client.dispose();
     await _incoming.close();
     await _connectionStatus.close();
   }
@@ -95,6 +98,7 @@ final class FakeApi implements API {
 final class FakeIperonClient implements IperonClient {
   final responses = <MessageType, List<Message>>{};
   final requests = <Message>[];
+  final responseStreams = <StreamController<Message>>[];
 
   @override
   ResponseFuture<Message> unary(Message request, {CallOptions? options}) {
@@ -104,6 +108,20 @@ final class FakeIperonClient implements IperonClient {
       throw UnsupportedError('FakeApi: no response for ${request.messageType}');
     }
     return FakeResponseFuture(Future.value(responsesForType.removeAt(0)));
+  }
+
+  @override
+  ResponseStream<Message> stream(Stream<Message> request, {CallOptions? options}) {
+    final controller = StreamController<Message>();
+    responseStreams.add(controller);
+    request.listen(requests.add);
+    return FakeResponseStream(controller.stream);
+  }
+
+  Future<void> dispose() async {
+    for (final controller in responseStreams) {
+      await controller.close();
+    }
   }
 
   @override
@@ -132,6 +150,25 @@ final class FakeResponseFuture implements ResponseFuture<Message> {
 
   @override
   Future<Message> whenComplete(FutureOr<void> Function() action) => _future.whenComplete(action);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+final class FakeResponseStream implements ResponseStream<Message> {
+  final Stream<Message> _stream;
+
+  const FakeResponseStream(this._stream);
+
+  @override
+  StreamSubscription<Message> listen(
+    void Function(Message event)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  }) {
+    return _stream.listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
