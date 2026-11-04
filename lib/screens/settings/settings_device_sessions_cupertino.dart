@@ -36,7 +36,24 @@ class _SettingsDeviceSessionsCupertino extends State<SettingsDeviceSessionsCuper
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SettingsDeviceSessionsCubit, SettingsDeviceSessionsState>(
-      listener: (context, state) {},
+      listenWhen: (previous, current) => previous.error != current.error,
+      listener: (context, state) {
+        if (state.error.isEmpty) return;
+        showCupertinoDialog<void>(
+          context: context,
+          builder: (BuildContext context) => CupertinoAlertDialog(
+            title: Text(context.t.screenMyProfile.error),
+            content: Text(context.t[state.error]),
+            actions: <CupertinoDialogAction>[
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                onPressed: () => Navigator.pop(context),
+                child: Text(context.t.screenMyProfile.close),
+              ),
+            ],
+          ),
+        );
+      },
       builder: (context, state) {
         final currentSessions = state.deviceSessions.where((data) => data.isCurrent);
         final currentSession = currentSessions.isEmpty ? null : currentSessions.first;

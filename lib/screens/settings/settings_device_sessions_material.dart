@@ -40,7 +40,11 @@ class _SettingsDeviceSessionsMaterial extends State<SettingsDeviceSessionsMateri
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SettingsDeviceSessionsCubit, SettingsDeviceSessionsState>(
-      listener: (context, state) {},
+      listenWhen: (previous, current) => previous.error != current.error,
+      listener: (context, state) {
+        if (state.error.isEmpty) return;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.t[state.error])));
+      },
       builder: (context, state) {
         final currentSessions = state.deviceSessions.where((data) => data.isCurrent);
         final currentSession = currentSessions.isEmpty ? null : currentSessions.first;

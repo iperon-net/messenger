@@ -17,7 +17,15 @@ import 'auth_cloud_password_state.dart';
 /// call-password flow. Пароль проверяется по OPAQUE ([cloudPasswordClient]) — на
 /// сервер не уходит. При успехе вход завершает общий [AuthLoginCompleter].
 class AuthCloudPasswordCubit extends Cubit<AuthCloudPasswordState> {
-  AuthCloudPasswordCubit() : super(const AuthCloudPasswordState());
+  AuthCloudPasswordCubit({
+    OpaqueClient Function()? opaqueClientFactory,
+    Future<AuthLoginCompletionResult> Function(List<int>)? completeLogin,
+  }) : _opaqueClientFactory = opaqueClientFactory ?? cloudPasswordClient,
+       _completeAuthLogin = completeLogin ?? _defaultCompleteLogin,
+       super(const AuthCloudPasswordState());
+
+  final OpaqueClient Function() _opaqueClientFactory;
+  final Future<AuthLoginCompletionResult> Function(List<int>) _completeAuthLogin;
 
   final logger = getIt.get<Logger>();
   final utils = getIt.get<Utils>();
@@ -38,7 +46,7 @@ class AuthCloudPasswordCubit extends Cubit<AuthCloudPasswordState> {
 
     emit(state.copyWith(networkStatus: Status.loading, error: "", attemptsLeft: -1));
 
-    final client = cloudPasswordClient();
+    final client = _opaqueClientFactory();
     final (ke1, login) = client.loginStart(cloudPasswordBytes(password));
     final start = await _unary(
       MessageType.AUTH_CLOUD_PASSWORD_START,
@@ -71,7 +79,7 @@ class AuthCloudPasswordCubit extends Cubit<AuthCloudPasswordState> {
     );
     if (finish == null) return;
 
-    await _completeLogin();
+    await _finishLogin();
   }
 
   /// «Забыли пароль?»: переход к вводу email восстановления (без запроса к
@@ -135,7 +143,7 @@ class AuthCloudPasswordCubit extends Cubit<AuthCloudPasswordState> {
       emit(state.copyWith(recoveryCodeAccepted: true));
     }
 
-    final client = cloudPasswordClient();
+    final client = _opaqueClientFactory();
     final (request, registration) = client.registrationStart(cloudPasswordBytes(newPassword));
     final start = await _unary(
       MessageType.AUTH_CLOUD_PASSWORD_REGISTER_START,
@@ -160,7 +168,7 @@ class AuthCloudPasswordCubit extends Cubit<AuthCloudPasswordState> {
     );
     if (finish == null) return;
 
-    await _completeLogin();
+    await _finishLogin();
   }
 
   /// Pre-auth запрос: payload ответа или null (ошибка уже в state). Истёкшая
@@ -183,8 +191,8 @@ class AuthCloudPasswordCubit extends Cubit<AuthCloudPasswordState> {
   }
 
   /// Завершение входа общей последовательностью (см. [AuthLoginCompleter]).
-  Future<void> _completeLogin() async {
-    final completion = await AuthLoginCompleter().complete(state.confirmationSession);
+  Future<void> _finishLogin() async {
+    final completion = await _completeAuthLogin(state.confirmationSession);
     if (completion.redirectURI.isNotEmpty) {
       emit(state.copyWith(networkStatus: Status.success, error: completion.error, redirectURI: completion.redirectURI));
     } else {
@@ -192,3 +200,6 @@ class AuthCloudPasswordCubit extends Cubit<AuthCloudPasswordState> {
     }
   }
 }
+
+Future<AuthLoginCompletionResult> _defaultCompleteLogin(List<int> confirmationSession) =>
+    AuthLoginCompleter().complete(confirmationSession);

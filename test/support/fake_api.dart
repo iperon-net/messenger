@@ -16,6 +16,7 @@ final class FakeApi implements API {
   final _incoming = StreamController<IncomingMessage>.broadcast();
   final _connectionStatus = StreamController<ApiConnectionStatus>.broadcast();
   final _unaryResults = <MessageType, List<APICallStatus>>{};
+  final _unaryResponses = <MessageType, List<Uint8List>>{};
   final _callResults = <APICallStatus>[];
   final _client = FakeIperonClient();
 
@@ -45,6 +46,10 @@ final class FakeApi implements API {
 
   void enqueueUnaryResult(MessageType type, APICallStatus status) {
     _unaryResults.putIfAbsent(type, () => []).add(status);
+  }
+
+  void enqueueUnaryResponse(MessageType type, List<int> payload) {
+    _unaryResponses.putIfAbsent(type, () => []).add(Uint8List.fromList(payload));
   }
 
   void enqueueCallResult(APICallStatus status) {
@@ -82,6 +87,18 @@ final class FakeApi implements API {
     final results = _unaryResults[type];
     if (results != null && results.isNotEmpty) return results.removeAt(0);
     return const APICallStatus(status: APIStatus.success, statusCode: 0);
+  }
+
+  @override
+  Future<(APICallStatus, Uint8List?)> unaryEncodedWithResponse(MessageType type, Uint8List payload) async {
+    unaryCalls.add(FakeApiCall(type, payload));
+    final results = _unaryResults[type];
+    if (results != null && results.isNotEmpty) return (results.removeAt(0), null);
+    final responses = _unaryResponses[type];
+    if (responses != null && responses.isNotEmpty) {
+      return (const APICallStatus(status: APIStatus.success, statusCode: 0), responses.removeAt(0));
+    }
+    return (const APICallStatus(status: APIStatus.success, statusCode: 0), Uint8List(0));
   }
 
   @override

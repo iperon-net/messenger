@@ -5,7 +5,6 @@ import 'dart:typed_data';
 import 'package:bloc/bloc.dart';
 import 'package:dlibphonenumber/dlibphonenumber.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
 import 'package:yandex_login_sdk/yandex_login_sdk.dart';
 
@@ -19,12 +18,19 @@ import '../../utils.dart';
 import '../../protobuf.dart';
 
 import 'auth_login_completer.dart';
+import 'auth_sdk.dart';
 import 'auth_state.dart';
 
 enum PhoneValidationError { empty, notAllowRegion }
 
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit() : super(AuthState());
+  AuthCubit({PasskeySdk? passkeySdk, YandexSdk? yandexSdk})
+    : _passkeySdk = passkeySdk ?? NativePasskeySdk(),
+      _yandexSdk = yandexSdk ?? NativeYandexSdk(),
+      super(AuthState());
+
+  final PasskeySdk _passkeySdk;
+  final YandexSdk _yandexSdk;
 
   final logger = getIt.get<Logger>();
   final utils = getIt.get<Utils>();
@@ -32,8 +38,6 @@ class AuthCubit extends Cubit<AuthState> {
   final settings = getIt.get<Settings>();
 
   final phoneUtil = PhoneNumberUtil.instance;
-
-  final _passkeyAuthenticator = PasskeyAuthenticator();
 
   Future<void> initialization() async {
     emit(state.copyWith(status: Status.loading));
@@ -155,7 +159,7 @@ class AuthCubit extends Cubit<AuthState> {
         mediation: MediationType.Optional,
         preferImmediatelyAvailableCredentials: false,
       );
-      assertion = await _passkeyAuthenticator.authenticate(request);
+      assertion = await _passkeySdk.authenticate(request);
     } on PasskeyAuthCancelledException {
       // Пользователь закрыл промпт — не ошибка.
       return (error: "", redirectURI: "");
@@ -212,12 +216,7 @@ class AuthCubit extends Cubit<AuthState> {
 
     final String token;
     try {
-      final result = await YandexLoginSdk.signIn(clientId: settings.yandexOauthClientID, strategy: YandexLoginStrategy.auto);
-      token = result.token;
-      // Нативный SDK (iOS) кэширует результат и на следующем signIn отдаёт его без
-      // UI — тогда не сменить аккаунт, а протухший токен сервер отклонит. Токен
-      // нам нужен разово, поэтому сразу чистим локальный кэш SDK (best-effort).
-      unawaited(YandexLoginSdk.signOut().catchError((Object _) {}));
+      token = await _yandexSdk.signIn(settings.yandexOauthClientID);
     } on YandexAuthCancelledException {
       // Пользователь закрыл окно Яндекса — не ошибка.
       return (error: "", redirectURI: "");

@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:grpc/grpc.dart' show StatusCode;
 import 'package:messenger/api.dart';
 import 'package:messenger/auth.dart';
 import 'package:messenger/constants.dart';
@@ -96,6 +97,23 @@ void main() {
     expect(request.sessionID, [
       [7, 8, 255],
     ]);
+  });
+
+  test('ошибка завершения не выдаётся за успех и сохраняет список', () async {
+    await cubit.initialization();
+    final cachedSessions = cubit.state.deviceSessions;
+    api.enqueueUnaryResult(
+      MessageType.DEVICE_SESSIONS_TERMINATE,
+      const APICallStatus(status: APIStatus.error, statusCode: StatusCode.unavailable, error: 'grpcError.unableConnectServer'),
+    );
+
+    await cubit.terminate([
+      Uint8List.fromList([2]),
+    ]);
+
+    expect(cubit.state.requestStatus, Status.success);
+    expect(cubit.state.error, 'grpcError.unableConnectServer');
+    expect(cubit.state.deviceSessions, cachedSessions);
   });
 }
 

@@ -77,8 +77,16 @@ class SettingsDeviceSessionsCubit extends Cubit<SettingsDeviceSessionsState> {
   }
 
   Future<void> terminate(List<Uint8List> sessionID) async {
-    emit(state.copyWith(requestStatus: Status.loading));
-    await api.unaryEncoded(MessageType.DEVICE_SESSIONS_TERMINATE, DeviceSessionsTerminate_Request(sessionID: sessionID).writeToBuffer());
+    emit(state.copyWith(requestStatus: Status.loading, error: ''));
+    final status = await api.unaryEncoded(
+      MessageType.DEVICE_SESSIONS_TERMINATE,
+      DeviceSessionsTerminate_Request(sessionID: sessionID).writeToBuffer(),
+    );
+    if (isClosed) return;
+    if (status.status == APIStatus.error) {
+      emit(state.copyWith(requestStatus: Status.success, error: status.error.isEmpty ? 'grpcError.internalServerError' : status.error));
+      return;
+    }
     emit(state.copyWith(requestStatus: Status.success));
   }
 

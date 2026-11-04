@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:grpc/grpc.dart' show StatusCode;
 import 'package:messenger/api.dart';
 import 'package:messenger/cubit/auth/auth_cubit.dart';
+import 'package:messenger/cubit/auth/auth_sdk.dart';
 import 'package:messenger/di.dart';
 import 'package:messenger/logger.dart';
 import 'package:messenger/models.dart' show PhoneNumberModel;
@@ -11,24 +13,31 @@ import 'package:messenger/protobuf.dart';
 import 'package:messenger/repositories/repositories.dart';
 import 'package:messenger/settings.dart';
 import 'package:messenger/utils.dart';
+import 'package:passkeys/types.dart';
 
 import '../support/fake_api.dart';
 
 void main() {
   late FakeApi api;
   late FakeAccounts accounts;
+  late FakeUtils utils;
+  late FakePasskeySdk passkeySdk;
+  late FakeYandexSdk yandexSdk;
   late AuthCubit cubit;
 
   setUp(() async {
     api = FakeApi();
     accounts = FakeAccounts();
+    utils = FakeUtils();
+    passkeySdk = FakePasskeySdk();
+    yandexSdk = FakeYandexSdk();
     await getIt.reset();
     getIt.registerSingleton<Logger>(Logger());
-    getIt.registerSingleton<Utils>(FakeUtils());
+    getIt.registerSingleton<Utils>(utils);
     getIt.registerSingleton<API>(api);
     getIt.registerSingleton<Settings>(FakeSettings());
     getIt.registerSingleton<DeviceRepositories>(FakeDeviceRepositories(accounts));
-    cubit = AuthCubit();
+    cubit = AuthCubit(passkeySdk: passkeySdk, yandexSdk: yandexSdk);
   });
 
   tearDown(() async {
@@ -152,11 +161,96 @@ void main() {
     expect(result.redirectURI, isEmpty);
     expect(api.callCount, 0);
   });
+
+  test('passkey успешно передаёт assertion и открывает облачный пароль', () async {
+    utils.network = true;
+    api.enqueueResponse(
+      MessageType.PASSKEY_LOGIN_BEGIN,
+      Message(
+        messageType: MessageType.PASSKEY_LOGIN_BEGIN,
+        message: PasskeyLoginBegin_Response(
+          loginSession: [3, 4],
+          publicKey: utf8.encode(
+            jsonEncode({
+              'publicKey': {'challenge': 'Y2hhbGxlbmdl', 'rpId': 'iperon.net'},
+            }),
+          ),
+        ).writeToBuffer(),
+      ),
+    );
+    api.enqueueResponse(
+      MessageType.PASSKEY_LOGIN_FINISH,
+      Message(
+        messageType: MessageType.PASSKEY_LOGIN_FINISH,
+        message: PasskeyLoginFinish_Response(hasTwoStepVerification: true, confirmationSession: [10, 11, 255]).writeToBuffer(),
+      ),
+    );
+
+    final result = await cubit.passkeySignIn();
+
+    expect(result.error, isEmpty);
+    expect(Uri.parse(result.redirectURI).path, '/auth/cloud_password');
+    expect(Uri.parse(result.redirectURI).queryParameters['confirmationSession'], '0a0bff');
+    expect(passkeySdk.requests.single.challenge, 'Y2hhbGxlbmdl');
+    expect(api.requests.map((request) => request.messageType), [MessageType.PASSKEY_LOGIN_BEGIN, MessageType.PASSKEY_LOGIN_FINISH]);
+    final finish = PasskeyLoginFinish_Request.fromBuffer(api.requests.last.message);
+    expect(finish.loginSession, [3, 4]);
+    expect(jsonDecode(utf8.decode(finish.credential))['id'], 'credential-id');
+  });
+
+  test('Yandex успешно передаёт OAuth token и открывает облачный пароль', () async {
+    utils.network = true;
+    api.enqueueResponse(
+      MessageType.AUTH_YANDEX,
+      Message(
+        messageType: MessageType.AUTH_YANDEX,
+        message: AuthYandex_Response(hasTwoStepVerification: true, confirmationSession: [12, 13, 255]).writeToBuffer(),
+      ),
+    );
+
+    final result = await cubit.yandexSignIn();
+
+    expect(result.error, isEmpty);
+    expect(Uri.parse(result.redirectURI).path, '/auth/cloud_password');
+    expect(Uri.parse(result.redirectURI).queryParameters['confirmationSession'], '0c0dff');
+    expect(yandexSdk.clientIDs, ['test-yandex-client']);
+    final request = AuthYandex_Request.fromBuffer(api.requests.single.message);
+    expect(request.token, 'oauth-token');
+  });
+}
+
+final class FakePasskeySdk implements PasskeySdk {
+  final requests = <AuthenticateRequestType>[];
+
+  @override
+  Future<AuthenticateResponseType> authenticate(AuthenticateRequestType request) async {
+    requests.add(request);
+    return const AuthenticateResponseType(
+      id: 'credential-id',
+      rawId: 'cmF3LWlk',
+      clientDataJSON: 'Y2xpZW50LWRhdGE',
+      authenticatorData: 'YXV0aGVudGljYXRvci1kYXRh',
+      signature: 'c2lnbmF0dXJl',
+      userHandle: 'dXNlci1oYW5kbGU',
+    );
+  }
+}
+
+final class FakeYandexSdk implements YandexSdk {
+  final clientIDs = <String>[];
+
+  @override
+  Future<String> signIn(String clientId) async {
+    clientIDs.add(clientId);
+    return 'oauth-token';
+  }
 }
 
 final class FakeUtils implements Utils {
+  var network = false;
+
   @override
-  Future<bool> hasNetwork() async => false;
+  Future<bool> hasNetwork() async => network;
 
   @override
   PhoneNumberModel phoneNormalization({required String phoneNumber}) {
@@ -179,6 +273,9 @@ final class FakeUtils implements Utils {
 final class FakeSettings implements Settings {
   @override
   String environment = 'staging';
+
+  @override
+  String yandexOauthClientID = 'test-yandex-client';
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

@@ -11,20 +11,29 @@ import 'package:messenger/protobuf.dart';
 import 'package:messenger/utils.dart';
 
 import '../support/fake_api.dart';
+import '../support/opaque_fixtures.dart';
 
 void main() {
   late FakeApi api;
   late FakeUtils utils;
   late AuthCloudPasswordCubit cubit;
+  late List<List<int>> completedSessions;
 
   setUp(() async {
     api = FakeApi();
     utils = FakeUtils();
+    completedSessions = [];
     await getIt.reset();
     getIt.registerSingleton<Logger>(Logger());
     getIt.registerSingleton<Utils>(utils);
     getIt.registerSingleton<API>(api);
-    cubit = AuthCloudPasswordCubit()..initialization(confirmationSession: '0102ff');
+    cubit = AuthCloudPasswordCubit(
+      opaqueClientFactory: VectorOpaqueClient.new,
+      completeLogin: (session) async {
+        completedSessions.add(session);
+        return (error: '', redirectURI: '/chats');
+      },
+    )..initialization(confirmationSession: '0102ff');
   });
 
   tearDown(() async {
@@ -102,6 +111,121 @@ void main() {
     await cubit.recoveryConfirm(code: '123456', newPassword: '');
     expect(cubit.state.error, 'cloudPassword.passwordRequired');
     expect(api.callCount, 0);
+  });
+
+  test('правильный пароль проходит настоящий OPAQUE и отправляет KE3', () async {
+    api.enqueueResponse(
+      MessageType.AUTH_CLOUD_PASSWORD_START,
+      Message(
+        messageType: MessageType.AUTH_CLOUD_PASSWORD_START,
+        message: AuthCloudPasswordStart_Response(ke2: opaqueTestBytes(opaqueTestKe2), attemptsLeft: 2).writeToBuffer(),
+      ),
+    );
+    api.enqueueResponse(MessageType.AUTH_CLOUD_PASSWORD_FINISH, Message(messageType: MessageType.AUTH_CLOUD_PASSWORD_FINISH));
+
+    await cubit.submit(opaqueTestPassword);
+
+    expect(cubit.state.error, isEmpty);
+    expect(cubit.state.redirectURI, '/chats');
+    expect(completedSessions, [
+      [1, 2, 255],
+    ]);
+    expect(api.requests.map((request) => request.messageType), [
+      MessageType.AUTH_CLOUD_PASSWORD_START,
+      MessageType.AUTH_CLOUD_PASSWORD_FINISH,
+    ]);
+    final finish = AuthCloudPasswordFinish_Request.fromBuffer(api.requests.last.message);
+    expect(finish.confirmationSession, [1, 2, 255]);
+    expect(finish.ke3, opaqueTestBytes(opaqueTestKe3));
+  });
+
+  test('неправильный пароль не отправляет KE3 и показывает остаток попыток', () async {
+    api.enqueueResponse(
+      MessageType.AUTH_CLOUD_PASSWORD_START,
+      Message(
+        messageType: MessageType.AUTH_CLOUD_PASSWORD_START,
+        message: AuthCloudPasswordStart_Response(ke2: opaqueTestBytes(opaqueTestKe2), attemptsLeft: 2).writeToBuffer(),
+      ),
+    );
+
+    await cubit.submit('wrong password');
+
+    expect(cubit.state.error, 'cloudPassword.wrongPassword');
+    expect(cubit.state.attemptsLeft, 2);
+    expect(api.requests.single.messageType, MessageType.AUTH_CLOUD_PASSWORD_START);
+    expect(completedSessions, isEmpty);
+  });
+
+  test('исчерпанные попытки после неправильного пароля начинают вход заново', () async {
+    api.enqueueResponse(
+      MessageType.AUTH_CLOUD_PASSWORD_START,
+      Message(
+        messageType: MessageType.AUTH_CLOUD_PASSWORD_START,
+        message: AuthCloudPasswordStart_Response(ke2: opaqueTestBytes(opaqueTestKe2)).writeToBuffer(),
+      ),
+    );
+
+    await cubit.submit('wrong password');
+
+    expect(cubit.state.error, 'cloudPassword.tooManyAttempts');
+    expect(cubit.state.redirectURI, '/auth');
+    expect(completedSessions, isEmpty);
+  });
+
+  test('повреждённый KE2 не принимается и не доходит до KE3', () async {
+    final corrupted = opaqueTestBytes(opaqueTestKe2);
+    corrupted[corrupted.length - 1] ^= 1;
+    api.enqueueResponse(
+      MessageType.AUTH_CLOUD_PASSWORD_START,
+      Message(
+        messageType: MessageType.AUTH_CLOUD_PASSWORD_START,
+        message: AuthCloudPasswordStart_Response(ke2: corrupted, attemptsLeft: 2).writeToBuffer(),
+      ),
+    );
+
+    await cubit.submit(opaqueTestPassword);
+
+    expect(cubit.state.error, 'cloudPassword.invalidMessage');
+    expect(api.requests.single.messageType, MessageType.AUTH_CLOUD_PASSWORD_START);
+    expect(completedSessions, isEmpty);
+  });
+
+  test('восстановление выполняет настоящую OPAQUE-регистрацию нового пароля', () async {
+    api.enqueueResponse(
+      MessageType.AUTH_CLOUD_PASSWORD_RECOVERY_CONFIRM,
+      Message(messageType: MessageType.AUTH_CLOUD_PASSWORD_RECOVERY_CONFIRM),
+    );
+    api.enqueueResponse(
+      MessageType.AUTH_CLOUD_PASSWORD_REGISTER_START,
+      Message(
+        messageType: MessageType.AUTH_CLOUD_PASSWORD_REGISTER_START,
+        message: AuthCloudPasswordRegisterStart_Response(
+          registrationResponse: opaqueTestBytes(opaqueTestRegistrationResponse),
+        ).writeToBuffer(),
+      ),
+    );
+    api.enqueueResponse(
+      MessageType.AUTH_CLOUD_PASSWORD_REGISTER_FINISH,
+      Message(messageType: MessageType.AUTH_CLOUD_PASSWORD_REGISTER_FINISH),
+    );
+
+    await cubit.recoveryConfirm(code: '123456', newPassword: opaqueTestPassword);
+
+    expect(cubit.state.recoveryCodeAccepted, isTrue);
+    expect(cubit.state.error, isEmpty);
+    expect(cubit.state.redirectURI, '/chats');
+    expect(api.requests.map((request) => request.messageType), [
+      MessageType.AUTH_CLOUD_PASSWORD_RECOVERY_CONFIRM,
+      MessageType.AUTH_CLOUD_PASSWORD_REGISTER_START,
+      MessageType.AUTH_CLOUD_PASSWORD_REGISTER_FINISH,
+    ]);
+    final confirmation = AuthCloudPasswordRecoveryConfirm_Request.fromBuffer(api.requests[0].message);
+    expect(confirmation.code, '123456');
+    final registration = AuthCloudPasswordRegisterFinish_Request.fromBuffer(api.requests[2].message);
+    expect(registration.record, opaqueTestBytes(opaqueTestRecord));
+    expect(completedSessions, [
+      [1, 2, 255],
+    ]);
   });
 }
 

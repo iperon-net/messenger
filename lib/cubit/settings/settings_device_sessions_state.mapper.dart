@@ -52,12 +52,20 @@ class SettingsDeviceSessionsStateMapper
         opt: true,
         def: Status.initialization,
       );
+  static String _$error(SettingsDeviceSessionsState v) => v.error;
+  static const Field<SettingsDeviceSessionsState, String> _f$error = Field(
+    'error',
+    _$error,
+    opt: true,
+    def: '',
+  );
 
   @override
   final MappableFields<SettingsDeviceSessionsState> fields = const {
     #status: _f$status,
     #deviceSessions: _f$deviceSessions,
     #requestStatus: _f$requestStatus,
+    #error: _f$error,
   };
 
   static SettingsDeviceSessionsState _instantiate(DecodingData data) {
@@ -65,6 +73,7 @@ class SettingsDeviceSessionsStateMapper
       status: data.dec(_f$status),
       deviceSessions: data.dec(_f$deviceSessions),
       requestStatus: data.dec(_f$requestStatus),
+      error: data.dec(_f$error),
     );
   }
 
@@ -152,6 +161,7 @@ abstract class SettingsDeviceSessionsStateCopyWith<
     Status? status,
     List<DeviceSessionsModel>? deviceSessions,
     Status? requestStatus,
+    String? error,
   });
   SettingsDeviceSessionsStateCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -191,11 +201,13 @@ class _SettingsDeviceSessionsStateCopyWithImpl<$R, $Out>
     Status? status,
     List<DeviceSessionsModel>? deviceSessions,
     Status? requestStatus,
+    String? error,
   }) => $apply(
     FieldCopyWithData({
       if (status != null) #status: status,
       if (deviceSessions != null) #deviceSessions: deviceSessions,
       if (requestStatus != null) #requestStatus: requestStatus,
+      if (error != null) #error: error,
     }),
   );
   @override
@@ -204,6 +216,7 @@ class _SettingsDeviceSessionsStateCopyWithImpl<$R, $Out>
         status: data.get(#status, or: $value.status),
         deviceSessions: data.get(#deviceSessions, or: $value.deviceSessions),
         requestStatus: data.get(#requestStatus, or: $value.requestStatus),
+        error: data.get(#error, or: $value.error),
       );
 
   @override
