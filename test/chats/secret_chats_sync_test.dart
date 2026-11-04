@@ -43,6 +43,7 @@ class _FakeServer {
 
   /// randomID конвертов, отправленных с notify (push получателю).
   final notified = <int>{};
+  var rejectSend = false;
 
   /// Часы сервера и устройств (самоуничтожение, даты конвертов) — двигаются тестом.
   DateTime now = DateTime(2026, 10, 18, 12);
@@ -142,6 +143,10 @@ class _FakeServer {
         return sc.SecretChats_Response(commit: sc.SecretChats_CommitResult());
 
       case sc.SecretChats_Request_Request.send:
+        if (rejectSend) {
+          rejectSend = false;
+          throw const SecretChatRequestException('privacyRestricted', 7);
+        }
         final chat = chats[_hex(request.send.secretChatID)]!;
         if (chat.state != sc.SecretChat_State.READY) _fail('secretChat.badState');
         for (final file in request.send.fileIDs) {
@@ -217,11 +222,16 @@ class _Transport implements SecretChatsTransport {
 
   /// Запрос «повис» (полуоткрытое соединение после сна) — до команды.
   Completer<void>? hang;
+  var sendFailures = 0;
 
   @override
   Future<sc.SecretChats_Response> request(sc.SecretChats_Request request) async {
     if (hang case final hang?) await hang.future;
     if (device.offline) throw const ChatsOfflineException();
+    if (request.hasSend() && sendFailures > 0) {
+      sendFailures--;
+      throw StateError('temporary send failure');
+    }
     // Как по сети: сервер получает копию байт.
     return server.handle(device, sc.SecretChats_Request.fromBuffer(request.writeToBuffer()));
   }
@@ -408,6 +418,94 @@ void main() {
     expect((await a.messages(id)).single.status, SecretMessageStatus.sent);
     expect(await a.store.outbox(sessionID: a.sessionID), isEmpty);
     expect((await b.messages(id)).single.text, 'офлайн');
+  });
+
+  test('без сети создание чата отклоняется до запроса и не оставляет ожидания', () async {
+    final a = await device();
+    final b = await device();
+    a.offline = true;
+
+    await expectLater(a.sync.create(b.userID), throwsA(isA<ChatsOfflineException>()));
+    expect(await a.store.chats(sessionID: a.sessionID), isEmpty);
+    expect(server.chats, isEmpty);
+    expect(server.pushes, isEmpty);
+  });
+
+  test('временная ошибка отправки сохраняет outbox и ratchet для повтора', () async {
+    final a = await device();
+    final b = await device();
+    final id = await handshake(a, b);
+    a.transport.sendFailures = 1;
+
+    await a.sync.sendText(id, 'повторить');
+    await a.sync.flush();
+    expect((await a.messages(id)).single.status, SecretMessageStatus.pending);
+    expect(await a.store.outbox(sessionID: a.sessionID), hasLength(1));
+
+    await a.sync.onConnected();
+    await server.deliver();
+    expect((await a.messages(id)).single.status, SecretMessageStatus.sent);
+    expect(await a.store.outbox(sessionID: a.sessionID), isEmpty);
+    expect((await b.messages(id)).single.text, 'повторить');
+  });
+
+  test('privacyRestricted помечает только одно сообщение failed и не блокирует очередь', () async {
+    final a = await device();
+    final b = await device();
+    final id = await handshake(a, b);
+    server.rejectSend = true;
+
+    await a.sync.sendText(id, 'не доставить');
+    await a.sync.flush();
+    expect((await a.messages(id)).single.status, SecretMessageStatus.failed);
+    expect(await a.store.outbox(sessionID: a.sessionID), isEmpty);
+
+    await a.sync.sendText(id, 'следующее');
+    await server.deliver();
+    expect((await a.messages(id)).singleWhere((message) => message.text == 'следующее').status, SecretMessageStatus.sent);
+    expect((await b.messages(id)).single.text, 'следующее');
+  });
+
+  test('повреждённый конверт пропускается, следующий qts расшифровывается', () async {
+    final a = await device();
+    final b = await device();
+    final id = await handshake(a, b);
+
+    await a.sync.sendText(id, 'повреждено');
+    var corrupt = true;
+    await server.deliver(
+      drop: (device, update) {
+        if (device == b && corrupt && update.hasNewMessage()) {
+          corrupt = false;
+          update.newMessage.envelope = [0xff, 0x00, 0x01];
+        }
+        return false;
+      },
+    );
+    expect(await b.messages(id), isEmpty);
+
+    await a.sync.sendText(id, 'целое');
+    await server.deliver();
+    expect((await b.messages(id)).single.text, 'целое');
+    expect(await b.store.qts(sessionID: b.sessionID), greaterThan(0));
+  });
+
+  test('повторный push с тем же qts не создаёт дубль сообщения', () async {
+    final a = await device();
+    final b = await device();
+    final id = await handshake(a, b);
+
+    await a.sync.sendText(id, 'один раз');
+    await a.sync.flush();
+    final pushed = server.pushes.singleWhere((entry) => entry.$1 == b).$2;
+    final payload = sc.SecretUpdates(updates: [pushed]).writeToBuffer();
+    server.pushes.clear();
+
+    await b.sync.handlePush(payload);
+    await b.sync.handlePush(payload);
+
+    expect((await b.messages(id)).map((message) => message.text), ['один раз']);
+    expect((await b.chat(id)).unreadCount, 1);
   });
 
   test('потерянный push — догон через GetUpdates', () async {
