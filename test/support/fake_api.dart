@@ -63,7 +63,11 @@ final class FakeApi implements API {
   @override
   Future<APICallStatus> call(Function() func, {bool retryTransient = false, dynamic session}) async {
     callCount++;
-    if (_callResults.isNotEmpty) return _callResults.removeAt(0);
+    if (_callResults.isNotEmpty) {
+      final result = _callResults.removeAt(0);
+      if (result.status == APIStatus.success) await func();
+      return result;
+    }
     await func();
     return const APICallStatus(status: APIStatus.success, statusCode: 0);
   }
