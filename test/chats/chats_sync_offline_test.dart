@@ -11,6 +11,7 @@ import 'package:messenger/auth.dart';
 import 'package:messenger/chats/chats_mapping.dart';
 import 'package:messenger/chats/chats_remote_data_source.dart';
 import 'package:messenger/chats/chats_sync.dart';
+import 'package:messenger/cubit/chat/chat_cubit.dart';
 import 'package:messenger/di.dart';
 import 'package:messenger/logger.dart';
 import 'package:messenger/models.dart' as models;
@@ -432,6 +433,117 @@ void main() {
     expect(await store.outbox(userID: me), isEmpty);
     expect(api.unaryCalls, isEmpty);
   });
+
+  test('remote: правка и удаление на сервере применяют updates атомарно', () async {
+    final chatHex = idHex(chat);
+    await store.setPts(userID: me, pts: 5);
+    await store.upsertDialog(
+      userID: me,
+      dialog: pb.Dialog(chatID: chat, peerUserID: peer, topMessage: message(1)),
+    );
+    await store.upsertMessage(userID: me, message: message(1));
+    final source = ChatsRemoteDataSource.instance;
+
+    await expectLater(source.editMessage(chatHex, '1', 'offline', const []), throwsA(isA<ChatsOfflineException>()));
+    expect((await store.message(userID: me, chatID: chat, messageID: 1))?.content.text, 'message 1');
+
+    utils.network = true;
+    api.enqueueUnaryResponse(
+      MessageType.MESSAGES,
+      pb.Messages_Response(
+        edit: pb.Messages_EditResult(
+          updates: pb.Updates(
+            updates: [
+              pb.Update(
+                pts: Int64(6),
+                editMessage: pb.Update_EditMessage(message: message(1, text: 'edited')),
+              ),
+            ],
+          ),
+        ),
+      ).writeToBuffer(),
+    );
+    await source.editMessage(chatHex, '1', 'edited', const []);
+    expect(pb.Messages_Request.fromBuffer(api.unaryCalls.single.payload).edit.messageID.toInt(), 1);
+    expect((await store.message(userID: me, chatID: chat, messageID: 1))?.content.text, 'edited');
+
+    api.enqueueUnaryResponse(
+      MessageType.MESSAGES,
+      pb.Messages_Response(
+        delete: pb.Messages_DeleteResult(
+          updates: pb.Updates(
+            updates: [
+              pb.Update(
+                pts: Int64(7),
+                deleteMessages: pb.Update_DeleteMessages(chatID: chat, messageIDs: [Int64(1)]),
+              ),
+            ],
+          ),
+        ),
+      ).writeToBuffer(),
+    );
+    await source.deleteMessage(chatHex, '1');
+    expect(await store.message(userID: me, chatID: chat, messageID: 1), isNull);
+    expect(await store.getPts(userID: me), 7);
+  });
+
+  test('remote: пересылка и реакции ждут сеть, failed сообщение повторяется с тем же randomID', () async {
+    final chatHex = idHex(chat);
+    await store.upsertMessage(userID: me, message: message(1));
+    final source = ChatsRemoteDataSource.instance;
+    final original = models.Message(id: '1', chatID: chatHex, text: 'forwarded', date: DateTime(2026));
+
+    await source.forwardMessages(chatHex, [original]);
+    await source.setReactions(chatHex, '1', ['👍']);
+
+    final forwarded = (await store.outbox(userID: me)).single;
+    expect(forwarded.forwardMessageID, 1);
+    expect(pb.MessageContent.fromBuffer(forwarded.content).text, 'message 1');
+    expect((await store.pendingReactions(userID: me)).single.emojis, ['👍']);
+    expect(api.unaryCalls, isEmpty);
+
+    await store.markOutboxFailed(userID: me, randomID: forwarded.randomID);
+    expect((await store.outbox(userID: me)).single.failed, isTrue);
+    await source.retrySend(chatHex, localMessageID(forwarded.randomID));
+    expect((await store.outbox(userID: me)).single.failed, isFalse);
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+  });
+
+  test('ChatCubit: offline удаление показывает уведомление и не вызывает API', () async {
+    ChatsSync.instance.setEnabled(true);
+    final cubit = ChatCubit()..initialization(chatID: idHex(chat), demo: false, markRead: false);
+    addTearDown(cubit.close);
+    final existing = models.Message(id: '1', chatID: idHex(chat), date: DateTime(2026), text: 'cached');
+
+    expect(await cubit.delete(existing), isFalse);
+
+    expect(cubit.state.offlineNotice, 1);
+    expect(api.unaryCalls, isEmpty);
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    ChatsSync.instance.setEnabled(false);
+    await cubit.close();
+  });
+
+  test('ChatCubit: обрыв при правке возвращает новый текст в поле ввода', () async {
+    ChatsSync.instance.setEnabled(true);
+    final cubit = ChatCubit()..initialization(chatID: idHex(chat), demo: false, markRead: false);
+    addTearDown(cubit.close);
+    final existing = models.Message(id: '1', chatID: idHex(chat), date: DateTime(2026), text: 'old');
+    cubit.startEdit(existing);
+    utils.network = true;
+    api.enqueueUnaryResult(
+      MessageType.MESSAGES,
+      const APICallStatus(status: APIStatus.error, statusCode: StatusCode.unavailable, error: 'unavailable'),
+    );
+
+    expect(await cubit.send('new text'), isTrue);
+
+    expect(cubit.state.offlineNotice, 1);
+    expect(cubit.state.editing?.text, 'new text');
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    ChatsSync.instance.setEnabled(false);
+    await cubit.close();
+  });
 }
 
 final class GatedFakeApi extends FakeApi {
@@ -572,6 +684,9 @@ Future<void> createSchema(SqliteDatabase db) async {
       PRIMARY KEY (userID, chatID, messageID)
     );
   ''');
+  await db.execute(
+    'CREATE TABLE chatScheduled (userID BLOB NOT NULL, chatID BLOB NOT NULL, scheduledID INTEGER NOT NULL, date INTEGER NOT NULL, message BLOB NOT NULL, PRIMARY KEY (userID, chatID, scheduledID));',
+  );
   await db.execute('CREATE TABLE chatUpdatesState (userID BLOB PRIMARY KEY, pts INTEGER NOT NULL, date INTEGER NOT NULL DEFAULT 0);');
   await db.execute('CREATE TABLE chatFolders (userID BLOB PRIMARY KEY, folders BLOB NOT NULL, version INTEGER NOT NULL DEFAULT 0);');
   await db.execute(ChatsRepository.repliesStateSchema);
