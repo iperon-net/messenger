@@ -55,6 +55,10 @@ final class FakeApi implements API {
     _client.responses.putIfAbsent(type, () => []).add(response);
   }
 
+  void enqueueResponseHandler(MessageType type, Message Function(Message request) handler) {
+    _client.responseHandlers.putIfAbsent(type, () => []).add(handler);
+  }
+
   List<Message> get requests => _client.requests;
 
   @override
@@ -101,12 +105,17 @@ final class FakeApi implements API {
 
 final class FakeIperonClient implements IperonClient {
   final responses = <MessageType, List<Message>>{};
+  final responseHandlers = <MessageType, List<Message Function(Message request)>>{};
   final requests = <Message>[];
   final responseStreams = <StreamController<Message>>[];
 
   @override
   ResponseFuture<Message> unary(Message request, {CallOptions? options}) {
     requests.add(request);
+    final handlers = responseHandlers[request.messageType];
+    if (handlers != null && handlers.isNotEmpty) {
+      return FakeResponseFuture(Future.value(handlers.removeAt(0)(request)));
+    }
     final responsesForType = responses[request.messageType];
     if (responsesForType == null || responsesForType.isEmpty) {
       throw UnsupportedError('FakeApi: no response for ${request.messageType}');

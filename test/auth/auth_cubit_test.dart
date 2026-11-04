@@ -136,9 +136,28 @@ void main() {
     expect(cubit.state.error, 'offline');
     expect(api.callCount, 1);
   });
+
+  test('passkey offline не открывает нативный промпт и не вызывает API', () async {
+    final result = await cubit.passkeySignIn();
+
+    expect(result.error, 'grpcError.unableConnectServer');
+    expect(result.redirectURI, isEmpty);
+    expect(api.callCount, 0);
+  });
+
+  test('Yandex offline не открывает SDK и не вызывает API', () async {
+    final result = await cubit.yandexSignIn();
+
+    expect(result.error, 'grpcError.unableConnectServer');
+    expect(result.redirectURI, isEmpty);
+    expect(api.callCount, 0);
+  });
 }
 
 final class FakeUtils implements Utils {
+  @override
+  Future<bool> hasNetwork() async => false;
+
   @override
   PhoneNumberModel phoneNormalization({required String phoneNumber}) {
     return const PhoneNumberModel(
