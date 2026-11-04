@@ -13,7 +13,7 @@ final class FakeApiCall {
   const FakeApiCall(this.type, this.payload);
 }
 
-final class FakeApi implements API {
+base class FakeApi implements API {
   final _incoming = StreamController<IncomingMessage>.broadcast();
   final _connectionStatus = StreamController<ApiConnectionStatus>.broadcast();
   final _unaryResults = <MessageType, List<APICallStatus>>{};
