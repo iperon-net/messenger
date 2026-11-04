@@ -48,6 +48,8 @@ class _CallGateState extends State<CallGate> {
   // future завершается и флаг сбрасывается — тогда полоска возврата (или тап по
   // ongoing-нотификации) сможет открыть экран заново.
   bool _routeOpen = false;
+  GoRouterDelegate? _pendingCloseDelegate;
+  VoidCallback? _pendingCloseListener;
 
   // Был ли звонок активен на прошлом снимке — чтобы авто-открывать `/call`
   // только на переходе в активное состояние (начало звонка), а не переоткрывать
@@ -108,26 +110,7 @@ class _CallGateState extends State<CallGate> {
       // возвращается туда, где был, а не «попадает» на экран звонилки после
       // разговора. Обрабатываем и idle, т.к. звонок с локскрина/фона мог
       // завершиться, пока приложение не рисовало кадры, и pop по ended не отработал.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !_routeOpen) return;
-        // За время отложенного pop мог стартовать новый звонок (быстрый повторный
-        // набор): тогда `_openCall` уже был пропущен как «already open», и если
-        // сейчас закрыть экран — новый звонок останется без `/call` (только полоска
-        // возврата). Не закрываем: тот же экран перерисуется под новый звонок.
-        if (_isActive(_snapshot.status)) return;
-        final router = GoRouter.of(context);
-        if (router.canPop()) router.pop();
-        // Детерминированный сброс флага. `push('/call').whenComplete` (см.
-        // [_openCall]) при pageBuilder-странице срабатывает НЕ всегда: наблюдалось,
-        // что после первого звонка колбэк не выстреливал, `_routeOpen` залипал в
-        // `true`, и следующий звонок не открывал экран (`openCall skipped (already
-        // open)`) — виден только в Dynamic Island/CallKit, а полоска возврата тоже
-        // скрыта (`_shouldShowBanner = !_routeOpen && ...`), т.е. на экран звонка
-        // не попасть до перезапуска приложения. Звонок завершён — «текущего» экрана
-        // больше нет, снимаем флаг здесь независимо от whenComplete (маршрут выше
-        // уже запопан; повторный сброс из whenComplete идемпотентен).
-        _setRouteOpen(false);
-      });
+      WidgetsBinding.instance.addPostFrameCallback((_) => _closeCallRoute());
     }
 
     // Исходящий звонок не состоялся по объяснимой причине — показываем явное
@@ -156,6 +139,46 @@ class _CallGateState extends State<CallGate> {
         });
       }
     }
+  }
+
+  void _closeCallRoute() {
+    if (!mounted || !_routeOpen) return;
+    // Быстрый новый звонок переиспользует уже открытый `/call`.
+    if (_isActive(_snapshot.status)) {
+      _cancelPendingClose();
+      return;
+    }
+    final router = GoRouter.of(context);
+    if (router.state.matchedLocation != '/call') {
+      // Поверх `/call` открыт другой экран: его закрывать нельзя. Дождёмся,
+      // когда пользователь вернётся к завершённому звонку, и закроем уже его.
+      if (_pendingCloseDelegate != null) return;
+      final delegate = router.routerDelegate;
+      void listener() {
+        if (!mounted || !_routeOpen || _isActive(_snapshot.status)) {
+          _cancelPendingClose();
+          return;
+        }
+        if (router.state.matchedLocation != '/call') return;
+        _cancelPendingClose();
+        WidgetsBinding.instance.addPostFrameCallback((_) => _closeCallRoute());
+      }
+
+      _pendingCloseDelegate = delegate;
+      _pendingCloseListener = listener;
+      delegate.addListener(listener);
+      return;
+    }
+    if (router.canPop()) router.pop();
+    _setRouteOpen(false);
+  }
+
+  void _cancelPendingClose() {
+    final delegate = _pendingCloseDelegate;
+    final listener = _pendingCloseListener;
+    if (delegate != null && listener != null) delegate.removeListener(listener);
+    _pendingCloseDelegate = null;
+    _pendingCloseListener = null;
   }
 
   // Активен ли звонок в смысле «ведём свой экран» (исходящий/соединение/разговор).
@@ -253,6 +276,7 @@ class _CallGateState extends State<CallGate> {
 
   @override
   void dispose() {
+    _cancelPendingClose();
     _sub?.cancel();
     _focusSub?.cancel();
     super.dispose();

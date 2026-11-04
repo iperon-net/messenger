@@ -49,6 +49,7 @@ void main() {
           routes: [GoRoute(path: '/home', builder: (_, _) => const Text('home screen'))],
         ),
         GoRoute(path: '/call', builder: (_, _) => const Text('call screen')),
+        GoRoute(path: '/detail', builder: (_, _) => const Text('detail screen')),
       ],
     );
     await tester.pumpWidget(TranslationProvider(child: MaterialApp.router(routerConfig: router)));
@@ -83,10 +84,70 @@ void main() {
     expect(find.text('home screen'), findsOneWidget);
     expect(find.text('call screen'), findsNothing);
   });
+
+  testWidgets('свёрнутый звонок снова открывается по focusRequest', (tester) async {
+    final router = await pumpGate(tester);
+    calls.emit(const CallSnapshot(status: CallStatus.outgoing, callId: 'call-1', remoteUserID: [2]));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('call screen'), findsOneWidget);
+
+    router.pop();
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('home screen'), findsOneWidget);
+    expect(find.text('call screen'), findsNothing);
+
+    calls.focus();
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('call screen'), findsOneWidget);
+  });
+
+  testWidgets('быстрый новый звонок не закрывается отложенным pop предыдущего', (tester) async {
+    await pumpGate(tester);
+    calls.emit(const CallSnapshot(status: CallStatus.outgoing, callId: 'call-1', remoteUserID: [2]));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('call screen'), findsOneWidget);
+
+    calls.emit(const CallSnapshot(status: CallStatus.ended, callId: 'call-1', remoteUserID: [2]));
+    calls.emit(const CallSnapshot(status: CallStatus.outgoing, callId: 'call-2', remoteUserID: [2]));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('call screen'), findsOneWidget);
+    expect(find.text('home screen'), findsNothing);
+  });
+
+  testWidgets('завершение звонка не закрывает открытый поверх него detail', (tester) async {
+    final router = await pumpGate(tester);
+    calls.emit(const CallSnapshot(status: CallStatus.outgoing, callId: 'call-1', remoteUserID: [2]));
+    await tester.pump();
+    await tester.pump();
+    router.push('/detail');
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('detail screen'), findsOneWidget);
+
+    calls.emit(const CallSnapshot(status: CallStatus.ended, callId: 'call-1', remoteUserID: [2]));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('detail screen'), findsOneWidget);
+    expect(find.text('home screen'), findsNothing);
+
+    router.pop();
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('home screen'), findsOneWidget);
+    expect(find.text('call screen'), findsNothing);
+  });
 }
 
 final class FakeCalls implements Calls {
   final _snapshots = StreamController<CallSnapshot>.broadcast(sync: true);
+  final _focus = StreamController<void>.broadcast(sync: true);
 
   @override
   CallSnapshot snapshot = const CallSnapshot();
@@ -95,7 +156,7 @@ final class FakeCalls implements Calls {
   Stream<CallSnapshot> get snapshots => _snapshots.stream;
 
   @override
-  Stream<void> get focusRequests => const Stream.empty();
+  Stream<void> get focusRequests => _focus.stream;
 
   @override
   bool consumeMinimizeRequest() => false;
@@ -105,8 +166,13 @@ final class FakeCalls implements Calls {
     _snapshots.add(value);
   }
 
+  void focus() => _focus.add(null);
+
   @override
-  Future<void> dispose() => _snapshots.close();
+  Future<void> dispose() async {
+    await _snapshots.close();
+    await _focus.close();
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
