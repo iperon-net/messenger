@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:messenger/account_scope.dart';
 import 'package:messenger/api.dart';
 import 'package:messenger/auth.dart';
+import 'package:messenger/chats/chats_data_source.dart';
 import 'package:messenger/chats/chats_mapping.dart';
 import 'package:messenger/chats/chats_remote_data_source.dart';
 import 'package:messenger/chats/chats_sync.dart';
@@ -215,6 +216,7 @@ void main() {
     expect(sent.map((request) => request.content.text), ['first', 'second']);
     expect(await store.outbox(userID: me), isEmpty);
     expect(await store.countMessages(userID: me, chatID: chat), 2);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
   });
 
   test('временная ошибка отправки сохраняет outbox и повторяет тот же randomID', () async {
@@ -740,6 +742,106 @@ void main() {
 
     expect(await store.pendingReactions(userID: me), isEmpty);
     expect(api.unaryCalls.single.type, MessageType.MESSAGES);
+  });
+
+  test('серверный поиск: offline повторяется, страницы используют nextOffsetID', () async {
+    final chatHex = idHex(chat);
+    await store.upsertDialog(
+      userID: me,
+      dialog: pb.Dialog(chatID: chat, peerUserID: peer),
+    );
+    final source = ChatsRemoteDataSource.instance;
+
+    final offline = await source.searchMessagesOnServer(chatHex, 'needle');
+    expect(offline.status, ServerSearchStatus.offline);
+    expect(api.unaryCalls, isEmpty);
+
+    utils.network = true;
+    api.enqueueUnaryResponse(
+      MessageType.MESSAGES,
+      pb.Messages_Response(
+        search: pb.Messages_SearchResult(
+          messages: [
+            message(3, text: 'needle'),
+            message(2, text: 'needle'),
+          ],
+          nextOffsetID: Int64(2),
+        ),
+      ).writeToBuffer(),
+    );
+    final first = await source.searchMessagesOnServer(chatHex, ' needle ');
+    expect(first.ids, ['3', '2']);
+    expect(first.nextOffsetID, '2');
+    expect(api.unaryCalls.single.type, MessageType.MESSAGES);
+
+    api.enqueueUnaryResponse(
+      MessageType.MESSAGES,
+      pb.Messages_Response(
+        search: pb.Messages_SearchResult(
+          messages: [
+            message(2, text: 'needle'),
+            message(1, text: 'needle'),
+          ],
+        ),
+      ).writeToBuffer(),
+    );
+    final second = await source.searchMessagesOnServer(chatHex, 'needle', offsetID: first.nextOffsetID);
+    expect(second.ids, ['2', '1']);
+    expect(second.nextOffsetID, isNull);
+    final request = pb.Messages_Request.fromBuffer(api.unaryCalls.last.payload).search;
+    expect(request.offsetID.toInt(), 2);
+    expect(request.query, 'needle');
+    expect(await store.message(userID: me, chatID: chat, messageID: 1), isNotNull);
+  });
+
+  test('серверный поиск: QUERY_TOO_SHORT не меняет кэш и не даёт продолжения', () async {
+    final chatHex = idHex(chat);
+    await store.upsertDialog(
+      userID: me,
+      dialog: pb.Dialog(chatID: chat, peerUserID: peer),
+    );
+    final source = ChatsRemoteDataSource.instance;
+    utils.network = true;
+    api.enqueueUnaryResponse(
+      MessageType.MESSAGES,
+      pb.Messages_Response(search: pb.Messages_SearchResult(status: pb.Messages_SearchResult_Status.QUERY_TOO_SHORT)).writeToBuffer(),
+    );
+
+    final page = await source.searchMessagesOnServer(chatHex, 'и');
+
+    expect(page.status, ServerSearchStatus.tooShort);
+    expect(page.ids, isEmpty);
+    expect(page.nextOffsetID, isNull);
+    expect(await store.countMessages(userID: me, chatID: chat), 0);
+  });
+
+  test('навигация: aroundID открывает окно, страница новее возвращает к ленте', () async {
+    final chatHex = idHex(chat);
+    await store.upsertDialog(
+      userID: me,
+      dialog: pb.Dialog(chatID: chat, peerUserID: peer),
+    );
+    final source = ChatsRemoteDataSource.instance;
+
+    await expectLater(source.revealMessage(chatHex, '1'), throwsA(isA<ChatsOfflineException>()));
+
+    utils.network = true;
+    api.enqueueUnaryResponse(
+      MessageType.MESSAGES,
+      pb.Messages_Response(history: pb.Messages_HistoryResult(messages: [message(1)], hasMore: false, hasNewer: true)).writeToBuffer(),
+    );
+    await source.revealMessage(chatHex, '1');
+
+    expect(pb.Messages_Request.fromBuffer(api.unaryCalls.single.payload).history.aroundID.toInt(), 1);
+    expect(source.historyDetached(chatHex), isTrue);
+
+    api.enqueueUnaryResponse(
+      MessageType.MESSAGES,
+      pb.Messages_Response(history: pb.Messages_HistoryResult(messages: [message(2), message(1)])).writeToBuffer(),
+    );
+    expect(await source.loadNewerMessages(chatHex), isFalse);
+    expect(source.historyDetached(chatHex), isFalse);
+    expect(await store.message(userID: me, chatID: chat, messageID: 2), isNotNull);
   });
 }
 
