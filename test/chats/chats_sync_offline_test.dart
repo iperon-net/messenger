@@ -544,6 +544,203 @@ void main() {
     ChatsSync.instance.setEnabled(false);
     await cubit.close();
   });
+
+  test('история: offline показывает кэш, страницы догружаются до начала без повторных запросов', () async {
+    final sync = ChatsSync.instance;
+    await store.upsertDialog(
+      userID: me,
+      dialog: pb.Dialog(chatID: chat, peerUserID: peer),
+    );
+    await store.upsertMessage(
+      userID: me,
+      message: message(3, text: 'cached'),
+    );
+
+    await sync.loadHistory(idBytes(idHex(chat)));
+    expect(api.unaryCalls, isEmpty);
+    expect((await store.message(userID: me, chatID: chat, messageID: 3))?.content.text, 'cached');
+
+    utils.network = true;
+    api.enqueueUnaryResponse(
+      MessageType.MESSAGES,
+      pb.Messages_Response(history: pb.Messages_HistoryResult(messages: [message(2)], hasMore: true)).writeToBuffer(),
+    );
+    await sync.loadHistory(idBytes(idHex(chat)));
+    expect(pb.Messages_Request.fromBuffer(api.unaryCalls.single.payload).history.offsetID.toInt(), 0);
+    expect(await store.countMessages(userID: me, chatID: chat), 2);
+
+    api.enqueueUnaryResponse(
+      MessageType.MESSAGES,
+      pb.Messages_Response(history: pb.Messages_HistoryResult(messages: [message(1)])).writeToBuffer(),
+    );
+    final older = await sync.historyPage(idBytes(idHex(chat)), offsetID: 2, limit: 100);
+    await store.applyHistoryPage(userID: me, chatID: chat, messages: older.messages, offsetID: 2, hasMore: older.hasMore);
+
+    expect(pb.Messages_Request.fromBuffer(api.unaryCalls.last.payload).history.offsetID.toInt(), 2);
+    expect(older.hasMore, isFalse);
+    expect(await store.oldestMessageID(userID: me, chatID: chat), 1);
+    expect(api.unaryCalls, hasLength(2));
+  });
+
+  test('закрепление: ответ сервера обновляет кэш, offline кэш не меняется', () async {
+    final chatHex = idHex(chat);
+    await store.setPts(userID: me, pts: 5);
+    await store.upsertDialog(
+      userID: me,
+      dialog: pb.Dialog(chatID: chat, peerUserID: peer),
+    );
+    await store.upsertMessage(userID: me, message: message(1));
+    final source = ChatsRemoteDataSource.instance;
+
+    await expectLater(source.setMessagePinned(chatHex, '1', true), throwsA(isA<ChatsOfflineException>()));
+    expect(await store.pinned(userID: me, chatID: chat), isEmpty);
+
+    utils.network = true;
+    api.enqueueUnaryResponse(
+      MessageType.MESSAGES,
+      pb.Messages_Response(
+        pin: pb.Messages_PinResult(
+          updates: pb.Updates(
+            updates: [
+              pb.Update(
+                pts: Int64(6),
+                pinnedMessages: pb.Update_PinnedMessages(chatID: chat, messageIDs: [Int64(1)], pinned: true),
+              ),
+            ],
+          ),
+        ),
+      ).writeToBuffer(),
+    );
+    await source.setMessagePinned(chatHex, '1', true);
+
+    expect(pb.Messages_Request.fromBuffer(api.unaryCalls.single.payload).pin.messageID.toInt(), 1);
+    expect((await store.pinned(userID: me, chatID: chat)).single.messageID.toInt(), 1);
+  });
+
+  test('отложенное в outbox переносится и отправляется сейчас без сети', () async {
+    final chatHex = idHex(chat);
+    final source = ChatsRemoteDataSource.instance;
+    final date = DateTime(2026, 1, 2);
+    await source.sendMessage(chatHex, text: 'later', scheduleDate: date);
+    final queued = (await store.outbox(userID: me)).single;
+    expect(queued.scheduleDate, date.millisecondsSinceEpoch);
+
+    final later = DateTime(2026, 1, 3);
+    await source.rescheduleMessage(chatHex, localMessageID(queued.randomID), later);
+    expect((await store.outbox(userID: me)).single.scheduleDate, later.millisecondsSinceEpoch);
+
+    await source.sendScheduledNow(chatHex, localMessageID(queued.randomID));
+    expect((await store.outbox(userID: me)).single.scheduleDate, 0);
+    expect(api.unaryCalls, isEmpty);
+
+    await source.deleteScheduled(chatHex, localMessageID(queued.randomID));
+    expect(await store.outbox(userID: me), isEmpty);
+  });
+
+  test('принятое отложенное удаляется серверным updates', () async {
+    final chatHex = idHex(chat);
+    await store.setPts(userID: me, pts: 5);
+    await store.upsertScheduled(
+      userID: me,
+      message: pb.ScheduledMessage(
+        chatID: chat,
+        scheduledID: Int64(44),
+        date: Int64(1000),
+        content: pb.MessageContent(text: 'later'),
+      ),
+    );
+    final source = ChatsRemoteDataSource.instance;
+    final id = scheduledMessageID(44);
+
+    await expectLater(source.deleteScheduled(chatHex, id), throwsA(isA<ChatsOfflineException>()));
+    expect(await store.scheduled(userID: me, chatID: chat), hasLength(1));
+
+    utils.network = true;
+    api.enqueueUnaryResponse(
+      MessageType.MESSAGES,
+      pb.Messages_Response(
+        deleteScheduled: pb.Messages_DeleteScheduledResult(
+          updates: pb.Updates(
+            updates: [
+              pb.Update(
+                pts: Int64(6),
+                scheduledDeleted: pb.Update_ScheduledDeleted(chatID: chat, scheduledIDs: [Int64(44)]),
+              ),
+            ],
+          ),
+        ),
+      ).writeToBuffer(),
+    );
+    await source.deleteScheduled(chatHex, id);
+
+    expect(pb.Messages_Request.fromBuffer(api.unaryCalls.single.payload).deleteScheduled.scheduledIDs.single.toInt(), 44);
+    expect(await store.scheduled(userID: me, chatID: chat), isEmpty);
+  });
+
+  test('реакции: временный сбой сохраняет набор, успех применяет updates и очищает очередь', () async {
+    final chatHex = idHex(chat);
+    await store.setPts(userID: me, pts: 5);
+    await store.upsertDialog(
+      userID: me,
+      dialog: pb.Dialog(chatID: chat, peerUserID: peer),
+    );
+    await store.upsertMessage(userID: me, message: message(1));
+    final source = ChatsRemoteDataSource.instance;
+    final sync = ChatsSync.instance;
+    await source.setReactions(chatHex, '1', ['👍']);
+    utils.network = true;
+    api.enqueueUnaryResult(
+      MessageType.MESSAGES,
+      const APICallStatus(status: APIStatus.error, statusCode: StatusCode.unavailable, error: 'unavailable'),
+    );
+
+    await sync.flushReactions();
+    expect((await store.pendingReactions(userID: me)).single.emojis, ['👍']);
+
+    api.enqueueUnaryResponse(
+      MessageType.MESSAGES,
+      pb.Messages_Response(
+        setReactions: pb.Messages_SetReactionsResult(
+          updates: pb.Updates(
+            updates: [
+              pb.Update(
+                pts: Int64(6),
+                messageReactions: pb.Update_MessageReactionsChanged(
+                  chatID: chat,
+                  messageID: Int64(1),
+                  reactions: pb.MessageReactions(
+                    reactions: [pb.MessageReaction(emoji: '👍', userID: me, date: Int64(1))],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ).writeToBuffer(),
+    );
+    await sync.flushReactions();
+
+    expect(await store.pendingReactions(userID: me), isEmpty);
+    expect((await store.messageReactions(userID: me, chatID: chat, messageID: 1))!.reactions.single.emoji, '👍');
+  });
+
+  test('реакции: постоянный отказ удаляет набор из очереди', () async {
+    final chatHex = idHex(chat);
+    final source = ChatsRemoteDataSource.instance;
+    final sync = ChatsSync.instance;
+    await source.setReactions(chatHex, '1', ['👍']);
+    api.enqueueUnaryResult(
+      MessageType.MESSAGES,
+      const APICallStatus(status: APIStatus.error, statusCode: StatusCode.permissionDenied, error: 'privacyRestricted'),
+    );
+    utils.network = true;
+
+    await sync.flushReactions();
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+
+    expect(await store.pendingReactions(userID: me), isEmpty);
+    expect(api.unaryCalls.single.type, MessageType.MESSAGES);
+  });
 }
 
 final class GatedFakeApi extends FakeApi {
