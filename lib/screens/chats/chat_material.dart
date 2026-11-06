@@ -11,6 +11,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../split_layout.dart';
 import '../../chats/edit_media.dart';
 import '../../chats/media_files.dart';
+import '../../chats/message_quote.dart';
 import '../../components/chats/desktop_emoji_button.dart';
 import '../../components/chats/emoji_panel.dart';
 import '../../chats/reactions.dart';
@@ -113,6 +114,7 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
 
   /// Ключи строк ленты — для прокрутки к найденному (поиск по чату).
   final _messageKeys = <String, GlobalKey>{};
+  final _textSelections = <String, (int, int)>{};
   late final ChatCubit _cubit;
   StreamSubscription<List<String>>? _dustSubscription;
   late final _tracker = ChatScrollTracker(
@@ -766,6 +768,14 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
                                               bottom: 8,
                                             ),
                                             onLongPress: (message) => _actions(context, chat, message),
+                                            onTextSelection: (selection) {
+                                              final (message, range) = selection;
+                                              if (range == null) {
+                                                _textSelections.remove(message.id);
+                                              } else {
+                                                _textSelections[message.id] = range;
+                                              }
+                                            },
                                             controller: _scroll,
                                             onDrag: _emoji.close,
                                             keyFor: _keyFor,
@@ -915,6 +925,14 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
     );
   }
 
+  (int, int)? _selectionFor(models.Message message) {
+    final range = _textSelections[message.id];
+    if (range == null) return null;
+    final start = math.min(range.$1, range.$2).clamp(0, message.text.length);
+    final end = math.max(range.$1, range.$2).clamp(0, message.text.length);
+    return start < end ? (start, end) : null;
+  }
+
   Future<void> _actions(BuildContext context, models.Chat chat, models.Message message) async {
     HapticFeedback.mediumImpact();
     final t = context.t.screenChat;
@@ -927,8 +945,8 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
     // (ответ на фрагмент, как в Telegram).
     // Защита содержимого — ни выделения текста, ни копирования, сохранения и пересылки.
     final protected = chat.noForwards;
-    // Десктоп: в контекстном меню у курсора текста сообщения нет — без цитаты.
-    final quotable = canWrite && message.text.isNotEmpty && message.kind != models.MessageKind.poll && !protected && !AppPlatform.isDesktop;
+    final quotable = canWrite && message.text.isNotEmpty && message.kind != models.MessageKind.poll && !protected;
+    final quotePreview = quotable && !AppPlatform.isDesktop;
     final mediaCopyable = chatMediaActionable(message) && message.kind != models.MessageKind.file && !protected;
     final quoteText = GlobalKey<QuotableTextState>();
     models.MessageQuote? quote;
@@ -941,7 +959,7 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (quotable) ...[
+              if (quotePreview) ...[
                 _QuotePreview(
                   quoteKey: quoteText,
                   message: message,
@@ -993,7 +1011,11 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
               if (canWrite)
                 ListTile(leading: const Icon(Icons.reply), title: Text(t.reply), onTap: () => Navigator.of(sheetContext).pop('reply')),
               if (quotable)
-                ListTile(leading: const Icon(Icons.format_quote), title: Text(t.quote), onTap: () => quoteText.currentState?.selectAll()),
+                ListTile(
+                  leading: const Icon(Icons.format_quote),
+                  title: Text(t.quote),
+                  onTap: () => AppPlatform.isDesktop ? Navigator.of(sheetContext).pop('quote') : quoteText.currentState?.selectAll(),
+                ),
               // Фото / видео — копируются сами (вставить в другой мессенджер), подпись — отдельно.
               if (mediaCopyable || (message.text.isNotEmpty && !protected))
                 ListTile(
@@ -1108,10 +1130,14 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
         _cubit.startReply(message);
         _focus.requestFocus();
       case 'quote':
+        final selection = _selectionFor(message);
+        quote ??= quoteOf(message.text, message.entities, selection?.$1 ?? 0, selection?.$2 ?? message.text.length);
         _cubit.startReply(message, quote: quote);
         _focus.requestFocus();
       case 'copy':
-        await Clipboard.setData(ClipboardData(text: message.text));
+        final selection = _selectionFor(message);
+        final text = selection == null ? message.text : message.text.substring(selection.$1, selection.$2);
+        await Clipboard.setData(ClipboardData(text: text));
         if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.copied)));
       case 'copyMedia':
         await copyChatMedia(context, message);

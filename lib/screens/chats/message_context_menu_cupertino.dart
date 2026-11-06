@@ -4,19 +4,20 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/rendering.dart';
 
 import '../../components/chats/message_double_tap.dart';
+import '../../components/chats/quotable_text.dart';
 
 /// Пузырь сообщения с `CupertinoContextMenu`. Превью открытого меню —
 /// тот же пузырь той же ширины, что в ленте (ширину запоминаем при раскладке),
-/// ужатый под выданный меню прямоугольник. Длинное сообщение в превью не
-/// ужимается по высоте (меню отдаёт превью почти весь экран — текст мельчал и
-/// «уезжал», а действия сжимались), а обрезается снизу, чтобы под ним
-/// поместились действия, — как в Telegram.
+/// ужатый под выданный меню прямоугольник. Длинное сообщение прокручивается в
+/// доступной по высоте области: любой фрагмент можно выделить и процитировать,
+/// а действия остаются на экране.
 class MessageContextMenuCupertino extends StatefulWidget {
   final List<Widget> actions;
   final Widget bubble;
   final Widget Function(double maxWidth) preview;
+  final GlobalKey<QuotableTextState>? selectionKey;
 
-  const MessageContextMenuCupertino({super.key, required this.actions, required this.bubble, required this.preview});
+  const MessageContextMenuCupertino({super.key, required this.actions, required this.bubble, required this.preview, this.selectionKey});
 
   @override
   State<MessageContextMenuCupertino> createState() => MessageContextMenuCupertinoCupertinoState();
@@ -96,21 +97,15 @@ class MessageContextMenuCupertinoCupertinoState extends State<MessageContextMenu
           );
         }
         // Без FittedBox: масштабирование превью ломает геометрию overlay —
-        // маркеры выделения прыгают относительно текста. Ширина остаётся как в
-        // ленте, а слишком длинное сообщение обрезается снизу.
+        // маркеры выделения прыгают относительно текста. Длинное сообщение
+        // прокручивается, поэтому доступен текст за пределами видимой области.
+        final preview = SingleChildScrollView(child: widget.preview(size.width));
+        final selectionKey = widget.selectionKey;
         return SizedBox(
           width: size.width,
           child: ConstrainedBox(
             constraints: BoxConstraints(maxHeight: _maxPreviewHeight(context, widget.actions.length)),
-            child: ClipRect(
-              child: OverflowBox(
-                minHeight: 0,
-                maxHeight: double.infinity,
-                alignment: Alignment.topCenter,
-                fit: OverflowBoxFit.deferToChild,
-                child: widget.preview(size.width),
-              ),
-            ),
+            child: selectionKey == null ? preview : QuotableScrollGuard(quoteKey: selectionKey, child: preview),
           ),
         );
       },

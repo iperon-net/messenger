@@ -199,6 +199,9 @@ class ChatMessagesView extends StatelessWidget {
   /// флаг, уже будучи на экране.
   final ValueChanged<models.Message>? onReactionsShown;
 
+  /// Десктоп: изменился диапазон выделенного текста сообщения.
+  final ValueChanged<(models.Message, (int, int)?)>? onTextSelection;
+
   /// Группа: подпись справа от имени отправителя по его userID (звание /
   /// «владелец» / «админ», см. `senderBadges`) — из кэша участников.
   final Map<String, String> senderBadges;
@@ -246,6 +249,7 @@ class ChatMessagesView extends StatelessWidget {
     this.onCallTap,
     this.actionsFor,
     this.onReactionsShown,
+    this.onTextSelection,
     this.senderBadges = const {},
   });
 
@@ -399,6 +403,7 @@ class ChatMessagesView extends StatelessWidget {
                                     onPollVote: onPollVote == null ? null : (options) => onPollVote!(m, options),
                                     onPollVoters: onPollVoters == null ? null : () => onPollVoters!(m),
                                     onCallTap: onCallTap == null ? null : () => onCallTap!(m),
+                                    onTextSelection: onTextSelection == null ? null : (range) => onTextSelection!((m, range)),
                                     actions: actionsFor?.call(m) ?? const [],
                                   ),
                                 ),
@@ -756,6 +761,9 @@ class MessageBubble extends StatelessWidget {
   /// Тап по звонку ([models.MessageKind.call]) — перезвонить.
   final VoidCallback? onCallTap;
 
+  /// Десктоп: диапазон выделения в координатах исходного текста сообщения.
+  final ValueChanged<(int, int)?>? onTextSelection;
+
   /// Кнопки внизу пузыря (уведомление «Iperon»: «Устройства» / «Это не я»).
   final List<(String, VoidCallback)> actions;
 
@@ -785,6 +793,7 @@ class MessageBubble extends StatelessWidget {
     this.onPollVote,
     this.onPollVoters,
     this.onCallTap,
+    this.onTextSelection,
     this.actions = const [],
   });
 
@@ -1176,7 +1185,7 @@ class MessageBubble extends StatelessWidget {
       builder: (context, constraints) {
         final selectable =
             AppPlatform.isDesktop && m.text.isNotEmpty && m.kind != models.MessageKind.poll && !ChatContentProtection.of(context)
-            ? (text) => mi.SelectionArea(child: text)
+            ? (text) => _DesktopMessageSelection(onChanged: onTextSelection, child: text)
             : null;
         return body(math.min(constraints.maxWidth * 0.8, 520), selectableText: selectable);
       },
@@ -1200,6 +1209,45 @@ class MessageBubble extends StatelessWidget {
           Flexible(child: bubble),
         ],
       ),
+    );
+  }
+}
+
+class _DesktopMessageSelection extends StatefulWidget {
+  final ValueChanged<(int, int)?>? onChanged;
+  final Widget child;
+
+  const _DesktopMessageSelection({required this.onChanged, required this.child});
+
+  @override
+  State<_DesktopMessageSelection> createState() => _DesktopMessageSelectionState();
+}
+
+class _DesktopMessageSelectionState extends State<_DesktopMessageSelection> {
+  final _selection = SelectionListenerNotifier();
+
+  @override
+  void initState() {
+    super.initState();
+    _selection.addListener(_changed);
+  }
+
+  void _changed() {
+    if (!_selection.registered) return;
+    final range = _selection.selection.range;
+    widget.onChanged?.call(range == null ? null : (range.startOffset, range.endOffset));
+  }
+
+  @override
+  void dispose() {
+    _selection.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return mi.SelectionArea(
+      child: SelectionListener(selectionNotifier: _selection, child: widget.child),
     );
   }
 }

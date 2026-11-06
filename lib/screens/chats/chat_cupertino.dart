@@ -849,7 +849,9 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
   /// Текст в приподнятом пузыре можно выделить: «Копировать | Цитировать»
   /// (ответ на фрагмент, как в Telegram).
   Widget _menu(BuildContext context, models.Chat chat, models.Message message, Widget bubble, MessageBubblePreview preview) {
+    final quoteText = GlobalKey<QuotableTextState>();
     Widget quotable(Widget text) => QuotableText(
+      key: quoteText,
       text: message.text,
       entities: message.entities,
       selectionControls: cupertinoTextSelectionHandleControls,
@@ -872,6 +874,7 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
       builder: (context, ask) => MessageContextMenuCupertino(
         actions: _menuActions(context, chat, message, ask),
         bubble: bubble,
+        selectionKey: quoteText,
         // Защита содержимого — текст не выделить (копирование через «Цитировать»).
         preview: (maxWidth) =>
             preview(maxWidth, selectableText: chat.canPost && !_cubit.state.commentsBlocked && !chat.noForwards ? quotable : null),

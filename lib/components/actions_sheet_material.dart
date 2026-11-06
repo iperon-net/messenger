@@ -47,7 +47,7 @@ class _ContextMenu extends StatelessWidget {
 
   const _ContextMenu({required this.child});
 
-  static const width = 260.0;
+  static const width = 320.0;
   static const radius = 12.0;
 
   @override
@@ -87,19 +87,19 @@ class _ContextMenu extends StatelessWidget {
                 dense: true,
                 visualDensity: VisualDensity.compact,
                 minVerticalPadding: 0,
-                minTileHeight: 34,
-                minLeadingWidth: 20,
-                horizontalTitleGap: 10,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                minTileHeight: 40,
+                minLeadingWidth: 24,
+                horizontalTitleGap: 12,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 iconColor: scheme.onSurfaceVariant,
-                titleTextStyle: theme.textTheme.bodyMedium?.copyWith(fontSize: 14, color: scheme.onSurface),
+                titleTextStyle: theme.textTheme.bodyMedium?.copyWith(fontSize: 15, color: scheme.onSurface),
               ),
-              iconTheme: theme.iconTheme.copyWith(size: 18),
+              iconTheme: theme.iconTheme.copyWith(size: 20),
               hoverColor: scheme.onSurface.withValues(alpha: 0.07),
             ),
             child: IconTheme.merge(
-              data: const IconThemeData(size: 18),
+              data: const IconThemeData(size: 20),
               child: SingleChildScrollView(padding: const EdgeInsets.all(5), child: child),
             ),
           ),

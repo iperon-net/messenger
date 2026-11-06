@@ -1,4 +1,5 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart' show MaterialApp, SelectionArea;
 import 'package:messenger/components/chats/message_bubble.dart';
@@ -84,6 +85,7 @@ void main() {
   });
 
   testWidgets('превью и действия помещаются при большом тексте', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     await tester.binding.setSurfaceSize(const Size(320, 568));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     final message = ConstrainedBox(constraints: const BoxConstraints(maxWidth: 250), child: Text('Длинное сообщение. ' * 100));
@@ -102,7 +104,9 @@ void main() {
       ),
     );
 
-    await tester.longPress(find.byType(MessageContextMenuCupertino));
+    final press = await tester.startGesture(tester.getCenter(find.byType(MessageContextMenuCupertino)));
+    await tester.pump(const Duration(milliseconds: 700));
+    await press.up();
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
@@ -112,5 +116,6 @@ void main() {
       expect(rect.top, greaterThanOrEqualTo(30));
       expect(rect.bottom, lessThanOrEqualTo(538));
     }
+    debugDefaultTargetPlatformOverride = null;
   });
 }
