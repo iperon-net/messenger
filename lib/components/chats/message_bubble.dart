@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
 
-import 'package:flutter/gestures.dart' show PointerDeviceKind, kSecondaryMouseButton;
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
@@ -1258,9 +1258,27 @@ class _DesktopMessageSelectionState extends State<_DesktopMessageSelection> {
 
   @override
   Widget build(BuildContext context) {
-    return mi.SelectionArea(
-      child: SelectionListener(selectionNotifier: _selection, child: widget.child),
+    return RawGestureDetector(
+      gestures: {
+        _SecondaryMenuGestureRecognizer: GestureRecognizerFactoryWithHandlers<_SecondaryMenuGestureRecognizer>(
+          _SecondaryMenuGestureRecognizer.new,
+          (recognizer) => recognizer.onSecondaryTapDown = (_) {},
+        ),
+      },
+      child: mi.SelectionArea(
+        child: SelectionListener(selectionNotifier: _selection, child: widget.child),
+      ),
     );
+  }
+}
+
+class _SecondaryMenuGestureRecognizer extends TapGestureRecognizer {
+  @override
+  void addAllowedPointer(PointerDownEvent event) {
+    super.addAllowedPointer(event);
+    // Меню сообщения открывает внешний Listener. Забираем правый клик у
+    // SelectableRegion сразу, чтобы он не заменял выделение словом под курсором.
+    if (event.buttons == kSecondaryMouseButton) resolve(GestureDisposition.accepted);
   }
 }
 

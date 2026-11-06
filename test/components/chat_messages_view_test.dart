@@ -2,7 +2,7 @@ import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart' show PointerDeviceKind, kSecondaryMouseButton;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:material_ui/material_ui.dart' show MaterialApp, SelectionArea;
+import 'package:material_ui/material_ui.dart' show AdaptiveTextSelectionToolbar, MaterialApp, SelectionArea;
 import 'package:messenger/components/actions_sheet_material.dart' show DesktopPointer;
 import 'package:messenger/components/chats/message_bubble.dart';
 import 'package:messenger/components/chats/message_text.dart';
@@ -86,7 +86,7 @@ void main() {
     expect(find.byType(SelectionArea), findsOneWidget);
   });
 
-  testWidgets('правый клик по тексту сообщения открывает его меню', (tester) async {
+  testWidgets('правый клик по тексту открывает меню и сохраняет выделение', (tester) async {
     var opened = 0;
     await tester.pumpWidget(
       TranslationProvider(
@@ -108,6 +108,7 @@ void main() {
 
     expect(opened, 1);
     expect(DesktopPointer.last, at);
+    expect(find.byType(AdaptiveTextSelectionToolbar), findsNothing);
   });
 
   testWidgets('превью и действия помещаются при большом тексте', (tester) async {
