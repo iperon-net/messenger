@@ -1181,21 +1181,25 @@ class _QuotePreview extends StatelessWidget {
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5)),
             ),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-              child: QuotableText(
-                key: quoteKey,
-                text: message.text,
-                entities: message.entities,
-                selectionControls: materialTextSelectionHandleControls,
-                toolbarBuilder: (context, anchors, items) => AdaptiveTextSelectionToolbar.buttonItems(anchors: anchors, buttonItems: items),
-                onQuote: onQuote,
-                child: MessageText(
+            child: QuotableScrollGuard(
+              quoteKey: quoteKey,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                child: QuotableText(
+                  key: quoteKey,
                   text: message.text,
                   entities: message.entities,
-                  style: style.textStyle,
-                  colors: out ? style.outgoingText : style.incomingText,
-                  spoilerKey: SpoilerReveals.key(message.chatID, message.id, 'text'),
+                  selectionControls: materialTextSelectionHandleControls,
+                  toolbarBuilder: (context, anchors, items) =>
+                      AdaptiveTextSelectionToolbar.buttonItems(anchors: anchors, buttonItems: items),
+                  onQuote: onQuote,
+                  child: MessageText(
+                    text: message.text,
+                    entities: message.entities,
+                    style: style.textStyle,
+                    colors: out ? style.outgoingText : style.incomingText,
+                    spoilerKey: SpoilerReveals.key(message.chatID, message.id, 'text'),
+                  ),
                 ),
               ),
             ),

@@ -8,7 +8,7 @@ import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:material_ui/material_ui.dart' as mi show Icons;
+import 'package:material_ui/material_ui.dart' as mi show Icons, SelectionArea;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../platform.dart';
@@ -1134,8 +1134,8 @@ class MessageBubble extends StatelessWidget {
     }
 
     // [maxWidth] — предел ширины: в ленте 80% строки, в превью меню — ширина
-    // пузыря в ленте (чтобы текст перенёсся так же). [selectableText] — см.
-    // [MessageBubblePreview]; в превью меню у пузыря своих жестов нет.
+    // пузыря в ленте (чтобы текст перенёсся так же). [selectableText] — живой
+    // текст на десктопе и в превью меню; в превью у пузыря своих жестов нет.
     Widget body(double maxWidth, {bool preview = false, Widget Function(Widget text)? selectableText}) => ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth),
       child: MessageDoubleTap(
@@ -1172,7 +1172,15 @@ class MessageBubble extends StatelessWidget {
         ),
       ),
     );
-    final inList = LayoutBuilder(builder: (context, constraints) => body(math.min(constraints.maxWidth * 0.8, 520)));
+    final inList = LayoutBuilder(
+      builder: (context, constraints) {
+        final selectable =
+            AppPlatform.isDesktop && m.text.isNotEmpty && m.kind != models.MessageKind.poll && !ChatContentProtection.of(context)
+            ? (text) => mi.SelectionArea(child: text)
+            : null;
+        return body(math.min(constraints.maxWidth * 0.8, 520), selectableText: selectable);
+      },
+    );
     final bubble = menuWrapper == null
         ? inList
         : menuWrapper!(

@@ -1,9 +1,11 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart' show MaterialApp, SelectionArea;
 import 'package:messenger/components/chats/message_bubble.dart';
 import 'package:messenger/components/chats/message_text.dart';
 import 'package:messenger/i18n/translations.g.dart';
 import 'package:messenger/models.dart' as models;
+import 'package:messenger/screens/chats/message_context_menu_cupertino.dart';
 
 void main() {
   setUpAll(() async {
@@ -35,19 +37,17 @@ void main() {
     var drags = 0;
     await tester.pumpWidget(
       TranslationProvider(
-        child: CupertinoApp(
-          home: CupertinoPageScaffold(
-            child: ChatMessagesView(
-              messages: [
-                for (var i = 0; i < 40; i++)
-                  models.Message(id: '$i', chatID: 'chat', text: 'Сообщение $i', date: DateTime(2026, 11, 2, 12, i)),
-              ],
-              chatType: models.ChatType.private,
-              style: style,
-              onLongPress: (_) {},
-              controller: scroll,
-              onDrag: () => drags++,
-            ),
+        child: MaterialApp(
+          home: ChatMessagesView(
+            messages: [
+              for (var i = 0; i < 40; i++)
+                models.Message(id: '$i', chatID: 'chat', text: 'Сообщение $i', date: DateTime(2026, 11, 2, 12, i)),
+            ],
+            chatType: models.ChatType.private,
+            style: style,
+            onLongPress: (_) {},
+            controller: scroll,
+            onDrag: () => drags++,
           ),
         ),
       ),
@@ -64,5 +64,53 @@ void main() {
     scroll.jumpTo(0);
     await tester.pump();
     expect(drags, 1);
+  });
+
+  testWidgets('на десктопе текст сообщения можно выделить мышью', (tester) async {
+    await tester.pumpWidget(
+      TranslationProvider(
+        child: MaterialApp(
+          home: ChatMessagesView(
+            messages: [models.Message(id: '1', chatID: 'chat', text: 'Текст для копирования', date: DateTime(2026, 11, 6))],
+            chatType: models.ChatType.private,
+            style: style,
+            onLongPress: (_) {},
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(SelectionArea), findsOneWidget);
+  });
+
+  testWidgets('превью и действия помещаются при большом тексте', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(320, 568));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final message = ConstrainedBox(constraints: const BoxConstraints(maxWidth: 250), child: Text('Длинное сообщение. ' * 100));
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(padding: EdgeInsets.symmetric(vertical: 30), textScaler: TextScaler.linear(1.6)),
+        child: CupertinoApp(
+          home: Center(
+            child: MessageContextMenuCupertino(
+              actions: [for (var i = 0; i < 4; i++) CupertinoContextMenuAction(onPressed: () {}, child: Text('Действие $i'))],
+              bubble: message,
+              preview: (_) => message,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.longPress(find.byType(MessageContextMenuCupertino));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.descendant(of: find.byType(MessageContextMenuCupertino), matching: find.byType(FittedBox)), findsNothing);
+    for (final action in find.byType(CupertinoContextMenuAction).evaluate()) {
+      final rect = tester.getRect(find.byWidget(action.widget));
+      expect(rect.top, greaterThanOrEqualTo(30));
+      expect(rect.bottom, lessThanOrEqualTo(538));
+    }
   });
 }

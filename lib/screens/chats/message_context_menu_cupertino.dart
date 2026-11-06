@@ -95,8 +95,11 @@ class MessageContextMenuCupertinoCupertinoState extends State<MessageContextMenu
             ),
           );
         }
-        return FittedBox(
-          fit: BoxFit.scaleDown,
+        // Без FittedBox: масштабирование превью ломает геометрию overlay —
+        // маркеры выделения прыгают относительно текста. Ширина остаётся как в
+        // ленте, а слишком длинное сообщение обрезается снизу.
+        return SizedBox(
+          width: size.width,
           child: ConstrainedBox(
             constraints: BoxConstraints(maxHeight: _maxPreviewHeight(context, widget.actions.length)),
             child: ClipRect(
@@ -116,11 +119,13 @@ class MessageContextMenuCupertinoCupertinoState extends State<MessageContextMenu
 }
 
 /// Высота экрана без безопасных зон, отступов меню (сверху, между превью и
-/// действиями, снизу — по 20) и самих действий (43 на строку, как у
-/// `CupertinoContextMenuAction`).
+/// действиями, снизу — по 20) и самих действий. У действий минимум 43, но с
+/// увеличенным системным текстом они выше — резервируем высоту с тем же
+/// масштабом, иначе меню и превью вместе не помещаются на экране.
 double _maxPreviewHeight(BuildContext context, int actions) {
   final media = MediaQuery.of(context);
-  return math.max(120.0, media.size.height - media.padding.vertical - 3 * 20 - actions * 44);
+  final actionScale = media.textScaler.scale(16) / 16;
+  return math.max(120.0, media.size.height - media.padding.vertical - 3 * 20 - actions * 44 * actionScale);
 }
 
 /// Сообщает размер ребёнка после каждой раскладки (без GlobalKey: превью

@@ -78,3 +78,23 @@ class QuotableTextState extends State<QuotableText> {
     );
   }
 }
+
+/// Снимает выделение при ручной прокрутке: маркеры [SelectableRegion] живут в
+/// overlay и иначе остаются на экране поверх уже прокрученного текста.
+class QuotableScrollGuard extends StatelessWidget {
+  final GlobalKey<QuotableTextState> quoteKey;
+  final Widget child;
+
+  const QuotableScrollGuard({super.key, required this.quoteKey, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return NotificationListener<ScrollStartNotification>(
+      onNotification: (notification) {
+        if (notification.dragDetails != null) quoteKey.currentState?._region.currentState?.clearSelection();
+        return false;
+      },
+      child: child,
+    );
+  }
+}

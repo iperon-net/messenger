@@ -853,7 +853,12 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
       text: message.text,
       entities: message.entities,
       selectionControls: cupertinoTextSelectionHandleControls,
-      toolbarBuilder: (context, anchors, items) => CupertinoAdaptiveTextSelectionToolbar.buttonItems(anchors: anchors, buttonItems: items),
+      // Overlay выделения строится вне дерева темы сообщения: возвращаем ему
+      // текущую яркость, иначе в тёмной теме кнопки и фон получаются тёмными.
+      toolbarBuilder: (selectionContext, anchors, items) => CupertinoTheme(
+        data: CupertinoTheme.of(context),
+        child: CupertinoAdaptiveTextSelectionToolbar.buttonItems(anchors: anchors, buttonItems: items),
+      ),
       onQuote: (quote) {
         Navigator.of(context, rootNavigator: true).pop();
         _cubit.startReply(message, quote: quote);
