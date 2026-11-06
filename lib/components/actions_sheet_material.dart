@@ -47,7 +47,7 @@ class _ContextMenu extends StatelessWidget {
 
   const _ContextMenu({required this.child});
 
-  static const width = 320.0;
+  static const width = 260.0;
   static const radius = 12.0;
 
   @override

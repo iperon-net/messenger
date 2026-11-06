@@ -1,5 +1,6 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart' show PointerDeviceKind, kSecondaryMouseButton;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart' show MaterialApp, SelectionArea;
 import 'package:messenger/components/chats/message_bubble.dart';
@@ -82,6 +83,32 @@ void main() {
     );
 
     expect(find.byType(SelectionArea), findsOneWidget);
+  });
+
+  testWidgets('правый клик по тексту сообщения открывает его меню', (tester) async {
+    var opened = 0;
+    await tester.pumpWidget(
+      TranslationProvider(
+        child: MaterialApp(
+          home: ChatMessagesView(
+            messages: [models.Message(id: '1', chatID: 'chat', text: 'Текст для копирования', date: DateTime(2026, 11, 6))],
+            chatType: models.ChatType.private,
+            style: style,
+            onLongPress: (_) => opened++,
+          ),
+        ),
+      ),
+    );
+
+    final click = await tester.startGesture(
+      tester.getCenter(find.byType(SelectionArea)),
+      kind: PointerDeviceKind.mouse,
+      buttons: kSecondaryMouseButton,
+    );
+    await tester.pump();
+    await click.up();
+
+    expect(opened, 1);
   });
 
   testWidgets('превью и действия помещаются при большом тексте', (tester) async {

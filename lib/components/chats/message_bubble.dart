@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
 
+import 'package:flutter/gestures.dart' show PointerDeviceKind, kSecondaryMouseButton;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
@@ -1150,30 +1151,38 @@ class MessageBubble extends StatelessWidget {
       child: MessageDoubleTap(
         messageID: m.id,
         onDoubleTap: preview ? null : onDoubleTap,
-        child: GestureDetector(
-          // С обёрткой (iOS-меню) long-press ловит `CupertinoContextMenu`.
-          onLongPress: menuWrapper == null && !preview ? onLongPress : null,
-          // Правый клик мышью (десктоп) — то же меню.
-          onSecondaryTap: menuWrapper == null && !preview ? onLongPress : null,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: bigEmoji > 0 ? null : (out ? style.outgoing : style.incoming),
-              borderRadius: BorderRadius.only(
-                topLeft: _radius,
-                topRight: _radius,
-                bottomLeft: !out && tail ? _tailRadius : _radius,
-                bottomRight: out && tail ? _tailRadius : _radius,
+        child: Listener(
+          behavior: HitTestBehavior.translucent,
+          // Обрабатываем нажатие до жестов SelectionArea: иначе правый клик по
+          // тексту перехватывает его системное меню, а не меню сообщения.
+          onPointerDown: AppPlatform.isDesktop && menuWrapper == null && !preview
+              ? (event) {
+                  if (event.kind == PointerDeviceKind.mouse && event.buttons == kSecondaryMouseButton) onLongPress();
+                }
+              : null,
+          child: GestureDetector(
+            // С обёрткой (iOS-меню) long-press ловит `CupertinoContextMenu`.
+            onLongPress: menuWrapper == null && !preview ? onLongPress : null,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: bigEmoji > 0 ? null : (out ? style.outgoing : style.incoming),
+                borderRadius: BorderRadius.only(
+                  topLeft: _radius,
+                  topRight: _radius,
+                  bottomLeft: !out && tail ? _tailRadius : _radius,
+                  bottomRight: out && tail ? _tailRadius : _radius,
+                ),
               ),
-            ),
-            child: Padding(
-              padding: bigEmoji > 0
-                  ? const EdgeInsets.fromLTRB(2, 0, 2, 2)
-                  : EdgeInsets.fromLTRB(visual ? 4 : 11, visual ? 4 : 7, visual ? 4 : 11, 7),
-              child: IntrinsicWidth(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: buildContent(selectableText),
+              child: Padding(
+                padding: bigEmoji > 0
+                    ? const EdgeInsets.fromLTRB(2, 0, 2, 2)
+                    : EdgeInsets.fromLTRB(visual ? 4 : 11, visual ? 4 : 7, visual ? 4 : 11, 7),
+                child: IntrinsicWidth(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: buildContent(selectableText),
+                  ),
                 ),
               ),
             ),
