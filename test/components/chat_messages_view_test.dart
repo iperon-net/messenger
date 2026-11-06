@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart' show PointerDeviceKind, kSecondaryMouseButton;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart' show MaterialApp, SelectionArea;
+import 'package:messenger/components/actions_sheet_material.dart' show DesktopPointer;
 import 'package:messenger/components/chats/message_bubble.dart';
 import 'package:messenger/components/chats/message_text.dart';
 import 'package:messenger/i18n/translations.g.dart';
@@ -100,15 +101,13 @@ void main() {
       ),
     );
 
-    final click = await tester.startGesture(
-      tester.getCenter(find.byType(SelectionArea)),
-      kind: PointerDeviceKind.mouse,
-      buttons: kSecondaryMouseButton,
-    );
+    final at = tester.getCenter(find.byType(SelectionArea));
+    final click = await tester.startGesture(at, kind: PointerDeviceKind.mouse, buttons: kSecondaryMouseButton);
     await tester.pump();
     await click.up();
 
     expect(opened, 1);
+    expect(DesktopPointer.last, at);
   });
 
   testWidgets('превью и действия помещаются при большом тексте', (tester) async {

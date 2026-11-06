@@ -19,6 +19,7 @@ import '../../extensions.dart';
 import '../../i18n/translations.g.dart';
 import '../../models.dart' as models;
 import '../../split_layout.dart';
+import '../actions_sheet_material.dart' show DesktopPointer;
 import '../dust_effect.dart';
 import '../emoji_status.dart';
 import '../user_avatar.dart';
@@ -1157,7 +1158,9 @@ class MessageBubble extends StatelessWidget {
           // тексту перехватывает его системное меню, а не меню сообщения.
           onPointerDown: AppPlatform.isDesktop && menuWrapper == null && !preview
               ? (event) {
-                  if (event.kind == PointerDeviceKind.mouse && event.buttons == kSecondaryMouseButton) onLongPress();
+                  if (event.kind != PointerDeviceKind.mouse || event.buttons != kSecondaryMouseButton) return;
+                  DesktopPointer.last = event.position;
+                  onLongPress();
                 }
               : null,
           child: GestureDetector(
