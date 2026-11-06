@@ -934,6 +934,7 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
   }
 
   Future<void> _actions(BuildContext context, models.Chat chat, models.Message message) async {
+    final selection = _selectionFor(message);
     HapticFeedback.mediumImpact();
     final t = context.t.screenChat;
     final canWrite = chat.canPost && !_cubit.state.commentsBlocked;
@@ -1130,12 +1131,10 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
         _cubit.startReply(message);
         _focus.requestFocus();
       case 'quote':
-        final selection = _selectionFor(message);
         quote ??= quoteOf(message.text, message.entities, selection?.$1 ?? 0, selection?.$2 ?? message.text.length);
         _cubit.startReply(message, quote: quote);
         _focus.requestFocus();
       case 'copy':
-        final selection = _selectionFor(message);
         final text = selection == null ? message.text : message.text.substring(selection.$1, selection.$2);
         await Clipboard.setData(ClipboardData(text: text));
         if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.copied)));
