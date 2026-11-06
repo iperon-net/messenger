@@ -117,6 +117,7 @@ class _MenuLayout extends SingleChildLayoutDelegate {
   const _MenuLayout(this.at);
 
   static const _margin = 8.0;
+  static const _cursorGap = 6.0;
 
   @override
   BoxConstraints getConstraintsForChild(BoxConstraints constraints) =>
@@ -124,9 +125,9 @@ class _MenuLayout extends SingleChildLayoutDelegate {
 
   @override
   Offset getPositionForChild(Size size, Size childSize) {
-    var x = at.dx;
+    var x = at.dx + _cursorGap;
     var y = at.dy;
-    if (x + childSize.width > size.width - _margin) x = at.dx - childSize.width;
+    if (x + childSize.width > size.width - _margin) x = at.dx - childSize.width - _cursorGap;
     if (y + childSize.height > size.height - _margin) y = at.dy - childSize.height;
     return Offset(
       x.clamp(_margin, (size.width - childSize.width - _margin).clamp(_margin, double.infinity)),
