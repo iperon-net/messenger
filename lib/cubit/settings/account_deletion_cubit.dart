@@ -120,6 +120,10 @@ class AccountDeletionCubit extends Cubit<AccountDeletionState> {
       return false;
     }
     final response = AccountDeletionRequest_Response.fromBuffer(payload);
+    if (!response.hasManualDeleteAfter()) {
+      emit(state.copyWith(loading: false, error: 'accountDeletion.requestError'));
+      return false;
+    }
     emit(state.copyWith(manualDeleteAfter: response.manualDeleteAfter.toDateTime(), loading: false, loaded: true));
     return true;
   }
