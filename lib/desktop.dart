@@ -113,6 +113,10 @@ abstract final class Desktop {
   /// сборке выключено (debug, нет ключа Sparkle).
   static Future<String?> latestVersion() => _invoke<String>('latestVersion');
 
+  /// Жив ли автообновитель (Sparkle): `false` — обновление из приложения
+  /// невозможно (debug, сборка без ключа), вести на скачивание DMG.
+  static Future<bool> updatesEnabled() async => await _invoke<bool>('updatesEnabled') ?? false;
+
   static Future<bool> launchAtLogin() async => await _invoke<bool>('launchAtLogin') ?? false;
 
   /// Включить / выключить запуск при входе в систему: `enabled` / `disabled`

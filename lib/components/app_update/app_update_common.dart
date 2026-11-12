@@ -104,11 +104,13 @@ Uri apkDownloadUri(List<String> abis) {
 
 /// Открыть обновление в канале установки: Google Play, RuStore, APK с сайта
 /// (браузер скачает, установка — системным окном), TestFlight (страницы в App
-/// Store пока нет — App Store тоже туда), на macOS — проверка Sparkle.
+/// Store пока нет — App Store тоже туда), на macOS — проверка Sparkle, а без
+/// живого обновителя — сразу DMG последней версии с сайта (иначе экран
+/// «Обновите приложение» становится тупиком).
 Future<void> openAppUpdate() async {
   final source = await appInstallSource();
   final uri = switch (source.channel) {
-    AppInstallChannel.desktop => null,
+    AppInstallChannel.desktop => (await Desktop.updatesEnabled()) ? null : Uri.parse('$appDownloadHost/macos/Iperon.dmg'),
     AppInstallChannel.googlePlay => Uri.parse('https://play.google.com/store/apps/details?id=net.iperon.messenger'),
     AppInstallChannel.ruStore => Uri.parse('https://www.rustore.ru/catalog/app/net.iperon.messenger'),
     AppInstallChannel.apk => apkDownloadUri(source.abis),

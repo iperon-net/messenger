@@ -231,6 +231,10 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
         return
       }
       updater.latestVersion { result($0) }
+    case "updatesEnabled":
+      // Жив ли обновитель: false — обновление из приложения невозможно
+      // («Обновите приложение» ведёт на скачивание DMG).
+      result(updater != nil)
     case "requestAttention":
       NSApp.requestUserAttention(.informationalRequest)
       result(nil)
