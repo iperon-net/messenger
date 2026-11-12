@@ -33,10 +33,11 @@ jobs:
           echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
 
   Linter:
-    # Ровно то, что в теге (github.ref = refs/tags/v…): правка workflow на
-    # main не меняет уже выпущенный релиз. В uses у reusable-воркфлоу
-    # поддерживается ограниченный набор github-контекста — github.sha там нет.
-    uses: iperon-net/messenger/.github/workflows/_linter.yaml@${{ github.ref }}
+    # @main — единственный вариант: в `uses:` reusable-воркфлоу GitHub не
+    # разрешает выражения вовсе (github.sha/ref там недоступны, проверено
+    # actionlint), а статический SHA пришлось бы вручную менять при каждой
+    # правке _*.yaml. Сборки reusable-воркфлоу берутся с main.
+    uses: iperon-net/messenger/.github/workflows/_linter.yaml@main
     with:
       flutter_version: "3.47.8"
     secrets:
@@ -44,14 +45,14 @@ jobs:
 
   Test:
     needs: [Linter]
-    uses: iperon-net/messenger/.github/workflows/_test.yaml@${{ github.ref }}
+    uses: iperon-net/messenger/.github/workflows/_test.yaml@main
     with:
       flutter_version: "3.47.8"
     secrets:
       firebase_options_dart_base64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
 
   TestFlight:
-    uses: iperon-net/messenger/.github/workflows/_deploy_testflight.yaml@${{ github.ref }}
+    uses: iperon-net/messenger/.github/workflows/_deploy_testflight.yaml@main
     needs: [Version, Test]
     with:
       flutter_version: "3.47.8"
@@ -70,7 +71,7 @@ jobs:
   # Десктоп macOS (DMG + автообновление, docs/plans/desktop-client.md §10). Пока
   # секретов нет — неподписанный DMG только артефактом, релиз не создаётся.
   macOS:
-    uses: iperon-net/messenger/.github/workflows/_deploy_macos.yaml@${{ github.ref }}
+    uses: iperon-net/messenger/.github/workflows/_deploy_macos.yaml@main
     needs: [Version, Test]
     # Публикация — GitHub Release этого репо.
     permissions:
@@ -89,7 +90,7 @@ jobs:
 
   # Android: APK по ABI (--split-per-abi) в тот же GitHub Release, что и macOS.
   Android:
-    uses: iperon-net/messenger/.github/workflows/_deploy_android.yaml@${{ github.ref }}
+    uses: iperon-net/messenger/.github/workflows/_deploy_android.yaml@main
     needs: [Version, Test]
     permissions:
       contents: write
