@@ -1,6 +1,6 @@
 name: Bootstrap config
 
-# Подписанный bootstrap-конфиг (docs/plans/bootstrap-config.md): адреса серверов
+# Подписанный bootstrap-конфиг (docs/plans/archive/bootstrap-config.md): адреса серверов
 # по окружениям (production, staging) и отпечатки их ключей — вместо Remote
 # Config. Окружение — свойство аккаунта: приложение одно. Actions → Bootstrap
 # config → Run workflow: меняет одно окружение (остальные переносятся из
@@ -116,6 +116,6 @@ jobs:
           if ! gh release view bootstrap >/dev/null 2>&1; then
             gh release create bootstrap --target main --prerelease --latest=false \
               --title "Bootstrap config" \
-              --notes "Подписанный config.json для клиентов (адреса серверов по окружениям). Обновляет workflow «Bootstrap config», docs/plans/bootstrap-config.md."
+              --notes "Подписанный config.json для клиентов (адреса серверов по окружениям). Обновляет workflow «Bootstrap config», docs/plans/archive/bootstrap-config.md."
           fi
           gh release upload bootstrap config.json --clobber

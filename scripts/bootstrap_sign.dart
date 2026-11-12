@@ -1,4 +1,4 @@
-// Подписанный bootstrap-конфиг (docs/plans/bootstrap-config.md, формат —
+// Подписанный bootstrap-конфиг (docs/plans/archive/bootstrap-config.md, формат —
 // lib/bootstrap/bootstrap_file.dart).
 //
 //   dart run scripts/bootstrap_sign.dart keygen [--out bootstrap_signing.key]

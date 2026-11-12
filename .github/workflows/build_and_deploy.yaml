@@ -68,7 +68,7 @@ jobs:
       asc_issuer_id: ${{ secrets.ASC_ISSUER_ID }}
       asc_key_p8_base64: ${{ secrets.ASC_KEY_P8_BASE64 }}
 
-  # Десктоп macOS (DMG + автообновление, docs/plans/desktop-client.md §10). Пока
+  # Десктоп macOS (DMG + автообновление, docs/plans/archive/desktop-client.md §10). Пока
   # секретов нет — неподписанный DMG только артефактом, релиз не создаётся.
   macOS:
     uses: iperon-net/messenger/.github/workflows/_deploy_macos.yaml@main

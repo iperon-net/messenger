@@ -155,7 +155,7 @@ jobs:
             verify --print-certs "$OUT/Iperon-$BUILD_NAME-arm64-v8a.apk" | grep -E "SHA-256|DN"
 
       # Манифест последней версии для баннера «Доступна версия» (lib/app_update.dart,
-      # docs/plans/app-updates.md §4): nginx отдаёт его из Latest-релиза как
+      # docs/plans/archive/app-updates.md §4): nginx отдаёт его из Latest-релиза как
       # download.iperon.net/android/latest.json.
       - name: Write latest.json
         env:

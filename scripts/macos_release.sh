@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Сборка и выпуск macOS-клиента (docs/plans/desktop-client.md §10):
+# Сборка и выпуск macOS-клиента (docs/plans/archive/desktop-client.md §10):
 # flutter build → подпись Developer ID (hardened runtime) → нотаризация + staple
 # приложения → DMG → подпись, нотаризация + staple DMG → EdDSA-подпись Sparkle →
 # appcast → GitHub Release (раздаёт nginx на download.iperon.net).

@@ -1,6 +1,6 @@
 name: macOS
 
-# Сборка и выпуск десктопного клиента для macOS (docs/plans/desktop-client.md
+# Сборка и выпуск десктопного клиента для macOS (docs/plans/archive/desktop-client.md
 # §10): scripts/macos_release.sh — universal-сборка, подпись Developer ID,
 # нотаризация, DMG, подпись Sparkle, appcast → GitHub Release v<версия> этого
 # репо; наружу раздаёт nginx на download.iperon.net, забирая файлы из релизов
