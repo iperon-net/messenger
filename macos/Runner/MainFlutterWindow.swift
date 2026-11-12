@@ -261,6 +261,19 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
       UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
         DispatchQueue.main.async { result(granted) }
       }
+    case "notificationSettings":
+      // Статус разрешения на уведомления: granted | denied | notDetermined —
+      // без системного диалога (баннер в чатах).
+      UNUserNotificationCenter.current().getNotificationSettings { settings in
+        let status: String
+        switch settings.authorizationStatus {
+        case .authorized, .provisional, .ephemeral: status = "granted"
+        case .notDetermined: status = "notDetermined"
+        case .denied: status = "denied"
+        @unknown default: status = "denied"
+        }
+        DispatchQueue.main.async { result(status) }
+      }
     case "showNotification":
       showNotification(args, result: result)
     case "listWidth":
@@ -300,12 +313,18 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
       player.play()
       result(nil)
     case "openPrivacySettings":
-      // «Конфиденциальность и безопасность → Камера / Микрофон» — включить
-      // доступ после отказа можно только там.
-      let pane = (args["kind"] as? String) == "camera" ? "Privacy_Camera" : "Privacy_Microphone"
-      if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?\(pane)") {
-        NSWorkspace.shared.open(url)
+      // Системные настройки — включить доступ после отказа можно только там:
+      // «Конфиденциальность и безопасность → Камера / Микрофон», уведомления —
+      // «Уведомления → Iperon».
+      let url: URL?
+      switch args["kind"] as? String {
+      case "notifications":
+        url = URL(string: "x-apple.systempreferences:com.apple.preference.notifications")
+      default:
+        let pane = (args["kind"] as? String) == "camera" ? "Privacy_Camera" : "Privacy_Microphone"
+        url = URL(string: "x-apple.systempreferences:com.apple.preference.security?\(pane)")
       }
+      if let url { NSWorkspace.shared.open(url) }
       result(nil)
     case "showTextMenu":
       textMenu.show(args, result: result)

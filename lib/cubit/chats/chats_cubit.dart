@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../constants.dart';
+import '../../desktop.dart';
 import '../../di.dart';
 import '../../logger.dart';
 import '../../platform.dart';
@@ -288,14 +289,19 @@ class ChatsCubit extends Cubit<ChatsState> {
   /// показа мягкого баннера-объяснения. Сам запрос — по кнопке в баннере
   /// ([requestNotificationPermission]): не на старте и не сразу после логина,
   /// а там, где пользователь ждёт уведомлений (как с микрофоном на «Звонках»).
+  /// macOS — через нативный канал ([Desktop.notificationAccess]), у
+  /// permission_handler там реализации нет.
   Future<void> checkNotificationPermission() async {
-    // Десктоп: пушей нет, локальные уведомления — этап 3 docs/plans/desktop-client.md
-    // (permission_handler на macOS не реализован).
-    if (AppPlatform.isDesktop) return;
     try {
-      final status = await Permission.notification.status;
+      bool granted;
+      if (AppPlatform.isDesktop) {
+        granted = await Desktop.notificationAccess() == MediaAccess.granted;
+      } else {
+        final status = await Permission.notification.status;
+        granted = status.isGranted || status.isProvisional;
+      }
       if (isClosed) return;
-      emit(state.copyWith(notificationsMissing: !status.isGranted && !status.isProvisional));
+      emit(state.copyWith(notificationsMissing: !granted));
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
     }
@@ -305,12 +311,24 @@ class ChatsCubit extends Cubit<ChatsState> {
   /// не покажет (отклонено навсегда) — системные настройки приложения.
   Future<void> requestNotificationPermission() async {
     try {
-      final status = await Permission.notification.status;
-      if (isClosed) return;
-      if (status.isPermanentlyDenied) {
-        await openAppSettings();
+      if (AppPlatform.isDesktop) {
+        switch (await Desktop.notificationAccess()) {
+          case MediaAccess.denied:
+            // Отказ: включить можно только в «Системные настройки → Уведомления».
+            await Desktop.openNotificationSettings();
+          case MediaAccess.notDetermined:
+            await Desktop.requestNotifications();
+          case MediaAccess.granted:
+            break;
+        }
       } else {
-        await Permission.notification.request();
+        final status = await Permission.notification.status;
+        if (isClosed) return;
+        if (status.isPermanentlyDenied) {
+          await openAppSettings();
+        } else {
+          await Permission.notification.request();
+        }
       }
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);

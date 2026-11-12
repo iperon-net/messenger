@@ -132,6 +132,22 @@ abstract final class Desktop {
   /// Системный запрос доступа (покажется, только если ещё не спрашивали).
   static Future<bool> requestMediaAccess(MediaKind kind) async => await _invoke<bool>('requestMediaAccess', {'kind': kind.name}) ?? false;
 
+  /// Статус разрешения на уведомления без системного диалога (баннер в чатах);
+  /// не десктоп или ошибка — [MediaAccess.denied].
+  static Future<MediaAccess> notificationAccess() async => switch (await _invoke<String>('notificationSettings')) {
+    'granted' => MediaAccess.granted,
+    'notDetermined' => MediaAccess.notDetermined,
+    _ => MediaAccess.denied,
+  };
+
+  /// Повторный системный запрос уведомлений (покажется, только если ещё не
+  /// спрашивали); `true` — разрешили.
+  static Future<bool> requestNotifications() async => await _invoke<bool>('requestNotifications') ?? false;
+
+  /// «Системные настройки → Уведомления» — включить уведомления после отказа
+  /// можно только там.
+  static Future<void> openNotificationSettings() => _invoke<void>('openPrivacySettings', {'kind': 'notifications'});
+
   /// Устройства вывода звука (UID CoreAudio и имя).
   static Future<List<({String id, String name})>> audioOutputs() async {
     final list = await _invoke<List<Object?>>('audioOutputs') ?? const [];
