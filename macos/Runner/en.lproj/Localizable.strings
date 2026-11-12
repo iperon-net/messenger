@@ -2,3 +2,7 @@
 "tray.open" = "Open Iperon";
 "tray.quit" = "Quit Iperon";
 "tray.updates" = "Check for Updates…";
+
+/* Действие в уведомлении о сообщении. */
+"notification.reply" = "Reply";
+"notification.send" = "Send";

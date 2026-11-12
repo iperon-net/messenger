@@ -111,6 +111,8 @@ class _InAppNoticeHostState extends State<InAppNoticeHost> with SingleTickerProv
           body: InAppNoticeContent.text(t, notice),
           route: notice.anonymous ? '/chats' : notice.route,
           thread: notice.anonymous ? null : chat.id,
+          sound: notice.sound,
+          reply: true,
         ),
       );
       return;

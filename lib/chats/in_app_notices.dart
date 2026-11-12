@@ -38,7 +38,18 @@ class InAppNotice {
   /// Текст сообщения («Уведомления → Показывать текст»); иначе «Новое сообщение».
   final bool showPreview;
 
-  const InAppNotice({required this.chat, required this.route, this.alsoOpenAt = const [], this.anonymous = false, this.showPreview = true});
+  /// Со звуком («Уведомления → Звук»); false — тихое уведомление (десктоп:
+  /// системное уведомление без звука, у пушей звук глушит сервер).
+  final bool sound;
+
+  const InAppNotice({
+    required this.chat,
+    required this.route,
+    this.alsoOpenAt = const [],
+    this.anonymous = false,
+    this.showPreview = true,
+    this.sound = true,
+  });
 }
 
 /// Новые сообщения, о которых показать баннер, пока приложение открыто (как
@@ -145,6 +156,7 @@ class InAppNotices implements AccountService {
       route: '/chats/chat/${chat.id}',
       anonymous: hidden.containsKey(chat.peerUserID) || hidden.containsKey(event.fromUserID),
       showPreview: scope?.showPreviews ?? true,
+      sound: scope?.sound ?? true,
     );
   }
 
@@ -180,6 +192,7 @@ class InAppNotices implements AccountService {
       alsoOpenAt: ['/chats/replies', '/chats/chat/${idHex(message.chatID)}', '/chats/comments/$channelID/${reply.postID}'],
       anonymous: hidden.containsKey(author),
       showPreview: scope?.showPreviews ?? true,
+      sound: scope?.sound ?? true,
     );
   }
 
@@ -198,6 +211,7 @@ class InAppNotices implements AccountService {
       route: '/chats/secret/${id.substring(secretChatIDPrefix.length)}',
       anonymous: hidden.containsKey(chat.peerUserID),
       showPreview: scope?.showPreviews ?? true,
+      sound: scope?.sound ?? true,
     );
   }
 

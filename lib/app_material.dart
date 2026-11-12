@@ -42,6 +42,7 @@ import 'routers.dart';
 import 'screens/call/call_material.dart';
 import 'themes.dart';
 import 'components.dart';
+import 'chats/chats_remote_data_source.dart' show chatsDataSource;
 import 'chats/secret/secret_chats_sync.dart';
 
 // Material-корень приложения (Android). Вынесен из main.dart в отдельный файл,
@@ -101,6 +102,17 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
     // Тап по push-уведомлению ведёт на нужный экран (см. PushManager.onRoute).
     getIt.get<PushManager>().onRoute = goRouter.go;
     Desktop.onRoute = goRouter.go;
+    // «Ответить» из уведомления о сообщении (десктоп): отправка тем же
+    // источником, что и из чата; в демо-режиме и без «Серверных чатов» — нет.
+    Desktop.onNotificationReply = (chatID, text) async {
+      try {
+        final source = chatsDataSource(demo: false);
+        if (source == null) return;
+        await source.sendMessage(chatID, text: text);
+      } catch (error, stackTrace) {
+        logger.handle(error, stackTrace, 'desktop: notification reply');
+      }
+    };
     goRouter.routerDelegate.addListener(_onRouteChanged);
     context.read<CommonCubit>().initialization(settingsDevice: widget.settingsDevice, isBiometricAvailable: widget.isBiometricAvailable);
     _onRouteChanged();
@@ -123,6 +135,7 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
     goRouter.routerDelegate.removeListener(_onRouteChanged);
     getIt.get<PushManager>().onRoute = null;
     Desktop.onRoute = null;
+    Desktop.onNotificationReply = null;
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

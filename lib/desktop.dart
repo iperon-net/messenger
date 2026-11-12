@@ -22,6 +22,7 @@ abstract final class Desktop {
 
   static void Function(String route)? _routeHandler;
   static String? _pendingRoute;
+  static void Function(String chatID, String text)? _replyHandler;
 
   /// Переход по тапу на уведомление (корень приложения ставит `goRouter.go`).
   /// Тап, пришедший раньше обработчика, отдаётся при установке.
@@ -34,17 +35,32 @@ abstract final class Desktop {
     }
   }
 
+  /// «Ответить» из уведомления о сообщении (корень приложения ставит отправку
+  /// через источник чатов).
+  static set onNotificationReply(void Function(String chatID, String text)? handler) => _replyHandler = handler;
+
   /// Маршрут для команды системного меню [command]; неизвестная — `null`.
   static String? _menuRoute(String command) => switch (command) {
     'preferences' => '/settings',
     _ => null,
   };
 
-  /// Старт (main.dart): тапы по уведомлениям, команды системного меню и
-  /// разрешение на уведомления — системный вопрос один раз, при первом запуске.
+  /// Старт (main.dart): тапы по уведомлениям, «Ответить», команды системного
+  /// меню и разрешение на уведомления — системный вопрос один раз, при первом
+  /// запуске.
   static Future<void> start() async {
     if (!AppPlatform.isDesktop) return;
     _channel.setMethodCallHandler((call) async {
+      if (call.method == 'notificationReply') {
+        final args = call.arguments as Map?;
+        final id = args?['id'] as String? ?? '';
+        final text = args?['text'] as String? ?? '';
+        // id уведомления — «<chatID>:<мс>» (или «call:<id>», им ответа нет).
+        final chatID = id.split(':').first;
+        if (chatID.isEmpty || text.trim().isEmpty) return;
+        _replyHandler?.call(chatID, text.trim());
+        return;
+      }
       final route = switch (call.method) {
         'notificationTap' => (call.arguments as Map?)?['route'] as String?,
         'menuCommand' => _menuRoute((call.arguments as Map?)?['command'] as String? ?? ''),
@@ -75,15 +91,27 @@ abstract final class Desktop {
 
   /// Системное уведомление о сообщении; тап открывает [route] (без него — просто
   /// окно вперёд). [thread] — группировка в Центре уведомлений (чат), [id] —
-  /// повтор с тем же заменяет.
+  /// повтор с тем же заменяет. [sound] — со звуком («Уведомления → Звук»);
+  /// [reply] — с действием «Ответить» прямо в уведомлении
+  /// ([onNotificationReply]).
   static Future<void> showNotification({
     required String id,
     required String title,
     required String body,
     String? route,
     String? thread,
+    bool sound = true,
+    bool reply = false,
   }) async {
-    await _invoke<bool>('showNotification', {'id': id, 'title': title, 'body': body, 'route': ?route, 'thread': ?thread});
+    await _invoke<bool>('showNotification', {
+      'id': id,
+      'title': title,
+      'body': body,
+      'route': ?route,
+      'thread': ?thread,
+      'sound': sound,
+      'reply': reply,
+    });
     // Значок в Dock подпрыгнет один раз (как у Telegram).
     await _invoke<void>('requestAttention');
   }

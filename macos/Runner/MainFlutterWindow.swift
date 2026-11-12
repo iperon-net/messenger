@@ -198,6 +198,7 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
     tray = TrayIcon(window: window, updater: updater)
     super.init()
     UNUserNotificationCenter.current().delegate = self
+    registerReplyCategory()
     channel.setMethodCallHandler { [weak self] call, result in
       self?.handle(call, result: result)
     }
@@ -436,14 +437,32 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
     let content = UNMutableNotificationContent()
     content.title = args["title"] as? String ?? ""
     content.body = args["body"] as? String ?? ""
-    content.sound = .default
-    // Сообщения одного чата — одной группой в Центре уведомлений.
+    // «Уведомления → Звук» (false — тихое; у пушей звук глушит сервер).
+    content.sound = args["sound"] as? Bool ?? true ? UNNotificationSound.default : nil
+    // Сообщения одного чата — одной группой в Центре уведомлений; с действием
+    // «Ответить» прямо в уведомлении (категория с текстовым вводом).
     if let thread = args["thread"] as? String { content.threadIdentifier = thread }
+    if args["reply"] as? Bool ?? false { content.categoryIdentifier = Self.messageCategory }
     if let route = args["route"] as? String { content.userInfo = ["route": route] }
     let request = UNNotificationRequest(identifier: args["id"] as? String ?? UUID().uuidString, content: content, trigger: nil)
     UNUserNotificationCenter.current().add(request) { error in
       DispatchQueue.main.async { result(error == nil) }
     }
+  }
+
+  /// Категория уведомлений о сообщениях: текстовое «Ответить» (§12).
+  static let messageCategory = "message"
+
+  private func registerReplyCategory() {
+    let reply = UNTextInputNotificationAction(
+      identifier: "reply",
+      title: NSLocalizedString("notification.reply", value: "Reply", comment: "Уведомление: ответить на сообщение"),
+      textInputButtonTitle: NSLocalizedString("notification.send", value: "Send", comment: "Уведомление: отправить ответ"),
+      textInputPlaceholder: ""
+    )
+    UNUserNotificationCenter.current().setNotificationCategories([
+      UNNotificationCategory(identifier: Self.messageCategory, actions: [reply], intentIdentifiers: [], options: [])
+    ])
   }
 
   // Окно не в фокусе — уведомление показываем и при открытом приложении
@@ -455,11 +474,19 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
     completionHandler([.banner, .sound, .list])
   }
 
-  // Тап по уведомлению — окно вперёд и маршрут в Dart.
+  // Тап по уведомлению — окно вперёд и маршрут в Dart; «Ответить» — текст
+  // ответа уходит в Dart (уведомления чата убираем: ответ доставлен).
   func userNotificationCenter(
     _ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
     withCompletionHandler completionHandler: @escaping () -> Void
   ) {
+    if let text = (response as? UNTextInputNotificationResponse)?.userText, !text.isEmpty {
+      let id = response.notification.request.identifier
+      center.removeDeliveredNotifications(withIdentifiers: [id])
+      channel.invokeMethod("notificationReply", arguments: ["id": id, "text": text])
+      completionHandler()
+      return
+    }
     NSApp.activate(ignoringOtherApps: true)
     window?.makeKeyAndOrderFront(nil)
     if let route = response.notification.request.content.userInfo["route"] as? String {

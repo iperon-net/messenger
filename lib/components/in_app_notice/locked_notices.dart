@@ -51,6 +51,8 @@ class _LockedNoticesDesktopState extends State<LockedNoticesDesktop> {
         body: t.inAppNotice.newMessage,
         route: notice.anonymous ? '/chats' : notice.route,
         thread: notice.anonymous ? null : chat.id,
+        sound: notice.sound,
+        reply: true,
       ),
     );
   }
