@@ -27,6 +27,8 @@ abstract final class DesktopShortcuts {
   static Map<ShortcutActivator, Intent> shortcuts() => {
     ...WidgetsApp.defaultShortcuts,
     SingleActivator(LogicalKeyboardKey.keyF, meta: _mac, control: !_mac): const _SearchChatsIntent(),
+    // ⌘K — тот же поиск (привычнее на десктопе, как в IDE и Telegram).
+    SingleActivator(LogicalKeyboardKey.keyK, meta: _mac, control: !_mac): const _SearchChatsIntent(),
     SingleActivator(LogicalKeyboardKey.keyN, meta: _mac, control: !_mac): const _NewMessageIntent(),
     // Вместо стандартного DismissIntent: тот закрывает только диалоги и меню.
     const SingleActivator(LogicalKeyboardKey.escape): const _EscapeIntent(),
