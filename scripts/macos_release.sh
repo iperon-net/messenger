@@ -28,6 +28,11 @@
 set -euo pipefail
 
 BUILD_NAME="${1:?usage: $0 <build-name> [build-number]}"
+# Только X.Y.Z: иначе (диспатч без build_name → «main») получили бы релиз «vmain».
+if [[ ! "$BUILD_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "==> версия «$BUILD_NAME» не X.Y.Z — передай build_name (или запусти по тегу vX.Y.Z)" >&2
+  exit 1
+fi
 # Номер сборки = CFBundleVersion = sparkle:version: Sparkle сравнивает его, он
 # обязан расти. Общий для всех платформ (scripts/build_number.sh): на CI его
 # передаёт job Version, локально — из версии с попыткой 1.
@@ -54,7 +59,12 @@ mkdir -p "$OUT"
 echo "==> flutter build macos $BUILD_NAME ($BUILD_NUMBER)"
 # Release на macOS — universal (arm64 + x86_64).
 flutter build macos --release --build-name="$BUILD_NAME" --build-number="$BUILD_NUMBER"
-lipo -archs "$APP/Contents/MacOS/Iperon"
+ARCHS="$(lipo -archs "$APP/Contents/MacOS/Iperon")"
+echo "    $ARCHS"
+if [[ "$ARCHS" != *arm64* || "$ARCHS" != *x86_64* ]]; then
+  echo "==> нужна universal-сборка (arm64 + x86_64), получилось: $ARCHS" >&2
+  exit 1
+fi
 
 # Повтор codesign: сервер меток времени Apple (`--timestamp`) иногда
 # отвечает «The timestamp service is not available» — через полминуты проходит.
@@ -200,6 +210,12 @@ fi
 TAG="v$BUILD_NAME"
 cp "$DMG" "$OUT/Iperon.dmg"
 echo "==> GitHub Release $GITHUB_RELEASE_REPO $TAG"
+# Тег должен уже существовать: иначе --verify-tag ниже умрёт с непонятной
+# ошибкой после загрузки (или упадёт upload в несуществующий релиз).
+if ! gh api "repos/$GITHUB_RELEASE_REPO/git/ref/tags/$TAG" >/dev/null 2>&1; then
+  echo "==> тега $TAG нет в $GITHUB_RELEASE_REPO — сначала запушь тег (git push origin $TAG)" >&2
+  exit 1
+fi
 FLAGS=(--latest)
 if [ "$RELEASE" != 1 ]; then
   FLAGS=(--prerelease --latest=false)

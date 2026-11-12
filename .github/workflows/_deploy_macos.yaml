@@ -69,6 +69,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      - name: Pin CocoaPods
+        run: |
+          set -euo pipefail
+          # Версия из Podfile.lock: иная на раннере молча перепишет lock при
+          # pod install внутри flutter build.
+          CURRENT="$(pod --version 2>/dev/null || echo none)"
+          if [ "$CURRENT" != "1.17.0" ]; then
+            echo "CocoaPods $CURRENT на раннере — ставим 1.17.0"
+            sudo gem uninstall cocoapods --all --ignore-dependencies >/dev/null 2>&1 || true
+            sudo gem install cocoapods -v 1.17.0 --no-document
+          fi
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
