@@ -270,22 +270,30 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
                 if (_isCallActive && !state.callOverlayDismissed) {
                   return BlocProvider<CallCubit>(create: (_) => CallCubit()..initialization(), child: const CallMaterial());
                 }
-                return ScreenLock(
-                  correctString: '0000',
-                  onValidate: (input) => context.read<CommonCubit>().verifyPasscode(input),
-                  onUnlocked: () => context.read<CommonCubit>().unlock(),
-                  useBlur: false,
-                  keyPadConfig: ThemesMaterial.screenLockKeyPad(context),
-                  config: ThemesMaterial.screenLockConfig(context),
-                  title: Text(context.t.common.biometricPleaseEnterPasscode),
-                  customizedButtonChild: state.settingsDevice.passcodeBiometric && state.isBiometricAvailable
-                      ? const HugeIcon(icon: HugeIcons.strokeRoundedFingerAccess, size: 48.0)
-                      : null,
-                  customizedButtonTap: () async =>
-                      state.settingsDevice.passcodeBiometric && state.isBiometricAvailable ? await localAuth(context) : null,
-                  onOpened: () async => state.settingsDevice.passcodeBiometric && state.isBiometricAvailable && state.autoBiometrics
-                      ? await localAuth(context)
-                      : null,
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ScreenLock(
+                      correctString: '0000',
+                      onValidate: (input) => context.read<CommonCubit>().verifyPasscode(input),
+                      onUnlocked: () => context.read<CommonCubit>().unlock(),
+                      useBlur: false,
+                      keyPadConfig: ThemesMaterial.screenLockKeyPad(context),
+                      config: ThemesMaterial.screenLockConfig(context),
+                      title: Text(context.t.common.biometricPleaseEnterPasscode),
+                      customizedButtonChild: state.settingsDevice.passcodeBiometric && state.isBiometricAvailable
+                          ? const HugeIcon(icon: HugeIcons.strokeRoundedFingerAccess, size: 48.0)
+                          : null,
+                      customizedButtonTap: () async =>
+                          state.settingsDevice.passcodeBiometric && state.isBiometricAvailable ? await localAuth(context) : null,
+                      onOpened: () async => state.settingsDevice.passcodeBiometric && state.isBiometricAvailable && state.autoBiometrics
+                          ? await localAuth(context)
+                          : null,
+                    ),
+                    // Десктоп: системные уведомления о новых сообщениях под
+                    // замком (без текста, docs/plans/desktop-client.md §12).
+                    const LockedNoticesDesktop(),
+                  ],
                 );
               }
 

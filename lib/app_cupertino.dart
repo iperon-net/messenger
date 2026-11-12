@@ -286,24 +286,32 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
                 if (_isCallActive && !state.callOverlayDismissed) {
                   return BlocProvider<CallCubit>(create: (_) => CallCubit()..initialization(), child: const CallCupertino());
                 }
-                return ScreenLock(
-                  // correctString здесь лишь задаёт число вводимых цифр (digits),
-                  // реальная проверка идёт через onValidate по сохранённому хешу.
-                  correctString: '0000',
-                  onValidate: (input) => context.read<CommonCubit>().verifyPasscode(input),
-                  onUnlocked: () => context.read<CommonCubit>().unlock(),
-                  useBlur: false,
-                  keyPadConfig: ThemesCupertino.screenLockKeyPad(context),
-                  config: ThemesCupertino.screenLockConfig(context),
-                  title: Text(context.t.common.biometricPleaseEnterPasscode),
-                  customizedButtonChild: state.settingsDevice.passcodeBiometric && state.isBiometricAvailable
-                      ? HugeIcon(icon: HugeIcons.strokeRoundedFaceId, size: 48, color: ThemesCupertino.screenLockBiometricIcon(context))
-                      : null,
-                  customizedButtonTap: () async =>
-                      state.settingsDevice.passcodeBiometric && state.isBiometricAvailable ? await localAuth(context) : null,
-                  onOpened: () async => state.settingsDevice.passcodeBiometric && state.isBiometricAvailable && state.autoBiometrics
-                      ? await localAuth(context)
-                      : null,
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ScreenLock(
+                      // correctString здесь лишь задаёт число вводимых цифр (digits),
+                      // реальная проверка идёт через onValidate по сохранённому хешу.
+                      correctString: '0000',
+                      onValidate: (input) => context.read<CommonCubit>().verifyPasscode(input),
+                      onUnlocked: () => context.read<CommonCubit>().unlock(),
+                      useBlur: false,
+                      keyPadConfig: ThemesCupertino.screenLockKeyPad(context),
+                      config: ThemesCupertino.screenLockConfig(context),
+                      title: Text(context.t.common.biometricPleaseEnterPasscode),
+                      customizedButtonChild: state.settingsDevice.passcodeBiometric && state.isBiometricAvailable
+                          ? HugeIcon(icon: HugeIcons.strokeRoundedFaceId, size: 48, color: ThemesCupertino.screenLockBiometricIcon(context))
+                          : null,
+                      customizedButtonTap: () async =>
+                          state.settingsDevice.passcodeBiometric && state.isBiometricAvailable ? await localAuth(context) : null,
+                      onOpened: () async => state.settingsDevice.passcodeBiometric && state.isBiometricAvailable && state.autoBiometrics
+                          ? await localAuth(context)
+                          : null,
+                    ),
+                    // Десктоп: системные уведомления о новых сообщениях под
+                    // замком (без текста, docs/plans/desktop-client.md §12).
+                    const LockedNoticesDesktop(),
+                  ],
                 );
               }
 
