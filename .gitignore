@@ -167,3 +167,6 @@ ios/ExportOptions.plist
 .mcp.json
 /AGENTS.local.md
 /AGENTS.md
+
+# ZCode workspace state (session plans)
+.zcode/
