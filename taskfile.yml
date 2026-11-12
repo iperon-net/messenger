@@ -33,6 +33,16 @@ tasks:
     cmds:
       - dart analyze lib/
     silent: true
+  plan-index:
+    desc: Regenerate docs/plans/INDEX.md
+    cmds:
+      - scripts/gen-plan-index.sh
+    silent: true
+  plan-check:
+    desc: Check testing marks in docs/plans
+    cmds:
+      - scripts/check-plans.sh
+    silent: true
   apk:
     desc: Build apk
     # Версия — последний тег v0.0.N, номер — N × 100 + 99 (scripts/build_number.sh):
