@@ -186,8 +186,10 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
   private let updater = AppUpdater()
   /// Запрос «прыгать значком» входящего звонка (`showWindow` attention).
   private var attentionRequest = 0
-  /// Проверка динамика (`playTestSound`) — держим, пока играет.
-  private var testPlayer: AVPlayer?
+  /// Проигрывание файлов (`playTestSound`: проверка динамика, рингтон
+  /// входящего) — держим, пока играет; `soundLooper` — если по кругу.
+  private var soundPlayer: AVPlayer?
+  private var soundLooper: AVPlayerLooper?
   private lazy var textMenu = TextMenu(window: window)
 
   init(messenger: FlutterBinaryMessenger, window: NSWindow) {
@@ -239,8 +241,13 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
       NSApp.requestUserAttention(.informationalRequest)
       result(nil)
     case "showWindow":
-      // Входящий звонок: окно вперёд; значок в Dock прыгает, пока не откроют
-      // (`critical`) — система может не дать отнять фокус у другого приложения.
+      // Входящий звонок: окно вперёд и поверх всех окон, пока звонят
+      // (`cancelAttention` вернёт обычный уровень — ответили, отклонили или
+      // звонящий снял); значок в Dock прыгает, пока не откроют (`critical`) —
+      // система может не дать отнять фокус у другого приложения.
+      if args["attention"] as? Bool ?? false {
+        window?.level = .floating
+      }
       NSApp.activate(ignoringOtherApps: true)
       window?.makeKeyAndOrderFront(nil)
       if args["attention"] as? Bool ?? false {
@@ -250,6 +257,7 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
     case "cancelAttention":
       if attentionRequest != 0 { NSApp.cancelUserAttentionRequest(attentionRequest) }
       attentionRequest = 0
+      window?.level = .normal
       result(nil)
     case "removeNotification":
       if let id = args["id"] as? String {
@@ -306,15 +314,28 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
     case "audioOutputs":
       result(Self.audioOutputs())
     case "playTestSound":
-      // Проверка динамика: файл через выбранное устройство (UID CoreAudio;
-      // пусто — системное).
+      // Проверка динамика и рингтон входящего: файл через выбранное устройство
+      // (UID CoreAudio; пусто — системное); loop — по кругу (остановит stopSound).
       guard let path = args["path"] as? String else { return result(nil) }
-      let player = AVPlayer(url: URL(fileURLWithPath: path))
-      if let device = args["device"] as? String, !device.isEmpty {
-        player.audioOutputDeviceUniqueID = device
+      let item = AVPlayerItem(url: URL(fileURLWithPath: path))
+      if args["loop"] as? Bool ?? false {
+        let player = AVQueuePlayer()
+        soundLooper = AVPlayerLooper(player: player, templateItem: item)
+        soundPlayer = player
+      } else {
+        let player = AVPlayer(playerItem: item)
+        soundPlayer = player
       }
-      testPlayer = player
-      player.play()
+      if let device = args["device"] as? String, !device.isEmpty {
+        soundPlayer?.audioOutputDeviceUniqueID = device
+      }
+      soundPlayer?.play()
+      result(nil)
+    case "stopSound":
+      soundLooper?.disableLooping()
+      soundLooper = nil
+      soundPlayer?.pause()
+      soundPlayer = nil
       result(nil)
     case "openPrivacySettings":
       // Системные настройки — включить доступ после отказа можно только там:

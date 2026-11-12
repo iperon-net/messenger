@@ -236,6 +236,10 @@ class CallCubit extends Cubit<CallState> {
   Future<void> toggleSpeaker() => _calls.toggleSpeaker();
   Future<void> switchCamera() => _calls.switchCamera();
 
+  /// Десктоп: сменить динамик / камеру на лету (пикеры на экране звонка).
+  Future<void> applyAudioOutput(String deviceId) => _calls.applyAudioOutput(deviceId);
+  Future<void> applyCamera(String deviceId) => _calls.applyCamera(deviceId);
+
   @override
   Future<void> close() {
     _sub?.cancel();

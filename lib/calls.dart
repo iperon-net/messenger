@@ -1292,6 +1292,28 @@ class Calls {
     await track.setCameraPosition(_cameraPosition);
   }
 
+  /// Десктоп: сменить динамик на лету (выбор на экране звонка; сохранить
+  /// выбор — [CommonCubit.setSpeaker]: подхватят настройки и следующий
+  /// звонок). Комната ещё не подключена (входящий звонит) — выбор подхватит
+  /// [_connectRoom] из настроек.
+  Future<void> applyAudioOutput(String deviceId) async {
+    try {
+      await _room?.setAudioOutputDevice(MediaDevice(deviceId, '', 'audiooutput', null));
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace, 'call: applyAudioOutput');
+    }
+  }
+
+  /// Десктоп: сменить камеру на лету (см. [applyAudioOutput]; сохраняет —
+  /// [CommonCubit.setCamera]).
+  Future<void> applyCamera(String deviceId) async {
+    try {
+      await _room?.setVideoInputDevice(MediaDevice(deviceId, '', 'videoinput', null));
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace, 'call: applyCamera');
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Приём сигналов управления звонком от сервера-реле
   // ---------------------------------------------------------------------------

@@ -163,6 +163,14 @@ abstract final class Desktop {
   /// Проиграть файл [path] через устройство [device] (UID; пусто — системное).
   static Future<void> playTestSound(String path, {String device = ''}) => _invoke<void>('playTestSound', {'path': path, 'device': device});
 
+  /// То же по кругу (рингтон входящего, устройство — выбранный в «Звонках»
+  /// динамик); остановка — [stopSound].
+  static Future<void> playSound(String path, {String device = ''}) =>
+      _invoke<void>('playTestSound', {'path': path, 'device': device, 'loop': true});
+
+  /// Остановить [playSound] (или проверку динамика, если ещё играет).
+  static Future<void> stopSound() => _invoke<void>('stopSound');
+
   /// Системные настройки конфиденциальности для [kind] — включить доступ после
   /// отказа можно только там.
   static Future<void> openPrivacySettings(MediaKind kind) => _invoke<void>('openPrivacySettings', {'kind': kind.name});

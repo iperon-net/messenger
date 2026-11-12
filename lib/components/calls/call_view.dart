@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io' show Platform;
+import 'dart:io' show File, Platform;
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:hugeicons/hugeicons.dart';
@@ -10,16 +10,21 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_boring_avatars/flutter_boring_avatars.dart';
 import 'package:go_router/go_router.dart';
 import 'package:livekit_client/livekit_client.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../auth.dart';
 import '../../call_pip_ios.dart';
 import '../../calls.dart';
 import '../../cubit.dart';
+import '../../desktop.dart';
 import '../../di.dart';
 import '../../i18n/translations.g.dart';
+import '../../media_devices.dart';
 import '../../models/constants.dart';
 import '../../platform.dart';
+import '../../repositories.dart';
 import '../../themes/cupertino.dart';
 import '../../themes/material.dart';
 import '../../utils.dart';
@@ -29,6 +34,7 @@ import '../no_connection_alert.dart';
 import '../user_avatar.dart';
 import 'audio_routes_sheet.dart';
 import 'call_alerts.dart';
+import 'device_picker_desktop.dart';
 import 'route_picker_button.dart';
 
 /// Палитра экрана звонка. Две версии — светлая/тёмная (см. [_CallPalette.of]),
@@ -397,11 +403,23 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
 
   static const double _stageMaxWidth = 960;
 
+  /// Ассет рингтона файлом для нативного плеера (пишем разово за сессию).
+  static String? _ringtoneFile;
+
   Future<void> _startRingtone() async {
     // Рингтон своего экрана входящего: iOS на переднем плане и десктоп (там
     // системной звонилки нет вовсе).
-    if (!(Platform.isIOS || AppPlatform.isDesktop) || _ringtone != null) return;
+    if (!(Platform.isIOS || AppPlatform.isDesktop) || _ringtone != null || _ringtoneNative) return;
     try {
+      if (AppPlatform.isDesktop) {
+        // Через выбранный в «Звонках» динамик (нативно): audioplayers играет
+        // только в системный вывод.
+        final settings = await getIt.get<DeviceRepositories>().settingsDevice.getAll();
+        final device = MediaDevices.speaker(await MediaDevices.speakers(), settings)?.id ?? '';
+        _ringtoneNative = true;
+        await Desktop.playSound(await _extractRingtone(), device: device);
+        return;
+      }
       final player = _ringtone = AudioPlayer();
       if (Platform.isIOS) await player.setAudioContext(_ringtoneAudioContext);
       await player.setReleaseMode(ReleaseMode.loop);
@@ -412,9 +430,25 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
     }
   }
 
+  /// Рингтон играет нативно ([Desktop.playSound]) — останавливать [Desktop.stopSound].
+  bool _ringtoneNative = false;
+
+  Future<String> _extractRingtone() async {
+    final cached = _ringtoneFile;
+    if (cached != null) return cached;
+    final data = await rootBundle.load('assets/audio/ringtone.wav');
+    final file = File(p.join((await getTemporaryDirectory()).path, 'ringtone.wav'));
+    await file.writeAsBytes(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
+    return _ringtoneFile = file.path;
+  }
+
   Future<void> _stopRingtone() async {
     final player = _ringtone;
     _ringtone = null;
+    if (_ringtoneNative) {
+      _ringtoneNative = false;
+      await Desktop.stopSound();
+    }
     if (player == null) return;
     try {
       await player.stop();
@@ -985,9 +1019,9 @@ class _Overlay extends StatelessWidget {
       ),
       // Выбор аудио-выхода. iOS — системный пикер (AVRoutePickerView:
       // iPhone/Speaker/BT/CarPlay/AirPlay); Android — свой лист устройств
-      // (setCommunicationDevice). См. route_picker_button.dart /
-      // audio_routes_sheet.dart. Десктоп — пока без выбора (динамики — вместе
-      // с выбором устройств в звонке, docs/plans/desktop-client.md §7).
+      // (setCommunicationDevice); десктоп — меню динамиков (см.
+      // route_picker_button.dart / audio_routes_sheet.dart /
+      // device_picker_desktop.dart).
       if (Platform.isIOS)
         RoutePickerButton(
           backgroundColor: palette.controlBg,
@@ -997,7 +1031,19 @@ class _Overlay extends StatelessWidget {
           iconSize: iconSize,
           showLabel: _showLabels,
         )
-      else if (!AppPlatform.isDesktop)
+      else if (AppPlatform.isDesktop)
+        _CircleButton(
+          label: t.audioOutput,
+          icon: HugeIcons.strokeRoundedSpeaker,
+          color: palette.controlBg,
+          iconColor: palette.fg,
+          palette: palette,
+          size: size,
+          iconSize: iconSize,
+          showLabel: _showLabels,
+          onTap: () => showSpeakerPicker(context),
+        )
+      else
         AudioOutputButton(
           backgroundColor: palette.controlBg,
           iconColor: palette.fg,
@@ -1033,10 +1079,22 @@ class _Overlay extends StatelessWidget {
           showLabel: _showLabels,
           onTap: cubit.toggleCamera,
         ),
-      // Смена камеры (фронт/тыл) — справа, после кнопки камеры. Только когда
-      // наша камера включена (видеозвонок и камера не выключена); при
-      // выключенной камере кнопка пропадает (менять нечего).
-      // Десктоп: фронт/тыла нет, камера — в «Общие → Звонки».
+      // Смена камеры — справа, после кнопки камеры. Только когда наша камера
+      // включена (видеозвонок и камера не выключена); при выключенной камере
+      // кнопка пропадает (менять нечего). На телефоне — фронт/тыл; на десктопе
+      // — меню подключённых камер (device_picker_desktop.dart).
+      if (state.video && !state.cameraOff && AppPlatform.isDesktop)
+        _CircleButton(
+          label: t.switchCamera,
+          icon: HugeIcons.strokeRoundedSwitchCamera,
+          color: palette.controlBg,
+          iconColor: palette.fg,
+          palette: palette,
+          size: size,
+          iconSize: iconSize,
+          showLabel: _showLabels,
+          onTap: () => showCameraPicker(context),
+        ),
       if (state.video && !state.cameraOff && !AppPlatform.isDesktop)
         _CircleButton(
           label: t.switchCamera,
