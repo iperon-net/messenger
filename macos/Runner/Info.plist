@@ -45,7 +45,5 @@
 	<true/>
 	<key>SUScheduledCheckInterval</key>
 	<integer>14400</integer>
-	<key>SUAutomaticallyUpdate</key>
-	<true/>
 </dict>
 </plist>
