@@ -47,14 +47,14 @@ jobs:
 
   Linter:
     # Ровно тот код, что в запущенной ветке (не main).
-    uses: iperon-net/messenger/.github/workflows/_linter.yaml@${{ github.sha }}
+    uses: iperon-net/messenger/.github/workflows/_linter.yaml@${{ github.ref }}
     with:
       flutter_version: "3.47.8"
     secrets:
       firebase_options_dart_base64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
 
   macOS:
-    uses: iperon-net/messenger/.github/workflows/_deploy_macos.yaml@${{ github.sha }}
+    uses: iperon-net/messenger/.github/workflows/_deploy_macos.yaml@${{ github.ref }}
     needs: [Version, Linter]
     # Публикация — GitHub Release этого репо.
     permissions:

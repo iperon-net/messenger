@@ -33,9 +33,10 @@ jobs:
           echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
 
   Linter:
-    # Ровно то, что в теге (sha тега): правка workflow на main не меняет уже
-    # выпущенный релиз.
-    uses: iperon-net/messenger/.github/workflows/_linter.yaml@${{ github.sha }}
+    # Ровно то, что в теге (github.ref = refs/tags/v…): правка workflow на
+    # main не меняет уже выпущенный релиз. В uses у reusable-воркфлоу
+    # поддерживается ограниченный набор github-контекста — github.sha там нет.
+    uses: iperon-net/messenger/.github/workflows/_linter.yaml@${{ github.ref }}
     with:
       flutter_version: "3.47.8"
     secrets:
@@ -43,14 +44,14 @@ jobs:
 
   Test:
     needs: [Linter]
-    uses: iperon-net/messenger/.github/workflows/_test.yaml@${{ github.sha }}
+    uses: iperon-net/messenger/.github/workflows/_test.yaml@${{ github.ref }}
     with:
       flutter_version: "3.47.8"
     secrets:
       firebase_options_dart_base64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
 
   TestFlight:
-    uses: iperon-net/messenger/.github/workflows/_deploy_testflight.yaml@${{ github.sha }}
+    uses: iperon-net/messenger/.github/workflows/_deploy_testflight.yaml@${{ github.ref }}
     needs: [Version, Test]
     with:
       flutter_version: "3.47.8"
@@ -69,7 +70,7 @@ jobs:
   # Десктоп macOS (DMG + автообновление, docs/plans/desktop-client.md §10). Пока
   # секретов нет — неподписанный DMG только артефактом, релиз не создаётся.
   macOS:
-    uses: iperon-net/messenger/.github/workflows/_deploy_macos.yaml@${{ github.sha }}
+    uses: iperon-net/messenger/.github/workflows/_deploy_macos.yaml@${{ github.ref }}
     needs: [Version, Test]
     # Публикация — GitHub Release этого репо.
     permissions:
@@ -88,7 +89,7 @@ jobs:
 
   # Android: APK по ABI (--split-per-abi) в тот же GitHub Release, что и macOS.
   Android:
-    uses: iperon-net/messenger/.github/workflows/_deploy_android.yaml@${{ github.sha }}
+    uses: iperon-net/messenger/.github/workflows/_deploy_android.yaml@${{ github.ref }}
     needs: [Version, Test]
     permissions:
       contents: write
