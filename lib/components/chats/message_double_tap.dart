@@ -2,6 +2,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import 'package:messenger/platform.dart';
+
 /// Двойной тап по пузырю [messageID] — быстрая реакция.
 ///
 /// Не `GestureDetector.onDoubleTap`: тот держит арену после первого касания, и
@@ -15,6 +17,9 @@ import 'package:flutter/widgets.dart';
 /// Стоит и на пузыре, и на всей строке ленты ([behavior] translucent — ловит
 /// пустое место рядом с пузырём, как в Telegram): касание, уже распознанное
 /// вложенным, внешний пропускает.
+///
+/// Только мобильные: на десктопе двойной клик — выделение текста и обычный
+/// UX, реакция там ставится из меню сообщения.
 class MessageDoubleTap extends StatelessWidget {
   final String messageID;
   final VoidCallback? onDoubleTap;
@@ -26,7 +31,7 @@ class MessageDoubleTap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final onDoubleTap = this.onDoubleTap;
-    if (onDoubleTap == null) return child;
+    if (onDoubleTap == null || !AppPlatform.isMobile) return child;
     return RawGestureDetector(
       behavior: behavior,
       gestures: {
