@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import 'api.dart';
+import 'calls.dart';
 import 'di.dart';
 import 'i18n/translations.g.dart';
 import 'logger.dart';
@@ -296,7 +297,9 @@ enum MediaAccess { granted, denied, notDetermined }
 /// приложение запущено (уведомления только по нему), но онлайн сессия — лишь
 /// пока человек за компьютером: окно в фокусе (или потеряло его меньше
 /// [_unfocusedGrace] назад) и в системе был ввод за последние [_idleLimit].
-/// Иначе сервер снимает presence (APP_STATE), и на телефон снова идут пуши.
+/// Активный звонок — всегда «в сети»: пользователь участвует в разговоре,
+/// даже если ничего не трогает. Иначе сервер снимает presence (APP_STATE), и
+/// на телефон снова идут пуши.
 class DesktopPresence {
   DesktopPresence._();
 
@@ -325,12 +328,20 @@ class DesktopPresence {
     unawaited(_update());
   }
 
+  /// Активный звонок (входящий, исходящий, разговор) — есть.
+  static bool get _inCall {
+    if (!getIt.isRegistered<Calls>()) return false;
+    final status = getIt.get<Calls>().snapshot.status;
+    return status != CallStatus.idle && status != CallStatus.ended;
+  }
+
   Future<void> _update() async {
     if (!getIt.isRegistered<API>()) return;
+    final api = getIt.get<API>();
+    if (_inCall) return api.setPresenceActive(true);
     final unfocusedAt = _unfocusedAt;
     final atWindow = _focused || (unfocusedAt != null && DateTime.now().difference(unfocusedAt) < _unfocusedGrace);
     final idle = await Desktop.idleSeconds();
-    final active = atWindow && (idle == null || idle < _idleLimit.inSeconds);
-    if (getIt.isRegistered<API>()) getIt.get<API>().setPresenceActive(active);
+    api.setPresenceActive(atWindow && (idle == null || idle < _idleLimit.inSeconds));
   }
 }
