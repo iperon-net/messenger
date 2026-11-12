@@ -22,6 +22,10 @@ Future<T?> showActionsMaterial<T>({required BuildContext context, required Widge
     barrierDismissible: true,
     barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
     barrierColor: Colors.transparent,
+    // Роут не забирает фокус: выделение текста в сообщении остаётся видимым,
+    // пока открыто меню (как в Telegram Desktop) — иначе SelectableRegion
+    // очищает его при потере фокуса.
+    requestFocus: false,
     transitionDuration: const Duration(milliseconds: 140),
     pageBuilder: (menuContext, _, _) => CustomSingleChildLayout(
       delegate: _MenuLayout(at),
