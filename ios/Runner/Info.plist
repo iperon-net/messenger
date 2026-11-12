@@ -151,5 +151,11 @@
 	</array>
 	<key>FlutterDeepLinkingEnabled</key>
 	<true/>
+	<!-- Экспортное декларирование: только стандартные опубликованные алгоритмы
+	     (TLS, AES/ECDH, ML-KEM/ML-DSA, Argon2id, OPAQUE) — освобождённое
+	     шифрование; ASC больше не ждёт ответа на каждую сборку
+	     (docs/plans/desktop-client.md — TestFlight Missing Compliance). -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>
