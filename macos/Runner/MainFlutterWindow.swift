@@ -30,6 +30,11 @@ class MainFlutterWindow: NSWindow {
 
     super.awakeFromNib()
   }
+
+  /// «Настройки…» системного меню (⌘,): команда в Dart, см. `DesktopChannel.menuCommand`.
+  func openPreferences() {
+    desktop?.menuCommand("preferences")
+  }
 }
 
 /// Автообновление (Sparkle, docs/plans/desktop-client.md §10): раз в сутки
@@ -53,8 +58,9 @@ final class AppUpdater {
     if key.isEmpty { return nil }
     controller = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: probe, userDriverDelegate: nil)
     let action = #selector(SPUStandardUpdaterController.checkForUpdates(_:))
-    trayItem = NSMenuItem(title: "Check for Updates…", action: action, keyEquivalent: "")
-    appMenuItem = NSMenuItem(title: "Check for Updates…", action: action, keyEquivalent: "")
+    let updates = NSLocalizedString("tray.updates", value: "Check for Updates…", comment: "Проверить обновления")
+    trayItem = NSMenuItem(title: updates, action: action, keyEquivalent: "")
+    appMenuItem = NSMenuItem(title: updates, action: action, keyEquivalent: "")
     trayItem.target = controller
     appMenuItem.target = controller
     #endif
@@ -113,8 +119,11 @@ final class UpdateProbe: NSObject, SPUUpdaterDelegate {
 /// приложение. Подписи приходят из Dart (`setTrayMenu`) на языке приложения.
 final class TrayIcon: NSObject {
   private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-  private let openItem = NSMenuItem(title: "Open Iperon", action: #selector(open), keyEquivalent: "")
-  private let quitItem = NSMenuItem(title: "Quit Iperon", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+  // Подписи до первого `setTrayMenu` из Dart (там те же строки на языке приложения).
+  private let openItem = NSMenuItem(title: NSLocalizedString("tray.open", value: "Open Iperon", comment: "Значок в строке меню: открыть окно"), action: #selector(open), keyEquivalent: "")
+  private let quitItem = NSMenuItem(
+    title: NSLocalizedString("tray.quit", value: "Quit Iperon", comment: "Значок в строке меню: завершить приложение"),
+    action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
   private let menu = NSMenu()
   private weak var window: NSWindow?
 
@@ -190,6 +199,12 @@ final class DesktopChannel: NSObject, UNUserNotificationCenterDelegate {
     channel.setMethodCallHandler { [weak self] call, result in
       self?.handle(call, result: result)
     }
+  }
+
+  /// Команда системного меню приложения (пункт xib → `AppDelegate.openPreferences`):
+  /// Dart выбирает маршрут (`menuCommand` → `Desktop.onMenuCommand`).
+  func menuCommand(_ command: String) {
+    channel.invokeMethod("menuCommand", arguments: ["command": command])
   }
 
   private func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {

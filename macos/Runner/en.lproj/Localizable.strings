@@ -1,0 +1,4 @@
+/* Значок в строке меню до первого setTrayMenu из Dart (там те же строки на языке приложения). */
+"tray.open" = "Open Iperon";
+"tray.quit" = "Quit Iperon";
+"tray.updates" = "Check for Updates…";

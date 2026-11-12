@@ -20,4 +20,10 @@ class AppDelegate: FlutterAppDelegate {
   override func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
     return true
   }
+
+  /// «Настройки…» системного меню (⌘,) — команда в Dart (роутер открывает
+  /// `/settings`); до поднятия движка молча игнорируется.
+  @objc func openPreferences(_ sender: Any?) {
+    (mainFlutterWindow as? MainFlutterWindow)?.openPreferences()
+  }
 }

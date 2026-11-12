@@ -33,13 +33,22 @@ abstract final class Desktop {
     }
   }
 
-  /// Старт (main.dart): тапы по уведомлениям и разрешение на них — системный
-  /// вопрос один раз, при первом запуске.
+  /// Маршрут для команды системного меню [command]; неизвестная — `null`.
+  static String? _menuRoute(String command) => switch (command) {
+    'preferences' => '/settings',
+    _ => null,
+  };
+
+  /// Старт (main.dart): тапы по уведомлениям, команды системного меню и
+  /// разрешение на уведомления — системный вопрос один раз, при первом запуске.
   static Future<void> start() async {
     if (!AppPlatform.isDesktop) return;
     _channel.setMethodCallHandler((call) async {
-      if (call.method != 'notificationTap') return;
-      final route = (call.arguments as Map?)?['route'] as String?;
+      final route = switch (call.method) {
+        'notificationTap' => (call.arguments as Map?)?['route'] as String?,
+        'menuCommand' => _menuRoute((call.arguments as Map?)?['command'] as String? ?? ''),
+        _ => null,
+      };
       if (route == null) return;
       final handler = _routeHandler;
       if (handler == null) {
