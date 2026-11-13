@@ -12,6 +12,7 @@ import '../../api.dart';
 import '../../chats/chats_remote_data_source.dart';
 import '../../chats/users_search.dart';
 import '../../auth.dart';
+import '../../components/user_avatar.dart';
 import '../../constants.dart';
 import '../../crypto.dart';
 import '../../di.dart';
@@ -173,6 +174,30 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   final repositories = getIt.get<Repositories>();
   final auth = getIt.get<Auth>();
 
+  // Замер фаз загрузки контактов (диагностика плана docs/plans/01-contacts-loading,
+  // шаг 1): длительности фаз, размеры списков и счётчики аватаров пишутся в лог
+  // для прогона на устройстве с большой книгой. Снимается, когда цифры собраны.
+  DateTime? _lastAvatarReport;
+
+  /// Логирует длительность [body] с именем фазы и деталями из результата
+  /// ([details] вызывается после завершения, ей виден и результат, и окружение).
+  Future<T> _measure<T>(String phase, Future<T> Function() body, [String Function(T value)? details]) async {
+    final sw = Stopwatch()..start();
+    final value = await body();
+    final extra = details?.call(value);
+    logger.info('contacts: $phase=${sw.elapsedMilliseconds}ms${extra == null ? '' : ' $extra'}');
+    return value;
+  }
+
+  /// Синхронный вариант [_measure].
+  T _measureSync<T>(String phase, T Function() body, [String Function(T value)? details]) {
+    final sw = Stopwatch()..start();
+    final value = body();
+    final extra = details?.call(value);
+    logger.info('contacts: $phase=${sw.elapsedMilliseconds}ms${extra == null ? '' : ' $extra'}');
+    return value;
+  }
+
   // Батч discovery. Совпадает по духу с серверным contactsDiscoveryBatchLimit
   // (1024) — держим ниже лимита, чтобы большая книга уходила пачками.
   static const int _batchSize = 512;
@@ -247,13 +272,15 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   /// него: кубит закрыт, а его [repositories] — уже закрытая БД («This
   /// connection pool is closed») — дальше не идём и такую ошибку не репортим.
   Future<void> bootstrap() async {
+    final sw = Stopwatch()..start();
     try {
-      await preload();
+      await _measure('bootstrap.preload', preload);
       if (isClosed) return;
-      await Future.wait([_fetchCloud(), discoverIfAlreadyGranted()]);
+      await _measure('bootstrap.cloud+discover', () => Future.wait([_fetchCloud(), discoverIfAlreadyGranted()]));
       if (isClosed) return;
-      await _backfillLegacyManual();
+      await _measure('bootstrap.backfillLegacy', _backfillLegacyManual);
       // Присутствие не тянем здесь: начальный снимок придёт по стриму (subscribe).
+      logger.info('contacts: bootstrap.total=${sw.elapsedMilliseconds}ms');
     } catch (error, stackTrace) {
       if (!isClosed) logger.handle(error, stackTrace);
     }
@@ -281,18 +308,24 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     }
     if (ids.isEmpty) return;
 
-    final (status, payload) = await api.unaryEncodedWithResponse(MessageType.PRESENCE, Presence_Request(userIDs: ids).writeToBuffer());
+    final (status, payload) = await _measure(
+      'presence.request',
+      () => api.unaryEncodedWithResponse(MessageType.PRESENCE, Presence_Request(userIDs: ids).writeToBuffer()),
+      (_) => 'ids=${ids.length}',
+    );
     if (isClosed || status.status != APIStatus.success || payload == null) return;
 
     final response = Presence_Response.fromBuffer(payload);
     // Не пришёл — скрыт от нас (старый сервер так и отвечает): как item без
     // присутствия — «был(а) недавно».
     final returned = {for (final item in response.items) utils.bytesToHex(Uint8List.fromList(item.userID))};
-    _applyPresenceItems([
-      ...response.items,
-      for (final userID in ids)
-        if (!returned.contains(utils.bytesToHex(userID))) Presence_Item(userID: userID),
-    ]);
+    _measureSync('presence.apply', () {
+      _applyPresenceItems([
+        ...response.items,
+        for (final userID in ids)
+          if (!returned.contains(utils.bytesToHex(userID))) Presence_Item(userID: userID),
+      ]);
+    }, (_) => 'items=${response.items.length + ids.length - returned.length}');
     if (!isClosed) _emitAll();
   }
 
@@ -342,10 +375,13 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   /// Фаза A — мгновенный показ полного снимка из БД, без разрешений и без сети.
   /// Вызывается на уровне shell при старте, ещё до открытия вкладки.
   Future<void> preload() async {
-    final cached = await repositories.contacts.getAll();
-    if (isClosed || cached.isEmpty) return;
+    final cached = await _measure('preload.dbGetAll', () => repositories.contacts.getAll(), (v) => 'rows=${v.length}');
+    if (isClosed || cached.isEmpty) {
+      logger.info('contacts: preload cache empty (rows=0), waiting for discover');
+      return;
+    }
 
-    final excluded = await _loadExcluded();
+    final excluded = await _measure('preload.excluded', _loadExcluded);
     if (isClosed) return;
 
     final book = <ContactItem>[];
@@ -378,8 +414,8 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     if (_book.isEmpty && _cloud.isEmpty) return;
     // Поднимаем кэш last-seen из БД как offline-дефолт (online=false) — чтобы дата
     // последнего визита была видна сразу, до снимка присутствия по стриму.
-    await _seedPresenceFromCache();
-    _emitAll();
+    await _measure('preload.seedPresence', _seedPresenceFromCache, (_) => 'presence=${_presence.length}');
+    _measureSync('preload.emitAll', _emitAll, (_) => 'book=${_book.length} cloud=${_cloud.length}');
   }
 
   /// Засевает [_presence] последними known last-seen из локального кэша профилей
@@ -487,7 +523,11 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     try {
       emit(state.copyWith(status: Status.loading, error: ""));
 
-      final permission = await FlutterContacts.permissions.request(PermissionType.read);
+      final permission = await _measure(
+        'discover.permission',
+        () => FlutterContacts.permissions.request(PermissionType.read),
+        (v) => 'status=${v.name}',
+      );
       if (isClosed) return;
       // granted / limited (iOS 18+ частичный доступ) — этого достаточно для поиска.
       if (permission != PermissionStatus.granted && permission != PermissionStatus.limited) {
@@ -499,38 +539,47 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       emit(state.copyWith(permissionGranted: true));
       _watchBook();
 
-      final deviceContacts = await FlutterContacts.getAll(properties: {ContactProperty.name, ContactProperty.phone});
+      final deviceContacts = await _measure(
+        'discover.getAll',
+        () => FlutterContacts.getAll(properties: {ContactProperty.name, ContactProperty.phone}),
+        (v) => 'contacts=${v.length}',
+      );
       if (isClosed) return;
 
       // Собственный номер (из сессии) — его не показываем среди контактов.
-      final ownUser = await repositories.users.getBySession(session: auth.session);
+      final ownUser = await _measure('discover.ownUser', () => repositories.users.getBySession(session: auth.session));
       if (isClosed) return;
       final ownPhoneE164 = utils.phoneNormalization(phoneNumber: ownUser.phoneNumber).e164;
 
       // Уникальные записи по e164; первое встреченное имя выигрывает.
-      final entries = <String, _Entry>{};
-      for (final contact in deviceContacts) {
-        for (final phone in contact.phones) {
-          final normalization = utils.phoneNormalization(phoneNumber: phone.number);
-          if (normalization.e164.isEmpty || normalization.raw.isEmpty) continue;
-          // Пропускаем собственный номер — себя в контактах не показываем.
-          if (ownPhoneE164.isNotEmpty && normalization.e164 == ownPhoneE164) continue;
+      var phoneCount = 0;
+      final entries = _measureSync('discover.normalize', () {
+        final result = <String, _Entry>{};
+        for (final contact in deviceContacts) {
+          for (final phone in contact.phones) {
+            phoneCount++;
+            final normalization = utils.phoneNormalization(phoneNumber: phone.number);
+            if (normalization.e164.isEmpty || normalization.raw.isEmpty) continue;
+            // Пропускаем собственный номер — себя в контактах не показываем.
+            if (ownPhoneE164.isNotEmpty && normalization.e164 == ownPhoneE164) continue;
 
-          entries.putIfAbsent(
-            normalization.e164,
-            () => _Entry(
-              raw: normalization.raw,
-              phoneE164: normalization.e164,
-              phone: normalization.international,
-              displayName: (contact.displayName?.isNotEmpty ?? false) ? contact.displayName! : normalization.international,
-            ),
-          );
+            result.putIfAbsent(
+              normalization.e164,
+              () => _Entry(
+                raw: normalization.raw,
+                phoneE164: normalization.e164,
+                phone: normalization.international,
+                displayName: (contact.displayName?.isNotEmpty ?? false) ? contact.displayName! : normalization.international,
+              ),
+            );
+          }
         }
-      }
+        return result;
+      }, (v) => 'phones=$phoneCount entries=${v.length}');
 
       // Прячем вручную удалённые книжные контакты: их не показываем и не
       // отправляем в граф (иначе OPRF-ребро вернулось бы, т.к. номер ещё в книге).
-      final excluded = await _loadExcluded();
+      final excluded = await _measure('discover.excluded', _loadExcluded, (v) => 'excluded=${v.length}');
       if (isClosed) return;
       entries.removeWhere((e164, _) => excluded.contains(e164));
 
@@ -550,9 +599,15 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
         for (final contact in _cloud.values)
           if (contact.userID != null) contact.e164: contact.userID!,
       };
-      _book = _bookItems(entries, known);
-      _emitAll();
-      await repositories.contacts.replaceBook(_bookSnapshot(entries, known));
+      _measureSync('discover.bookBuild+emit', () {
+        _book = _bookItems(entries, known);
+        _emitAll();
+      }, (_) => 'book=${_book.length}');
+      await _measure(
+        'discover.replaceBook',
+        () => repositories.contacts.replaceBook(_bookSnapshot(entries, known)),
+        (_) => 'rows=${_book.length}',
+      );
       if (isClosed) return;
 
       // Книга не менялась и прошлый поиск ещё свежий (запись жива по TTL) —
@@ -560,9 +615,10 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       final userID = Uint8List.fromList(auth.session.userID);
       final fingerprint = _bookFingerprint(entries.values);
       if (!force) {
-        final saved = await repositories.cache.getString(userID: userID, key: _fingerprintKey);
+        final saved = await _measure('discover.fingerprintCheck', () => repositories.cache.getString(userID: userID, key: _fingerprintKey));
         if (isClosed) return;
         if (saved == fingerprint) {
+          logger.info('contacts: discover fingerprint unchanged, skipping OPRF');
           emit(state.copyWith(status: Status.success));
           return;
         }
@@ -571,7 +627,11 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       // OPRF-поиск. Ошибка сети не критична — остаёмся на данных из снимка.
       try {
         final fullAccess = permission == PermissionStatus.granted;
-        final matched = await _discoverOprf(entries.values.toList(growable: false), fullAccess: fullAccess);
+        final matched = await _measure(
+          'discover.oprf',
+          () => _discoverOprf(entries.values.toList(growable: false), fullAccess: fullAccess),
+          (v) => 'batches=${(entries.length + _batchSize - 1) ~/ _batchSize} matched=${v.length}',
+        );
         if (isClosed) return;
 
         _book = _bookItems(entries, matched);
@@ -595,6 +655,11 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   /// отложен до явного тапа «Разрешить» в баннере ([requestAccess]).
   Future<void> discoverOnFirstView() async {
     _tabViewed = true;
+    // Первый показ вкладки — точка отсчёта счётчиков аватаров: сначала фиксируем,
+    // сколько плиток построилось к первому кадру вкладки (все записи списка
+    // материализуются за один кадр — ключевая цифра диагностики), затем сброс.
+    logger.info('contacts: tab first view, avatars ${UserAvatar.measurementReport()}');
+    UserAvatar.resetMeasurements();
     // Открытие вкладки — надёжный момент догнать присутствие явным pull'ом:
     // одноразовый снимок при подписке мог разойтись по таймингу с подпиской
     // кубита (broadcast без буфера), тогда без pull статус ждал бы следующего push.
@@ -736,7 +801,10 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   }
 
   Future<void> _fetchCloudOnce() async {
-    final (status, payload) = await api.unaryEncodedWithResponse(MessageType.CONTACTS_LIST, ContactsList_Request().writeToBuffer());
+    final (status, payload) = await _measure(
+      'cloud.list',
+      () => api.unaryEncodedWithResponse(MessageType.CONTACTS_LIST, ContactsList_Request().writeToBuffer()),
+    );
     if (isClosed) return;
     if (status.status != APIStatus.success || payload == null) {
       logger.warning('contacts: CONTACTS_LIST failed (${status.statusCode}: ${status.error}), staying on cache');
@@ -754,7 +822,11 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
         }),
       );
 
-    await repositories.contacts.replaceCloud([for (final contact in _cloud.values) _cacheEntry(contact)]);
+    await _measure(
+      'cloud.replace',
+      () => repositories.contacts.replaceCloud([for (final contact in _cloud.values) _cacheEntry(contact)]),
+      (_) => 'rows=${_cloud.length}',
+    );
     if (isClosed) return;
     _emitAll();
   }
@@ -981,8 +1053,10 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   Future<Map<String, Uint8List>> _discoverOprf(List<_Entry> allEntries, {required bool fullAccess}) async {
     final result = <String, Uint8List>{};
     var firstBatch = true;
+    var batch = 0;
 
     for (var offset = 0; offset < allEntries.length; offset += _batchSize) {
+      batch++;
       final chunk = allEntries.sublist(offset, (offset + _batchSize).clamp(0, allEntries.length));
 
       // Входы OPRF в порядке чанка — общий порядок для blind/evaluate/finalize.
@@ -993,9 +1067,13 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       final entryByOprf = <String, _Entry>{for (var i = 0; i < chunk.length; i++) utils.bytesToHex(oprfOutputs[i]): chunk[i]};
 
       // Раунд 2: проверка членства.
-      final (matchStatus, matchPayload) = await api.unaryEncodedWithResponse(
-        MessageType.CONTACTS_DISCOVERY_MATCH,
-        ContactsDiscoveryMatch_Request(oprfOutputs: oprfOutputs).writeToBuffer(),
+      final (matchStatus, matchPayload) = await _measure(
+        'oprf.match',
+        () => api.unaryEncodedWithResponse(
+          MessageType.CONTACTS_DISCOVERY_MATCH,
+          ContactsDiscoveryMatch_Request(oprfOutputs: oprfOutputs).writeToBuffer(),
+        ),
+        (_) => 'batch=$batch',
       );
       if (matchStatus.status != APIStatus.success || matchPayload == null) {
         throw Exception('contacts: match failed (${matchStatus.error})');
@@ -1012,7 +1090,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       // Наполнение серверного графа контактов теми же отпечатками (best-effort:
       // сбой не должен ломать discovery). full — только на первой пачке, чтобы
       // replace-all не стёр ещё не отправленные пачки.
-      await _upsertGraph(oprfOutputs, full: fullAccess && firstBatch);
+      await _measure('oprf.upsert', () => _upsertGraph(oprfOutputs, full: fullAccess && firstBatch), (_) => 'batch=$batch');
       firstBatch = false;
     }
 
@@ -1043,21 +1121,29 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   /// Возвращает финализированные OPRF-отпечатки в порядке входа. Кидает при
   /// сетевой/серверной ошибке. Общий примитив для discovery и ручного add/remove.
   Future<List<Uint8List>> _oprfOutputs(List<List<int>> inputs) async {
-    final (blinds, blindedElements) = await crypto.oprf.blindBatch(inputs);
+    final (blinds, blindedElements) = await _measure('oprf.blind', () => crypto.oprf.blindBatch(inputs), (_) => 'n=${inputs.length}');
 
-    final (evaluateStatus, evaluatePayload) = await api.unaryEncodedWithResponse(
-      MessageType.CONTACTS_DISCOVERY_EVALUATE,
-      ContactsDiscoveryEvaluate_Request(blindedElements: blindedElements).writeToBuffer(),
+    final (evaluateStatus, evaluatePayload) = await _measure(
+      'oprf.evaluate',
+      () => api.unaryEncodedWithResponse(
+        MessageType.CONTACTS_DISCOVERY_EVALUATE,
+        ContactsDiscoveryEvaluate_Request(blindedElements: blindedElements).writeToBuffer(),
+      ),
+      (_) => 'n=${inputs.length}',
     );
     if (evaluateStatus.status != APIStatus.success || evaluatePayload == null) {
       throw Exception('contacts: evaluate failed (${evaluateStatus.error})');
     }
     final evaluateResponse = ContactsDiscoveryEvaluate_Response.fromBuffer(evaluatePayload);
 
-    return crypto.oprf.finalizeBatch(
-      inputs: inputs,
-      blinds: blinds,
-      evaluations: [for (final element in evaluateResponse.evaluatedElements) Uint8List.fromList(element)],
+    return _measure(
+      'oprf.finalize',
+      () => crypto.oprf.finalizeBatch(
+        inputs: inputs,
+        blinds: blinds,
+        evaluations: [for (final element in evaluateResponse.evaluatedElements) Uint8List.fromList(element)],
+      ),
+      (_) => 'n=${inputs.length}',
     );
   }
 
@@ -1161,6 +1247,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   /// присутствующий и в книге, и в облаке, показываем только как облачный.
   void _emitAll() {
     if (isClosed) return;
+    final sw = Stopwatch()..start();
 
     final cloudKeys = _cloud.keys.toSet();
     final registered = <ContactItem>[];
@@ -1227,5 +1314,17 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     });
 
     emit(state.copyWith(status: Status.success, registered: registered, invitable: invitable, cloud: cloud));
+
+    logger.info(
+      'contacts: emitAll=${sw.elapsedMilliseconds}ms registered=${registered.length} invitable=${invitable.length} cloud=${cloud.length}',
+    );
+    // Отчёт счётчиков аватаров — не чаще раза в 5 секунд, чтобы не спамить на
+    // каждом presence-push (см. план 01-contacts-loading, шаг 1).
+    final now = DateTime.now();
+    final last = _lastAvatarReport;
+    if (last == null || now.difference(last) >= const Duration(seconds: 5)) {
+      _lastAvatarReport = now;
+      logger.info('contacts: avatars ${UserAvatar.measurementReport()}');
+    }
   }
 }

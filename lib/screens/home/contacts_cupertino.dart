@@ -118,8 +118,11 @@ class _ContactsCupertinoState extends State<ContactsCupertino> with SearchHideOn
           ],
           body: BlocBuilder<ContactsCubit, ContactsState>(
             builder: (context, state) {
+              // Pull-to-refresh: форс-пересинхронизация книги (OPRF), облачных и
+              // присутствия (ContactsCubit.refresh). Слайдер — слайвером перед списком.
+              final topSlivers = [CupertinoSliverRefreshControl(onRefresh: () => context.read<ContactsCubit>().refresh())];
               if (state.status != Status.success && state.registered.isEmpty && state.invitable.isEmpty && state.cloud.isEmpty) {
-                return searchListView(empty: const CupertinoActivityIndicator());
+                return searchListView(empty: const CupertinoActivityIndicator(), topSlivers: topSlivers);
               }
 
               final registered = state.registered.where((item) => _visible(state, item)).toList();
@@ -128,6 +131,7 @@ class _ContactsCupertinoState extends State<ContactsCupertino> with SearchHideOn
 
               // Отступ сверху под шапку — строки проезжают под ней.
               return searchListView(
+                topSlivers: topSlivers,
                 children: [
                   if (registered.isNotEmpty)
                     _sheet(context, context.t.screenContacts.onContacts, registered.map((item) => _registeredTile(context, item)).toList()),

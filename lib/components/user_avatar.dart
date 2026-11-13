@@ -51,6 +51,23 @@ class UserAvatar extends StatefulWidget {
 
   const UserAvatar({super.key, required this.userID, required this.placeholderName, this.size = 40});
 
+  // Счётчики диагностики загрузки контактов (план docs/plans/01-contacts-loading,
+  // шаг 1): сколько строк-аватаров построено и сколько это породило SQL-чтений
+  // профиля и PROFILE-запросов. Сброс — при первом показе вкладки «Контакты»
+  // (discoverOnFirstView), отчёт пишет ContactsCubit после перерисовки списков.
+  static int measurementTilesBuilt = 0;
+  static int measurementDbLookups = 0;
+  static int measurementProfileRequests = 0;
+
+  static String measurementReport() =>
+      'tiles=$measurementTilesBuilt dbLookups=$measurementDbLookups profileRequests=$measurementProfileRequests';
+
+  static void resetMeasurements() {
+    measurementTilesBuilt = 0;
+    measurementDbLookups = 0;
+    measurementProfileRequests = 0;
+  }
+
   @override
   State<UserAvatar> createState() => _UserAvatarState();
 }
@@ -86,6 +103,7 @@ class _UserAvatarState extends State<UserAvatar> {
   @override
   void initState() {
     super.initState();
+    UserAvatar.measurementTilesBuilt++;
     _bytes = _remembered(widget.userID);
     _thumbhash = _rememberedThumbhash(widget.userID);
     _changes = _repositories.profiles.avatarChanges.listen((userID) {
@@ -135,6 +153,7 @@ class _UserAvatarState extends State<UserAvatar> {
     if (userID == null || userID.isEmpty) return;
 
     final hex = _hex(userID);
+    UserAvatar.measurementDbLookups++;
 
     // 1. Уже есть в кэше — показать без сети. Привязанный cdnID совпал с
     // показанным — файл не перечитываем.
@@ -203,6 +222,7 @@ class _UserAvatarState extends State<UserAvatar> {
   /// дождались ответа). Ответ (привязку `avatarCdnID`) пишет и
   /// `API._handleMessage`; `download` дедуплицируется, так что скачивание одно.
   static Future<File?> _requestProfile(String hex, Uint8List userID) async {
+    UserAvatar.measurementProfileRequests++;
     final api = getIt.get<API>();
     // Слушаем ДО отправки, чтобы не пропустить ответ (broadcast-стрим).
     final response = api

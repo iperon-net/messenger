@@ -226,10 +226,12 @@ mixin SearchHideOnScroll<T extends StatefulWidget> on State<T> {
   }
 
   /// Список под шапкой: [children] или [itemBuilder] (+ [separatorBuilder]),
-  /// пусто — [empty] по центру. Снизу добивается так, чтобы список всегда
-  /// прокручивался хотя бы на высоту поиска: в короткой папке (мало чатов)
-  /// поиск тоже можно спрятать, и при переходе из длинной папки со
-  /// спрятанным поиском он не всплывает — открыть можно, только потянув вниз.
+  /// пусто — [empty] по центру. [topSlivers] — слайверы перед списком (например,
+  /// `CupertinoSliverRefreshControl` для pull-to-refresh). Снизу добивается так,
+  /// чтобы список всегда прокручивался хотя бы на высоту поиска: в короткой
+  /// папке (мало чатов) поиск тоже можно спрятать, и при переходе из длинной
+  /// папки со спрятанным поиском он не всплывает — открыть можно, только
+  /// потянув вниз.
   Widget searchListView({
     Key? key,
     String listKey = '',
@@ -238,6 +240,7 @@ mixin SearchHideOnScroll<T extends StatefulWidget> on State<T> {
     IndexedWidgetBuilder? itemBuilder,
     IndexedWidgetBuilder? separatorBuilder,
     Widget? empty,
+    List<Widget> topSlivers = const [],
   }) {
     final Widget sliver;
     if (empty != null) {
@@ -254,6 +257,7 @@ mixin SearchHideOnScroll<T extends StatefulWidget> on State<T> {
         key: key,
         controller: searchListController(listKey),
         slivers: [
+          ...topSlivers,
           // Снизу — под клавиатуру: экраны списков её высоту не вычитают
           // (resizeToAvoidBottomInset: false), а результаты поиска должны
           // докручиваться над ней.

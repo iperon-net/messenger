@@ -62,6 +62,9 @@ class _ContactsMaterialState extends State<ContactsMaterial> with SearchHideOnSc
     }
   }
 
+  /// Pull-to-refresh: форс-пересинхронизация книги (OPRF), облачных и присутствия.
+  Future<void> _refresh() => context.read<ContactsCubit>().refresh();
+
   @override
   Widget build(BuildContext context) {
     // Белый фон в светлой теме, в ночной — тот же оттенок, что у Cupertino (`groupedCard`),
@@ -122,7 +125,10 @@ class _ContactsMaterialState extends State<ContactsMaterial> with SearchHideOnSc
         body: BlocBuilder<ContactsCubit, ContactsState>(
           builder: (context, state) {
             if (state.status != Status.success && state.registered.isEmpty && state.invitable.isEmpty && state.cloud.isEmpty) {
-              return searchListView(empty: const CircularProgressIndicator());
+              return RefreshIndicator(
+                onRefresh: _refresh,
+                child: searchListView(empty: const CircularProgressIndicator()),
+              );
             }
 
             final registered = state.registered.where((item) => _visible(state, item)).toList();
@@ -130,37 +136,40 @@ class _ContactsMaterialState extends State<ContactsMaterial> with SearchHideOnSc
             final cloud = state.cloud.where((item) => _visible(state, item)).toList();
 
             // Отступ сверху под шапку — строки проезжают под ней.
-            return searchListView(
-              children: [
-                if (registered.isNotEmpty)
-                  _sheet(context, context.t.screenContacts.onContacts, registered.map((item) => _registeredTile(context, item)).toList()),
-                if (cloud.isNotEmpty)
-                  _sheet(
+            return RefreshIndicator(
+              onRefresh: _refresh,
+              child: searchListView(
+                children: [
+                  if (registered.isNotEmpty)
+                    _sheet(context, context.t.screenContacts.onContacts, registered.map((item) => _registeredTile(context, item)).toList()),
+                  if (cloud.isNotEmpty)
+                    _sheet(
+                      context,
+                      context.t.screenContacts.cloudContacts,
+                      cloud
+                          .map(
+                            (item) => item.isRegistered
+                                ? _registeredTile(context, item, removable: true)
+                                : _invitableTile(context, item, removable: true),
+                          )
+                          .toList(),
+                    ),
+                  if (invitable.isNotEmpty)
+                    _sheet(context, context.t.screenContacts.invite, invitable.map((item) => _invitableTile(context, item)).toList()),
+                  // Глобальный поиск людей (номер / @username) — тап открывает профиль.
+                  ...usersSearchListMaterial(
                     context,
-                    context.t.screenContacts.cloudContacts,
-                    cloud
-                        .map(
-                          (item) => item.isRegistered
-                              ? _registeredTile(context, item, removable: true)
-                              : _invitableTile(context, item, removable: true),
-                        )
-                        .toList(),
+                    status: state.query.trim().isEmpty ? UsersSearchStatus.idle : state.globalStatus,
+                    results: state.globalResults,
+                    onTap: (member) => openProfileFromList(context, member.id),
                   ),
-                if (invitable.isNotEmpty)
-                  _sheet(context, context.t.screenContacts.invite, invitable.map((item) => _invitableTile(context, item)).toList()),
-                // Глобальный поиск людей (номер / @username) — тап открывает профиль.
-                ...usersSearchListMaterial(
-                  context,
-                  status: state.query.trim().isEmpty ? UsersSearchStatus.idle : state.globalStatus,
-                  results: state.globalResults,
-                  onTap: (member) => openProfileFromList(context, member.id),
-                ),
-                if (registered.isEmpty && invitable.isEmpty && cloud.isEmpty && state.globalStatus == UsersSearchStatus.idle)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 60),
-                    child: Center(child: Text(context.t.screenContacts.empty)),
-                  ),
-              ],
+                  if (registered.isEmpty && invitable.isEmpty && cloud.isEmpty && state.globalStatus == UsersSearchStatus.idle)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 60),
+                      child: Center(child: Text(context.t.screenContacts.empty)),
+                    ),
+                ],
+              ),
             );
           },
         ),
