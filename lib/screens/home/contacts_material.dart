@@ -138,40 +138,51 @@ class _ContactsMaterialState extends State<ContactsMaterial> with SearchHideOnSc
             final invitable = state.invitable.where((item) => _visible(state, item)).toList();
             final cloud = state.cloud.where((item) => _visible(state, item)).toList();
 
+            // Виртуализация (план 01-contacts-loading, шаг 4): список отдаётся
+            // itemCount/itemBuilder — плитки строятся лениво по индексу, а не все
+            // сразу одним кадром (6000 плиток замораживали растеризатор).
+            // Раскладка плоская: секция = заголовок + её плитки, затем результаты
+            // глобального поиска людей и пустое состояние.
+            final sections = <_ContactsSection>[
+              if (registered.isNotEmpty)
+                _ContactsSection(header: context.t.screenContacts.onContacts, kind: _SectionKind.registered, items: registered),
+              if (cloud.isNotEmpty)
+                _ContactsSection(header: context.t.screenContacts.cloudContacts, kind: _SectionKind.cloud, items: cloud),
+              if (invitable.isNotEmpty)
+                _ContactsSection(header: context.t.screenContacts.invite, kind: _SectionKind.invitable, items: invitable),
+            ];
+            // Глобальный поиск людей (номер / @username) — тап открывает профиль;
+            // результатов немного, остаётся готовым списком.
+            final searchRows = usersSearchListMaterial(
+              context,
+              status: state.query.trim().isEmpty ? UsersSearchStatus.idle : state.globalStatus,
+              results: state.globalResults,
+              onTap: (member) => openProfileFromList(context, member.id),
+            );
+            final showEmpty = registered.isEmpty && invitable.isEmpty && cloud.isEmpty && state.globalStatus == UsersSearchStatus.idle;
+            final rowCount = sections.fold(0, (n, s) => n + 1 + s.items.length) + searchRows.length + (showEmpty ? 1 : 0);
+
             // Отступ сверху под шапку — строки проезжают под ней.
             return RefreshIndicator(
               onRefresh: _refresh,
               child: searchListView(
-                children: [
-                  if (registered.isNotEmpty)
-                    _sheet(context, context.t.screenContacts.onContacts, registered.map((item) => _registeredTile(context, item)).toList()),
-                  if (cloud.isNotEmpty)
-                    _sheet(
-                      context,
-                      context.t.screenContacts.cloudContacts,
-                      cloud
-                          .map(
-                            (item) => item.isRegistered
-                                ? _registeredTile(context, item, removable: true)
-                                : _invitableTile(context, item, removable: true),
-                          )
-                          .toList(),
-                    ),
-                  if (invitable.isNotEmpty)
-                    _sheet(context, context.t.screenContacts.invite, invitable.map((item) => _invitableTile(context, item)).toList()),
-                  // Глобальный поиск людей (номер / @username) — тап открывает профиль.
-                  ...usersSearchListMaterial(
-                    context,
-                    status: state.query.trim().isEmpty ? UsersSearchStatus.idle : state.globalStatus,
-                    results: state.globalResults,
-                    onTap: (member) => openProfileFromList(context, member.id),
-                  ),
-                  if (registered.isEmpty && invitable.isEmpty && cloud.isEmpty && state.globalStatus == UsersSearchStatus.idle)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 60),
-                      child: Center(child: Text(context.t.screenContacts.empty)),
-                    ),
-                ],
+                itemCount: rowCount,
+                itemBuilder: (context, index) {
+                  var i = index;
+                  for (final section in sections) {
+                    if (i == 0) return _sectionHeader(context, section.header);
+                    i -= 1;
+                    if (i < section.items.length) {
+                      return _sectionTile(context, section, section.items[i]);
+                    }
+                    i -= section.items.length;
+                  }
+                  if (i < searchRows.length) return searchRows[i];
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 60),
+                    child: Center(child: Text(context.t.screenContacts.empty)),
+                  );
+                },
               ),
             );
           },
@@ -180,21 +191,22 @@ class _ContactsMaterialState extends State<ContactsMaterial> with SearchHideOnSc
     );
   }
 
-  /// Белая подложка под контактами: сплошной лист во всю ширину с заголовком секции.
-  Widget _sheet(BuildContext context, String header, List<Widget> tiles) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-          child: Text(header, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Theme.of(context).colorScheme.primary)),
-        ),
-        Material(
-          type: MaterialType.transparency,
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: tiles),
-        ),
-      ],
+  /// Заголовок секции («В контактах», «Облачные», «Пригласить»).
+  Widget _sectionHeader(BuildContext context, String header) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Text(header, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Theme.of(context).colorScheme.primary)),
     );
+  }
+
+  /// Плитка секции с учётом её типа (removable — только у облачных).
+  Widget _sectionTile(BuildContext context, _ContactsSection section, ContactItem item) {
+    return switch (section.kind) {
+      _SectionKind.registered => _registeredTile(context, item),
+      _SectionKind.cloud =>
+        item.isRegistered ? _registeredTile(context, item, removable: true) : _invitableTile(context, item, removable: true),
+      _SectionKind.invitable => _invitableTile(context, item),
+    };
   }
 
   /// Пустой экран с прогрессом discovery (план 01-contacts-loading, шаг 3):
@@ -326,4 +338,17 @@ class _ContactsMaterialState extends State<ContactsMaterial> with SearchHideOnSc
     );
     return removable ? _dismissible(context, item, tile) : tile;
   }
+}
+
+/// Тип секции списка контактов — определяет вид плиток ([_sectionTile]).
+enum _SectionKind { registered, cloud, invitable }
+
+/// Секция виртуализированного списка: заголовок + её плитки. Виджеты строятся
+/// лениво в itemBuilder по плоскому индексу (план 01-contacts-loading, шаг 4).
+class _ContactsSection {
+  final String header;
+  final _SectionKind kind;
+  final List<ContactItem> items;
+
+  const _ContactsSection({required this.header, required this.kind, required this.items});
 }

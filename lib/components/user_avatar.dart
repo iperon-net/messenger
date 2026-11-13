@@ -107,7 +107,7 @@ class _UserAvatarState extends State<UserAvatar> {
     _bytes = _remembered(widget.userID);
     _thumbhash = _rememberedThumbhash(widget.userID);
     _changes = _repositories.profiles.avatarChanges.listen((userID) {
-      if (_sameUser(widget.userID, userID)) _load();
+      if (_sameUser(widget.userID, userID)) _load(force: true);
     });
     _load();
   }
@@ -148,11 +148,16 @@ class _UserAvatarState extends State<UserAvatar> {
     return listEquals(a, b);
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool force = false}) async {
     final userID = widget.userID;
     if (userID == null || userID.isEmpty) return;
 
     final hex = _hex(userID);
+    // Картинка уже показывается из памяти сессии — SQL не нужен: смена аватара
+    // придёт по avatarChanges (тогда _load(force: true)). Экономит поштучные
+    // чтения профиля на пересоздании строк при прокрутке виртуализированного
+    // списка (план 01-contacts-loading, шаг 4).
+    if (!force && _bytes != null) return;
     UserAvatar.measurementDbLookups++;
 
     // 1. Уже есть в кэше — показать без сети. Привязанный cdnID совпал с

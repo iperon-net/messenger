@@ -135,39 +135,50 @@ class _ContactsCupertinoState extends State<ContactsCupertino> with SearchHideOn
               final invitable = state.invitable.where((item) => _visible(state, item)).toList();
               final cloud = state.cloud.where((item) => _visible(state, item)).toList();
 
+              // Виртуализация (план 01-contacts-loading, шаг 4): список отдаётся
+              // itemCount/itemBuilder — плитки строятся лениво по индексу, а не все
+              // сразу одним кадром (6000 плиток замораживали растеризатор).
+              // Раскладка плоская: секция = заголовок + её плитки, затем результаты
+              // глобального поиска людей и пустое состояние.
+              final sections = <_ContactsSection>[
+                if (registered.isNotEmpty)
+                  _ContactsSection(header: context.t.screenContacts.onContacts, kind: _SectionKind.registered, items: registered),
+                if (cloud.isNotEmpty)
+                  _ContactsSection(header: context.t.screenContacts.cloudContacts, kind: _SectionKind.cloud, items: cloud),
+                if (invitable.isNotEmpty)
+                  _ContactsSection(header: context.t.screenContacts.invite, kind: _SectionKind.invitable, items: invitable),
+              ];
+              // Глобальный поиск людей (номер / @username) — тап открывает профиль;
+              // результатов немного, остаётся готовым списком.
+              final searchRows = usersSearchListCupertino(
+                context,
+                status: state.query.trim().isEmpty ? UsersSearchStatus.idle : state.globalStatus,
+                results: state.globalResults,
+                onTap: (member) => openProfileFromList(context, member.id),
+              );
+              final showEmpty = registered.isEmpty && invitable.isEmpty && cloud.isEmpty && state.globalStatus == UsersSearchStatus.idle;
+              final rowCount = sections.fold(0, (n, s) => n + 1 + s.items.length) + searchRows.length + (showEmpty ? 1 : 0);
+
               // Отступ сверху под шапку — строки проезжают под ней.
               return searchListView(
                 topSlivers: topSlivers,
-                children: [
-                  if (registered.isNotEmpty)
-                    _sheet(context, context.t.screenContacts.onContacts, registered.map((item) => _registeredTile(context, item)).toList()),
-                  if (cloud.isNotEmpty)
-                    _sheet(
-                      context,
-                      context.t.screenContacts.cloudContacts,
-                      cloud
-                          .map(
-                            (item) => item.isRegistered
-                                ? _registeredTile(context, item, removable: true)
-                                : _invitableTile(context, item, removable: true),
-                          )
-                          .toList(),
-                    ),
-                  if (invitable.isNotEmpty)
-                    _sheet(context, context.t.screenContacts.invite, invitable.map((item) => _invitableTile(context, item)).toList()),
-                  // Глобальный поиск людей (номер / @username) — тап открывает профиль.
-                  ...usersSearchListCupertino(
-                    context,
-                    status: state.query.trim().isEmpty ? UsersSearchStatus.idle : state.globalStatus,
-                    results: state.globalResults,
-                    onTap: (member) => openProfileFromList(context, member.id),
-                  ),
-                  if (registered.isEmpty && invitable.isEmpty && cloud.isEmpty && state.globalStatus == UsersSearchStatus.idle)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 60),
-                      child: Center(child: Text(context.t.screenContacts.empty)),
-                    ),
-                ],
+                itemCount: rowCount,
+                itemBuilder: (context, index) {
+                  var i = index;
+                  for (final section in sections) {
+                    if (i == 0) return _sectionHeader(context, section.header);
+                    i -= 1;
+                    if (i < section.items.length) {
+                      return _sectionTile(context, section, section.items[i], isLast: i == section.items.length - 1);
+                    }
+                    i -= section.items.length;
+                  }
+                  if (i < searchRows.length) return searchRows[i];
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 60),
+                    child: Center(child: Text(context.t.screenContacts.empty)),
+                  );
+                },
               );
             },
           ),
@@ -195,36 +206,40 @@ class _ContactsCupertinoState extends State<ContactsCupertino> with SearchHideOn
     );
   }
 
-  /// Белая подложка без обрамления (без инсет-полей и скруглений) — контакты
-  /// лежат на сплошном листе во всю ширину, разделённые тонкими линиями.
-  Widget _sheet(BuildContext context, String header, List<Widget> tiles) {
-    final divider = Container(
-      margin: const EdgeInsetsDirectional.only(start: 60),
-      height: 0.5,
-      color: CupertinoColors.separator.resolveFrom(context),
+  /// Заголовок секции («В контактах», «Облачные», «Пригласить»).
+  Widget _sectionHeader(BuildContext context, String header) {
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 6),
+      child: Text(
+        header.toUpperCase(),
+        style: TextStyle(fontSize: 13, letterSpacing: -0.08, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+      ),
     );
+  }
 
-    final children = <Widget>[];
-    for (var i = 0; i < tiles.length; i++) {
-      if (i > 0) children.add(divider);
-      children.add(tiles[i]);
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 6),
-          child: Text(
-            header.toUpperCase(),
-            style: TextStyle(fontSize: 13, letterSpacing: -0.08, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
-          ),
-        ),
-        Container(
-          color: ThemesCupertino.appBackground.resolveFrom(context),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
-        ),
-      ],
+  /// Плитка секции на сплошном листе (белая подложка без обрамления), с тонким
+  /// разделителем снизу, если это не последняя плитка секции.
+  Widget _sectionTile(BuildContext context, _ContactsSection section, ContactItem item, {required bool isLast}) {
+    final tile = switch (section.kind) {
+      _SectionKind.registered => _registeredTile(context, item),
+      _SectionKind.cloud =>
+        item.isRegistered ? _registeredTile(context, item, removable: true) : _invitableTile(context, item, removable: true),
+      _SectionKind.invitable => _invitableTile(context, item),
+    };
+    return Container(
+      color: ThemesCupertino.appBackground.resolveFrom(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          tile,
+          if (!isLast)
+            Container(
+              margin: const EdgeInsetsDirectional.only(start: 60),
+              height: 0.5,
+              color: CupertinoColors.separator.resolveFrom(context),
+            ),
+        ],
+      ),
     );
   }
 
@@ -358,4 +373,17 @@ class _ContactsCupertinoState extends State<ContactsCupertino> with SearchHideOn
     );
     return removable ? _dismissible(context, item, tile) : tile;
   }
+}
+
+/// Тип секции списка контактов — определяет вид плиток ([_sectionTile]).
+enum _SectionKind { registered, cloud, invitable }
+
+/// Секция виртуализированного списка: заголовок + её плитки. Виджеты строятся
+/// лениво в itemBuilder по плоскому индексу (план 01-contacts-loading, шаг 4).
+class _ContactsSection {
+  final String header;
+  final _SectionKind kind;
+  final List<ContactItem> items;
+
+  const _ContactsSection({required this.header, required this.kind, required this.items});
 }
