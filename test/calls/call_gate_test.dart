@@ -1,5 +1,8 @@
 import 'dart:async';
 
+// Фреймворковый MaterialApp: тест проверяет поведение go_router/CallGate,
+// а не material_ui-обёртку; одноимённые material_ui-типы ведут себя иначе.
+// ignore: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';

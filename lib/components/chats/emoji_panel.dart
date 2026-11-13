@@ -4,6 +4,9 @@ import 'dart:math' as math;
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/services.dart';
+// emoji_picker_flutter ждёт фреймворковые типы (TabController и др.) —
+// одноимённые типы material_ui несовместимы.
+// ignore: deprecated_member_use
 import 'package:flutter/material.dart'
     show Material, MaterialType, IconButton, Icons, Icon, TextField, InputDecoration, InputBorder, TabController;
 import 'package:lottie/lottie.dart';

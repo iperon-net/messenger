@@ -1,11 +1,8 @@
 import 'dart:async';
 
+import 'package:cupertino_ui/cupertino_ui.dart' show GlobalCupertinoLocalizations;
 import 'package:hugeicons/hugeicons.dart';
 import 'package:material_ui/material_ui.dart';
-// CupertinoActivityIndicator из cupertino_ui (внутри ConnectionTitle) требует
-// локализацию именно cupertino_ui-типа, поэтому берём делегат оттуда — точечным
-// show, чтобы не тянуть конфликтующие с material_ui символы.
-import 'package:cupertino_ui/cupertino_ui.dart' show GlobalCupertinoLocalizations;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 // GlobalMaterialLocalizations уже приходит из material_ui — прячем дубликат.
@@ -16,9 +13,12 @@ import 'package:flutter_localizations/flutter_localizations.dart' hide GlobalMat
 // пакетов (pin_code_fields → Adaptive/Cupertino/Material тулбар выделения)
 // требуют flutter-версии, иначе бросают «No CupertinoLocalizations found».
 // Тянем делегаты под префиксом, чтобы не конфликтовать с *_ui.
-import 'package:flutter_localizations/flutter_localizations.dart'
-    as flutter_l10n
-    show GlobalMaterialLocalizations, GlobalCupertinoLocalizations;
+// flutter_localizations deprecated с 3.50, но пока сторонние Flutter-виджеты
+// не перейдут на material_ui/cupertino_ui, нужны именно они.
+// ignore: deprecated_member_use
+import 'package:flutter_localizations/flutter_localizations.dart' as flutter_l10n show GlobalMaterialLocalizations;
+// ignore: deprecated_member_use
+import 'package:flutter_localizations/flutter_localizations.dart' as flutter_l10n show GlobalCupertinoLocalizations;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:go_router/go_router.dart';
@@ -259,7 +259,9 @@ class _IperonMessengerMaterial extends State<IperonMessengerMaterial> with Widge
               GlobalCupertinoLocalizations.delegate,
               // Flutter-овские Material/Cupertino Localizations (см. импорт выше) —
               // нужны Flutter-виджетам (тулбар выделения текста в pin_code_fields).
+              // ignore: deprecated_member_use
               flutter_l10n.GlobalMaterialLocalizations.delegate,
+              // ignore: deprecated_member_use
               flutter_l10n.GlobalCupertinoLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
             ],

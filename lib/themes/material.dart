@@ -3,6 +3,9 @@ import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 // flutter_screen_lock ждёт `ButtonStyle`/`WidgetStatePropertyAll`/`BorderSide`
 // именно из flutter/material — одноимённые типы material_ui несовместимы. Тянем
 // их под префиксом, чтобы не конфликтовать с material_ui в остальном файле.
+// flutter/material deprecated с 3.50, но пока flutter_screen_lock не перейдёт
+// на material_ui, нужен именно он.
+// ignore: deprecated_member_use
 import 'package:flutter/material.dart' as fm show ButtonStyle, WidgetStatePropertyAll, CircleBorder, BorderSide;
 
 import '../models.dart';

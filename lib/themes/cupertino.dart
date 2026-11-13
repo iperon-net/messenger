@@ -1,4 +1,9 @@
 import 'package:cupertino_ui/cupertino_ui.dart';
+// flutter_screen_lock ждёт `ButtonStyle`/`WidgetStatePropertyAll` именно из
+// flutter/material — одноимённые типы material_ui несовместимы. flutter/material
+// deprecated с 3.50, но пока flutter_screen_lock не перейдёт на material_ui,
+// нужен именно он.
+// ignore: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 

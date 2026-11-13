@@ -10,6 +10,9 @@ import 'package:flutter_localizations/flutter_localizations.dart' hide GlobalCup
 // пакетов (pin_code_fields → CupertinoTextSelectionToolbarButton) требуют
 // именно flutter/cupertino-версию, иначе бросают «No CupertinoLocalizations
 // found». Тянем делегат под префиксом, чтобы не конфликтовать с cupertino_ui.
+// flutter_localizations deprecated с 3.50, но пока сторонние Flutter-виджеты
+// не перейдут на cupertino_ui, нужен именно он.
+// ignore: deprecated_member_use
 import 'package:flutter_localizations/flutter_localizations.dart' as flutter_l10n show GlobalCupertinoLocalizations;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
@@ -252,10 +255,12 @@ class _IperonMessengerCupertino extends State<IperonMessengerCupertino> with Wid
             localizationsDelegates: const <LocalizationsDelegate<Object>>[
               // Некоторые Material-виджеты (напр. flutter_screen_lock) требуют
               // MaterialLocalizations, которых нет в GlobalCupertinoLocalizations.delegates.
+              // ignore: deprecated_member_use
               GlobalMaterialLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
               // Flutter-овский CupertinoLocalizations (см. импорт выше) — нужен
               // Flutter-виджетам (тулбар выделения текста в pin_code_fields).
+              // ignore: deprecated_member_use
               flutter_l10n.GlobalCupertinoLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
             ],
