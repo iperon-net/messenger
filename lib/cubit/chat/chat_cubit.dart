@@ -1103,8 +1103,10 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
       emit(state.copyWith(messages: messages, vanishingIDs: vanishingIDs));
 
   /// Удалить можно свои, в личном чате — любые, в группе чужие — с правом
-  /// удалять сообщения (у всех). Канал на сервере — по правам канала: свой
-  /// пост — публиковать, чужой — удалять чужие ([canDeleteChannelPost]).
+  /// удалять сообщения (у всех). Служебные плашки убирает администрация:
+  /// право удалять чужие — даже если плашка наша (как `checkDeleteForAll`
+  /// сервера). Канал на сервере — по правам канала: свой пост — публиковать,
+  /// чужой — удалять чужие ([canDeleteChannelPost], служебное — как чужое).
   bool canDelete(models.Message message) {
     final chat = state.chat;
     // Пост шапкой ветки — не её сообщение.
@@ -1118,11 +1120,17 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
       // Демо прав не знает — любой админ канала.
       return channel.myRights == null ? channel.canManage : channelCan(channel, const [], ChannelAction.deleteOthers);
     }
+    // Служебное в не-личном чате убирает администрация: даже свою плашку
+    // обычный участник не удаляет.
+    if (message.service && chat != null && chat.type != models.ChatType.private) {
+      if (chat.type == models.ChatType.channel) return canDeleteChannelPost(chat, state.members, message);
+      return canDeleteOthers(chat, state.members);
+    }
     if (chat != null && chat.type == models.ChatType.channel && chat.myRights != null) {
       return canDeleteChannelPost(chat, state.members, message);
     }
     if (message.outgoing || chat?.type == models.ChatType.private) return true;
-    return chat != null && chat.type == models.ChatType.group && !message.service && canDeleteOthers(chat, state.members);
+    return chat != null && chat.type == models.ChatType.group && canDeleteOthers(chat, state.members);
   }
 
   /// Закрепить / открепить «у всех» в группе — с правом (без него — только у
