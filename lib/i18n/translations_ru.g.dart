@@ -1640,6 +1640,7 @@ class _Translations$screenContacts$ru extends Translations$screenContacts$en {
 	@override String get allowAccess => 'Разрешить доступ';
 	@override String get openSettings => 'Открыть настройки';
 	@override String get empty => 'Контакты не найдены';
+	@override String get searchingBook => 'Ищем контакты в телефонной книге…';
 	@override String get inviteMessage => 'Давай общаться в Iperon';
 	@override String get statusOnline => 'в сети';
 	@override String get statusLastSeenRecently => 'был(а) недавно';
@@ -3613,6 +3614,7 @@ extension on TranslationsRu {
 			'screenContacts.allowAccess' => 'Разрешить доступ',
 			'screenContacts.openSettings' => 'Открыть настройки',
 			'screenContacts.empty' => 'Контакты не найдены',
+			'screenContacts.searchingBook' => 'Ищем контакты в телефонной книге…',
 			'screenContacts.inviteMessage' => 'Давай общаться в Iperon',
 			'screenContacts.statusOnline' => 'в сети',
 			'screenContacts.statusLastSeenRecently' => 'был(а) недавно',
@@ -3946,9 +3948,9 @@ extension on TranslationsRu {
 			'systemNotice.cloudPasswordWrongHint' => 'Если это были не вы, значит, кто-то знает код входа. Не сообщайте его никому и не отключайте облачный пароль.',
 			'systemNotice.recoveryEmailSetTitle' => 'Почта для восстановления подтверждена',
 			'systemNotice.recoveryEmailSet' => ({required Object email}) => 'Сбросить облачный пароль теперь можно через ${email}.',
-			'systemNotice.recoveryEmailSetNoEmail' => 'Сбросить облачный пароль теперь можно через почту.',
 			_ => null,
 		} ?? switch (path) {
+			'systemNotice.recoveryEmailSetNoEmail' => 'Сбросить облачный пароль теперь можно через почту.',
 			'systemNotice.passkeyAddedTitle' => 'Добавлен ключ доступа',
 			'systemNotice.passkeyAdded' => ({required Object label}) => 'К аккаунту добавлен ключ доступа «${label}»: с ним можно входить без звонка.',
 			'systemNotice.passkeyAddedNoLabel' => 'К аккаунту добавлен ключ доступа: с ним можно входить без звонка.',

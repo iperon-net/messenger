@@ -3983,6 +3983,9 @@ class Translations$screenContacts$en {
 	/// en: 'No contacts found'
 	String get empty => 'No contacts found';
 
+	/// en: 'Looking for contacts in your address book…'
+	String get searchingBook => 'Looking for contacts in your address book…';
+
 	/// en: 'Let's chat on Iperon'
 	String get inviteMessage => 'Let\'s chat on Iperon';
 
@@ -6831,6 +6834,7 @@ extension on Translations {
 			'screenContacts.allowAccess' => 'Allow access',
 			'screenContacts.openSettings' => 'Open settings',
 			'screenContacts.empty' => 'No contacts found',
+			'screenContacts.searchingBook' => 'Looking for contacts in your address book…',
 			'screenContacts.inviteMessage' => 'Let\'s chat on Iperon',
 			'screenContacts.statusOnline' => 'online',
 			'screenContacts.statusLastSeenRecently' => 'last seen recently',
@@ -7164,9 +7168,9 @@ extension on Translations {
 			'systemNotice.cloudPasswordWrongHint' => 'If this wasn\'t you, someone knows your login code. Never share it and keep your cloud password on.',
 			'systemNotice.recoveryEmailSetTitle' => 'Recovery email confirmed',
 			'systemNotice.recoveryEmailSet' => ({required Object email}) => 'You can now reset your cloud password via ${email}.',
-			'systemNotice.recoveryEmailSetNoEmail' => 'You can now reset your cloud password via email.',
 			_ => null,
 		} ?? switch (path) {
+			'systemNotice.recoveryEmailSetNoEmail' => 'You can now reset your cloud password via email.',
 			'systemNotice.passkeyAddedTitle' => 'Passkey added',
 			'systemNotice.passkeyAdded' => ({required Object label}) => 'Passkey “${label}” was added to your account: it lets you log in without a phone call.',
 			'systemNotice.passkeyAddedNoLabel' => 'A passkey was added to your account: it lets you log in without a phone call.',
