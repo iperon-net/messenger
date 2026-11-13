@@ -226,6 +226,13 @@ class ContactsStateMapper extends ClassMapperBase<ContactsState> {
     opt: true,
     def: false,
   );
+  static bool _$discovering(ContactsState v) => v.discovering;
+  static const Field<ContactsState, bool> _f$discovering = Field(
+    'discovering',
+    _$discovering,
+    opt: true,
+    def: false,
+  );
   static bool _$bannerDismissed(ContactsState v) => v.bannerDismissed;
   static const Field<ContactsState, bool> _f$bannerDismissed = Field(
     'bannerDismissed',
@@ -289,6 +296,7 @@ class ContactsStateMapper extends ClassMapperBase<ContactsState> {
     #status: _f$status,
     #error: _f$error,
     #permissionGranted: _f$permissionGranted,
+    #discovering: _f$discovering,
     #bannerDismissed: _f$bannerDismissed,
     #registered: _f$registered,
     #invitable: _f$invitable,
@@ -305,6 +313,7 @@ class ContactsStateMapper extends ClassMapperBase<ContactsState> {
       status: data.dec(_f$status),
       error: data.dec(_f$error),
       permissionGranted: data.dec(_f$permissionGranted),
+      discovering: data.dec(_f$discovering),
       bannerDismissed: data.dec(_f$bannerDismissed),
       registered: data.dec(_f$registered),
       invitable: data.dec(_f$invitable),
@@ -409,6 +418,7 @@ abstract class ContactsStateCopyWith<$R, $In extends ContactsState, $Out>
     Status? status,
     String? error,
     bool? permissionGranted,
+    bool? discovering,
     bool? bannerDismissed,
     List<ContactItem>? registered,
     List<ContactItem>? invitable,
@@ -486,6 +496,7 @@ class _ContactsStateCopyWithImpl<$R, $Out>
     Status? status,
     String? error,
     bool? permissionGranted,
+    bool? discovering,
     bool? bannerDismissed,
     List<ContactItem>? registered,
     List<ContactItem>? invitable,
@@ -500,6 +511,7 @@ class _ContactsStateCopyWithImpl<$R, $Out>
       if (status != null) #status: status,
       if (error != null) #error: error,
       if (permissionGranted != null) #permissionGranted: permissionGranted,
+      if (discovering != null) #discovering: discovering,
       if (bannerDismissed != null) #bannerDismissed: bannerDismissed,
       if (registered != null) #registered: registered,
       if (invitable != null) #invitable: invitable,
@@ -519,6 +531,7 @@ class _ContactsStateCopyWithImpl<$R, $Out>
       #permissionGranted,
       or: $value.permissionGranted,
     ),
+    discovering: data.get(#discovering, or: $value.discovering),
     bannerDismissed: data.get(#bannerDismissed, or: $value.bannerDismissed),
     registered: data.get(#registered, or: $value.registered),
     invitable: data.get(#invitable, or: $value.invitable),

@@ -6,6 +6,7 @@ import 'package:fixnum/fixnum.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:messenger/api.dart';
 import 'package:messenger/auth.dart';
+import 'package:messenger/constants.dart';
 import 'package:messenger/crypto.dart';
 import 'package:messenger/cubit/contacts/contacts_cubit.dart';
 import 'package:messenger/di.dart';
@@ -48,6 +49,18 @@ void main() {
     await Future<void>.delayed(Duration.zero);
     return cubit;
   }
+
+  test('пустой кэш: preload эмитит неблокирующее ожидание discovery', () async {
+    final cubit = await createCubit();
+    await cubit.preload();
+    // План 01-contacts-loading, шаг 3: первый запуск (кэша нет) больше не
+    // остаётся в молчаливом initialization — экран сразу показывает прогресс,
+    // пока discovery не заполнит списки.
+    expect(cubit.state.status, Status.loading);
+    expect(cubit.state.discovering, isFalse);
+    expect(cubit.state.registered, isEmpty);
+    expect(cubit.state.invitable, isEmpty);
+  });
 
   test('preload показывает кэш offline, ошибка CONTACTS_LIST его сохраняет', () async {
     contacts.rows.addAll([
@@ -236,7 +249,9 @@ void main() {
         ],
       ).writeToBuffer(),
     );
-    await Future<void>.delayed(Duration.zero);
+    // Пуш применяется с дебаунсом (шаг 3 плана 01): состояние собирается раз
+    // за окно дебаунса, а не на каждый item — ждём чуть больше задержки.
+    await Future<void>.delayed(const Duration(milliseconds: 350));
     expect(cubit.state.cloud.single.online, isFalse);
     expect(cubit.state.cloud.single.lastSeen, DateTime.fromMillisecondsSinceEpoch(100000));
 

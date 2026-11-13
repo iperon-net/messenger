@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
+import 'dart:isolate';
 
 import 'package:bloc/bloc.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:grpc/grpc.dart' show StatusCode;
@@ -18,7 +19,7 @@ import '../../crypto.dart';
 import '../../di.dart';
 import '../../logger.dart';
 import '../../platform.dart';
-import '../../protobuf.dart';
+import '../../protobuf.dart' hide Contact;
 import '../../protobuf.dart' as pb show Contact;
 import '../../repositories/repositories.dart';
 import '../../utils.dart';
@@ -51,6 +52,28 @@ class _CloudContact {
 
 /// Итог ручного добавления контакта по номеру (для текста пользователю).
 enum ContactAddResult { addedRegistered, addedPending, invalidNumber, limitReached, noConnection, failed }
+
+/// Чтение адресной книги в фоновом изоляте (план 01-contacts-loading, шаг 2):
+/// десериализация нативного ответа (~1 с на 6000 контактов) уходит из
+/// UI-isolate. Платформенный канал в фоновом изоляте работает через
+/// `BackgroundIsolateBinaryMessenger`; [token] null (тесты) — читаем в
+/// UI-isolate, как раньше. Top-level (а не метод кубита): замыкание для
+/// `Isolate.run` создаётся без контекста кубита — иначе вместе с ним между
+/// изолятами потянулись бы его стримы и провайдеры (они не sendable).
+Future<List<Contact>> _readBookInIsolate(RootIsolateToken? token) => Isolate.run(() async {
+  if (token != null) BackgroundIsolateBinaryMessenger.ensureInitialized(token);
+  return FlutterContacts.getAll(properties: {ContactProperty.name, ContactProperty.phone});
+});
+
+/// Нормализация прочитанной книги в фоновом изоляте — см.
+/// [ContactsCubit._normalizeBook]. Top-level по той же причине, что и
+/// [_readBookInIsolate]: замыкание без контекста кубита.
+Future<({Map<String, _Entry> entries, List<ContactCacheEntry> snapshot, int phones, int normalizeMs})> _normalizeBookInIsolate({
+  required List<Contact> deviceContacts,
+  required String ownPhoneE164,
+  required Set<String> excluded,
+  required Map<String, Uint8List> known,
+}) => Isolate.run(() => ContactsCubit._normalizeBook(deviceContacts, ownPhoneE164: ownPhoneE164, excluded: excluded, known: known));
 
 /// Итог удаления контакта.
 enum ContactRemoveResult { removed, noConnection, failed }
@@ -223,6 +246,35 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   List<ContactItem> _book = const [];
   final Map<String, _CloudContact> _cloud = {};
 
+  // Чанковая эмиссия книги (план 01-contacts-loading, шаг 2): состояние
+  // наращивается порциями по [_revealChunk] записей, чтобы первый кадр списка
+  // появился сразу, а пересборка/пересортировка всех записей не собирались в
+  // один кадр. [_bookVisible] — сколько записей [_book] уже показано.
+  int _bookVisible = 0;
+  bool _revealing = false;
+  static const int _revealChunk = 500;
+
+  /// Раскрывает книгу порциями: каждый чанк — отдельный emit с паузой на
+  /// отрисовку показанного, прежде чем наращивать дальше.
+  Future<void> _revealBook() async {
+    if (_revealing) return;
+    _revealing = true;
+    final sw = Stopwatch()..start();
+    var chunks = 0;
+    try {
+      while (_bookVisible < _book.length && !isClosed) {
+        _bookVisible = (_bookVisible + _revealChunk).clamp(0, _book.length);
+        _emitAll();
+        chunks++;
+        // Отдаём кадр на отрисовку показанного, прежде чем наращивать дальше.
+        await Future<void>.delayed(const Duration(milliseconds: 16));
+      }
+    } finally {
+      _revealing = false;
+    }
+    logger.info('contacts: reveal=${sw.elapsedMilliseconds}ms chunks=$chunks visible=$_bookVisible/${_book.length}');
+  }
+
   // Один discover идёт за раз (guard от параллельных запусков), а _discoverStarted
   // помнит, был ли он вообще запущен в этой сессии — чтобы первый показ вкладки не
   // дублировал уже стартовавшую фоновую дозагрузку.
@@ -247,6 +299,11 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   // онлайн). Наполняется [refreshPresence], сливается в элементы в [_emitAll].
   final Map<String, ({bool online, DateTime? lastSeen})> _presence = {};
   StreamSubscription<Uint8List>? _presenceSub;
+
+  // Дебаунс эмиссии на пачку presence-push'ей: состояние применяется в память
+  // сразу, пересортировка/показ — раз в [_presenceEmitDelay].
+  Timer? _presenceEmitDebounce;
+  static const Duration _presenceEmitDelay = Duration(milliseconds: 300);
 
   // Переход стрима connecting → updating/connected запускает [_fetchCloud], если
   // успешного синка ещё не было или он старше [_cloudSyncInterval].
@@ -330,13 +387,19 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   }
 
   /// Реактивный push: сервер прислал смену статуса контакта (PRESENCE с одним
-  /// item при переходе online/offline). Сливаем и сразу перерисовываем.
+  /// item при переходе online/offline). Сливаем сразу, а пересортировку/показ
+  /// собираем дебаунсом — чтобы пачка пушей не перерисовывала список на каждый
+  /// item (план 01-contacts-loading, шаг 3: фоновые обновления фоном).
   void _onPresencePush(Uint8List payload) {
     if (isClosed) return;
     final response = Presence_Response.fromBuffer(payload);
     if (response.items.isEmpty) return;
     _applyPresenceItems(response.items);
-    _emitAll();
+    _presenceEmitDebounce?.cancel();
+    _presenceEmitDebounce = Timer(_presenceEmitDelay, () {
+      _presenceEmitDebounce = null;
+      if (!isClosed) _emitAll();
+    });
   }
 
   /// Кладёт присутствие из PRESENCE-items в [_presence] (общий код pull и push).
@@ -377,6 +440,10 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
   Future<void> preload() async {
     final cached = await _measure('preload.dbGetAll', () => repositories.contacts.getAll(), (v) => 'rows=${v.length}');
     if (isClosed || cached.isEmpty) {
+      // Кэша нет (первый запуск) — сразу отдаём неблокирующее состояние ожидания
+      // discovery (план 01-contacts-loading, шаг 3), а не молчаливый initialization:
+      // экран показывает прогресс поиска, пока discovery не заполнит списки.
+      if (!isClosed) emit(state.copyWith(status: Status.loading));
       logger.info('contacts: preload cache empty (rows=0), waiting for discover');
       return;
     }
@@ -415,7 +482,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     // Поднимаем кэш last-seen из БД как offline-дефолт (online=false) — чтобы дата
     // последнего визита была видна сразу, до снимка присутствия по стриму.
     await _measure('preload.seedPresence', _seedPresenceFromCache, (_) => 'presence=${_presence.length}');
-    _measureSync('preload.emitAll', _emitAll, (_) => 'book=${_book.length} cloud=${_cloud.length}');
+    await _revealBook();
   }
 
   /// Засевает [_presence] последними known last-seen из локального кэша профилей
@@ -499,6 +566,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     if (identical(active, this)) active = null;
     WidgetsBinding.instance.removeObserver(this);
     _bookChangeDebounce?.cancel();
+    _presenceEmitDebounce?.cancel();
     _bookChangeSub?.cancel();
     _updatedSub?.cancel();
     _presenceSub?.cancel();
@@ -521,7 +589,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     _discovering = true;
     _discoverStarted = true;
     try {
-      emit(state.copyWith(status: Status.loading, error: ""));
+      emit(state.copyWith(status: Status.loading, discovering: true, error: ""));
 
       final permission = await _measure(
         'discover.permission',
@@ -539,75 +607,62 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       emit(state.copyWith(permissionGranted: true));
       _watchBook();
 
-      final deviceContacts = await _measure(
-        'discover.getAll',
-        () => FlutterContacts.getAll(properties: {ContactProperty.name, ContactProperty.phone}),
-        (v) => 'contacts=${v.length}',
-      );
-      if (isClosed) return;
-
       // Собственный номер (из сессии) — его не показываем среди контактов.
       final ownUser = await _measure('discover.ownUser', () => repositories.users.getBySession(session: auth.session));
       if (isClosed) return;
       final ownPhoneE164 = utils.phoneNormalization(phoneNumber: ownUser.phoneNumber).e164;
 
-      // Уникальные записи по e164; первое встреченное имя выигрывает.
-      var phoneCount = 0;
-      final entries = _measureSync('discover.normalize', () {
-        final result = <String, _Entry>{};
-        for (final contact in deviceContacts) {
-          for (final phone in contact.phones) {
-            phoneCount++;
-            final normalization = utils.phoneNormalization(phoneNumber: phone.number);
-            if (normalization.e164.isEmpty || normalization.raw.isEmpty) continue;
-            // Пропускаем собственный номер — себя в контактах не показываем.
-            if (ownPhoneE164.isNotEmpty && normalization.e164 == ownPhoneE164) continue;
-
-            result.putIfAbsent(
-              normalization.e164,
-              () => _Entry(
-                raw: normalization.raw,
-                phoneE164: normalization.e164,
-                phone: normalization.international,
-                displayName: (contact.displayName?.isNotEmpty ?? false) ? contact.displayName! : normalization.international,
-              ),
-            );
-          }
-        }
-        return result;
-      }, (v) => 'phones=$phoneCount entries=${v.length}');
-
       // Прячем вручную удалённые книжные контакты: их не показываем и не
       // отправляем в граф (иначе OPRF-ребро вернулось бы, т.к. номер ещё в книге).
       final excluded = await _measure('discover.excluded', _loadExcluded, (v) => 'excluded=${v.length}');
       if (isClosed) return;
-      entries.removeWhere((e164, _) => excluded.contains(e164));
 
-      // Книга пуста (или частичный доступ ничего не отдал) — не трогаем книжный
-      // снимок, чтобы не стереть прошлый кэш; просто показываем облачные.
-      if (entries.isEmpty) {
-        _book = const [];
-        _emitAll();
-        return;
-      }
-
-      // Сразу перерисовываем списки по свежей книге, используя лучшие known-userID
-      // (из уже показанного снимка, включая облачные), и записываем снимок в БД.
+      // Лучшие известные userID (из уже показанного снимка, включая облачные) —
+      // для книжного списка и снимка в БД, который собирается в изоляте.
       final known = <String, Uint8List>{
         for (final item in _book)
           if (item.userID != null) item.phoneE164: item.userID!,
         for (final contact in _cloud.values)
           if (contact.userID != null) contact.e164: contact.userID!,
       };
-      _measureSync('discover.bookBuild+emit', () {
-        _book = _bookItems(entries, known);
-        _emitAll();
-      }, (_) => 'book=${_book.length}');
-      await _measure(
-        'discover.replaceBook',
-        () => repositories.contacts.replaceBook(_bookSnapshot(entries, known)),
-        (_) => 'rows=${_book.length}',
+
+      // Чтение и нормализация книги вне UI-isolate (план 01-contacts-loading,
+      // шаг 2 — устранение ANR): десериализация нативного ответа (~1 с на 6000
+      // контактов) и цикл нормализации (~5 с) выполняются в фоновом изоляте
+      // (см. [_readBookInIsolate] / [_normalizeBookInIsolate]).
+      final deviceContacts = await _measure(
+        'discover.getAll',
+        () => _readBookInIsolate(RootIsolateToken.instance),
+        (v) => 'contacts=${v.length}',
       );
+      if (isClosed) return;
+
+      final book = await _measure(
+        'discover.normalize',
+        () => _normalizeBookInIsolate(deviceContacts: deviceContacts, ownPhoneE164: ownPhoneE164, excluded: excluded, known: known),
+        (v) => 'phones=${v.phones} entries=${v.entries.length} in=${v.normalizeMs}ms (isolate)',
+      );
+      if (isClosed) return;
+      final entries = book.entries;
+
+      // Книга пуста (или частичный доступ ничего не отдал) — не трогаем книжный
+      // снимок, чтобы не стереть прошлый кэш; просто показываем облачные.
+      if (entries.isEmpty) {
+        _book = const [];
+        _bookVisible = 0;
+        _emitAll();
+        return;
+      }
+
+      // Сразу перерисовываем списки по свежей книге — чанками ([_revealBook]),
+      // чтобы первый кадр появился, не дожидаясь полной пересборки, — и
+      // записываем снимок в БД (собран в изоляте, с known-userID).
+      _measureSync('discover.bookBuild', () {
+        _book = _bookItems(entries, known);
+        _bookVisible = 0;
+      }, (_) => 'book=${_book.length}');
+      unawaited(_revealBook());
+      await _measure('discover.replaceBook', () => repositories.contacts.replaceBook(book.snapshot), (_) => 'rows=${book.snapshot.length}');
       if (isClosed) return;
 
       // Книга не менялась и прошлый поиск ещё свежий (запись жива по TTL) —
@@ -635,6 +690,8 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
         if (isClosed) return;
 
         _book = _bookItems(entries, matched);
+        // Список уже полностью раскрыт (см. _revealBook) — показ не откатываем.
+        _bookVisible = _book.length;
         _emitAll();
         await repositories.contacts.replaceBook(_bookSnapshot(entries, matched));
         // Запоминаем отпечаток успешно синхронизированной книги (с TTL-страховкой).
@@ -645,6 +702,9 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       }
     } finally {
       _discovering = false;
+      // Списки могли остаться пустыми (нет доступа/пустая книга) — снимаем
+      // признак идущего поиска, чтобы экран не показывал его вечно.
+      if (!isClosed && state.discovering) emit(state.copyWith(discovering: false));
     }
   }
 
@@ -1044,6 +1104,49 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     await repositories.cache.setString(userID: userID, key: _legacyManualKey, value: jsonEncode(const []));
   }
 
+  /// Нормализация прочитанной книги в фоновом изоляте (план 01-contacts-loading,
+  /// шаг 2 — устранение ANR): цикл по всем телефонам книги раньше выполнялся в
+  /// UI-isolate и на 6000 номеров занимал ~5 с, замораживая интерфейс. Статичен
+  /// и не захватывает состояние кубита — в изоляте нет getIt/логгера; тайминги
+  /// возвращаются в результате. Снимок для replaceBook собирается здесь же,
+  /// с [known]-userID.
+  static ({Map<String, _Entry> entries, List<ContactCacheEntry> snapshot, int phones, int normalizeMs}) _normalizeBook(
+    List<Contact> deviceContacts, {
+    required String ownPhoneE164,
+    required Set<String> excluded,
+    required Map<String, Uint8List> known,
+  }) {
+    final sw = Stopwatch()..start();
+    final entries = <String, _Entry>{};
+    var phones = 0;
+    for (final contact in deviceContacts) {
+      for (final phone in contact.phones) {
+        phones++;
+        final normalization = Utils.normalizePhone(phoneNumber: phone.number);
+        if (normalization.e164.isEmpty || normalization.raw.isEmpty) continue;
+        // Собственный номер — себя в контактах не показываем.
+        if (ownPhoneE164.isNotEmpty && normalization.e164 == ownPhoneE164) continue;
+        // Вручную удалённые книжные номера прячем здесь: их не показываем и не
+        // отправляем в граф (иначе OPRF-ребро вернулось бы — номер ещё в книге).
+        if (excluded.contains(normalization.e164)) continue;
+        entries.putIfAbsent(
+          normalization.e164,
+          () => _Entry(
+            raw: normalization.raw,
+            phoneE164: normalization.e164,
+            phone: normalization.international,
+            displayName: (contact.displayName?.isNotEmpty ?? false) ? contact.displayName! : normalization.international,
+          ),
+        );
+      }
+    }
+    final snapshot = [
+      for (final entry in entries.values)
+        ContactCacheEntry(phoneE164: entry.phoneE164, displayName: entry.displayName, phone: entry.phone, userID: known[entry.phoneE164]),
+    ];
+    return (entries: entries, snapshot: snapshot, phones: phones, normalizeMs: sw.elapsedMilliseconds);
+  }
+
   /// Выполняет двухраундовый OPRF-поиск по [allEntries] пачками и возвращает
   /// карту `e164 -> userID` для зарегистрированных. Попутно (best-effort)
   /// синхронизирует серверный граф контактов через `CONTACTS_UPSERT`: те же
@@ -1253,7 +1356,9 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
     final registered = <ContactItem>[];
     final invitable = <ContactItem>[];
 
-    for (final item in _book) {
+    // Показана только раскрытая часть книги (см. [_revealBook]).
+    final visible = _bookVisible.clamp(0, _book.length);
+    for (final item in _book.take(visible)) {
       if (cloudKeys.contains(item.phoneE164)) continue;
       // Присутствие только у зарегистрированных (есть userID); приглашаемым не нужно.
       if (item.userID != null) {
@@ -1274,7 +1379,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
 
     // Контакты без имени — имя из профиля (читаем, когда набор изменился).
     final nameless = <String>{
-      for (final item in _book)
+      for (final item in _book.take(visible))
         if (item.userID case final userID? when item.displayName == item.phone && !cloudKeys.contains(item.phoneE164))
           utils.bytesToHex(userID),
       for (final contact in _cloud.values)

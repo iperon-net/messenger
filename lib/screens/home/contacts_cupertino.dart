@@ -122,7 +122,13 @@ class _ContactsCupertinoState extends State<ContactsCupertino> with SearchHideOn
               // присутствия (ContactsCubit.refresh). Слайдер — слайвером перед списком.
               final topSlivers = [CupertinoSliverRefreshControl(onRefresh: () => context.read<ContactsCubit>().refresh())];
               if (state.status != Status.success && state.registered.isEmpty && state.invitable.isEmpty && state.cloud.isEmpty) {
-                return searchListView(empty: const CupertinoActivityIndicator(), topSlivers: topSlivers);
+                // Кэш пуст: пока идёт discovery — прогресс поиска (план
+                // 01-contacts-loading, шаг 3); голый спиннер — только в короткое
+                // окно до его старта.
+                return searchListView(
+                  empty: _searchingBook(context, state.discovering, const CupertinoActivityIndicator()),
+                  topSlivers: topSlivers,
+                );
               }
 
               final registered = state.registered.where((item) => _visible(state, item)).toList();
@@ -167,6 +173,25 @@ class _ContactsCupertinoState extends State<ContactsCupertino> with SearchHideOn
           ),
         ),
       ),
+    );
+  }
+
+  /// Пустой экран с прогрессом discovery (план 01-contacts-loading, шаг 3):
+  /// подпись «Ищем контакты…» — пока поиск идёт ([discovering]); до его старта —
+  /// только [indicator].
+  Widget _searchingBook(BuildContext context, bool discovering, Widget indicator) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (discovering) ...[
+          Text(
+            context.t.screenContacts.searchingBook,
+            style: TextStyle(fontSize: 14, color: CupertinoColors.secondaryLabel.resolveFrom(context)),
+          ),
+          const SizedBox(height: 12),
+        ],
+        indicator,
+      ],
     );
   }
 

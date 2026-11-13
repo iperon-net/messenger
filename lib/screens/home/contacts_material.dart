@@ -127,7 +127,10 @@ class _ContactsMaterialState extends State<ContactsMaterial> with SearchHideOnSc
             if (state.status != Status.success && state.registered.isEmpty && state.invitable.isEmpty && state.cloud.isEmpty) {
               return RefreshIndicator(
                 onRefresh: _refresh,
-                child: searchListView(empty: const CircularProgressIndicator()),
+                // Кэш пуст: пока идёт discovery — прогресс поиска (план
+                // 01-contacts-loading, шаг 3); голый спиннер — только в короткое
+                // окно до его старта.
+                child: searchListView(empty: _searchingBook(context, state.discovering, const CircularProgressIndicator())),
               );
             }
 
@@ -190,6 +193,22 @@ class _ContactsMaterialState extends State<ContactsMaterial> with SearchHideOnSc
           type: MaterialType.transparency,
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: tiles),
         ),
+      ],
+    );
+  }
+
+  /// Пустой экран с прогрессом discovery (план 01-contacts-loading, шаг 3):
+  /// подпись «Ищем контакты…» — пока поиск идёт ([discovering]); до его старта —
+  /// только [indicator].
+  Widget _searchingBook(BuildContext context, bool discovering, Widget indicator) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (discovering) ...[
+          Text(context.t.screenContacts.searchingBook, style: Theme.of(context).textTheme.bodyMedium),
+          const SizedBox(height: 12),
+        ],
+        indicator,
       ],
     );
   }

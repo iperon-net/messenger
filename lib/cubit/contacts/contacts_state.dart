@@ -53,6 +53,12 @@ class ContactsState with ContactsStateMappable {
   /// Облачные контакты и поиск при этом доступны — экран не блокируется.
   final bool permissionGranted;
 
+  /// Идёт discovery телефонной книги (см. [ContactsCubit.discover]). Пока
+  /// списки пусты и он идёт — экран показывает прогресс поиска, а не голый
+  /// спиннер (план 01-contacts-loading, шаг 3: кэш пуст при первом запуске —
+  /// ожидание discovery не должно выглядеть зависанием).
+  final bool discovering;
+
   /// Пользователь закрыл баннер-объяснение о доступе к контактам в этой сессии.
   /// Живёт только в памяти кубита (не персистится) — на следующем запуске баннер
   /// снова напомнит о доступе, пока он не выдан.
@@ -87,6 +93,7 @@ class ContactsState with ContactsStateMappable {
     this.status = Status.initialization,
     this.error = "",
     this.permissionGranted = false,
+    this.discovering = false,
     this.bannerDismissed = false,
     this.registered = const [],
     this.invitable = const [],

@@ -91,7 +91,14 @@ class Utils {
     return const [];
   }
 
-  PhoneNumberModel phoneNormalization({required String phoneNumber}) {
+  PhoneNumberModel phoneNormalization({required String phoneNumber}) => normalizePhone(phoneNumber: phoneNumber);
+
+  /// Чистая (без состояния [Utils]) нормализация номера: зовётся и из
+  /// UI-isolate, и из фонового изолята адресной книги (план
+  /// 01-contacts-loading, шаг 2). dlibphonenumber — чистый Dart без
+  /// платформенных каналов, `PhoneNumberUtil.instance` доступен в любом
+  /// изоляте (в свежем — метаданные инициализируются лениво при первом вызове).
+  static PhoneNumberModel normalizePhone({required String phoneNumber}) {
     const empty = PhoneNumberModel(international: "", national: "", e164: "", rfc3966: "", raw: "");
 
     var digits = phoneNumber.replaceAll(RegExp(r'\D'), '');
@@ -101,6 +108,7 @@ class Utils {
       digits = '7${digits.substring(1)}';
     }
 
+    final phoneUtil = PhoneNumberUtil.instance;
     PhoneNumber phoneNumberParse;
     try {
       if (digits.length == 10 && digits.startsWith('9')) {
