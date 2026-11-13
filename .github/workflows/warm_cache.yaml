@@ -35,7 +35,7 @@ permissions:
   contents: read
 
 env:
-  FLUTTER_VERSION: "3.47.8"
+  FLUTTER_VERSION: "3.50.0"
   BUNDLE_GEMFILE: ${{ github.workspace }}/ios/Gemfile
 
 jobs:
@@ -91,7 +91,7 @@ jobs:
     name: Warm Android caches
     uses: iperon-net/messenger/.github/workflows/_deploy_android.yaml@main
     with:
-      flutter_version: "3.47.8"
+      flutter_version: "3.50.0"
       build_name: "0.0.0"
       build_number: "1"
       publish: false

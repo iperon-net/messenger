@@ -10,7 +10,7 @@ jobs:
     # @main: в `uses:` reusable-воркфлоу выражения не разрешены вовсе.
     uses: iperon-net/messenger/.github/workflows/_linter.yaml@main
     with:
-      flutter_version: "3.47.8"
+      flutter_version: "3.50.0"
       check_generated: true
     secrets:
       firebase_options_dart_base64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
@@ -19,6 +19,6 @@ jobs:
     needs: [Linter]
     uses: iperon-net/messenger/.github/workflows/_test.yaml@main
     with:
-      flutter_version: "3.47.8"
+      flutter_version: "3.50.0"
     secrets:
       firebase_options_dart_base64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}

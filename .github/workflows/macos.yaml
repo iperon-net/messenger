@@ -49,7 +49,7 @@ jobs:
     # @main: в `uses:` reusable-воркфлоу выражения не разрешены вовсе.
     uses: iperon-net/messenger/.github/workflows/_linter.yaml@main
     with:
-      flutter_version: "3.47.8"
+      flutter_version: "3.50.0"
     secrets:
       firebase_options_dart_base64: ${{ secrets.FIREBASE_OPTIONS_DART_BASE64 }}
 
@@ -60,7 +60,7 @@ jobs:
     permissions:
       contents: write
     with:
-      flutter_version: "3.47.8"
+      flutter_version: "3.50.0"
       build_name: ${{ inputs.build_name }}
       build_number: ${{ needs.Version.outputs.build_number }}
       publish: ${{ inputs.publish }}

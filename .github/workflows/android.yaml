@@ -50,7 +50,7 @@ jobs:
     permissions:
       contents: write
     with:
-      flutter_version: "3.47.8"
+      flutter_version: "3.50.0"
       build_name: ${{ inputs.build_name }}
       build_number: ${{ needs.Version.outputs.build_number }}
       publish: ${{ inputs.publish }}
