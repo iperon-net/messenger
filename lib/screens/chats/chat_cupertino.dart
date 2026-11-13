@@ -849,6 +849,8 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
   /// Текст в приподнятом пузыре можно выделить: «Копировать | Цитировать»
   /// (ответ на фрагмент, как в Telegram).
   Widget _menu(BuildContext context, models.Chat chat, models.Message message, Widget bubble, MessageBubblePreview preview) {
+    // Служебная плашка без права удаления — без меню вовсе.
+    if (message.service && !_cubit.canDelete(message)) return bubble;
     final quoteText = GlobalKey<QuotableTextState>();
     Widget quotable(Widget text) => QuotableText(
       key: quoteText,
@@ -905,6 +907,21 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
     }
 
     final mediaCopyable = chatMediaActionable(message) && message.kind != models.MessageKind.file;
+
+    // Служебная плашка: только «Удалить» (с правом) — закреп, ответы,
+    // пересылка и реакции к ней неприменимы (сервер их не принимает).
+    if (message.service) {
+      return [
+        if (_cubit.canDelete(message))
+          action(t.delete, CupertinoIcons.delete, () async {
+            if (!chatDeleteScoped(chat)) return _confirmDelete(context, chat, message);
+            final forEveryone = await ask(afterContextMenu: true);
+            if (forEveryone != null && context.mounted) {
+              await deleteWithDust(context, _cubit, [message.id], _keyFor, () => _cubit.delete(message, forEveryone: forEveryone));
+            }
+          }, destructive: true),
+      ];
+    }
     return [
       if (reactions.isNotEmpty)
         ReactionPicker(

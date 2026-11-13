@@ -273,6 +273,18 @@ class ChatMessagesView extends StatelessWidget {
   /// [_Vanishing]).
   Widget _vanishable(String id, Widget row) => vanishingIDs.contains(id) ? _Vanishing(key: ValueKey('vanish:$id'), child: row) : row;
 
+  /// Служебная плашка в не-личном чате: меню удаления и «пыль» как у
+  /// пузырей; личный — как раньше (звонки, автоудаление, защита).
+  /// [buildPill] — плашка: с [GlobalKey] строки (для «пыли») в ленте,
+  /// без ключа — в превью контекстного меню.
+  Widget servicePill(models.Message message, Widget Function(bool keyed) buildPill) {
+    if (chatType == models.ChatType.private) return buildPill(true);
+    Widget row = GestureDetector(behavior: HitTestBehavior.opaque, onLongPress: () => onLongPress(message), child: buildPill(true));
+    row = IgnorePointer(ignoring: selecting, child: row);
+    if (menuWrapper == null) return row;
+    return menuWrapper!(message, row, (maxWidth, {selectableText}) => buildPill(false));
+  }
+
   @override
   Widget build(BuildContext context) {
     final group = chatType == models.ChatType.group || chatType == models.ChatType.community;
@@ -288,15 +300,21 @@ class ChatMessagesView extends StatelessWidget {
       if (m.service && m.pinnedMessageID.isNotEmpty) {
         final pinnedID = m.pinnedMessageID;
         items.add(
-          _Pill(
-            key: keyFor?.call(m.id),
-            text: pinnedServiceText(
-              context.t,
+          _vanishable(
+            m.id,
+            servicePill(
               m,
-              messages.where((x) => x.id == pinnedID).firstOrNull ?? pinned.where((x) => x.id == pinnedID).firstOrNull,
+              (keyed) => _Pill(
+                key: keyed ? keyFor?.call(m.id) : null,
+                text: pinnedServiceText(
+                  context.t,
+                  m,
+                  messages.where((x) => x.id == pinnedID).firstOrNull ?? pinned.where((x) => x.id == pinnedID).firstOrNull,
+                ),
+                style: style,
+                onTap: onPinnedServiceTap == null ? null : () => onPinnedServiceTap!(pinnedID),
+              ),
             ),
-            style: style,
-            onTap: onPinnedServiceTap == null ? null : () => onPinnedServiceTap!(pinnedID),
           ),
         );
       } else if (m.service && (m.noForwardsChange != null || m.noForwardsRequest)) {
@@ -327,7 +345,7 @@ class ChatMessagesView extends StatelessWidget {
           ),
         );
       } else if (m.service) {
-        items.add(_Pill(text: m.text, style: style));
+        items.add(_vanishable(m.id, servicePill(m, (keyed) => _Pill(key: keyed ? keyFor?.call(m.id) : null, text: m.text, style: style))));
       } else {
         items.add(
           _vanishable(

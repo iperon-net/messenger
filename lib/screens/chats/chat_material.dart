@@ -944,6 +944,34 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
     final selection = _selectionFor(message);
     HapticFeedback.mediumImpact();
     final t = context.t.screenChat;
+    // Служебная плашка: только «Удалить» (с правом) — остальное к ней
+    // неприменимо (закреп, ответы, пересылка сервер не принимает).
+    if (message.service) {
+      if (!_cubit.canDelete(message)) return;
+      final error = Theme.of(context).colorScheme.error;
+      final delete = await showActionsMaterial<String>(
+        context: context,
+        builder: (sheetContext) => SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.delete_outline, color: error),
+                title: Text(t.delete, style: TextStyle(color: error)),
+                onTap: () => Navigator.of(sheetContext).pop('delete'),
+              ),
+            ],
+          ),
+        ),
+      );
+      if (delete == 'delete' && context.mounted) {
+        final forEveryone = await _askDelete(context, chat, 1);
+        if (forEveryone != null && context.mounted) {
+          await deleteWithDust(context, _cubit, [message.id], _keyFor, () => _cubit.delete(message, forEveryone: forEveryone));
+        }
+      }
+      return;
+    }
     final canWrite = chat.canPost && !_cubit.state.commentsBlocked;
     final commentsClosed = _cubit.state.commentsClosedIDs.contains(message.id);
     final error = Theme.of(context).colorScheme.error;
