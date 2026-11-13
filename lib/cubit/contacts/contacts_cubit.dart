@@ -404,6 +404,7 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
 
   /// Кладёт присутствие из PRESENCE-items в [_presence] (общий код pull и push).
   void _applyPresenceItems(List<Presence_Item> items) {
+    final lastSeens = <({List<int> userID, DateTime? lastSeen})>[];
     for (final item in items) {
       final userID = Uint8List.fromList(item.userID);
       final seconds = item.lastSeen.toInt();
@@ -412,17 +413,15 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
       _presence[utils.bytesToHex(userID)] = (online: item.online, lastSeen: lastSeen);
 
       // Персистим last-seen в кэш профиля — чтобы показать дату на cold-start /
-      // без сети до прихода снимка. online НЕ сохраняем (эфемерный). Best-effort.
-      // Время скрыто («Время захода» → 0) — стираем кэш, а не оставляем
-      // устаревшее.
+      // без сети до прихода снимка. online НЕ сохраняем (эфемерный). Время
+      // скрыто («Время захода» → 0) — стираем кэш, а не оставляем устаревшее.
+      // Пишем одной транзакцией на всю пачку (план 01-contacts-loading, шаг 5).
       if (!item.online) {
-        unawaited(
-          (lastSeen != null
-                  ? repositories.profiles.updateLastSeen(userID: userID, lastSeen: lastSeen)
-                  : repositories.profiles.clearLastSeen(userID: userID))
-              .catchError((Object e, StackTrace s) => logger.handle(e, s)),
-        );
+        lastSeens.add((userID: userID.toList(), lastSeen: lastSeen));
       }
+    }
+    if (lastSeens.isNotEmpty) {
+      unawaited(repositories.profiles.updateLastSeenBatch(items: lastSeens).catchError((Object e, StackTrace s) => logger.handle(e, s)));
     }
   }
 
@@ -654,30 +653,38 @@ class ContactsCubit extends Cubit<ContactsState> with WidgetsBindingObserver {
         return;
       }
 
+      // Книга не менялась и прошлый поиск ещё свежий (запись жива по TTL) —
+      // пропускаем и перезапись снимка в БД, и дорогой OPRF (план
+      // 01-contacts-loading, шаг 5): registered уже корректны из снимка, а
+      // снимок в БД равен собираемому заново (набор номеров тот же; имена
+      // обновятся на ближайшем полном проходе — по TTL или pull-to-refresh).
+      final userID = Uint8List.fromList(auth.session.userID);
+      final fingerprint = _bookFingerprint(entries.values);
+      var fingerprintUnchanged = false;
+      if (!force) {
+        final saved = await _measure('discover.fingerprintCheck', () => repositories.cache.getString(userID: userID, key: _fingerprintKey));
+        if (isClosed) return;
+        fingerprintUnchanged = saved == fingerprint;
+      }
+
       // Сразу перерисовываем списки по свежей книге — чанками ([_revealBook]),
       // чтобы первый кадр появился, не дожидаясь полной пересборки, — и
-      // записываем снимок в БД (собран в изоляте, с known-userID).
+      // записываем снимок в БД (собран в изоляте, с known-userID), если книга
+      // изменилась.
       _measureSync('discover.bookBuild', () {
         _book = _bookItems(entries, known);
         _bookVisible = 0;
       }, (_) => 'book=${_book.length}');
       unawaited(_revealBook());
+
+      if (fingerprintUnchanged) {
+        logger.info('contacts: discover fingerprint unchanged, skipping replaceBook and OPRF');
+        emit(state.copyWith(status: Status.success));
+        return;
+      }
+
       await _measure('discover.replaceBook', () => repositories.contacts.replaceBook(book.snapshot), (_) => 'rows=${book.snapshot.length}');
       if (isClosed) return;
-
-      // Книга не менялась и прошлый поиск ещё свежий (запись жива по TTL) —
-      // пропускаем дорогой OPRF, registered уже корректны из снимка.
-      final userID = Uint8List.fromList(auth.session.userID);
-      final fingerprint = _bookFingerprint(entries.values);
-      if (!force) {
-        final saved = await _measure('discover.fingerprintCheck', () => repositories.cache.getString(userID: userID, key: _fingerprintKey));
-        if (isClosed) return;
-        if (saved == fingerprint) {
-          logger.info('contacts: discover fingerprint unchanged, skipping OPRF');
-          emit(state.copyWith(status: Status.success));
-          return;
-        }
-      }
 
       // OPRF-поиск. Ошибка сети не критична — остаёмся на данных из снимка.
       try {

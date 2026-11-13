@@ -1071,6 +1071,15 @@ class Repositories {
       }),
     );
 
+    migrations.add(
+      SqliteMigration(54, (tx) async {
+        // План 01-contacts-loading, шаг 5: запросы «контакт по userID» (имена в
+        // звонках/чатах, привязка OPRF-рёбер, namesByUserID) раньше сканировали
+        // всю таблицу — phoneE164-ключ им не помогает.
+        await tx.execute('CREATE INDEX contacts_userID ON contacts(userID);');
+      }),
+    );
+
     return migrations;
   }
 }

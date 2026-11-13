@@ -150,6 +150,13 @@ class API {
   final logger = getIt.get<Logger>();
   final settings = getIt.get<Settings>();
 
+  /// Дедлайн unary-вызовов (план 01-contacts-loading, шаг 5): без него зависший
+  /// RPC при живом, но молчащем соединении висит неопределённо и молча продлевает
+  /// «загрузку» (контакты, присутствие, профили). 30 с — как connectionTimeout
+  /// канала; истечение даёт DEADLINE_EXCEEDED, обрабатываемый как обычная ошибка
+  /// вызова (retry/офлайн-ветки уже это умеют).
+  static final _unaryOptions = CallOptions(timeout: const Duration(seconds: 30));
+
   late IperonClient client;
 
   /// Отдельный клиент только для стрима `Upload` — на своём [ClientChannel],
@@ -1041,7 +1048,10 @@ class API {
     final encoded = await crypto.syncer.encode(session: session, message: payload);
 
     return call(() async {
-      await client.unary(Message(messageType: type, message: encoded));
+      await client.unary(
+        Message(messageType: type, message: encoded),
+        options: _unaryOptions,
+      );
     }, session: _session == null ? null : session);
   }
 
@@ -1053,7 +1063,10 @@ class API {
     final encoded = await crypto.syncer.encode(session: session, message: payload);
 
     return call(() async {
-      await client.unary(Message(messageType: type, message: encoded));
+      await client.unary(
+        Message(messageType: type, message: encoded),
+        options: _unaryOptions,
+      );
     }, session: session);
   }
 
@@ -1071,7 +1084,10 @@ class API {
 
     Uint8List? responsePayload;
     final status = await call(() async {
-      final response = await client.unary(Message(messageType: type, message: encoded));
+      final response = await client.unary(
+        Message(messageType: type, message: encoded),
+        options: _unaryOptions,
+      );
       final decoded = await crypto.syncer.decode(session: session, message: Uint8List.fromList(response.message));
       responsePayload = Uint8List.fromList(decoded);
     }, session: _session == null ? null : session);

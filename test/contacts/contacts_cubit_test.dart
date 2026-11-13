@@ -254,6 +254,11 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 350));
     expect(cubit.state.cloud.single.online, isFalse);
     expect(cubit.state.cloud.single.lastSeen, DateTime.fromMillisecondsSinceEpoch(100000));
+    // Last-seen оффлайн-контакта персистится одной транзакцией на пачку (шаг 5).
+    final profiles = (cubit.repositories as FakeRepositories).profiles as FakeProfiles;
+    expect(profiles.lastSeenBatches, hasLength(1));
+    expect(profiles.lastSeenBatches.single.userID, [7]);
+    expect(profiles.lastSeenBatches.single.lastSeen, DateTime.fromMillisecondsSinceEpoch(100000));
 
     await cubit.search('/secret');
     expect(cubit.state.revealedHex, {'07'});
@@ -309,6 +314,10 @@ final class FakeHiddenProfiles implements HiddenProfiles {
 }
 
 final class FakeProfiles implements Profiles {
+  /// Записанные батчи last-seen (план 01-contacts-loading, шаг 5): presence
+  /// должен персиститься одной транзакцией на пачку, а не поштучно.
+  final lastSeenBatches = <({List<int> userID, DateTime? lastSeen})>[];
+
   @override
   Future<Map<String, DateTime>> getLastSeenByUserIDs({required List<List<int>> userIDs, required String Function(List<int>) toHex}) async =>
       const {};
@@ -318,6 +327,11 @@ final class FakeProfiles implements Profiles {
 
   @override
   Future<void> clearLastSeen({required List<int> userID}) async {}
+
+  @override
+  Future<void> updateLastSeenBatch({required List<({List<int> userID, DateTime? lastSeen})> items}) async {
+    lastSeenBatches.addAll(items);
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

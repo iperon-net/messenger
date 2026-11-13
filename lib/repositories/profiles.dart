@@ -85,6 +85,31 @@ class Profiles {
     await db.execute("UPDATE profiles SET lastSeenAt = NULL WHERE userID = ? AND lastSeenAt IS NOT NULL;", [userID]);
   }
 
+  /// Батч-версия [updateLastSeen]/[clearLastSeen]: вся пачка присутствия пишется
+  /// одной транзакцией (план 01-contacts-loading, шаг 5) — на большой книге
+  /// поштучные вызовы давали сотни отдельных транзакций ровно в момент открытия
+  /// вкладки. `lastSeen == null` — стереть (сервер скрыл время).
+  Future<void> updateLastSeenBatch({required List<({List<int> userID, DateTime? lastSeen})> items}) async {
+    await db.writeTransaction((tx) async {
+      for (final item in items) {
+        final lastSeen = item.lastSeen;
+        if (lastSeen == null) {
+          await tx.execute("UPDATE profiles SET lastSeenAt = NULL WHERE userID = ? AND lastSeenAt IS NOT NULL;", [item.userID]);
+        } else {
+          await tx.execute(
+            """
+            INSERT INTO profiles (userID, lastSeenAt)
+            VALUES(?, ?)
+            ON CONFLICT(userID) DO UPDATE SET
+              lastSeenAt = excluded.lastSeenAt;
+            """,
+            [item.userID, lastSeen.millisecondsSinceEpoch],
+          );
+        }
+      }
+    });
+  }
+
   /// Upsert всех текстовых полей профиля разом (кроме аватара — он привязывается
   /// отдельно через [updateAvatarByCdnID], т.к. может приходить/скачиваться
   /// независимо). Ключ конфликта — `userID`.
