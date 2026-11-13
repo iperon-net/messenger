@@ -198,6 +198,23 @@ UI-isolate, имена и аватарки — дозагружаться без
 - [ ] 5. БД/RPC-оптимизации: миграция 54 — индекс `contacts(userID)`; батч-
   запись last-seen одной транзакцией; gRPC-дедлайн на unary-вызовы; пропуск
   rewrite `replaceBook` при неизменном fingerprint книги.
+
+  **Результат (эмулятор, книга 6000, warm-старт, 2026-11-13):**
+  - Skip-rewrite работает: в логах warm-старта `replaceBook` отсутствует
+    («fingerprint unchanged, skipping replaceBook and OPRF»), нет и OPRF —
+    `bootstrap.total=8578ms` (было 10790ms со skip-OPRF и rewrite 2.8s; все
+    тяжёлые фазы по-прежнему вне UI-isolate). Компромисс: имена из
+    системной книги в БД обновляются на ближайшем полном проходе (TTL 24 ч
+    или pull-to-refresh) — показ в памяти всегда свежий.
+  - Миграция 54 (`CREATE INDEX contacts_userID`) прошла на обновлённой БД,
+    контакты на месте; запросы «контакт по userID» (имена в звонках/чатах,
+    профили) перестали сканировать таблицу.
+  - last-seen пачки PRESENCE пишется одной транзакцией
+    (`Profiles.updateLastSeenBatch`), юнит-тест ассертит батч.
+  - Unary-вызовы (`unaryEncoded`/`unaryEncodedAs`/`unaryEncodedWithResponse`)
+    ходят с дедлайном 30 с (`CallOptions.timeout`) — зависший RPC больше не
+    висит неопределённо и не продлевает «загрузку» молча; истечение даёт
+    DEADLINE_EXCEEDED, обрабатываемый существующими офлайн-ветками.
 - [ ] 6. Прекоммиты (`dart format lib`, `flutter analyze`, `flutter test`),
   регенерация `INDEX.md` (`scripts/gen-plan-index.sh`) перед docs-коммитами.
 
