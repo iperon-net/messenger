@@ -289,7 +289,17 @@ class ChatMessagesView extends StatelessWidget {
     }
     return IgnorePointer(
       ignoring: selecting,
-      child: GestureDetector(behavior: HitTestBehavior.opaque, onLongPress: () => onLongPress(message), child: row),
+      child: Listener(
+        // Десктоп: правый клик по плашке — как по пузырю (меню у курсора).
+        onPointerDown: AppPlatform.isDesktop
+            ? (event) {
+                if (event.kind != PointerDeviceKind.mouse || event.buttons != kSecondaryMouseButton) return;
+                DesktopPointer.last = event.position;
+                onLongPress(message);
+              }
+            : null,
+        child: GestureDetector(behavior: HitTestBehavior.opaque, onLongPress: () => onLongPress(message), child: row),
+      ),
     );
   }
 

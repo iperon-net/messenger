@@ -218,5 +218,22 @@ void main() {
       await tester.pump();
       expect(pressed?.id, pill.id);
     });
+
+    testWidgets('на десктопе правый клик по плашке уходит в экран (меню у курсора)', (tester) async {
+      models.Message? pressed;
+      await tester.pumpWidget(
+        TranslationProvider(
+          child: CupertinoApp(home: view(onLongPress: (message) => pressed = message)),
+        ),
+      );
+
+      final at = tester.getCenter(find.text('Анна добавила Ивана'));
+      final click = await tester.startGesture(at, kind: PointerDeviceKind.mouse, buttons: kSecondaryMouseButton);
+      await tester.pump();
+      await click.up();
+
+      expect(pressed?.id, pill.id);
+      expect(DesktopPointer.last, at);
+    });
   });
 }
