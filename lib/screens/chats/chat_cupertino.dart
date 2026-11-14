@@ -695,12 +695,10 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
                                                   top: 8 + (state.pinnedMessages.isEmpty ? 0 : PinnedMessageBar.height),
                                                   bottom: 8,
                                                 ),
-                                                // Удержание — CupertinoContextMenu (menuWrapper) у пузырей;
-                                                // служебные плашки — своё контекстное меню с репликой
-                                                // на месте строки (см. `_servicePillActions`).
+                                                // Удержание — CupertinoContextMenu (menuWrapper), не action sheet.
+                                                // Служебные плашки тоже заворачиваются — их меню только с
+                                                // «Удалить» (см. ветку сервиса в `_menuActions`).
                                                 onLongPress: (_) {},
-                                                onServiceMenu: (message, pill, rect) =>
-                                                    _servicePillActions(context, chat, message, pill, rect),
                                                 menuWrapper: (message, bubble, preview) => _menu(context, chat, message, bubble, preview),
                                                 controller: _scroll,
                                                 onDrag: _emoji.close,
@@ -857,16 +855,6 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
   /// `GlobalKey` строки в момент нажатия: decoy `CupertinoContextMenu` на
   /// устройстве брал её после сдвига рядов (шаги 5 и 7 плана
   /// 02-delete-service-messages).
-  Future<void> _servicePillActions(BuildContext context, models.Chat chat, models.Message message, Widget pill, Rect rect) async {
-    if (!_cubit.canDelete(message)) return;
-    final deleted = await showPillContextMenu(context, pill: pill, rect: rect, deleteLabel: context.t.screenChat.delete);
-    if (deleted && context.mounted) {
-      final forEveryone = await _askDelete(context, chat, 1);
-      if (forEveryone != null && context.mounted) {
-        await deleteWithDust(context, _cubit, [message.id], _keyFor, () => _cubit.delete(message, forEveryone: forEveryone));
-      }
-    }
-  }
 
   Widget _menu(BuildContext context, models.Chat chat, models.Message message, Widget bubble, MessageBubblePreview preview) {
     final quoteText = GlobalKey<QuotableTextState>();
@@ -925,6 +913,21 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
     }
 
     final mediaCopyable = chatMediaActionable(message) && message.kind != models.MessageKind.file;
+
+    // Служебная плашка: только «Удалить» (с правом) — закреп, ответы,
+    // пересылка и реакции к ней неприменимы (сервер их не принимает).
+    if (message.service) {
+      return [
+        if (_cubit.canDelete(message))
+          action(t.delete, CupertinoIcons.delete, () async {
+            if (!chatDeleteScoped(chat)) return _confirmDelete(context, chat, message);
+            final forEveryone = await ask(afterContextMenu: true);
+            if (forEveryone != null && context.mounted) {
+              await deleteWithDust(context, _cubit, [message.id], _keyFor, () => _cubit.delete(message, forEveryone: forEveryone));
+            }
+          }, destructive: true),
+      ];
+    }
     return [
       if (reactions.isNotEmpty)
         ReactionPicker(

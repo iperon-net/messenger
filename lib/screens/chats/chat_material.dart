@@ -772,7 +772,6 @@ class _ChatMaterialState extends State<ChatMaterial> with UnreadBackCount {
                                                 bottom: 8,
                                               ),
                                               onLongPress: (message) => _actions(context, chat, message),
-                                              onServiceMenu: (message, pill, rect) => _actions(context, chat, message),
                                               onTextSelection: (selection) {
                                                 final (message, range) = selection;
                                                 if (range == null) {

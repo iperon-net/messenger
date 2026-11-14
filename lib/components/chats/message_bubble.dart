@@ -98,12 +98,6 @@ class ChatMessagesView extends StatelessWidget {
   final MessageBubbleStyle style;
   final ValueChanged<models.Message> onLongPress;
 
-  /// Меню служебной плашки (группа/сообщество/канал): [pill] — реплика для
-  /// контекстного меню, [rect] — место строки в ленте (глобальные
-  /// координаты, из `GlobalKey` строки в момент нажатия). Вызывается на
-  /// long-press и правый клик; null — fallback на [onLongPress].
-  final Future<void> Function(models.Message message, Widget pill, Rect rect)? onServiceMenu;
-
   /// Тап по фото/видео ([index] — элемент альбома).
   final void Function(models.Message message, int index)? onMediaTap;
   final EdgeInsets padding;
@@ -239,7 +233,6 @@ class ChatMessagesView extends StatelessWidget {
     this.onTap,
     this.onPinnedServiceTap,
     this.onNoForwardsAnswer,
-    this.onServiceMenu,
     this.pinned = const [],
     this.unreadFromID,
     this.flashID,
@@ -280,12 +273,18 @@ class ChatMessagesView extends StatelessWidget {
   /// [_Vanishing]).
   Widget _vanishable(String id, Widget row) => vanishingIDs.contains(id) ? _Vanishing(key: ValueKey('vanish:$id'), child: row) : row;
 
-  /// Служебная плашка в не-личном чате: long-press и правый клик открывают
-  /// [onServiceMenu] (реплика плашки + её место в ленте); «пыль» как у
-  /// пузырей; личный — как раньше (звонки, автоудаление, защита). Без
-  /// [onServiceMenu] — fallback на [onLongPress] (экраны без меню плашки).
+  /// Служебная плашка в не-личном чате: меню удаления и «пыль» как у
+  /// пузырей; личный — как раньше (звонки, автоудаление, защита). Плашка
+  /// приходит БЕЗ ключа строки (ключ на обёртке) — её копия в decoy-меню
+  /// и в превью маршрута не конфликтует с `GlobalKey` строки.
   Widget servicePill(models.Message message, Widget pill) {
     if (chatType == models.ChatType.private) return pill;
+    Widget row = pill;
+    if (menuWrapper != null) {
+      // iOS: decoy-контекстное меню, как у пузырей (реплика без ключа).
+      row = menuWrapper!(message, row, (maxWidth, {selectableText}) => pill);
+      return IgnorePointer(ignoring: selecting, child: row);
+    }
     return IgnorePointer(
       ignoring: selecting,
       child: Listener(
@@ -294,30 +293,12 @@ class ChatMessagesView extends StatelessWidget {
             ? (event) {
                 if (event.kind != PointerDeviceKind.mouse || event.buttons != kSecondaryMouseButton) return;
                 DesktopPointer.last = event.position;
-                _openPillMenu(message, pill);
+                onLongPress(message);
               }
             : null,
-        child: GestureDetector(behavior: HitTestBehavior.opaque, onLongPress: () => _openPillMenu(message, pill), child: pill),
+        child: GestureDetector(behavior: HitTestBehavior.opaque, onLongPress: () => onLongPress(message), child: row),
       ),
     );
-  }
-
-  /// Меню плашки: позиция реплики — из `GlobalKey` строки в момент нажатия,
-  /// всегда актуальная (decoy `CupertinoContextMenu` на устройстве брал её
-  /// после сдвига рядов). Без ключа или без [onServiceMenu] — fallback.
-  void _openPillMenu(models.Message message, Widget pill) {
-    final menu = onServiceMenu;
-    if (menu == null) {
-      onLongPress(message);
-      return;
-    }
-    final key = keyFor?.call(message.id);
-    final renderObject = key?.currentContext?.findRenderObject() as RenderBox?;
-    if (renderObject == null || !renderObject.hasSize) {
-      onLongPress(message);
-      return;
-    }
-    menu(message, pill, renderObject.localToGlobal(Offset.zero) & renderObject.size);
   }
 
   @override

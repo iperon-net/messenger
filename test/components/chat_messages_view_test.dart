@@ -152,7 +152,6 @@ void main() {
     ChatMessagesView view({
       Widget Function(models.Message, Widget, MessageBubblePreview)? menuWrapper,
       void Function(models.Message)? onLongPress,
-      Future<void> Function(models.Message, Widget, Rect)? onServiceMenu,
       GlobalKey Function(String id)? keyFor,
     }) {
       return ChatMessagesView(
@@ -160,42 +159,38 @@ void main() {
         chatType: models.ChatType.group,
         style: style,
         onLongPress: onLongPress ?? (_) {},
-        onServiceMenu: onServiceMenu,
         menuWrapper: menuWrapper,
         keyFor: keyFor,
       );
     }
 
-    testWidgets('long-press: экран получает реплику плашки и её место в ленте', (tester) async {
-      (models.Message, Widget, Rect)? menu;
-      var bubbleMenus = 0;
+    testWidgets('с обёрткой плашка уходит в menuWrapper; копия без ключа монтируется рядом без конфликта GlobalKey', (tester) async {
       final key = GlobalKey();
-      await tester.pumpWidget(
-        TranslationProvider(
-          child: CupertinoApp(
-            home: view(
-              // Обёртка пузырей плашку не получает: плашка минует decoy-механику
-              // `CupertinoContextMenu` (шаг 7 — на устройстве она сдвигала ряды).
-              menuWrapper: (message, bubble, preview) {
-                bubbleMenus++;
-                return bubble;
-              },
-              onServiceMenu: (message, pill, rect) async => menu = (message, pill, rect),
-              keyFor: (_) => key,
+      Widget? bubble;
+      Widget host() => TranslationProvider(
+        child: CupertinoApp(
+          home: StatefulBuilder(
+            builder: (context, setState) => Stack(
+              children: [
+                view(keyFor: (_) => key, menuWrapper: (message, b, preview) => bubble = b),
+                if (bubble != null) Positioned(left: 0, top: 400, width: 800, height: 40, child: bubble!),
+              ],
             ),
           ),
         ),
       );
-
-      await tester.longPress(find.text('Анна добавила Ивана'));
+      // Первый проход: обёртка получает плашку; второй — монтируем её копию.
+      await tester.pumpWidget(host());
+      await tester.pumpWidget(host());
       await tester.pump();
 
-      expect(menu?.$1.id, pill.id);
-      expect(menu?.$3.contains(tester.getCenter(find.text('Анна добавила Ивана'))), isTrue);
-      expect(bubbleMenus, 0);
+      // Ключ строки на обёртке (KeyedSubtree), плашка без ключа — копия в
+      // decoy-оверлее сосуществует со строкой ленты без конфликта.
+      expect(tester.takeException(), isNull);
+      expect(find.text('Анна добавила Ивана'), findsNWidgets(2));
     });
 
-    testWidgets('без onServiceMenu — fallback на onLongPress', (tester) async {
+    testWidgets('без обёртки (Material/десктоп) long-press уходит в экран', (tester) async {
       models.Message? pressed;
       await tester.pumpWidget(
         TranslationProvider(
@@ -208,47 +203,11 @@ void main() {
       expect(pressed?.id, pill.id);
     });
 
-    testWidgets('реплика в меню монтируется без конфликта GlobalKey со строкой ленты', (tester) async {
-      final key = GlobalKey();
-      Widget? replica;
+    testWidgets('на десктопе правый клик по плашке уходит в экран (меню у курсора)', (tester) async {
+      models.Message? pressed;
       await tester.pumpWidget(
         TranslationProvider(
-          child: CupertinoApp(
-            home: StatefulBuilder(
-              builder: (context, setState) => Stack(
-                children: [
-                  view(
-                    keyFor: (_) => key,
-                    onServiceMenu: (message, pill, rect) {
-                      setState(() => replica = pill);
-                      return Future.value();
-                    },
-                  ),
-                  if (replica != null) Positioned(left: 0, top: 400, width: 800, height: 40, child: replica!),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await tester.longPress(find.text('Анна добавила Ивана'));
-      await tester.pump();
-      await tester.pump();
-
-      // Ключ строки на обёртке, реплика без ключа — сосуществуют без ошибки.
-      expect(tester.takeException(), isNull);
-      expect(find.text('Анна добавила Ивана'), findsNWidgets(2));
-    });
-
-    testWidgets('на десктопе правый клик по плашке — тоже меню', (tester) async {
-      var menus = 0;
-      final key = GlobalKey();
-      await tester.pumpWidget(
-        TranslationProvider(
-          child: CupertinoApp(
-            home: view(onServiceMenu: (message, pill, rect) async => menus++, keyFor: (_) => key),
-          ),
+          child: CupertinoApp(home: view(onLongPress: (message) => pressed = message)),
         ),
       );
 
@@ -257,7 +216,7 @@ void main() {
       await tester.pump();
       await click.up();
 
-      expect(menus, 1);
+      expect(pressed?.id, pill.id);
       expect(DesktopPointer.last, at);
     });
   });
