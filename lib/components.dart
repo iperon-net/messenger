@@ -28,6 +28,7 @@ export './components/search_hide_on_scroll.dart';
 export './components/chats/message_text.dart';
 export './components/chats/quotable_text.dart';
 export './components/chats/message_bubble.dart';
+export './components/chats/pill_context_menu.dart';
 export './components/chats/chat_wallpaper.dart';
 export './components/chats/media_viewer.dart';
 export './components/chats/media_crop.dart';

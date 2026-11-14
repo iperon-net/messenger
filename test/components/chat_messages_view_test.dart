@@ -152,36 +152,50 @@ void main() {
     ChatMessagesView view({
       Widget Function(models.Message, Widget, MessageBubblePreview)? menuWrapper,
       void Function(models.Message)? onLongPress,
+      Future<void> Function(models.Message, Widget, Rect)? onServiceMenu,
+      GlobalKey Function(String id)? keyFor,
     }) {
       return ChatMessagesView(
         messages: [pill],
         chatType: models.ChatType.group,
         style: style,
         onLongPress: onLongPress ?? (_) {},
+        onServiceMenu: onServiceMenu,
         menuWrapper: menuWrapper,
+        keyFor: keyFor,
       );
     }
 
-    testWidgets('с обёрткой (iOS-меню пузырей) long-press плашки уходит в экран — плашки в контекстное меню не заворачиваются', (
-      tester,
-    ) async {
-      var calls = 0;
-      // Плашка минует decoy-механику `CupertinoContextMenu`: на устройстве
-      // она сдвигала ряды ленты (шаг 5), экран показывает action sheet.
+    testWidgets('long-press: экран получает реплику плашки и её место в ленте', (tester) async {
+      (models.Message, Widget, Rect)? menu;
+      var bubbleMenus = 0;
+      final key = GlobalKey();
       await tester.pumpWidget(
         TranslationProvider(
           child: CupertinoApp(
-            home: view(menuWrapper: (message, bubble, preview) => bubble, onLongPress: (_) => calls++),
+            home: view(
+              // Обёртка пузырей плашку не получает: плашка минует decoy-механику
+              // `CupertinoContextMenu` (шаг 7 — на устройстве она сдвигала ряды).
+              menuWrapper: (message, bubble, preview) {
+                bubbleMenus++;
+                return bubble;
+              },
+              onServiceMenu: (message, pill, rect) async => menu = (message, pill, rect),
+              keyFor: (_) => key,
+            ),
           ),
         ),
       );
 
       await tester.longPress(find.text('Анна добавила Ивана'));
       await tester.pump();
-      expect(calls, 1);
+
+      expect(menu?.$1.id, pill.id);
+      expect(menu?.$3.contains(tester.getCenter(find.text('Анна добавила Ивана'))), isTrue);
+      expect(bubbleMenus, 0);
     });
 
-    testWidgets('без обёртки (Material) long-press уходит в экран', (tester) async {
+    testWidgets('без onServiceMenu — fallback на onLongPress', (tester) async {
       models.Message? pressed;
       await tester.pumpWidget(
         TranslationProvider(
@@ -194,11 +208,14 @@ void main() {
       expect(pressed?.id, pill.id);
     });
 
-    testWidgets('на десктопе правый клик по плашке уходит в экран (меню у курсора)', (tester) async {
-      models.Message? pressed;
+    testWidgets('на десктопе правый клик по плашке — тоже меню', (tester) async {
+      var menus = 0;
+      final key = GlobalKey();
       await tester.pumpWidget(
         TranslationProvider(
-          child: CupertinoApp(home: view(onLongPress: (message) => pressed = message)),
+          child: CupertinoApp(
+            home: view(onServiceMenu: (message, pill, rect) async => menus++, keyFor: (_) => key),
+          ),
         ),
       );
 
@@ -207,7 +224,7 @@ void main() {
       await tester.pump();
       await click.up();
 
-      expect(pressed?.id, pill.id);
+      expect(menus, 1);
       expect(DesktopPointer.last, at);
     });
   });

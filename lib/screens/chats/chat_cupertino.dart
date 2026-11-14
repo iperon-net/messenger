@@ -696,11 +696,11 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
                                                   bottom: 8,
                                                 ),
                                                 // Удержание — CupertinoContextMenu (menuWrapper) у пузырей;
-                                                // служебные плашки в меню не заворачиваются — их
-                                                // long-press показывает action sheet (см. `_servicePillActions`).
-                                                onLongPress: (message) {
-                                                  if (message.service) _servicePillActions(context, chat, message);
-                                                },
+                                                // служебные плашки — своё контекстное меню с репликой
+                                                // на месте строки (см. `_servicePillActions`).
+                                                onLongPress: (_) {},
+                                                onServiceMenu: (message, pill, rect) =>
+                                                    _servicePillActions(context, chat, message, pill, rect),
                                                 menuWrapper: (message, bubble, preview) => _menu(context, chat, message, bubble, preview),
                                                 controller: _scroll,
                                                 onDrag: _emoji.close,
@@ -852,26 +852,15 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
   ///
   /// Текст в приподнятом пузыре можно выделить: «Копировать | Цитировать»
   /// (ответ на фрагмент, как в Telegram).
-  /// Служебная плашка: action sheet с «Удалить» (с правом) — decoy-контекстное
-  /// меню на устройстве сдвигает ряды ленты (шаг 5 плана
-  /// 02-delete-service-messages), поэтому плашки в него не заворачиваются.
-  Future<void> _servicePillActions(BuildContext context, models.Chat chat, models.Message message) async {
+  /// Служебная плашка: контекстное меню iOS — реплика плашки на месте
+  /// строки, фон с размытием, «Удалить» (с правом). Позиция реплики — из
+  /// `GlobalKey` строки в момент нажатия: decoy `CupertinoContextMenu` на
+  /// устройстве брал её после сдвига рядов (шаги 5 и 7 плана
+  /// 02-delete-service-messages).
+  Future<void> _servicePillActions(BuildContext context, models.Chat chat, models.Message message, Widget pill, Rect rect) async {
     if (!_cubit.canDelete(message)) return;
-    final t = context.t.screenChat;
-    final action = await showCupertinoModalPopup<String>(
-      context: context,
-      builder: (sheetContext) => CupertinoActionSheet(
-        actions: [
-          CupertinoActionSheetAction(
-            isDestructiveAction: true,
-            onPressed: () => Navigator.of(sheetContext).pop('delete'),
-            child: Text(t.delete),
-          ),
-        ],
-        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(), child: Text(context.t.common.cancel)),
-      ),
-    );
-    if (action == 'delete' && context.mounted) {
+    final deleted = await showPillContextMenu(context, pill: pill, rect: rect, deleteLabel: context.t.screenChat.delete);
+    if (deleted && context.mounted) {
       final forEveryone = await _askDelete(context, chat, 1);
       if (forEveryone != null && context.mounted) {
         await deleteWithDust(context, _cubit, [message.id], _keyFor, () => _cubit.delete(message, forEveryone: forEveryone));
