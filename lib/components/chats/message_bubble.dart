@@ -273,20 +273,13 @@ class ChatMessagesView extends StatelessWidget {
   /// [_Vanishing]).
   Widget _vanishable(String id, Widget row) => vanishingIDs.contains(id) ? _Vanishing(key: ValueKey('vanish:$id'), child: row) : row;
 
-  /// Служебная плашка в не-личном чате: меню удаления и «пыль» как у
-  /// пузырей; личный — как раньше (звонки, автоудаление, защита).
-  /// [buildPill] — плашка: с [GlobalKey] строки (для «пыли») в ленте,
-  /// без ключа — в превью контекстного меню.
-  Widget servicePill(models.Message message, Widget Function(bool keyed) buildPill) {
-    if (chatType == models.ChatType.private) return buildPill(true);
-    Widget row = buildPill(true);
-    // Без обёртки (Material action sheet) long-press — наш; с обёрткой
-    // (iOS-меню) long-press ловит `CupertinoContextMenu`: внешний
-    // GestureDetector перебивает его механику нажатия — плашка прячется,
-    // а меню не открывается (у пузырей их long-press при обёртке отключён).
-    if (menuWrapper != null) {
-      return IgnorePointer(ignoring: selecting, child: menuWrapper!(message, row, (maxWidth, {selectableText}) => buildPill(false)));
-    }
+  /// Служебная плашка в не-личном чате: long-press уходит в экран (меню
+  /// удаления) и «пыль» как у пузырей; личный — как раньше (звонки,
+  /// автоудаление, защита). В контекстное меню iOS плашки не заворачиваются:
+  /// механика нажатия decoy на устройстве сдвигает ряды ленты, экран
+  /// показывает action sheet (см. шаг 5 плана 02-delete-service-messages).
+  Widget servicePill(models.Message message, Widget pill) {
+    if (chatType == models.ChatType.private) return pill;
     return IgnorePointer(
       ignoring: selecting,
       child: Listener(
@@ -298,7 +291,7 @@ class ChatMessagesView extends StatelessWidget {
                 onLongPress(message);
               }
             : null,
-        child: GestureDetector(behavior: HitTestBehavior.opaque, onLongPress: () => onLongPress(message), child: row),
+        child: GestureDetector(behavior: HitTestBehavior.opaque, onLongPress: () => onLongPress(message), child: pill),
       ),
     );
   }
@@ -322,8 +315,8 @@ class ChatMessagesView extends StatelessWidget {
             m.id,
             servicePill(
               m,
-              (keyed) => _Pill(
-                key: keyed ? keyFor?.call(m.id) : null,
+              _Pill(
+                key: keyFor?.call(m.id),
                 text: pinnedServiceText(
                   context.t,
                   m,
@@ -363,7 +356,7 @@ class ChatMessagesView extends StatelessWidget {
           ),
         );
       } else if (m.service) {
-        items.add(_vanishable(m.id, servicePill(m, (keyed) => _Pill(key: keyed ? keyFor?.call(m.id) : null, text: m.text, style: style))));
+        items.add(_vanishable(m.id, servicePill(m, _Pill(key: keyFor?.call(m.id), text: m.text, style: style))));
       } else {
         items.add(
           _vanishable(

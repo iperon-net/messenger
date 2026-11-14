@@ -695,8 +695,12 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
                                                   top: 8 + (state.pinnedMessages.isEmpty ? 0 : PinnedMessageBar.height),
                                                   bottom: 8,
                                                 ),
-                                                // Удержание — CupertinoContextMenu (menuWrapper), не action sheet.
-                                                onLongPress: (_) {},
+                                                // Удержание — CupertinoContextMenu (menuWrapper) у пузырей;
+                                                // служебные плашки в меню не заворачиваются — их
+                                                // long-press показывает action sheet (см. `_servicePillActions`).
+                                                onLongPress: (message) {
+                                                  if (message.service) _servicePillActions(context, chat, message);
+                                                },
                                                 menuWrapper: (message, bubble, preview) => _menu(context, chat, message, bubble, preview),
                                                 controller: _scroll,
                                                 onDrag: _emoji.close,
@@ -848,9 +852,34 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
   ///
   /// Текст в приподнятом пузыре можно выделить: «Копировать | Цитировать»
   /// (ответ на фрагмент, как в Telegram).
+  /// Служебная плашка: action sheet с «Удалить» (с правом) — decoy-контекстное
+  /// меню на устройстве сдвигает ряды ленты (шаг 5 плана
+  /// 02-delete-service-messages), поэтому плашки в него не заворачиваются.
+  Future<void> _servicePillActions(BuildContext context, models.Chat chat, models.Message message) async {
+    if (!_cubit.canDelete(message)) return;
+    final t = context.t.screenChat;
+    final action = await showCupertinoModalPopup<String>(
+      context: context,
+      builder: (sheetContext) => CupertinoActionSheet(
+        actions: [
+          CupertinoActionSheetAction(
+            isDestructiveAction: true,
+            onPressed: () => Navigator.of(sheetContext).pop('delete'),
+            child: Text(t.delete),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(onPressed: () => Navigator.of(sheetContext).pop(), child: Text(context.t.common.cancel)),
+      ),
+    );
+    if (action == 'delete' && context.mounted) {
+      final forEveryone = await _askDelete(context, chat, 1);
+      if (forEveryone != null && context.mounted) {
+        await deleteWithDust(context, _cubit, [message.id], _keyFor, () => _cubit.delete(message, forEveryone: forEveryone));
+      }
+    }
+  }
+
   Widget _menu(BuildContext context, models.Chat chat, models.Message message, Widget bubble, MessageBubblePreview preview) {
-    // Служебная плашка без права удаления — без меню вовсе.
-    if (message.service && !_cubit.canDelete(message)) return bubble;
     final quoteText = GlobalKey<QuotableTextState>();
     Widget quotable(Widget text) => QuotableText(
       key: quoteText,
@@ -907,21 +936,6 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
     }
 
     final mediaCopyable = chatMediaActionable(message) && message.kind != models.MessageKind.file;
-
-    // Служебная плашка: только «Удалить» (с правом) — закреп, ответы,
-    // пересылка и реакции к ней неприменимы (сервер их не принимает).
-    if (message.service) {
-      return [
-        if (_cubit.canDelete(message))
-          action(t.delete, CupertinoIcons.delete, () async {
-            if (!chatDeleteScoped(chat)) return _confirmDelete(context, chat, message);
-            final forEveryone = await ask(afterContextMenu: true);
-            if (forEveryone != null && context.mounted) {
-              await deleteWithDust(context, _cubit, [message.id], _keyFor, () => _cubit.delete(message, forEveryone: forEveryone));
-            }
-          }, destructive: true),
-      ];
-    }
     return [
       if (reactions.isNotEmpty)
         ReactionPicker(

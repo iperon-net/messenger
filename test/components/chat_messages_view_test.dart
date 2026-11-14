@@ -162,10 +162,12 @@ void main() {
       );
     }
 
-    testWidgets('с обёрткой (iOS-меню) экран не перехватывает long-press — иначе плашка прячется, а меню не открывается', (tester) async {
+    testWidgets('с обёрткой (iOS-меню пузырей) long-press плашки уходит в экран — плашки в контекстное меню не заворачиваются', (
+      tester,
+    ) async {
       var calls = 0;
-      // Пропускная обёртка — как экранное меню без права удаления: плашка
-      // возвращается без контекстного меню.
+      // Плашка минует decoy-механику `CupertinoContextMenu`: на устройстве
+      // она сдвигала ряды ленты (шаг 5), экран показывает action sheet.
       await tester.pumpWidget(
         TranslationProvider(
           child: CupertinoApp(
@@ -176,34 +178,7 @@ void main() {
 
       await tester.longPress(find.text('Анна добавила Ивана'));
       await tester.pump();
-      expect(calls, 0);
-    });
-
-    testWidgets('с обёрткой long-press открывает контекстное меню', (tester) async {
-      await tester.pumpWidget(
-        TranslationProvider(
-          child: CupertinoApp(
-            home: view(
-              menuWrapper: (message, bubble, preview) => MessageContextMenuCupertino(
-                actions: [CupertinoContextMenuAction(onPressed: () {}, child: const Text('Удалить'))],
-                bubble: bubble,
-                preview: (maxWidth) => preview(maxWidth),
-              ),
-            ),
-          ),
-        ),
-      );
-
-      final press = await tester.startGesture(tester.getCenter(find.text('Анна добавила Ивана')));
-      // Первый кадр — распознаватель запускает нажатие (decoy), второй —
-      // доводит его 800-мс анимацию до меню; отпускание раньше откатывает
-      // нажатие, и меню не открывается.
-      await tester.pump(const Duration(milliseconds: 100));
-      await tester.pump(const Duration(milliseconds: 800));
-      await press.up();
-      await tester.pumpAndSettle();
-
-      expect(find.text('Удалить'), findsOneWidget);
+      expect(calls, 1);
     });
 
     testWidgets('без обёртки (Material) long-press уходит в экран', (tester) async {
