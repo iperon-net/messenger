@@ -208,6 +208,39 @@ void main() {
       expect(pressed?.id, pill.id);
     });
 
+    testWidgets('реплика в меню монтируется без конфликта GlobalKey со строкой ленты', (tester) async {
+      final key = GlobalKey();
+      Widget? replica;
+      await tester.pumpWidget(
+        TranslationProvider(
+          child: CupertinoApp(
+            home: StatefulBuilder(
+              builder: (context, setState) => Stack(
+                children: [
+                  view(
+                    keyFor: (_) => key,
+                    onServiceMenu: (message, pill, rect) {
+                      setState(() => replica = pill);
+                      return Future.value();
+                    },
+                  ),
+                  if (replica != null) Positioned(left: 0, top: 400, width: 800, height: 40, child: replica!),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.longPress(find.text('Анна добавила Ивана'));
+      await tester.pump();
+      await tester.pump();
+
+      // Ключ строки на обёртке, реплика без ключа — сосуществуют без ошибки.
+      expect(tester.takeException(), isNull);
+      expect(find.text('Анна добавила Ивана'), findsNWidgets(2));
+    });
+
     testWidgets('на десктопе правый клик по плашке — тоже меню', (tester) async {
       var menus = 0;
       final key = GlobalKey();

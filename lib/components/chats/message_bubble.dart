@@ -337,17 +337,21 @@ class ChatMessagesView extends StatelessWidget {
         items.add(
           _vanishable(
             m.id,
-            servicePill(
-              m,
-              _Pill(
-                key: keyFor?.call(m.id),
-                text: pinnedServiceText(
-                  context.t,
-                  m,
-                  messages.where((x) => x.id == pinnedID).firstOrNull ?? pinned.where((x) => x.id == pinnedID).firstOrNull,
+            // Ключ строки — на обёртке: сама плашка без ключа, её копия
+            // уходит в контекстное меню без конфликта GlobalKey.
+            KeyedSubtree(
+              key: keyFor?.call(m.id),
+              child: servicePill(
+                m,
+                _Pill(
+                  text: pinnedServiceText(
+                    context.t,
+                    m,
+                    messages.where((x) => x.id == pinnedID).firstOrNull ?? pinned.where((x) => x.id == pinnedID).firstOrNull,
+                  ),
+                  style: style,
+                  onTap: onPinnedServiceTap == null ? null : () => onPinnedServiceTap!(pinnedID),
                 ),
-                style: style,
-                onTap: onPinnedServiceTap == null ? null : () => onPinnedServiceTap!(pinnedID),
               ),
             ),
           ),
@@ -380,7 +384,15 @@ class ChatMessagesView extends StatelessWidget {
           ),
         );
       } else if (m.service) {
-        items.add(_vanishable(m.id, servicePill(m, _Pill(key: keyFor?.call(m.id), text: m.text, style: style))));
+        items.add(
+          _vanishable(
+            m.id,
+            KeyedSubtree(
+              key: keyFor?.call(m.id),
+              child: servicePill(m, _Pill(text: m.text, style: style)),
+            ),
+          ),
+        );
       } else {
         items.add(
           _vanishable(
