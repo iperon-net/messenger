@@ -144,12 +144,17 @@
   `CupertinoContextMenu` на устройстве сдвигала ряды ленты — плашка
   визуально вставала на линию последнего сообщения; в изоляции
   виджет-тестов не воспроизводится (decoy на месте, ряды не двигаются
-  даже с iOS target и пропорциями iPhone). Плашки выведены из
-  контекстного меню iOS: в `servicePill` обёртка `menuWrapper` для плашек
-  убрана (long-press всегда уходит в экран), long-press плашки показывает
-  action sheet — `_servicePillActions` в `chat_cupertino.dart` («Удалить»
-  с правом + подтверждение `_askDelete` + `deleteWithDust`); мёртвые
-  ветки сервиса в `_menu`/`_menuActions` удалены.
+  даже с iOS target и пропорциями iPhone). Промежуточный action sheet
+  (сборка `v0.0.655`) стабилен, но пользователю нужен контекстный вид.
+  Итог: плашки выведены из `CupertinoContextMenu`, меню плашки —
+  собственная реализация лифта `pill_context_menu.dart` (реплика плашки
+  на месте строки — `Rect` из `GlobalKey` в момент нажатия, всегда
+  актуальный; фон с размытием; «Удалить» под/над репликой по месту). В
+  `ChatMessagesView` появился `onServiceMenu` (реплика + rect, fallback
+  на `onLongPress`), правый клик десктопа — тоже через него; мёртвые
+  ветки сервиса в `_menu`/`_menuActions` удалены. Тесты: реплика+rect,
+  fallback, правый клик (`chat_messages_view_test.dart`); компонент
+  (`pill_context_menu_test.dart`): подтверждение и закрытие мимо пунктов.
 
 ## Тестирование
 
