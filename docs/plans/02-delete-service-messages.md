@@ -139,7 +139,17 @@
   пузырей он в `MessageBubble` (`Listener` на вторую кнопку мыши →
   `DesktopPointer.last` → меню у курсора); добавлен в `servicePill`,
   long-press зажатием сохранён. Регрессионный тест правого клика
-  (`chat_messages_view_test.dart`).
+  (`chat_messages_view_test.dart`). (commit 1992d08)
+- [ ] 7. iOS (reopen, 2026-11-14, сборка `v0.0.654`): decoy-фаза
+  `CupertinoContextMenu` на устройстве сдвигала ряды ленты — плашка
+  визуально вставала на линию последнего сообщения; в изоляции
+  виджет-тестов не воспроизводится (decoy на месте, ряды не двигаются
+  даже с iOS target и пропорциями iPhone). Плашки выведены из
+  контекстного меню iOS: в `servicePill` обёртка `menuWrapper` для плашек
+  убрана (long-press всегда уходит в экран), long-press плашки показывает
+  action sheet — `_servicePillActions` в `chat_cupertino.dart` («Удалить»
+  с правом + подтверждение `_askDelete` + `deleteWithDust`); мёртвые
+  ветки сервиса в `_menu`/`_menuActions` удалены.
 
 ## Тестирование
 
