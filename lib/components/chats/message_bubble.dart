@@ -279,10 +279,18 @@ class ChatMessagesView extends StatelessWidget {
   /// без ключа — в превью контекстного меню.
   Widget servicePill(models.Message message, Widget Function(bool keyed) buildPill) {
     if (chatType == models.ChatType.private) return buildPill(true);
-    Widget row = GestureDetector(behavior: HitTestBehavior.opaque, onLongPress: () => onLongPress(message), child: buildPill(true));
-    row = IgnorePointer(ignoring: selecting, child: row);
-    if (menuWrapper == null) return row;
-    return menuWrapper!(message, row, (maxWidth, {selectableText}) => buildPill(false));
+    Widget row = buildPill(true);
+    // Без обёртки (Material action sheet) long-press — наш; с обёрткой
+    // (iOS-меню) long-press ловит `CupertinoContextMenu`: внешний
+    // GestureDetector перебивает его механику нажатия — плашка прячется,
+    // а меню не открывается (у пузырей их long-press при обёртке отключён).
+    if (menuWrapper != null) {
+      return IgnorePointer(ignoring: selecting, child: menuWrapper!(message, row, (maxWidth, {selectableText}) => buildPill(false)));
+    }
+    return IgnorePointer(
+      ignoring: selecting,
+      child: GestureDetector(behavior: HitTestBehavior.opaque, onLongPress: () => onLongPress(message), child: row),
+    );
   }
 
   @override

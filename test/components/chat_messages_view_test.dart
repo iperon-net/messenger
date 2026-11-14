@@ -145,4 +145,78 @@ void main() {
     }
     debugDefaultTargetPlatformOverride = null;
   });
+
+  group('служебная плашка', () {
+    final pill = models.Message(id: '1', chatID: 'chat', text: 'Анна добавила Ивана', service: true, date: DateTime(2026, 11, 6));
+
+    ChatMessagesView view({
+      Widget Function(models.Message, Widget, MessageBubblePreview)? menuWrapper,
+      void Function(models.Message)? onLongPress,
+    }) {
+      return ChatMessagesView(
+        messages: [pill],
+        chatType: models.ChatType.group,
+        style: style,
+        onLongPress: onLongPress ?? (_) {},
+        menuWrapper: menuWrapper,
+      );
+    }
+
+    testWidgets('с обёрткой (iOS-меню) экран не перехватывает long-press — иначе плашка прячется, а меню не открывается', (tester) async {
+      var calls = 0;
+      // Пропускная обёртка — как экранное меню без права удаления: плашка
+      // возвращается без контекстного меню.
+      await tester.pumpWidget(
+        TranslationProvider(
+          child: CupertinoApp(
+            home: view(menuWrapper: (message, bubble, preview) => bubble, onLongPress: (_) => calls++),
+          ),
+        ),
+      );
+
+      await tester.longPress(find.text('Анна добавила Ивана'));
+      await tester.pump();
+      expect(calls, 0);
+    });
+
+    testWidgets('с обёрткой long-press открывает контекстное меню', (tester) async {
+      await tester.pumpWidget(
+        TranslationProvider(
+          child: CupertinoApp(
+            home: view(
+              menuWrapper: (message, bubble, preview) => MessageContextMenuCupertino(
+                actions: [CupertinoContextMenuAction(onPressed: () {}, child: const Text('Удалить'))],
+                bubble: bubble,
+                preview: (maxWidth) => preview(maxWidth),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final press = await tester.startGesture(tester.getCenter(find.text('Анна добавила Ивана')));
+      // Первый кадр — распознаватель запускает нажатие (decoy), второй —
+      // доводит его 800-мс анимацию до меню; отпускание раньше откатывает
+      // нажатие, и меню не открывается.
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(const Duration(milliseconds: 800));
+      await press.up();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Удалить'), findsOneWidget);
+    });
+
+    testWidgets('без обёртки (Material) long-press уходит в экран', (tester) async {
+      models.Message? pressed;
+      await tester.pumpWidget(
+        TranslationProvider(
+          child: CupertinoApp(home: view(onLongPress: (message) => pressed = message)),
+        ),
+      );
+
+      await tester.longPress(find.text('Анна добавила Ивана'));
+      await tester.pump();
+      expect(pressed?.id, pill.id);
+    });
+  });
 }
