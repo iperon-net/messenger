@@ -33,6 +33,25 @@ tasks:
     cmds:
       - dart analyze lib/
     silent: true
+  review:
+    desc: Kimi code quality review (task review [-- <commit|range>])
+    # Kimi запускается неинтерактивно (-p) и сам читает AGENTS.md /
+    # AGENTS.local.md. По умолчанию ревьюит незакоммиченные изменения,
+    # task review -- <commit> — конкретный коммит или диапазон.
+    # Аргумент идёт через переменную окружения, а не текстовую подстановку
+    # в shell — иначе CLI_ARGS с $()/кавычками выполняется как код.
+    env:
+      REVIEW_ARGS: '{{.CLI_ARGS}}'
+    cmds:
+      - >-
+        kimi -p "Ревью качества кода: ${REVIEW_ARGS:-незакоммиченные изменения (git diff HEAD плюс untracked файлы)}.
+        Прочитай AGENTS.md и AGENTS.local.md и проверь изменения на: баги и race conditions,
+        ошибки обработки ошибок (offline/ошибки API не проглатываются), утечки и проблемы
+        производительности, нарушения конвенций проекта, рассинхрон Cupertino и
+        Material-вариантов экранов. Файлы не редактируй. Ответ: список проблем в виде
+        «файл:строка — проблема и как исправить», отсортированный по важности;
+        если проблем нет — одной строкой «Проблем не найдено»."
+    silent: true
   plan-index:
     desc: Regenerate docs/plans/INDEX.md
     cmds:
