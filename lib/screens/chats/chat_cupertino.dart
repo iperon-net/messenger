@@ -857,6 +857,10 @@ class _ChatCupertinoState extends State<ChatCupertino> with UnreadBackCount {
   /// 02-delete-service-messages).
 
   Widget _menu(BuildContext context, models.Chat chat, models.Message message, Widget bubble, MessageBubblePreview preview) {
+    // Служебная плашка без права удаления — без меню вовсе: иначе decoy
+    // поднимает пустой маршрут без пунктов (шаг 8 плана
+    // 02-delete-service-messages).
+    if (message.service && !_cubit.canDelete(message)) return bubble;
     final quoteText = GlobalKey<QuotableTextState>();
     Widget quotable(Widget text) => QuotableText(
       key: quoteText,
