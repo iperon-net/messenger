@@ -1,6 +1,6 @@
 # 04-edit-time-limit — скрытие «Редактировать» после окна правки
 
-**Статус:** draft
+**Статус:** in progress (с 2026-11-17)
 
 ## Цель
 
@@ -61,26 +61,29 @@
 
 ## Шаги
 
-- [ ] 1. Сервер: `chatEditWindowHours = 10` в `protos/client_config_v1.proto`
+- [x] 1. Сервер: `chatEditWindowHours = 10` в `protos/client_config_v1.proto`
   (`internal/api/client_config.go` отдаёт значение из `chatEditWindow`),
   `task gen`, копия прото в клиентский репо; go-прекоммиты (`go build`,
   `go vet`, `go test`, `golangci-lint`) — коммит сервера (пушить раньше
-  клиента).
-- [ ] 2. Клиент: регенерация `client_config_v1` protobuf;
+  клиента). (commit 32c4356 — сервер)
+- [x] 2. Клиент: регенерация `client_config_v1` protobuf;
   `Settings.chatEditWindow` (часы → `Duration`, fallback 48 ч); окно в
-  `ChatCubit.canEdit` — не-каналы и не-Saved, кроме outbox.
-- [ ] 3. Юнит-тесты гейта (`test/chats/`): свежее сообщение — правится;
+  `ChatCubit.canEdit` — не-каналы и не-Saved, кроме outbox. (commit 35e58b2 —
+  клиент)
+- [x] 3. Юнит-тесты гейта (`test/chats/`): свежее сообщение — правится;
   старше окна — нет; Saved Messages — правится; канал — без окна (по правам);
-  outbox — правится; окно из `Settings` подхватывается.
+  outbox — правится; окно из `Settings` подхватывается. (commit 35e58b2 —
+  клиент, test/chats/chat_edit_window_test.dart)
 - [ ] 4. Прекоммиты (`dart format lib`, `flutter analyze`, `flutter test`),
   регенерация `INDEX.md` перед docs-коммитом.
 
 ## Тестирование
 
-- [ ] `dart format lib` (без изменений), `flutter analyze` — чисто,
-  `flutter test` — зелёные.
-- [ ] Юнит-тесты: гейт `canEdit` по возрасту сообщения и типу чата
-  (личный/группа/канал/Saved/outbox); переводы не нужны.
+- [🤖] `dart format lib` (без изменений), `flutter analyze` — чисто,
+  `flutter test` — зелёные (+1494, 2026-11-17).
+- [🤖] Юнит-тесты: гейт `canEdit` по возрасту сообщения и типу чата
+  (личный/группа/канал/Saved/outbox); переводы не нужны — 5 тестов
+  в `test/chats/chat_edit_window_test.dart`, зелёные (2026-11-17).
 - [ ] Ревью качества кода через Kimi (`task review` — `kimi -p`): найденные
   проблемы исправлены или отклонены с обоснованием.
 - [ ] e2e (устройства/эмуляторы; `cmd/testpeer` сервера как «второй телефон»):
