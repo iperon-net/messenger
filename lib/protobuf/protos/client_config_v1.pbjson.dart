@@ -39,12 +39,13 @@ const ClientConfig_Response$json = {
     {'1': 'animatedEmojiUrl', '3': 7, '4': 1, '5': 9, '10': 'animatedEmojiUrl'},
     {'1': 'yandexClientId', '3': 8, '4': 1, '5': 9, '10': 'yandexClientId'},
     {'1': 'minimalVersion', '3': 9, '4': 1, '5': 9, '10': 'minimalVersion'},
+    {'1': 'chatEditWindowHours', '3': 10, '4': 1, '5': 5, '10': 'chatEditWindowHours'},
   ],
 };
 
 /// Descriptor for `ClientConfig`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List clientConfigDescriptor =
-    $convert.base64Decode('CgxDbGllbnRDb25maWcaCQoHUmVxdWVzdBrYAwoIUmVzcG9uc2USLgoSc2VjcmV0Q2hhdHNFbm'
+    $convert.base64Decode('CgxDbGllbnRDb25maWcaCQoHUmVxdWVzdBqKBAoIUmVzcG9uc2USLgoSc2VjcmV0Q2hhdHNFbm'
         'FibGVkGAEgASgIUhJzZWNyZXRDaGF0c0VuYWJsZWQSNgoWc2VjcmV0Q2hhdHNQcmVtaXVtT25s'
         'eRgCIAEoCFIWc2VjcmV0Q2hhdHNQcmVtaXVtT25seRIsChFncm91cENhbGxzRW5hYmxlZBgDIA'
         'EoCFIRZ3JvdXBDYWxsc0VuYWJsZWQSNgoWY2FsbENvbm5lY3RNYXhBdHRlbXB0cxgEIAEoBVIW'
@@ -53,4 +54,4 @@ final $typed_data.Uint8List clientConfigDescriptor =
         'aW1lb3V0U2Vjb25kcxgGIAEoBVIWY2FsbFJpbmdUaW1lb3V0U2Vjb25kcxIqChBhbmltYXRlZE'
         'Vtb2ppVXJsGAcgASgJUhBhbmltYXRlZEVtb2ppVXJsEiYKDnlhbmRleENsaWVudElkGAggASgJ'
         'Ug55YW5kZXhDbGllbnRJZBImCg5taW5pbWFsVmVyc2lvbhgJIAEoCVIObWluaW1hbFZlcnNpb2'
-        '4=');
+        '4SMAoTY2hhdEVkaXRXaW5kb3dIb3VycxgKIAEoBVITY2hhdEVkaXRXaW5kb3dIb3Vycw==');

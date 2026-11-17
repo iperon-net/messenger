@@ -39,6 +39,9 @@ class Settings extends ChangeNotifier {
     "CALL_CONNECT_MAX_ATTEMPTS": 3,
     "CALL_PEER_CONNECTION_TIMEOUT_SECONDS": 7,
     "CALL_RING_TIMEOUT_SECONDS": 45,
+    // Окно правки своего сообщения, часы (сервер отдаёт то же число —
+    // chats.editWindow; см. ChatCubit.canEdit).
+    "CHAT_EDIT_WINDOW_HOURS": 48,
     // Анимированные эмодзи (Noto, Lottie JSON): `<url><имя>.json`.
     "ANIMATED_EMOJI_URL": "https://staging-cdn.iperon.net/emoji/noto/",
     // Секретные чаты (E2EE): показывать «Начать секретный чат»; создавать —
@@ -177,4 +180,11 @@ class Settings extends ChangeNotifier {
   /// входящего cancel-пушем). Без этого баннер у абонента висит, пока звонящий
   /// не нажмёт отбой вручную.
   int get callRingTimeoutSeconds => _number('CALL_RING_TIMEOUT_SECONDS', _serverConfig?.callRingTimeoutSeconds ?? 0, 45);
+
+  /// Окно правки своего сообщения, часы: сервер позже этого срока правку
+  /// отклоняет (`chats.editWindow` = `services.ChatEditWindow`, то же число —
+  /// чтобы пункт «Редактировать» исчезал одновременно с запретом сервера).
+  /// Окна нет у каналов (права) и «Избранного» — учтено в `ChatCubit.canEdit`,
+  /// здесь только срок.
+  Duration get chatEditWindow => Duration(hours: _number('CHAT_EDIT_WINDOW_HOURS', _serverConfig?.chatEditWindowHours ?? 0, 48));
 }

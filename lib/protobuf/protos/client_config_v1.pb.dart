@@ -59,6 +59,7 @@ class ClientConfig_Response extends $pb.GeneratedMessage {
     $core.String? animatedEmojiUrl,
     $core.String? yandexClientId,
     $core.String? minimalVersion,
+    $core.int? chatEditWindowHours,
   }) {
     final result = create();
     if (secretChatsEnabled != null) result.secretChatsEnabled = secretChatsEnabled;
@@ -70,6 +71,7 @@ class ClientConfig_Response extends $pb.GeneratedMessage {
     if (animatedEmojiUrl != null) result.animatedEmojiUrl = animatedEmojiUrl;
     if (yandexClientId != null) result.yandexClientId = yandexClientId;
     if (minimalVersion != null) result.minimalVersion = minimalVersion;
+    if (chatEditWindowHours != null) result.chatEditWindowHours = chatEditWindowHours;
     return result;
   }
 
@@ -91,6 +93,7 @@ class ClientConfig_Response extends $pb.GeneratedMessage {
     ..aOS(7, _omitFieldNames ? '' : 'animatedEmojiUrl', protoName: 'animatedEmojiUrl')
     ..aOS(8, _omitFieldNames ? '' : 'yandexClientId', protoName: 'yandexClientId')
     ..aOS(9, _omitFieldNames ? '' : 'minimalVersion', protoName: 'minimalVersion')
+    ..aI(10, _omitFieldNames ? '' : 'chatEditWindowHours', protoName: 'chatEditWindowHours')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -197,6 +200,18 @@ class ClientConfig_Response extends $pb.GeneratedMessage {
   $core.bool hasMinimalVersion() => $_has(8);
   @$pb.TagNumber(9)
   void clearMinimalVersion() => $_clearField(9);
+
+  /// chats.editWindow — сколько часов после отправки можно править своё
+  /// сообщение (services.ChatEditWindow; окно S3-архива истории — не меньше
+  /// него). Каналы и «Избранное» окна не имеют. 0 — клиентский дефолт.
+  @$pb.TagNumber(10)
+  $core.int get chatEditWindowHours => $_getIZ(9);
+  @$pb.TagNumber(10)
+  set chatEditWindowHours($core.int value) => $_setSignedInt32(9, value);
+  @$pb.TagNumber(10)
+  $core.bool hasChatEditWindowHours() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearChatEditWindowHours() => $_clearField(10);
 }
 
 /// Настройки приложения с сервера (админка → «Настройки», этап 5б плана

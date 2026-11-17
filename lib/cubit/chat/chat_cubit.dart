@@ -30,6 +30,7 @@ import '../../chats/group_rights.dart';
 import '../../models.dart' as models;
 import '../../privacy_blocks.dart';
 import '../../repositories/repositories.dart';
+import '../../settings.dart';
 
 import 'chat_state.dart';
 import 'message_dust.dart';
@@ -1144,14 +1145,21 @@ class ChatCubit extends Cubit<ChatState> with MessageDust<ChatState> {
   }
 
   /// «Изменить» у [message]: своё; в канале на сервере — по правам канала
-  /// (свой пост — публиковать, чужой — править чужие).
+  /// (свой пост — публиковать, чужой — править чужие). Своё — только в окне
+  /// правки [Settings.chatEditWindow] (сервер позже того же срока правку
+  /// отклоняет); каналы и «Избранное» окна не имеют — они не архивируются.
   bool canEdit(models.Message message) {
     final chat = state.chat;
     if (message.service) return false;
     if (chat != null && chat.type == models.ChatType.channel && chat.myRights != null) {
       return canEditChannelPost(chat, state.members, message);
     }
-    return message.outgoing;
+    if (!message.outgoing) return false;
+    // Без окна: канал (права решают — на сервере окна нет, даже пока свои
+    // права не загружены) и «Избранное»; неотправленное ещё не на сервере.
+    if (chat != null && (chat.type == models.ChatType.channel || chat.isSelf)) return true;
+    if (randomIDOfLocal(message.id) != null) return true;
+    return DateTime.now().difference(message.date) <= getIt.get<Settings>().chatEditWindow;
   }
 
   /// Пункт «Закрепить» / «Открепить» у [message]: в группе общий закреп

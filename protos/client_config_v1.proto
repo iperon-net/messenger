@@ -35,5 +35,9 @@ message ClientConfig {
     string yandexClientId = 8;
     // client.minimalVersion — сборка старше («0.0.570») должна обновиться.
     string minimalVersion = 9;
+    // chats.editWindow — сколько часов после отправки можно править своё
+    // сообщение (services.ChatEditWindow; окно S3-архива истории — не меньше
+    // него). Каналы и «Избранное» окна не имеют. 0 — клиентский дефолт.
+    int32 chatEditWindowHours = 10;
   }
 }
