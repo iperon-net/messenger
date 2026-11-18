@@ -48,6 +48,9 @@ class MessageContextMenuCupertinoCupertinoState extends State<MessageContextMenu
 
   @override
   Widget build(BuildContext context) {
+    // Без действий — просто пузырь: иначе открытый маршрут падает на
+    // `actions.first` (assert пакета вырезается в release; краш 0.0.658).
+    if (widget.actions.isEmpty) return widget.bubble;
     return CupertinoContextMenu.builder(
       enableHapticFeedback: true,
       actions: widget.actions,
