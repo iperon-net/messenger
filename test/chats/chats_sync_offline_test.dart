@@ -689,14 +689,16 @@ void main() {
     await store.upsertMessage(userID: me, message: message(1));
     final source = ChatsRemoteDataSource.instance;
     final sync = ChatsSync.instance;
-    await source.setReactions(chatHex, '1', ['👍']);
+    // setReactions сам запускает фоновый flush — он и съест заготовленный
+    // сбой. Очередь ошибки — до запуска, поэтому порядок здесь один, и мы
+    // просто ждём его запрос вместо гонки с фоном.
     utils.network = true;
     api.enqueueUnaryResult(
       MessageType.MESSAGES,
       const APICallStatus(status: APIStatus.error, statusCode: StatusCode.unavailable, error: 'unavailable'),
     );
-
-    await sync.flushReactions();
+    await source.setReactions(chatHex, '1', ['👍']);
+    await _settled(() => Future.value(api.unaryCalls.isNotEmpty));
     expect((await store.pendingReactions(userID: me)).single.emojis, ['👍']);
 
     api.enqueueUnaryResponse(
@@ -720,8 +722,8 @@ void main() {
         ),
       ).writeToBuffer(),
     );
+    // Фон уладился (один ряд — один проход), флаг свободен — проходят мы.
     await sync.flushReactions();
-
     expect(await store.pendingReactions(userID: me), isEmpty);
     expect((await store.messageReactions(userID: me, chatID: chat, messageID: 1))!.reactions.single.emoji, '👍');
   });
@@ -1132,6 +1134,18 @@ final class FakeSecretChats implements SecretChatsRepository {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Состояние, к которому приходит фоновый flush (`setReactions` дёргает
+/// `flushReactions` сам, а наш вызов мог стать no-op при работавшем проходе):
+/// вместо гонки с порядком микротасков ждём факта. 1с сверху — страховка от
+/// вечного цикла при сломанной цепочке.
+Future<void> _settled(Future<bool> Function() condition) async {
+  for (var i = 0; i < 200; i++) {
+    if (await condition()) return;
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+  }
+  fail('не уладилось за 1с');
 }
 
 Future<void> createSchema(SqliteDatabase db) async {
