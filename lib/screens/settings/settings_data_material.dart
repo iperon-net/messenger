@@ -113,11 +113,16 @@ class _DownloadsDirTile extends StatelessWidget {
             ),
       onTap: () async {
         final cubit = context.read<CommonCubit>();
-        final picked = await FilePicker.getDirectoryPath(
+        final picked = await FilePicker.pickDirectory(
           dialogTitle: t.downloadsDir,
           initialDirectory: dir.isNotEmpty ? dir : await MediaFiles.defaultDownloadsDir(),
         );
-        if (picked != null && picked.isNotEmpty) await cubit.setDownloadsDir(picked);
+        if (picked == null) return;
+        // macOS отдаёт file-URI директории; toFilePath оставляет «/» на конце —
+        // храним путь без него, как раньше.
+        final path = picked.toFilePath();
+        final clean = path.length > 1 && path.endsWith('/') ? path.substring(0, path.length - 1) : path;
+        if (clean.isNotEmpty) await cubit.setDownloadsDir(clean);
       },
     );
   }
