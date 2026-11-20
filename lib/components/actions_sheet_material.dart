@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:material_ui/material_ui.dart';
 
 import '../platform.dart';
@@ -42,17 +44,22 @@ Future<T?> showActionsMaterial<T>({required BuildContext context, required Widge
   );
 }
 
-/// Оформление меню у курсора: скруглённая карточка с тонкой рамкой и мягкой
-/// тенью, компактные пункты с приглушёнными иконками, подсветка пункта под
-/// мышью — скруглённая плашка с отступом от краёв (как в macOS и Telegram
-/// Desktop).
+/// Оформление меню у курсора: полупрозрачная размытая карточка (frosted, как
+/// системное меню macOS и в Telegram), мягкая тень без рамки, воздушные пункты
+/// с иконками цвета текста, подсветка пункта под мышью — скруглённая плашка с
+/// отступом от краёв.
 class _ContextMenu extends StatelessWidget {
   final Widget child;
 
   const _ContextMenu({required this.child});
 
-  static const width = 260.0;
+  static const width = 280.0;
   static const radius = 12.0;
+
+  /// Полупрозрачная заливка поверх размытия — как в frosted-меню
+  /// форматирования (`compose_format_menu.dart`).
+  static const _surfaceDark = Color(0xE6252525);
+  static const _surfaceLight = Color(0xE6F9F9F9);
 
   @override
   Widget build(BuildContext context) {
@@ -64,47 +71,44 @@ class _ContextMenu extends StatelessWidget {
         borderRadius: BorderRadius.circular(radius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: dark ? 0.45 : 0.14),
+            color: dark ? Colors.black.withValues(alpha: 0.45) : const Color(0x33000000),
             blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: dark ? 0.3 : 0.06),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Material(
-        color: dark ? scheme.surfaceContainerHigh : scheme.surfaceContainerLowest,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(radius),
-          side: BorderSide(color: scheme.outlineVariant.withValues(alpha: dark ? 0.5 : 0.7), width: 0.5),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: SizedBox(
-          width: width,
-          child: Theme(
-            data: theme.copyWith(
-              dividerTheme: DividerThemeData(space: 9, thickness: 0.5, indent: 12, endIndent: 12, color: scheme.outlineVariant),
-              listTileTheme: ListTileThemeData(
-                dense: true,
-                visualDensity: VisualDensity.compact,
-                minVerticalPadding: 0,
-                minTileHeight: 40,
-                minLeadingWidth: 24,
-                horizontalTitleGap: 12,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                iconColor: scheme.onSurfaceVariant,
-                titleTextStyle: theme.textTheme.bodyMedium?.copyWith(fontSize: 15, color: scheme.onSurface),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+          child: Material(
+            color: dark ? _surfaceDark : _surfaceLight,
+            clipBehavior: Clip.antiAlias,
+            child: SizedBox(
+              width: width,
+              child: Theme(
+                data: theme.copyWith(
+                  dividerTheme: DividerThemeData(space: 9, thickness: 0.5, indent: 12, endIndent: 12, color: scheme.outlineVariant),
+                  listTileTheme: ListTileThemeData(
+                    dense: true,
+                    visualDensity: VisualDensity.compact,
+                    minVerticalPadding: 0,
+                    minTileHeight: 44,
+                    minLeadingWidth: 24,
+                    horizontalTitleGap: 12,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    iconColor: scheme.onSurface,
+                    titleTextStyle: theme.textTheme.bodyMedium?.copyWith(fontSize: 16, color: scheme.onSurface),
+                  ),
+                  iconTheme: theme.iconTheme.copyWith(size: 20),
+                  hoverColor: scheme.onSurface.withValues(alpha: 0.07),
+                ),
+                child: IconTheme.merge(
+                  data: const IconThemeData(size: 20),
+                  child: SingleChildScrollView(padding: const EdgeInsets.all(5), child: child),
+                ),
               ),
-              iconTheme: theme.iconTheme.copyWith(size: 20),
-              hoverColor: scheme.onSurface.withValues(alpha: 0.07),
-            ),
-            child: IconTheme.merge(
-              data: const IconThemeData(size: 20),
-              child: SingleChildScrollView(padding: const EdgeInsets.all(5), child: child),
             ),
           ),
         ),
