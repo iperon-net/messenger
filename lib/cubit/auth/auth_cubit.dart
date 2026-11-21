@@ -13,6 +13,7 @@ import '../../api.dart';
 import '../../constants.dart';
 import '../../di.dart';
 import '../../logger.dart';
+import '../../repositories.dart';
 import '../../settings.dart';
 import '../../utils.dart';
 import '../../protobuf.dart';
@@ -115,6 +116,20 @@ class AuthCubit extends Cubit<AuthState> {
     }
 
     final callPasswordSession = utils.bytesToHex(Uint8List.fromList(messageResponse.callPasswordSession));
+
+    // Незавершённая сессия в device.db (docs/plans/06-callpassword-
+    // reconnect.md): переживает смерть процесса во время ожидания звонка —
+    // после рестарта Routers._redirect восстановит экран подтверждения.
+    // Сбой записи вход не ломает: стрим и так держит сессию в памяти.
+    try {
+      await getIt.get<DeviceRepositories>().pendingCallPassword.set(
+        callPasswordSession: callPasswordSession,
+        confirmationPhoneNumber: messageResponse.confirmationPhoneNumber,
+        timeout: messageResponse.timeout.round(),
+      );
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace, "call password: persist pending session failed");
+    }
 
     final uri = Uri.parse("/auth/call_password_confirmation").replace(
       queryParameters: {

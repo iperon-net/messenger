@@ -15,6 +15,7 @@ class DeviceRepositories {
   late final Accounts accounts;
   late final ClientConfigCache clientConfig;
   late final BootstrapConfigCache bootstrapConfig;
+  late final PendingCallPassword pendingCallPassword;
 
   /// `accountID` активного слота на старте.
   late final String activeAccountID;
@@ -131,6 +132,10 @@ class DeviceRepositories {
     accounts = Accounts(logger: logger, db: db);
     clientConfig = ClientConfigCache(db: db);
     bootstrapConfig = BootstrapConfigCache(db: db);
+    pendingCallPassword = PendingCallPassword(logger: logger, db: db);
+    // Незавершённая сессия звонка-пароля — до runApp: её зеркалом пользуется
+    // синхронный Routers._redirect.
+    await pendingCallPassword.load();
     // Адреса окружений — до первого подключения (API аккаунта).
     await BootstrapConfig.load(bootstrapConfig);
     await accounts.ensureActive(slot);
@@ -397,6 +402,15 @@ class DeviceDatabase {
           await tx.execute("ALTER TABLE accounts ADD COLUMN environment TEXT NOT NULL DEFAULT '';");
           await tx.execute("UPDATE accounts SET environment = 'staging' WHERE length(userID) > 0;");
           await tx.execute(BootstrapConfigCache.schema);
+        }),
+      )
+      ..add(
+        SqliteMigration(11, (tx) async {
+          // Незавершённая сессия входа по звонку-паролю
+          // (docs/plans/06-callpassword-reconnect.md): переживает смерть
+          // процесса во время звонка — после рестарта экран подтверждения
+          // восстанавливает Routers._redirect, пока серверная сессия жива.
+          await tx.execute(PendingCallPassword.schema);
         }),
       );
   }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoPage;
@@ -26,6 +28,28 @@ String? redirectAuthLocation(String matchedLocation, {required bool isAuthorized
   final isAuthRoute = matchedLocation.startsWith('/auth');
   if (!isAuthorized) return isAuthRoute ? null : '/auth';
   return isAuthRoute ? '/chats' : null;
+}
+
+/// Незавершённый вход по звонку-паролю (docs/plans/06-callpassword-reconnect.md):
+/// процесс мог умереть, пока пользователь был в звонилке. Пока серверная сессия
+/// жива — URL экрана подтверждения с теми же параметрами; null — сессии нет или
+/// она истекла (запись заодно чистится).
+String? pendingCallPasswordLocation(PendingCallPassword pending) {
+  final record = pending.session;
+  if (record == null) return null;
+  final remaining = PendingCallPassword.remainingSeconds(record);
+  if (remaining <= 0) {
+    unawaited(pending.clear());
+    return null;
+  }
+  return Uri(
+    path: "/auth/call_password_confirmation",
+    queryParameters: {
+      "callPasswordSession": record.callPasswordSession,
+      "confirmationPhoneNumber": record.confirmationPhoneNumber,
+      "timeout": remaining.toString(),
+    },
+  ).toString();
 }
 
 class Routers {
@@ -113,10 +137,14 @@ class Routers {
     // Ссылка iperon.net/<имя> снаружи — не маршрут: запоминаем, откроет
     // DeepLinkGate (после входа, если ещё не вошли).
     if (DeepLinks.instance.capture(state.uri)) {
-      return auth.isAuthorized ? "/chats" : "/auth";
+      return auth.isAuthorized ? "/chats" : pendingCallPasswordLocation(getIt.get<DeviceRepositories>().pendingCallPassword) ?? "/auth";
     }
 
-    return redirectAuthLocation(state.matchedLocation, isAuthorized: auth.isAuthorized);
+    final location = redirectAuthLocation(state.matchedLocation, isAuthorized: auth.isAuthorized);
+    if (!auth.isAuthorized && location == "/auth") {
+      return pendingCallPasswordLocation(getIt.get<DeviceRepositories>().pendingCallPassword) ?? location;
+    }
+    return location;
   }
 
   List<RouteBase> _common(GlobalKey<NavigatorState> rootNavigatorKey, {bool split = false}) => <RouteBase>[

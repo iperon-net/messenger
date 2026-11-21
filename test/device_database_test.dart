@@ -177,4 +177,61 @@ void main() {
     // Из 105 в памяти держится 100 первых, вместе с ранним — 101 → ранний вытеснен.
     expect((await device.getOptional("SELECT id FROM crashReports WHERE error = 'Bad state: early';")), isNull);
   });
+
+  // Незавершённая сессия звонка-пароля (docs/plans/06-callpassword-reconnect.md):
+  // запись переживает «рестарт» (новый экземпляр читает базу) и чистится.
+  test('pendingCallPassword: запись, перечитывание и очистка', () async {
+    await migrate();
+    final pending = PendingCallPassword(logger: Logger(), db: device);
+    expect(pending.session, isNull);
+
+    await pending.set(callPasswordSession: 'ab01', confirmationPhoneNumber: '+7 *** ***-**-44', timeout: 120);
+    expect(pending.session?.callPasswordSession, 'ab01');
+    expect(pending.session?.confirmationPhoneNumber, '+7 *** ***-**-44');
+    expect(pending.session?.timeout, 120);
+    expect(PendingCallPassword.remainingSeconds(pending.session!), greaterThan(0));
+
+    // «Рестарт»: свежий экземпляр читает запись из базы.
+    final reloaded = PendingCallPassword(logger: Logger(), db: device);
+    await reloaded.load();
+    expect(reloaded.session?.callPasswordSession, 'ab01');
+
+    await pending.clear();
+    expect(pending.session, isNull);
+    final afterClear = PendingCallPassword(logger: Logger(), db: device);
+    await afterClear.load();
+    expect(afterClear.session, isNull);
+  });
+
+  test('pendingCallPassword: повторная заявка заменяет запись', () async {
+    await migrate();
+    final pending = PendingCallPassword(logger: Logger(), db: device);
+    await pending.set(callPasswordSession: '01', confirmationPhoneNumber: '+7 900', timeout: 60);
+    await pending.set(callPasswordSession: '02', confirmationPhoneNumber: '+7 901', timeout: 90);
+
+    final rows = await device.getAll('SELECT * FROM pendingCallPassword;');
+    expect(rows, hasLength(1));
+    final reloaded = PendingCallPassword(logger: Logger(), db: device);
+    await reloaded.load();
+    expect(reloaded.session?.callPasswordSession, '02');
+    expect(reloaded.session?.timeout, 90);
+  });
+
+  test('pendingCallPassword: остаток вычисляется от момента записи', () async {
+    final fresh = (
+      callPasswordSession: 'ab',
+      confirmationPhoneNumber: '+7 900',
+      timeout: 60,
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+    );
+    expect(PendingCallPassword.remainingSeconds(fresh), inInclusiveRange(55, 60));
+
+    final expired = (
+      callPasswordSession: 'ab',
+      confirmationPhoneNumber: '+7 900',
+      timeout: 60,
+      createdAt: DateTime.now().millisecondsSinceEpoch - 90 * 1000,
+    );
+    expect(PendingCallPassword.remainingSeconds(expired), lessThanOrEqualTo(0));
+  });
 }

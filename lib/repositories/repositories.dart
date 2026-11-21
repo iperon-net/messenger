@@ -42,6 +42,7 @@ part "spoiler_reveals.dart";
 part "device.dart";
 part "client_config.dart";
 part "bootstrap_config.dart";
+part "pending_call_password.dart";
 part "account_files.dart";
 part "data_usage.dart";
 

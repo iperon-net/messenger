@@ -1,32 +1,42 @@
 import 'dart:async';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleState, WidgetsBinding, WidgetsBindingObserver;
 import 'package:grpc/grpc.dart';
 
 import '../../api.dart';
 import '../../constants.dart';
 import '../../di.dart';
 import '../../logger.dart';
+import '../../repositories.dart';
 import '../../utils.dart';
 import '../../protobuf.dart';
 import 'auth_login_completer.dart';
 import 'auth_callpassword_confirmation_state.dart';
 
-class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmationState> {
-  AuthCallpasswordConfirmationCubit() : super(AuthCallpasswordConfirmationState());
+class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmationState> with WidgetsBindingObserver {
+  AuthCallpasswordConfirmationCubit() : super(AuthCallpasswordConfirmationState()) {
+    WidgetsBinding.instance.addObserver(this);
+  }
 
   final logger = getIt.get<Logger>();
   final utils = getIt.get<Utils>();
   final api = getIt.get<API>();
 
-  // Обратный отсчёт ожидания звонка.
+  // Информационный обратный отсчёт ожидания звонка. Реальный таймаут ведёт
+  // сервер: локальный ноль — не приговор, а повод финально свериться с ним
+  // (см. [_startTicker]).
   Timer? _ticker;
 
   // Сервер считает таймаут от момента создания сессии (в CallPassword), а не от
   // открытия этого экрана, поэтому его остаток меньше нашего полного timeout.
-  // Первый healthcheck несёт реальный остаток — по нему одноразово выравниваем
-  // локальный отсчёт. Повторно не синхронизируем, иначе тикер «прыгал» бы.
+  // Первый healthcheck каждого стрима несёт реальный остаток — по нему
+  // одноразово выравниваем локальный отсчёт. Синхронизация сбрасывается при
+  // каждом (пере)открытии стрима; в пределах одного стрима повторно не
+  // синхронизируем, иначе тикер «прыгал» бы (все healthcheck несут одно
+  // значение, посчитанное на старте обработчика).
   bool _serverTimerSynced = false;
 
   // Выделенный (незашифрованный) двунаправленный стрим проверки звонка-пароля.
@@ -35,6 +45,18 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
   // flow, открываем отдельный стрим и шлём/принимаем открытый protobuf.
   StreamController<Message>? _outgoing;
   StreamSubscription<Message>? _subscription;
+
+  // Success уже обработан: success может прийти и по старому, и по свежему
+  // стриму (переподключение) — вход завершаем один раз.
+  bool _completed = false;
+
+  // Подряд сорвавшиеся переподключения без единого сообщения от сервера:
+  // выше предела считаем сессию неживой и уводим на /auth. Любое входящее
+  // сообщение сбрасывает счётчик.
+  int _reconnectAttempt = 0;
+  static const _maxReconnectAttempts = 15;
+
+  Timer? _reconnectTimer;
 
   Future<void> initialization({
     required String callPasswordSession,
@@ -61,26 +83,50 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
     _openStream();
   }
 
-  /// Запускает посекундный обратный отсчёт. По достижении нуля — таймаут: гасим
-  /// стрим и уводим пользователя обратно на /auth.
+  /// Запускает посекундный обратный отсчёт. По достижении нуля — финальная
+  /// сверка с сервером: свежий стрим вернёт healthcheck с реальным остатком и
+  /// отсчёт продолжится или закроется (сессия истекла) — тогда терминальный
+  /// таймаут (см. [_timeoutOutcome]).
   void _startTicker() {
     _ticker?.cancel();
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       final next = state.tickerSecond - 1;
       if (next <= 0) {
         _stop();
-        emit(
-          state.copyWith(tickerSecond: 0, result: AuthCallPasswordConfirmationResult.timeout, redirectURI: Uri.parse("/auth").toString()),
-        );
+        emit(state.copyWith(tickerSecond: 0));
+        _scheduleReconnect();
         return;
       }
       emit(state.copyWith(tickerSecond: next));
     });
   }
 
-  /// Открывает выделенный двунаправленный стрим, отправляет запрос проверки и
+  /// Переподключение с экспоненциальным backoff (1с, 2с, 4с, дальше 5с) —
+  /// разрыв соединения во время звонка в звонилке — норма, а не ошибка.
+  void _scheduleReconnect() {
+    if (isClosed || _completed) return;
+    if (++_reconnectAttempt > _maxReconnectAttempts) {
+      _timeoutOutcome();
+      return;
+    }
+    _reconnectTimer?.cancel();
+    _reconnectTimer = Timer(Duration(seconds: min(1 << (_reconnectAttempt - 1), 5)), _openStream);
+  }
+
+  /// Терминальный таймаут: сервер подтвердил, что сессии больше нет.
+  void _timeoutOutcome() {
+    _stop();
+    _clearPending();
+    emit(state.copyWith(tickerSecond: 0, result: AuthCallPasswordConfirmationResult.timeout, redirectURI: Uri.parse("/auth").toString()));
+  }
+
+  /// Открывает двунаправленный gRPC-стрим, отправляет запрос проверки и
   /// слушает ответы сервера, пока пользователь ждёт подтверждения звонка.
   void _openStream() {
+    if (isClosed || _completed) return;
+    if (_outgoing != null) return;
+
+    _serverTimerSynced = false;
     _outgoing = StreamController<Message>();
 
     try {
@@ -90,20 +136,25 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
         _onMessage,
         onError: (error, stackTrace) {
           logger.handle(error, stackTrace);
-          _stop();
-          final message = error is GrpcError ? (error.message ?? "errorConnectingServer") : "errorConnectingServer";
-          emit(
-            state.copyWith(result: AuthCallPasswordConfirmationResult.error, error: message, redirectURI: Uri.parse("/auth").toString()),
-          );
+          if (_outgoing == null) return;
+          if (_isSessionGone(error)) {
+            _timeoutOutcome();
+            return;
+          }
+          // Разрыв соединения (ушли в звонилку, звонок подвесил сеть) —
+          // переподключаемся: сервер хранит confirmation-событие до конца TTL
+          // сессии и отдаст его свежему стриму с той же сессией (ephemeral
+          // JetStream-консьюмер, DeliverAll).
+          _stopStream();
+          _scheduleReconnect();
         },
         onDone: () {
-          // Сервер завершил стрим штатно (истёк серверный таймаут ожидания
-          // звонка: ctx.Done() -> return nil). Это не ошибка сети — трактуем как
-          // таймаут. Если стрим закрыли мы сами по терминальному статусу или
-          // локальному тикеру, _outgoing уже null и ветку пропускаем.
+          // Сервер штатно закрыл стрим: истёк его таймаут ожидания звонка
+          // (ctx.Done() -> return nil) или обработчик перезапустился. Если
+          // стрим закрыли мы сами, _outgoing уже null и ветку пропускаем.
           if (_outgoing == null) return;
-          _stop();
-          emit(state.copyWith(result: AuthCallPasswordConfirmationResult.timeout, redirectURI: Uri.parse("/auth").toString()));
+          _stopStream();
+          _scheduleReconnect();
         },
         cancelOnError: true,
       );
@@ -116,40 +167,49 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
       );
     } catch (error, stackTrace) {
       logger.handle(error, stackTrace);
-      _stop();
-      emit(
-        state.copyWith(
-          result: AuthCallPasswordConfirmationResult.error,
-          error: "grpcError.errorConnectingServer",
-          redirectURI: Uri.parse("/auth").toString(),
-        ),
-      );
+      _stopStream();
+      _scheduleReconnect();
     }
   }
 
-  /// Разбор входящего сообщения стрима. Отсчёт ведёт локальный таймер от
-  /// исходного [timeout] — серверное поле [timer] в ответах не перезаписывает
-  /// его (иначе промежуточные healthcheck сбрасывали бы отсчёт).
+  /// Сервер сказал, что сессии больше нет (TTL Redis истёк): ErrNotFoundInRedis
+  /// уходит в трейлер стрима сырым текстом "not found in redis" (код Unknown;
+  /// в других местах API тот же сервис мапится в NotFound/Unauthenticated).
+  /// Отличаем истечение от разрыва сети: первое — терминальное.
+  bool _isSessionGone(Object error) {
+    final message = error is GrpcError ? (error.message ?? '') : error.toString();
+    return message.contains("not found in redis");
+  }
+
+  /// Разбор входящего сообщения стрима. Остаток сервер ведёт сам: локальный
+  /// тикер — только зеркало, выровненное по первому healthcheck стрима.
   Future<void> _onMessage(Message message) async {
     if (message.messageType != MessageType.AUTH_CALL_PASSWORD_CONFIRMATION) {
       logger.debug('call password check: unexpected message type ${message.messageType}');
       return;
     }
 
+    // Стрим жив — накопленные неудачные переподключения больше не в счёт.
+    _reconnectAttempt = 0;
+
     final response = AuthCallPasswordConfirmation_Response.fromBuffer(message.message);
 
-    // Одноразово выравниваем отсчёт по реальному серверному остатку (первый
-    // healthcheck с ненулевым timer). Дальше тикер идёт локально.
+    // Одноразово (на каждый стрим) выравниваем отсчёт по реальному серверному
+    // остатку (первый healthcheck с timer). Ноль — сессия на сервере истекла.
     if (!_serverTimerSynced && response.hasTimer()) {
       _serverTimerSynced = true;
       final serverSeconds = response.timer.toInt();
-      if (serverSeconds > 0) {
-        emit(state.copyWith(tickerSecond: serverSeconds));
+      if (serverSeconds <= 0) {
+        _timeoutOutcome();
+        return;
       }
+      emit(state.copyWith(tickerSecond: serverSeconds));
+      _startTicker();
     }
 
     if (response.isBlocked) {
       _stop();
+      _clearPending();
       // Подробности (причина, срок, поддержка) отдаёт гейт входа: идём в
       // AUTH_CONFIRMATION напрямую (облачный пароль заблокированному не нужен)
       // — он ответит accountBlocked с ними в трейлере.
@@ -165,7 +225,10 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
 
     switch (response.authCallPasswordStatus) {
       case AuthCallPasswordStatus.success:
+        if (_completed) return;
+        _completed = true;
         _stop();
+        _clearPending();
 
         // Двухшаговая проверка: если у аккаунта включён облачный пароль, вход здесь
         // не завершаем — уводим на экран ввода пароля, передав confirmationSession
@@ -187,6 +250,7 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
 
       case AuthCallPasswordStatus.error:
         _stop();
+        _clearPending();
         emit(
           state.copyWith(
             result: AuthCallPasswordConfirmationResult.error,
@@ -201,11 +265,8 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
     }
   }
 
-  /// Гасит таймер и стрим. Идемпотентно.
-  void _stop() {
-    _ticker?.cancel();
-    _ticker = null;
-
+  /// Гасит стрим (переподключение, тикер не трогает). Идемпотентно.
+  void _stopStream() {
     _subscription?.cancel();
     _subscription = null;
 
@@ -216,8 +277,39 @@ class AuthCallpasswordConfirmationCubit extends Cubit<AuthCallpasswordConfirmati
     }
   }
 
+  /// Гасит таймер и стрим — терминальный исход или close(). Идемпотентно.
+  void _stop() {
+    _ticker?.cancel();
+    _ticker = null;
+    _stopStream();
+  }
+
+  /// Незавершённая сессия закрыта — рестарт приложения больше не должен
+  /// восстанавливать экран подтверждения.
+  Future<void> _clearPending() async {
+    try {
+      await getIt.get<DeviceRepositories>().pendingCallPassword.clear();
+    } catch (error, stackTrace) {
+      logger.handle(error, stackTrace, "call password: clear pending session failed");
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Вернулись из звонилки/фона: пока приложение было там, стрим мог умереть
+    // (iOS засыпает изолят, Android рвёт сеть) — переподключаемся сразу.
+    // Остаток таймера снова выровняет первый healthcheck свежего стрима.
+    if (state != AppLifecycleState.resumed) return;
+    if (isClosed || _completed || _outgoing != null) return;
+    _reconnectTimer?.cancel();
+    _reconnectAttempt = 0;
+    _openStream();
+  }
+
   @override
   Future<void> close() {
+    _reconnectTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     _stop();
     return super.close();
   }
