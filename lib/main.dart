@@ -81,7 +81,8 @@ Future<void> main() async {
   if (!AppPlatform.hasFirebase) await CrashReports.instance.attach(getIt.get<DeviceRepositories>().db);
   // Десктоп: уведомления, счётчик в Dock, «в сети» по присутствию за компьютером.
   unawaited(Desktop.start());
-  // iPad — двухпанельные «Чаты» (до роутера: от этого зависят маршруты).
+  // iPad и складной iPhone (Duo) — двухпанельные «Чаты» (до роутера: от этого
+  // зависят маршруты).
   await SplitLayout.detect();
   await SplitLayout.loadListWidth();
 

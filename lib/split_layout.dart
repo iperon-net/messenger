@@ -10,23 +10,50 @@ import 'desktop.dart';
 import 'platform.dart';
 import 'themes.dart';
 
-/// Двухпанельный режим (iPad, Android-планшет, десктоп), как в Telegram: в каждой вкладке слева список
+/// Двухпанельный режим (iPad, Android-планшет, десктоп, складной iPhone), как в Telegram: в каждой вкладке слева список
 /// (чаты, контакты, звонки, разделы настроек) с таб-баром под ним, справа —
 /// открытый экран. Включается по типу устройства один раз при старте — от него
 /// зависит дерево маршрутов (см. `Routers._common`), — а сколько панелей
 /// показать, решает ширина окна: в Slide Over / узком Split View панель одна.
 abstract final class SplitLayout {
-  /// Устройство поддерживает сплит (iPad, Android-планшет, десктоп). Выставляет [detect].
+  /// Устройство поддерживает сплит (iPad, Android-планшет, десктоп, складной
+  /// iPhone). Выставляет [detect].
   static bool enabled = false;
 
+  /// Устройство — складной iPhone (iPhone Duo): внешний экран получает
+  /// вертикальный рейл вкладок (`HomeCupertino`), внутренний — обычный split.
+  /// Выставляет [detect]; на iPad, Android-планшетах и десктопе — false.
+  static bool foldableIphone = false;
+
   /// С какой ширины окна показывать обе панели: iPad mini в портрете (744) —
-  /// уже две, половина экрана в Split View (~590–700) — одна.
-  static const minWidth = 700.0;
+  /// уже две, половина экрана в Split View (~590–700) — одна. На складном
+  /// iPhone [detect] снижает порог до [duoMinWidth].
+  static double minWidth = 700.0;
+
+  /// Порог складного iPhone (iPhone Duo): портрет внутреннего экрана — 669 pt,
+  /// две панели должны появляться уже там (как у системных Mail/Notes на Duo);
+  /// половина side-by-side (~335 pt) — одна.
+  static const duoMinWidth = 600.0;
 
   static Future<void> detect() async {
     try {
       if (Platform.isIOS) {
-        enabled = (await DeviceInfoPlugin().iosInfo).model.toLowerCase().contains('ipad');
+        if ((await DeviceInfoPlugin().iosInfo).model.toLowerCase().contains('ipad')) {
+          enabled = true;
+        } else {
+          // Складной iPhone (iPhone Duo): оба дисплея tablet-класса по
+          // пропорциям (внешний 466×678, внутренний 669×951 pt), у обычных
+          // iPhone соотношение сторон ~0.46 в любой ориентации. Брать размер
+          // дисплея, не окна: при старте сразу в side-by-side окно уже
+          // наполовину. На симуляторе hw.machine — архитектура хоста, поэтому
+          // геометрия, а не идентификатор модели.
+          final size = _screenPoints();
+          if (size != null && isDuoScreenSize(size)) {
+            enabled = true;
+            foldableIphone = true;
+            minWidth = duoMinWidth;
+          }
+        }
       } else if (Platform.isAndroid) {
         // Планшет — меньшая сторона экрана от 600dp (как sw600dp в Android).
         final view = WidgetsBinding.instance.platformDispatcher.views.first;
@@ -46,8 +73,59 @@ abstract final class SplitLayout {
     }
   }
 
-  /// Обе панели сейчас на экране.
-  static bool isWide(BuildContext context) => enabled && MediaQuery.sizeOf(context).width >= minWidth;
+  /// Логические точки дисплея (не окна): `display.size`, пока натив не отдал
+  /// размер дисплея (-1 до первого кадра, как на Android), — размер окна; при
+  /// старте приложение на весь экран. `null` — размер ещё неизвестен.
+  static Size? _screenPoints() {
+    final view = WidgetsBinding.instance.platformDispatcher.views.first;
+    final display = view.display;
+    if (display.devicePixelRatio > 0 && display.size.shortestSide > 0) {
+      return display.size / display.devicePixelRatio;
+    }
+    if (view.devicePixelRatio > 0 && view.physicalSize.shortestSide > 0) {
+      return view.physicalSize / view.devicePixelRatio;
+    }
+    return null;
+  }
+
+  /// Дисплей tablet-класса на iPhone (складной iPhone Duo): короткая сторона
+  /// от 460 pt и «квадратные» пропорции ≥ 0.6 — у обычных iPhone ~0.46 в любой
+  /// ориентации. iPad отфильтрован раньше, по модели. Совпадает с геометриями
+  /// внешнего дисплея Duo в обоих позах (466×678 и 678×466) и не совпадает с
+  /// внутренним в side-by-side (~335×951).
+  static bool isDuoScreenSize(Size points) => points.shortestSide >= 460 && points.shortestSide / points.longestSide >= 0.6;
+
+  /// Обе панели сейчас на экране. На складном iPhone дополнительно требуем
+  /// tablet-класс короткой стороны: у внешнего дисплея в landscape (678×466)
+  /// ширины 678 хватает, но по HIG внешний экран всегда компактный — панель
+  /// одна (+ рейл), две панели только на внутреннем дисплее (669×951 и
+  /// 951×669); в side-by-side (~335×951) панель тоже одна.
+  static bool isWide(BuildContext context) {
+    if (!enabled) return false;
+    final size = MediaQuery.sizeOf(context);
+    if (size.width < minWidth) return false;
+    return !foldableIphone || size.shortestSide >= duoMinWidth;
+  }
+
+  /// Активен ли вертикальный рейл вкладок ([DuoTabRail]) на этом экране:
+  /// внешний экран Duo — в обеих позах, внутренний — в landscape (HIG
+  /// «controls remain on the side»); внутренний portrait — HIG-исключение,
+  /// горизонтальный бар под списком; side-by-side (~335×951) и все прочие
+  /// устройства — без рейла. Отсюда же его знает SplitView, чтобы список не
+  /// резервировал высоту под нижний бар, когда бар заменён рейлом.
+  static bool duoRail(BuildContext context) {
+    if (!foldableIphone) return false;
+    final media = MediaQuery.of(context);
+    final size = media.size;
+    if (!isDuoScreenSize(size)) return false;
+    // Внутренний экран в portrait: достаточно высоты для горизонтального бара.
+    if (isWide(context) && size.width <= size.height) return false;
+    return math.max(media.padding.left, media.padding.right) >= duoRailMinInset;
+  }
+
+  /// Минимальная ширина системной полосы, при которой рейл вкладок уместен;
+  /// при неожиданно узком инсете (safe area не распознал Duo) — обычный бар.
+  static const duoRailMinInset = 56.0;
 
   /// Ширина левой панели (список) при ширине окна [width]: на десктопе — от
   /// [minListWidth] (по умолчанию) до выставленной перетаскиванием разделителя
