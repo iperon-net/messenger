@@ -10,6 +10,7 @@ import '../../split_layout.dart';
 import '../../themes.dart';
 import '../settings/settings_accounts_cupertino.dart';
 import 'calls_tab_menu.dart';
+import 'home_rail_cupertino.dart';
 
 class HomeCupertino extends StatefulWidget {
   const HomeCupertino({super.key, required this.navigationShell});
@@ -65,6 +66,16 @@ class _HomeCupertinoState extends State<HomeCupertino> {
         // Telegram, — правая панель идёт до низа экрана. Отступ под бар списку
         // добавляет SplitViewCupertino, здесь его не даём.
         final wide = SplitLayout.isWide(context);
+        // Внешний экран складного iPhone (Duo): вкладки — вертикальным рейлом
+        // у края системной полосы статуса (паттерн Duo «vertical controls»);
+        // контент обходит полосу через safe area сам. Полоса следует за
+        // поворотом устройства: в портрете справа, в landscape — слева, поэтому
+        // сторона определяется тем горизонтальным инсетом, который больше.
+        // Условие активности рейла (внешний экран в обеих позах + внутренний в
+        // landscape) — в SplitLayout.duoRail, оттуда же его знает SplitView.
+        final railOnLeft = MediaQuery.paddingOf(context).left > MediaQuery.paddingOf(context).right;
+        final railWidth = railOnLeft ? MediaQuery.paddingOf(context).left : MediaQuery.paddingOf(context).right;
+        final rail = SplitLayout.duoRail(context);
         final barWidth = wide ? SplitLayout.listWidth(MediaQuery.sizeOf(context).width) : MediaQuery.sizeOf(context).width;
 
         final tabBar = CupertinoTabBar(
@@ -130,7 +141,7 @@ class _HomeCupertinoState extends State<HomeCupertino> {
               // элемент списка доступен, а сам список уходит под полупрозрачный
               // таб-бар вместо зазора над ним.
               Positioned.fill(
-                child: wide
+                child: wide || rail
                     ? widget.navigationShell
                     : MediaQuery(
                         data: MediaQuery.of(
@@ -139,18 +150,29 @@ class _HomeCupertinoState extends State<HomeCupertino> {
                         child: widget.navigationShell,
                       ),
               ),
-              Positioned(left: 0, width: barWidth, bottom: 0, child: tabBar),
-              // Долгий тап по «Звонкам» — меню вкладки («Очистить историю»).
-              Positioned(left: barWidth / 4, bottom: bottomInset, width: barWidth / 4, height: tabBarHeight, child: const CallsTabMenu()),
-              // Долгий тап по «Настройкам» — быстрый выбор аккаунта (как в
-              // Telegram); обычный тап проходит к таб-бару.
-              Positioned(
-                left: barWidth * 3 / 4,
-                bottom: bottomInset,
-                width: barWidth / 4,
-                height: tabBarHeight,
-                child: const AccountSwitcherCupertino(),
-              ),
+              if (rail)
+                Positioned(
+                  left: railOnLeft ? 0 : null,
+                  right: railOnLeft ? null : 0,
+                  top: 0,
+                  bottom: 0,
+                  width: railWidth,
+                  child: DuoTabRail(currentIndex: widget.navigationShell.currentIndex, onTap: _onTap, onLeft: railOnLeft),
+                )
+              else ...[
+                Positioned(left: 0, width: barWidth, bottom: 0, child: tabBar),
+                // Долгий тап по «Звонкам» — меню вкладки («Очистить историю»).
+                Positioned(left: barWidth / 4, bottom: bottomInset, width: barWidth / 4, height: tabBarHeight, child: const CallsTabMenu()),
+                // Долгий тап по «Настройкам» — быстрый выбор аккаунта (как в
+                // Telegram); обычный тап проходит к таб-бару.
+                Positioned(
+                  left: barWidth * 3 / 4,
+                  bottom: bottomInset,
+                  width: barWidth / 4,
+                  height: tabBarHeight,
+                  child: const AccountSwitcherCupertino(),
+                ),
+              ],
             ],
           ),
         );
