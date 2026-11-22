@@ -253,7 +253,13 @@ void main() {
     await awaitStream(2);
     server(2).addError(GrpcError.unknown('not found in redis'));
 
-    await Future<void>.delayed(const Duration(milliseconds: 100));
+    // Фиксированные 100 мс на CI не гарантированы (цепочка логина длиннее) —
+    // ждём фактического перехода с дедлайном, как awaitStream.
+    final timeoutDeadline = DateTime.now().add(const Duration(seconds: 4));
+    while (cubit.state.result != AuthCallPasswordConfirmationResult.timeout) {
+      if (DateTime.now().isAfter(timeoutDeadline)) fail('timeout state did not arrive: ${cubit.state.result}');
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
     expect(cubit.state.result, AuthCallPasswordConfirmationResult.timeout);
     expect(cubit.state.tickerSecond, 0);
     expect(cubit.state.redirectURI, '/auth');
@@ -292,7 +298,17 @@ void main() {
     respond(
       AuthCallPasswordConfirmation_Response(authCallPasswordStatus: AuthCallPasswordStatus.success, confirmationSession: [10, 11, 255]),
     );
-    await Future<void>.delayed(const Duration(milliseconds: 100));
+    // Фиксированные 100 мс на CI не гарантированы: login completer пишет
+    // сессию в БД асинхронно (createOrUpdate в FailingUsers ожидаемо роняется
+    // и логируется), редирект приходит позже — ждём фактического перехода с
+    // дедлайном, как awaitStream. Иначе тест флакает в полном сьюте и в CI.
+    final redirectDeadline = DateTime.now().add(const Duration(seconds: 4));
+    while (cubit.state.redirectURI != '/chats') {
+      if (DateTime.now().isAfter(redirectDeadline)) {
+        fail('redirectURI did not reach /chats: "${cubit.state.redirectURI}" / error: "${cubit.state.error}"');
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
 
     expect(cubit.state.redirectURI, '/chats');
     expect(cubit.state.error, isEmpty);
