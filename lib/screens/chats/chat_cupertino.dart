@@ -1279,7 +1279,8 @@ class _ComposeBar extends StatelessWidget {
               // а поле создаёт заново — фокус остаётся на узле, но клавиатура
               // не открывается (и закрывается после отправки ответа).
               key: const ValueKey('compose-input'),
-              padding: const EdgeInsets.fromLTRB(4, 6, 8, 6),
+              // Компактный ввод на внешнем экране складного iPhone (DuoCompose).
+              padding: DuoCompose.rowPaddingCupertino(context),
               // Пока пишется голосовое — вместо скрепки и поля панель записи.
               child: ListenableBuilder(
                 listenable: recorder,
@@ -1306,10 +1307,10 @@ class _ComposeBar extends StatelessWidget {
                               contextMenuBuilder: formatMenu.builder,
                               placeholder: t.screenChat.message,
                               minLines: 1,
-                              maxLines: 6,
+                              maxLines: DuoCompose.maxLines(context),
                               keyboardType: TextInputType.multiline,
                               textCapitalization: TextCapitalization.sentences,
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                              padding: DuoCompose.fieldPaddingCupertino(context),
                               // Эмодзи ↔ клавиатура (как в Telegram).
                               prefix: ListenableBuilder(
                                 listenable: emoji,
@@ -1329,7 +1330,7 @@ class _ComposeBar extends StatelessWidget {
                               style: TextStyle(fontSize: 16, color: CupertinoColors.label.resolveFrom(context)),
                               decoration: BoxDecoration(
                                 color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
-                                borderRadius: BorderRadius.circular(18),
+                                borderRadius: BorderRadius.circular(DuoCompose.radiusCupertino(context)),
                               ),
                             ),
                     ),

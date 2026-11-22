@@ -338,7 +338,8 @@ class _SecretChatMaterialState extends State<SecretChatMaterial> with UnreadBack
             child: TextField(
               controller: _input,
               minLines: 1,
-              maxLines: 6,
+              // Компактный ввод на внешнем экране складного iPhone (DuoCompose).
+              maxLines: DuoCompose.maxLines(context),
               keyboardType: TextInputType.multiline,
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(

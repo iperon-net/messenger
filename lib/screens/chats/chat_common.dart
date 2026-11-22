@@ -2477,3 +2477,34 @@ class ChatModerationBlockedView extends StatelessWidget {
     );
   }
 }
+
+/// Компактное поле ввода на внешнем экране складного iPhone (iPhone Duo):
+/// короткий экран 678 pt — стандартный ввод ~48 pt и рост до 6 строк съедают
+/// до четверти экрана при наборе. Компакт — узкое окно на складном iPhone
+/// (внешний экран, половина side-by-side); на широком внутреннем экране, у
+/// обычных iPhone и на планшетах — стандартные значения.
+/// См. docs/plans/05-iphone-duo.md.
+///
+/// У Material-вариантов высоту поля держит 48px `IconButton` префикса, а не
+/// паддинги, поэтому там компакт ограничивает только [maxLines] (рост при
+/// наборе) — device-класса Duo на Android пока нет, значения применятся,
+/// когда появится его детект.
+abstract final class DuoCompose {
+  /// Узкое окно складного iPhone — рисуем компактный ввод.
+  static bool matches(BuildContext context) => SplitLayout.foldableIphone && !SplitLayout.isWide(context);
+
+  /// Рост поля ограничен этим числом строк (вместо 6) на компактном вводе.
+  static int maxLines(BuildContext context) => matches(context) ? 4 : 6;
+
+  /// Паддинг строки compose в `ChatCupertino`: 4 по вертикали вместо 6.
+  static EdgeInsets rowPaddingCupertino(BuildContext context) =>
+      matches(context) ? const EdgeInsets.fromLTRB(4, 4, 8, 4) : const EdgeInsets.fromLTRB(4, 6, 8, 6);
+
+  /// Паддинг текстового поля (Cupertino, основной и секретный чат): 6 вместо
+  /// 7 — высота ровно под эмодзи-кнопку (24 + 4×2), поле 32 pt вместо 34.
+  static EdgeInsets fieldPaddingCupertino(BuildContext context) =>
+      matches(context) ? const EdgeInsets.symmetric(horizontal: 12, vertical: 6) : const EdgeInsets.symmetric(horizontal: 12, vertical: 7);
+
+  /// Радиус поля (Cupertino): 16 вместо 18 — чуть плотнее на коротком экране.
+  static double radiusCupertino(BuildContext context) => matches(context) ? 16 : 18;
+}

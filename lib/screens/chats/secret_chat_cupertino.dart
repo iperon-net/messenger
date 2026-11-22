@@ -351,14 +351,15 @@ class _SecretChatCupertinoState extends State<SecretChatCupertino> with UnreadBa
               controller: _input,
               placeholder: t.secretChat.inputPlaceholder,
               minLines: 1,
-              maxLines: 6,
+              maxLines: DuoCompose.maxLines(context),
               keyboardType: TextInputType.multiline,
               textCapitalization: TextCapitalization.sentences,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              // Компактный ввод на внешнем экране складного iPhone (DuoCompose).
+              padding: DuoCompose.fieldPaddingCupertino(context),
               style: TextStyle(fontSize: 16, color: CupertinoColors.label.resolveFrom(context)),
               decoration: BoxDecoration(
                 color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(DuoCompose.radiusCupertino(context)),
               ),
             ),
           ),

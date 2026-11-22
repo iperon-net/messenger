@@ -1554,7 +1554,10 @@ class _ComposeBar extends StatelessWidget {
                                 onContentInserted: (content) => insertKeyboardMedia(context, content, input: input),
                               ),
                               minLines: 1,
-                              maxLines: 6,
+                              // Компактный ввод: на внешнем экране складного
+                              // iPhone рост ограничен (DuoCompose); высоту поля
+                              // держит IconButton префикса, паддинги не меняем.
+                              maxLines: DuoCompose.maxLines(context),
                               keyboardType: TextInputType.multiline,
                               textCapitalization: TextCapitalization.sentences,
                               decoration: InputDecoration(
