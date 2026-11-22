@@ -25,7 +25,20 @@ class SplitViewCupertino extends StatelessWidget {
         SizedBox(
           width: SplitLayout.listWidth(media.size.width),
           child: MediaQuery(
-            data: media.copyWith(padding: media.padding.copyWith(bottom: media.padding.bottom + SplitLayout.tabBarHeight)),
+            // Горизонтальные инсеты окна (на складном iPhone справа ~100 pt —
+            // полоса статуса/камеры) относятся к краю ОКНА; правый край колонки
+            // списка — середина экрана, инсет туда не относится. На iPhone он
+            // всегда был 0, поэтому здесь это никогда не проявлялось. Нижний
+            // (домашний индикатор) остаётся — он у края снизу, под обеими
+            // панелями; высота нижнего бара не резервируется, когда на этом
+            // экране вместо бара вертикальный рейл (SplitLayout.duoRail).
+            data: media.copyWith(
+              padding: media.padding.copyWith(
+                bottom: media.padding.bottom + (SplitLayout.duoRail(context) ? 0 : SplitLayout.tabBarHeight),
+                left: 0,
+                right: 0,
+              ),
+            ),
             child: SplitSelection(id: selected, child: list),
           ),
         ),

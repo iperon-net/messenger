@@ -33,10 +33,19 @@ class SplitViewMaterial extends StatelessWidget {
                   // списков (searchListView) нижний отступ не учитывает, и
                   // последние чаты оставались под кнопками.
                   child: Padding(
-                    padding: EdgeInsets.only(bottom: media.padding.bottom + SplitLayout.navigationBarHeightMaterial),
+                    // Высота панели вкладок не резервируется, когда на этом
+                    // экране вместо бара вертикальный рейл (SplitLayout.duoRail).
+                    padding: EdgeInsets.only(
+                      bottom: media.padding.bottom + (SplitLayout.duoRail(context) ? 0 : SplitLayout.navigationBarHeightMaterial),
+                    ),
                     child: MediaQuery.removePadding(
                       context: context,
                       removeBottom: true,
+                      // Горизонтальные инсеты окна относятся к краю ОКНА, а правый
+                      // край колонки списка — середина экрана (на складном iPhone
+                      // справа ~100 pt полосы статуса/камеры; см. SplitViewCupertino).
+                      removeLeft: true,
+                      removeRight: true,
                       child: SplitSelection(id: selected, child: list),
                     ),
                   ),
