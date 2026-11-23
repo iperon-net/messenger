@@ -556,6 +556,13 @@ API_AVAILABLE(ios(15.0))
            object:nil];
   [nc addObserver:self selector:@selector(willDeactivate:) name:UIApplicationWillResignActiveNotification object:nil];
   [nc addObserver:self selector:@selector(willDeactivate:) name:UISceneWillDeactivateNotification object:nil];
+  // Возврат приложения на передний план: пользователь снова видит экран звонка,
+  // и плавающее окно с тем же видео собеседника становится дублем («два
+  // экрана»). На систему не полагаемся — окно могло остаться поверх активного
+  // приложения, — гасим сами; контроллер остаётся живым для следующего
+  // сворачивания.
+  [nc addObserver:self selector:@selector(didBecomeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
+  [nc addObserver:self selector:@selector(didBecomeActive:) name:UISceneDidActivateNotification object:nil];
 }
 
 - (void)stopObserving {
@@ -566,6 +573,8 @@ API_AVAILABLE(ios(15.0))
   [nc removeObserver:self name:AVCaptureSessionWasInterruptedNotification object:nil];
   [nc removeObserver:self name:UIApplicationWillResignActiveNotification object:nil];
   [nc removeObserver:self name:UISceneWillDeactivateNotification object:nil];
+  [nc removeObserver:self name:UIApplicationDidBecomeActiveNotification object:nil];
+  [nc removeObserver:self name:UISceneDidActivateNotification object:nil];
 }
 
 - (void)captureSessionDidStartRunning:(NSNotification *)note {
@@ -577,6 +586,18 @@ API_AVAILABLE(ios(15.0))
 
 - (void)willDeactivate:(NSNotification *)note {
   if (_pip) [self enableMultitaskingOnSession:[self cameraSession]];
+}
+
+/// Приложение снова активно: закрываем окно PiP — пользователь вернулся к экрану
+/// звонка, и плавающее окно с тем же видео собеседника только мешает (создаёт
+/// эффект «двух экранов»). Контроллер не разбираем — окно поднимется снова при
+/// следующем сворачивании.
+- (void)didBecomeActive:(NSNotification *)note {
+  if (!_pip) return;
+  if (@available(iOS 15.0, *)) {
+    AVPictureInPictureController *pip = _pip;
+    if (pip.isPictureInPictureActive) [pip stopPictureInPicture];
+  }
 }
 
 - (void)captureSessionWasInterrupted:(NSNotification *)note {
@@ -616,6 +637,17 @@ API_AVAILABLE(ios(15.0))
 
 #pragma mark - AVPictureInPictureControllerDelegate
 
+- (void)pictureInPictureControllerDidStartPictureInPicture:(AVPictureInPictureController *)pictureInPictureController
+    API_AVAILABLE(ios(15.0)) {
+  [self->_channel invokeMethod:@"pipStarted" arguments:nil];
+  // Гонка быстрого возврата: окно взлетело, когда приложение уже активно
+  // (didBecomeActive отработал раньше старта PiP) — без этого оно осталось бы
+  // висеть поверх экрана звонка. В фоне не трогаем: там окно и нужно.
+  if (UIApplication.sharedApplication.applicationState == UIApplicationStateActive) {
+    [pictureInPictureController stopPictureInPicture];
+  }
+}
+
 - (void)pictureInPictureController:(AVPictureInPictureController *)pictureInPictureController
     restoreUserInterfaceForPictureInPictureStopWithCompletionHandler:(void (^)(BOOL))completionHandler
     API_AVAILABLE(ios(15.0)) {
@@ -624,6 +656,7 @@ API_AVAILABLE(ios(15.0))
 
 - (void)pictureInPictureControllerDidStopPictureInPicture:(AVPictureInPictureController *)pictureInPictureController
     API_AVAILABLE(ios(15.0)) {
+  [self->_channel invokeMethod:@"pipStopped" arguments:nil];
   if (pictureInPictureController == _retiringPip) {
     pictureInPictureController.delegate = nil;
     _retiringPip = nil;

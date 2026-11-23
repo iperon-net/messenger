@@ -159,6 +159,13 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
   bool _pipAllowed = false;
   bool _inPip = false;
 
+  // iOS: открыто ли системное PiP-окно ([CallPipIos.pipActive]). Натив закрывает
+  // окно при возврате приложения на передний план, но до конца анимации закрытия
+  // (и если окно всё же осталось) оно дублирует мини-окно собеседника при свапе:
+  // обе плитки показывают одну и ту же удалённую дорожку («два экрана»). На это
+  // время мини-окно не рисуем. Аналог на Android — [_inPip].
+  bool _systemPipActive = false;
+
   // Позиция перетаскиваемого мини-окна нашей камеры. Живёт в родителе (а не в
   // [_SelfView]), чтобы пережить выключение/включение камеры: при выключении
   // дорожка становится null и [_SelfView] удаляется из дерева — если бы позиция
@@ -229,6 +236,12 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     // Android: слушаем смену режима PiP от натива (вход/выход мини-окна).
     if (Platform.isAndroid) _pipChannel.setMethodCallHandler(_onPipCall);
+    // iOS: системное PiP-окно открывается в фоне и может быть открыто уже к
+    // монтированию экрана — берём текущее состояние и слушаем дальнейшие смены.
+    if (Platform.isIOS) {
+      _systemPipActive = CallPipIos.pipActive.value;
+      CallPipIos.pipActive.addListener(_onSystemPipActiveChanged);
+    }
     // Экран звонка — только портрет: в ландшафте вертикальная колонка контролов
     // не влезала и кнопка отбоя уезжала за пределы экрана. Возвращаем свободную
     // ориентацию при уходе с экрана.
@@ -250,6 +263,7 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
     // Уходим с экрана звонка — запрещаем PiP и снимаем обработчик канала.
     _syncPipAllowed(false);
     if (Platform.isAndroid) _pipChannel.setMethodCallHandler(null);
+    if (Platform.isIOS) CallPipIos.pipActive.removeListener(_onSystemPipActiveChanged);
     unawaited(_stopRingtone());
     _syncWakelock(false);
     _overlayHideTimer?.cancel();
@@ -276,6 +290,13 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
         unawaited(context.read<CallCubit>().hangup());
     }
     return null;
+  }
+
+  /// Открылось/закрылось системное PiP-окно — перестраиваем экран, чтобы спрятать
+  /// (или вернуть) своё мини-окно на это время (см. [_systemPipActive]).
+  void _onSystemPipActiveChanged() {
+    if (!mounted) return;
+    setState(() => _systemPipActive = CallPipIos.pipActive.value);
   }
 
   /// Разрешает/запрещает нативу автовход в PiP по Home. Идемпотентно (дедуп по
@@ -652,6 +673,10 @@ class _CallViewState extends State<CallView> with WidgetsBindingObserver {
                   // ключу) либо аватар, когда видео нет.
                   if (pipVisible)
                     _SelfView(
+                      // При свапе мини-окно показывает собеседника — то же видео,
+                      // что и системное PiP-окно, пока оно открыто (см.
+                      // [_systemPipActive]). Без свапа здесь наша камера — дубля нет.
+                      hidden: swapped && _systemPipActive,
                       onTapTile: () => setState(() => _swapped = !_swapped),
                       pos: _selfViewPos,
                       maxWidth: constraints.maxWidth,
@@ -695,6 +720,10 @@ class _SelfView extends StatefulWidget {
   // высокую (двухстрочную) шапку с именем. См. [_SelfViewState._defaultPos].
   final double extraTopOffset;
 
+  // Не рисовать окно, оставив его в дереве: рендерер живой дорожки нельзя
+  // пересоздавать (см. комментарий у ключей в [_CallViewState]).
+  final bool hidden;
+
   const _SelfView({
     required this.child,
     required this.onTapTile,
@@ -702,6 +731,7 @@ class _SelfView extends StatefulWidget {
     required this.maxWidth,
     required this.maxHeight,
     this.extraTopOffset = 0,
+    this.hidden = false,
   });
 
   // Размер окна. Было 110×160, увеличено на 20%.
@@ -787,7 +817,15 @@ class _SelfViewState extends State<_SelfView> {
         final base = raw ?? _defaultPos;
         // Клампим на случай смены размеров экрана (поворот и т.п.).
         final pos = Offset(base.dx.clamp(_SelfView._margin, _maxX), base.dy.clamp(_SelfView._margin, _maxY));
-        return Positioned(left: pos.dx, top: pos.dy, width: _SelfView._width, height: _SelfView._height, child: child!);
+        // Скрытое окно — [Offstage], а не удаление из дерева: содержимое
+        // переносится по GlobalKey и его рендерер нельзя пересоздавать.
+        return Positioned(
+          left: pos.dx,
+          top: pos.dy,
+          width: _SelfView._width,
+          height: _SelfView._height,
+          child: Offstage(offstage: widget.hidden, child: child),
+        );
       },
     );
   }

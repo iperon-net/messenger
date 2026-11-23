@@ -11,7 +11,8 @@ NS_ASSUME_NONNULL_BEGIN
 ///  • окно — `AVPictureInPictureVideoCallViewController` (API Apple именно для
 ///    звонков, iOS 15+) с источником `activeVideoCallSourceView` = корневая view
 ///    Flutter; `canStartPictureInPictureAutomaticallyFromInline` — система сама
-///    открывает окно при сворачивании и закрывает при возврате;
+///    открывает окно при сворачивании; при возврате в приложение окно закрываем
+///    сами (иначе оно могло остаться поверх экрана звонка дублем);
 ///  • внутри окна — нативная view: `AVSampleBufferDisplayLayer` с видео и
 ///    плейсхолдер (аватар/инициалы + имя) поверх него;
 ///  • кадры берём с нативного удалённого `RTCVideoTrack` через публичный
@@ -27,7 +28,8 @@ NS_ASSUME_NONNULL_BEGIN
 ///
 /// Драйвится из Dart по каналу `net.iperon.messenger/call_pip_ios`
 /// (lib/call_pip_ios.dart): `enable`/`disable`, `setTrack`, `setVideoOff`,
-/// `setPeer`, `keepCameraInBackground`; обратно — `cameraInterrupted`.
+/// `setPeer`, `keepCameraInBackground`; обратно — `cameraInterrupted`,
+/// `pipStarted`/`pipStopped` (системное окно открылось/закрылось).
 /// Регистрируется из AppDelegate.
 @interface CallPipController : NSObject
 

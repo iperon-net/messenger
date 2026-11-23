@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:livekit_client/livekit_client.dart';
 
@@ -69,6 +70,7 @@ class CallPipIos {
     _enabled = false;
     _track = null;
     _videoOff = false;
+    pipActive.value = false;
     await _invoke('disable');
   }
 
@@ -95,18 +97,42 @@ class CallPipIos {
   }
 
   static void Function()? _onCameraInterrupted;
+
+  /// Открыто ли системное PiP-окно (обновляется событиями натива). Экран звонка
+  /// слушает и, пока окно открыто, не рисует мини-окно собеседника при свапе —
+  /// оба показывают одну и ту же удалённую дорожку, и после возврата из фона
+  /// видны были две плитки («два экрана»).
+  ///
+  /// Notifier, а не один колбэк (как [onCameraInterrupted]): экран звонка может
+  /// пересоздаваться (замок по пин-коду подменяет его копией поверх ScreenLock),
+  /// при этом `dispose` старого приходит позже `initState` нового — общий колбэк
+  /// снял бы подписку у уже смонтированного экрана.
+  static final ValueNotifier<bool> pipActive = ValueNotifier(false);
   static bool _handlerSet = false;
+
+  /// Один обработчик канала на все события натива: прерывание камеры и
+  /// открытие/закрытие PiP-окна.
+  static void _ensureHandler() {
+    if (_handlerSet || !Platform.isIOS) return;
+    _handlerSet = true;
+    _channel.setMethodCallHandler((call) async {
+      switch (call.method) {
+        case 'cameraInterrupted':
+          _onCameraInterrupted?.call();
+        case 'pipStarted':
+          pipActive.value = true;
+        case 'pipStopped':
+          pipActive.value = false;
+      }
+      return null;
+    });
+  }
 
   /// Колбэк «система прервала захват камеры, пока приложение в фоне» (блокировка
   /// экрана, мини-окно не открылось/закрылось) — владелец глушит камеру.
   static set onCameraInterrupted(void Function()? callback) {
     _onCameraInterrupted = callback;
-    if (_handlerSet || !Platform.isIOS) return;
-    _handlerSet = true;
-    _channel.setMethodCallHandler((call) async {
-      if (call.method == 'cameraInterrupted') _onCameraInterrupted?.call();
-      return null;
-    });
+    _ensureHandler();
   }
 
   static Future<void> _invoke(String method, [Object? arguments]) async {
