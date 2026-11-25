@@ -94,6 +94,8 @@
 	<array>
 		<string>primaryyandexloginsdk</string>
 		<string>secondaryyandexloginsdk</string>
+		<!-- VK ID SDK: так он узнаёт, установлено ли приложение VK (быстрая авторизация). -->
+		<string>vkauthorize-silent</string>
 		<string>tel</string>
 	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
@@ -143,7 +145,24 @@
                 <string>yxc3ae9f778e734f70ad8b5bc96b419169</string>
             </array>
         </dict>
+        <!-- VK ID SDK (вход через VK): custom URL-схема vk<clientId> — возврат из
+             приложения VK. Ключи приложения iOS — из VKIDCredentials.xcconfig
+             (ios/Flutter, gitignored; на CI его пишет workflow из секретов). -->
+        <dict>
+            <key>CFBundleTypeRole</key><string>Editor</string>
+            <key>CFBundleURLName</key><string>VKID</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>vk$(VK_APP_CLIENT_ID)</string>
+            </array>
+        </dict>
     </array>
+	<!-- Ключи приложения VK ID, читает VK ID SDK. Без файла ключей пустые — вход
+	     через VK в этой сборке не настроен, кнопки в приложении нет. -->
+	<key>VK_APP_CLIENT_ID</key>
+	<string>$(VK_APP_CLIENT_ID)</string>
+	<key>VK_APP_CLIENT_SECRET</key>
+	<string>$(VK_APP_CLIENT_SECRET)</string>
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>

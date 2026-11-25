@@ -62,6 +62,8 @@ unlinked_spec.ds
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
 **/android/key.properties
+# VK ID SDK (вход через VK): clientId/clientSecret приложения Android
+**/android/vkid.properties
 *.jks
 
 # iOS/XCode related
@@ -86,6 +88,8 @@ unlinked_spec.ds
 **/ios/Flutter/Flutter.framework
 **/ios/Flutter/Flutter.podspec
 **/ios/Flutter/Generated.xcconfig
+# VK ID SDK (вход через VK): VK_APP_CLIENT_ID / VK_APP_CLIENT_SECRET приложения iOS
+**/ios/Flutter/VKIDCredentials.xcconfig
 **/ios/Flutter/ephemeral
 **/ios/Flutter/app.flx
 **/ios/Flutter/app.zip

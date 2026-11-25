@@ -1,2 +1,5 @@
 #include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
 #include "Generated.xcconfig"
+// Ключи приложения VK ID (VK_APP_CLIENT_ID, VK_APP_CLIENT_SECRET) — локально и на
+// CI; без файла вход через VK в сборке не настроен. Файл gitignored.
+#include? "VKIDCredentials.xcconfig"

@@ -20,6 +20,16 @@ val keystoreProperties =
         if (file.exists()) file.inputStream().use { load(it) }
     }
 
+// VK ID SDK (вход через VK, docs/plans/03-vk-id-login.md): android/vkid.properties
+// (gitignored; на CI его пишет workflow из секретов) — clientId, clientSecret
+// приложения VK ID для Android. Без файла значения пустые: SDK не настроен, и
+// кнопки входа через VK в приложении нет.
+val vkidProperties =
+    Properties().apply {
+        val file = rootProject.file("vkid.properties")
+        if (file.exists()) file.inputStream().use { load(it) }
+    }
+
 android {
     namespace = "net.iperon.messenger"
     // flutter_secure_storage and permission_handler_android require SDK 37.
@@ -45,6 +55,14 @@ android {
 
         // Required by yandex_login_sdk: substitutes ${YANDEX_CLIENT_ID} in its manifest.
         manifestPlaceholders["YANDEX_CLIENT_ID"] = "c3ae9f778e734f70ad8b5bc96b419169"
+
+        // Required by vkid_flutter_sdk: substitutes ${VKIDClientID}, ${VKIDClientSecret},
+        // ${VKIDRedirectHost} and ${VKIDRedirectScheme} in the VK ID SDK manifest.
+        val vkidClientId = vkidProperties.getProperty("clientId") ?: ""
+        manifestPlaceholders["VKIDClientID"] = vkidClientId
+        manifestPlaceholders["VKIDClientSecret"] = vkidProperties.getProperty("clientSecret") ?: ""
+        manifestPlaceholders["VKIDRedirectHost"] = "vk.ru"
+        manifestPlaceholders["VKIDRedirectScheme"] = "vk$vkidClientId"
     }
 
     signingConfigs {
