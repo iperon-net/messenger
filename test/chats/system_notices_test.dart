@@ -48,6 +48,11 @@ void main() {
     expect(systemNoticeText(t, login(), russian: false).text, contains('Место: Kazan, Russia'));
   });
 
+  test('способ входа VK ID в уведомлении', () {
+    final notice = login()..loginMethod = pb.MessageSystemNotice_LoginMethod.VK;
+    expect(systemNoticeText(t, notice, russian: true).text, contains('Способ входа: VK ID'));
+  });
+
   test('без сессии и устройства — только что произошло', () {
     final notice = pb.MessageSystemNotice(kind: pb.MessageSystemNotice_Kind.CLOUD_PASSWORD_RESET);
     expect(

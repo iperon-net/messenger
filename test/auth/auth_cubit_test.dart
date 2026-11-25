@@ -24,6 +24,7 @@ void main() {
   late FakeUtils utils;
   late FakePasskeySdk passkeySdk;
   late FakeYandexSdk yandexSdk;
+  late FakeVkSdk vkSdk;
   late AuthCubit cubit;
   late List<({Object error, String reason})> reportedErrors;
 
@@ -33,6 +34,7 @@ void main() {
     utils = FakeUtils();
     passkeySdk = FakePasskeySdk();
     yandexSdk = FakeYandexSdk();
+    vkSdk = FakeVkSdk(api);
     reportedErrors = [];
     await getIt.reset();
     getIt.registerSingleton<Logger>(Logger());
@@ -43,6 +45,7 @@ void main() {
     cubit = AuthCubit(
       passkeySdk: passkeySdk,
       yandexSdk: yandexSdk,
+      vkSdk: vkSdk,
       reportError: (error, stackTrace, reason) => reportedErrors.add((error: error, reason: reason)),
     );
   });
@@ -350,6 +353,109 @@ void main() {
     final request = AuthYandex_Request.fromBuffer(api.requests.single.message);
     expect(request.token, 'oauth-token');
   });
+
+  test('vkSignInAvailable отражает наличие client_id VK в сборке', () async {
+    expect(await cubit.vkSignInAvailable(), isTrue);
+    vkSdk.clientID = '';
+    expect(await cubit.vkSignInAvailable(), isFalse);
+  });
+
+  test('VK offline не открывает SDK и не вызывает API', () async {
+    final result = await cubit.vkSignIn();
+
+    expect(result.error, 'grpcError.unableConnectServer');
+    expect(result.redirectURI, isEmpty);
+    expect(vkSdk.signIns, isEmpty);
+    expect(vkSdk.logouts, isEmpty);
+    expect(api.callCount, 0);
+  });
+
+  test('VK не настроен в сборке: signIn и API не вызываются', () async {
+    utils.network = true;
+    vkSdk.clientID = '';
+
+    final result = await cubit.vkSignIn();
+
+    expect(result.error, 'vk.failed');
+    expect(result.redirectURI, isEmpty);
+    expect(vkSdk.signIns, isEmpty);
+    expect(vkSdk.logouts, isEmpty);
+    expect(api.callCount, 0);
+  });
+
+  test('VK: отмена окна VK не считается ошибкой', () async {
+    utils.network = true;
+    vkSdk.error = const VkAuthCancelledException();
+
+    final result = await cubit.vkSignIn();
+
+    expect(result, (error: '', redirectURI: ''));
+    expect(api.callCount, 0);
+    expect(vkSdk.logouts, isEmpty);
+  });
+
+  test('VK: ошибка SDK логируется и не вызывает API', () async {
+    utils.network = true;
+    vkSdk.error = const VkAuthException('native failure');
+
+    final result = await cubit.vkSignIn();
+
+    expect(result.error, 'vk.failed');
+    expect(result.redirectURI, isEmpty);
+    expect(api.callCount, 0);
+    expect(vkSdk.logouts, isEmpty);
+    expect(reportedErrors.single.error, isA<VkAuthException>());
+    expect(reportedErrors.single.reason, contains('native failure'));
+  });
+
+  test('VK: пустой токен не отправляется на сервер', () async {
+    utils.network = true;
+    vkSdk.token = '';
+
+    final result = await cubit.vkSignIn();
+
+    expect(result.error, 'vk.failed');
+    expect(result.redirectURI, isEmpty);
+    expect(api.callCount, 0);
+    expect(vkSdk.logouts, isEmpty);
+  });
+
+  test('VK: отсутствие телефона у аккаунта показывает ошибку сервера', () async {
+    utils.network = true;
+    api.enqueueCallResult(
+      const APICallStatus(status: APIStatus.error, statusCode: StatusCode.failedPrecondition, error: 'vk.phoneMissing'),
+    );
+
+    final result = await cubit.vkSignIn();
+
+    expect(result.error, 'vk.phoneMissing');
+    expect(result.redirectURI, isEmpty);
+    expect(api.requests, isEmpty);
+    expect(vkSdk.logouts, [1]);
+  });
+
+  test('VK успешно передаёт токен с client_id и открывает облачный пароль', () async {
+    utils.network = true;
+    api.enqueueResponse(
+      MessageType.AUTH_VK,
+      Message(
+        messageType: MessageType.AUTH_VK,
+        message: AuthVK_Response(hasTwoStepVerification: true, confirmationSession: [14, 15, 255]).writeToBuffer(),
+      ),
+    );
+
+    final result = await cubit.vkSignIn();
+
+    expect(result.error, isEmpty);
+    expect(Uri.parse(result.redirectURI).path, '/auth/cloud_password');
+    expect(Uri.parse(result.redirectURI).queryParameters['confirmationSession'], '0e0fff');
+    expect(api.requests.single.messageType, MessageType.AUTH_VK);
+    final request = AuthVK_Request.fromBuffer(api.requests.single.message);
+    expect(request.token, 'oauth-token');
+    expect(request.clientId, 'test-vk-client');
+    // logout отзывает токен на сервере VK: ровно один, строго после ответа.
+    expect(vkSdk.logouts, [1]);
+  });
 }
 
 final class FakePasskeySdk implements PasskeySdk {
@@ -382,6 +488,34 @@ final class FakeYandexSdk implements YandexSdk {
     if (error case final error?) throw error;
     return token;
   }
+}
+
+final class FakeVkSdk implements VkSdk {
+  /// Фейк создаётся после [api]: [logouts] запоминает `api.callCount` в момент
+  /// logout — тест провалится, если logout вызвать до запроса к серверу.
+  FakeVkSdk(this.api);
+
+  final FakeApi api;
+  String clientID = 'test-vk-client';
+  String token = 'oauth-token';
+  Object? error;
+  final signIns = <String>[];
+
+  /// `api.callCount` на момент каждого logout (порядок: logout — после AUTH_VK).
+  final logouts = <int>[];
+
+  @override
+  Future<String> clientId() async => clientID;
+
+  @override
+  Future<String> signIn() async {
+    signIns.add(clientID);
+    if (error case final error?) throw error;
+    return token;
+  }
+
+  @override
+  Future<void> logout() async => logouts.add(api.callCount);
 }
 
 final class FakeUtils implements Utils {
