@@ -227,6 +227,11 @@ class MessageType extends $pb.ProtobufEnum {
   static const MessageType ACCOUNT_DELETION_STATUS = MessageType._(111, _omitEnumNames ? '' : 'ACCOUNT_DELETION_STATUS');
   static const MessageType ACCOUNT_ACTIVITY = MessageType._(112, _omitEnumNames ? '' : 'ACCOUNT_ACTIVITY');
 
+  /// Вход через VK ID — pre-auth unary: access_token от VK ID SDK + client_id →
+  /// подтверждённый телефон → confirmationSession для AUTH_CONFIRMATION. См.
+  /// vk_v1.proto.
+  static const MessageType AUTH_VK = MessageType._(113, _omitEnumNames ? '' : 'AUTH_VK');
+
   static const $core.List<MessageType> values = <MessageType>[
     HEALTHCHECK,
     META_DATA_INFO,
@@ -334,9 +339,10 @@ class MessageType extends $pb.ProtobufEnum {
     ACCOUNT_DELETION_CANCEL,
     ACCOUNT_DELETION_STATUS,
     ACCOUNT_ACTIVITY,
+    AUTH_VK,
   ];
 
-  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 112);
+  static final $core.List<MessageType?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 113);
   static MessageType? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageType._(super.value, super.name);

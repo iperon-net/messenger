@@ -25,3 +25,4 @@ export './protos/yandex_v1.pb.dart';
 export './protos/qr_login_v1.pb.dart';
 export './protos/reports_v1.pb.dart';
 export './protos/account_deletion_v1.pb.dart';
+export './protos/vk_v1.pb.dart';

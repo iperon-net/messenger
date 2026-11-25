@@ -303,6 +303,7 @@ message MessageSystemNotice {
     SMS = 2;
     PASSKEY = 3;
     YANDEX = 4;
+    VK = 5;
   }
 
   Kind kind = 1;

@@ -234,6 +234,7 @@ class MessageSystemNotice_LoginMethod extends $pb.ProtobufEnum {
   static const MessageSystemNotice_LoginMethod SMS = MessageSystemNotice_LoginMethod._(2, _omitEnumNames ? '' : 'SMS');
   static const MessageSystemNotice_LoginMethod PASSKEY = MessageSystemNotice_LoginMethod._(3, _omitEnumNames ? '' : 'PASSKEY');
   static const MessageSystemNotice_LoginMethod YANDEX = MessageSystemNotice_LoginMethod._(4, _omitEnumNames ? '' : 'YANDEX');
+  static const MessageSystemNotice_LoginMethod VK = MessageSystemNotice_LoginMethod._(5, _omitEnumNames ? '' : 'VK');
 
   static const $core.List<MessageSystemNotice_LoginMethod> values = <MessageSystemNotice_LoginMethod>[
     LOGIN_METHOD_UNKNOWN,
@@ -241,9 +242,10 @@ class MessageSystemNotice_LoginMethod extends $pb.ProtobufEnum {
     SMS,
     PASSKEY,
     YANDEX,
+    VK,
   ];
 
-  static final $core.List<MessageSystemNotice_LoginMethod?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 4);
+  static final $core.List<MessageSystemNotice_LoginMethod?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 5);
   static MessageSystemNotice_LoginMethod? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const MessageSystemNotice_LoginMethod._(super.value, super.name);

@@ -194,6 +194,10 @@ enum MessageType {
   ACCOUNT_DELETION_CANCEL = 110;
   ACCOUNT_DELETION_STATUS = 111;
   ACCOUNT_ACTIVITY = 112;
+  // Вход через VK ID — pre-auth unary: access_token от VK ID SDK + client_id →
+  // подтверждённый телефон → confirmationSession для AUTH_CONFIRMATION. См.
+  // vk_v1.proto.
+  AUTH_VK = 113;
 }
 
 service Iperon {

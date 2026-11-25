@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package iperon.v1;
+option go_package = "internal/api/v1";
+
+// Вход через VK ID. Клиент (пакет `vkid_flutter_sdk`) получает OAuth
+// access_token нативным SDK и отдаёт его серверу вместе с client_id своего
+// приложения VK ID: у iOS и Android свои client_id, и токен действителен
+// только для того приложения, которому выдан. Сервер проверяет, что client_id
+// входит в разрешённые (настройка сервера `OAuth.Vk.ClientIDs`), затем сам
+// запрашивает id.vk.ru/oauth2/user_info (пара clientId + access_token) и
+// берёт оттуда подтверждённый телефон аккаунта (scope phone). Идентификаторы
+// VK НЕ сохраняются: VK здесь — лишь способ подтвердить номер (как
+// звонок-пароль), пользователь по-прежнему ищется/создаётся по телефону.
+//
+// VK-токен разовый: сервер использует его только для этого подтверждения и
+// нигде не сохраняет; клиент его не хранит.
+//
+// Pre-auth unary (как AUTH_YANDEX): выдаёт confirmationSession, сессию
+// чеканит AUTH_CONFIRMATION; облачный пароль (двухшаговая проверка) сохраняется.
+message AuthVK {
+  message Request {
+    // OAuth access_token, который вернул VK ID SDK.
+    string token = 1;
+    // Client_id приложения VK ID, которому SDK выдал токен (iOS или Android).
+    string clientId = 2;
+  }
+
+  message Response {
+    // Скармливается AUTH_CONFIRMATION (тот же путь, что call-password/passkey).
+    bytes confirmationSession = 1;
+    // Включена ли двухшаговая проверка: если true — клиент уходит на шаг ввода
+    // облачного пароля (/auth/cloud_password), передав confirmationSession.
+    bool hasTwoStepVerification = 2;
+  }
+}
