@@ -93,6 +93,9 @@ dependencies:
   local_auth: ^3.0.2
   url_launcher: ^6.3.2
   yandex_login_sdk: ^1.0.1
+  # Вход через VK ID (docs/plans/03-vk-id-login.md). Вендоренный форк — ниже,
+  # в dependency_overrides.
+  vkid_flutter_sdk: 1.0.3
   permission_handler: ^13.0.1
   flutter_contacts: ^2.4.1
   skeletonizer: ^3.0.0
@@ -177,6 +180,8 @@ dev_dependencies:
 #   4. программный endCall неотвеченного звонка → ENDED вместо DECLINE (Android+iOS):
 #      иначе сиблинг-устройство слало звонящему CALL_REJECT и рвало звонок, принятый
 #      на другом устройстве.
+#   5. Coil 2.6.0 вместо 1.4.0 (API Coil 2 в CircleTransform/SafeTarget): VK ID SDK
+#      тянет coil 2.6.0, он вытесняет 1.4 из classpath приложения.
 #   Полный список патчей (там их больше) — в шапке third_party/flutter_callkit_incoming/pubspec.yaml.
 #
 # cryptography_flutter (third_party/cryptography_flutter) — единственный патч:
@@ -186,6 +191,14 @@ dev_dependencies:
 #   KGP применяется только при android.builtInKotlin=false. Пакет сам по себе — лишь
 #   нативный ускоритель pure-Dart package:cryptography (AES-GCM/HMAC для медиа), поэтому
 #   форк выбран вместо удаления, чтобы не терять скорость. См. CLAUDE.md, раздел Kotlin.
+#
+# vkid_flutter_sdk (third_party/vkid_flutter_sdk) — вход через VK ID
+# (docs/plans/03-vk-id-login.md). Обязательный патч один: репозиторий VK перенесён в
+# Nexus — старый Artifactory артефакты SDK больше не отдаёт. Остальные (guard KGP,
+# метод канала clientId, ошибка отмены на iOS) и список исключённых файлов — в шапке
+# third_party/vkid_flutter_sdk/pubspec.yaml. Ключи приложения — вне git:
+# ios/Flutter/VKIDCredentials.xcconfig и android/vkid.properties (на CI их пишут
+# деплой-workflow из секретов; без них сборка проходит без входа через VK).
 dependency_overrides:
   flutter_callkit_incoming:
     path: third_party/flutter_callkit_incoming
@@ -195,6 +208,8 @@ dependency_overrides:
   # AGP 9 + android.builtInKotlin=false — «cannot find symbol ScreenProtectorPlugin»).
   screen_protector:
     path: third_party/screen_protector
+  vkid_flutter_sdk:
+    path: third_party/vkid_flutter_sdk
 
 # Configuration for the `dart_pre_commit` git hook (see .githooks/pre-commit).
 # Mirrors the CI checks in .github/workflows/build_and_deploy.yaml so problems are

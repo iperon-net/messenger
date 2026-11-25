@@ -1,0 +1,11 @@
+dependencyResolutionManagement {
+    repositories {
+        // [iperon fork] Артефакты VK переехали из Artifactory в Nexus (CHANGELOG
+        // vkid-android-sdk 2.7.3). Файл нужен только автономной сборке плагина.
+        maven {
+            url("https://nexus-external.vkteam.ru/repository/maven/")
+            content { includeGroupByRegex("(com\\.vk|ru\\.ok\\.tracer)(\\..*)?") }
+        }
+    }
+}
+rootProject.name = 'VKIDFlutterSDK'
