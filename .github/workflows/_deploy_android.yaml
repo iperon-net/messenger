@@ -125,6 +125,24 @@ jobs:
           keyPassword=$KEY_PASSWORD
           EOF
 
+      # VK ID SDK (вход через VK, docs/plans/03-vk-id-login.md): ключи приложения
+      # Android читает android/app/build.gradle.kts (manifest placeholders). Без
+      # секретов сборка проходит, но вход через VK в ней не настроен — кнопки нет.
+      - name: Restore VK ID credentials
+        env:
+          VKID_CLIENT_ID: ${{ secrets.vkid_android_client_id }}
+          VKID_CLIENT_SECRET: ${{ secrets.vkid_android_client_secret }}
+        run: |
+          set -euo pipefail
+          if [ -z "$VKID_CLIENT_ID" ] || [ -z "$VKID_CLIENT_SECRET" ]; then
+            echo "::warning::VK ID secrets are not set (vkid_android_client_id, vkid_android_client_secret) — the build will ship without VK ID sign-in"
+            exit 0
+          fi
+          cat > android/vkid.properties <<EOF
+          clientId=$VKID_CLIENT_ID
+          clientSecret=$VKID_CLIENT_SECRET
+          EOF
+
       - name: Install dependencies
         run: flutter pub get
 

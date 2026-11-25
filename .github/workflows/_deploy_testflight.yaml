@@ -223,6 +223,25 @@ jobs:
           fi
           touch .env.development
 
+      # VK ID SDK (вход через VK, docs/plans/03-vk-id-login.md): ключи приложения
+      # iOS (VK_APP_CLIENT_ID / VK_APP_CLIENT_SECRET) попадают в Info.plist через
+      # ios/Flutter/{Debug,Release}.xcconfig. Без секретов сборка проходит, но вход
+      # через VK в ней не настроен — кнопки нет.
+      - name: Restore VK ID credentials
+        env:
+          VK_APP_CLIENT_ID: ${{ secrets.vkid_ios_client_id }}
+          VK_APP_CLIENT_SECRET: ${{ secrets.vkid_ios_client_secret }}
+        run: |
+          set -euo pipefail
+          if [ -z "$VK_APP_CLIENT_ID" ] || [ -z "$VK_APP_CLIENT_SECRET" ]; then
+            echo "::warning::VK ID secrets are not set (vkid_ios_client_id, vkid_ios_client_secret) — the build will ship without VK ID sign-in"
+            exit 0
+          fi
+          cat > ios/Flutter/VKIDCredentials.xcconfig <<EOF
+          VK_APP_CLIENT_ID = $VK_APP_CLIENT_ID
+          VK_APP_CLIENT_SECRET = $VK_APP_CLIENT_SECRET
+          EOF
+
       - name: Restore Swift packages
         # Без кэша Xcode ~2 мин заново клонирует Swift-пакеты (firebase-ios-sdk
         # и др.) в build/ios/SourcePackages. Только чтение: сохраняет warm_cache.
