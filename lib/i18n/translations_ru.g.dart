@@ -80,6 +80,7 @@ class TranslationsRu extends Translations with BaseTranslations<AppLocale, Trans
 	@override late final _Translations$screenCall$ru screenCall = _Translations$screenCall$ru._(_root);
 	@override late final _Translations$passkey$ru passkey = _Translations$passkey$ru._(_root);
 	@override late final _Translations$yandex$ru yandex = _Translations$yandex$ru._(_root);
+	@override late final _Translations$vk$ru vk = _Translations$vk$ru._(_root);
 	@override late final _Translations$chatAction$ru chatAction = _Translations$chatAction$ru._(_root);
 	@override late final _Translations$chatTtl$ru chatTtl = _Translations$chatTtl$ru._(_root);
 	@override late final _Translations$chatNoForwards$ru chatNoForwards = _Translations$chatNoForwards$ru._(_root);
@@ -1722,6 +1723,7 @@ class _Translations$screenAuth$ru extends Translations$screenAuth$en {
 	@override String get callForFree => 'Позвонить бесплатно';
 	@override String weAreExpectingYourCallWithin({required Object duration}) => 'Мы ждём вашего звонка в течение ${duration}';
 	@override String get signInWith => 'Войти через';
+	@override String get signInWithVk => 'Войти через VK ID';
 	@override String get kContinue => _root.common.kContinue;
 	@override String get invalidPhoneNumber => 'Неверный номер телефона';
 }
@@ -1913,6 +1915,20 @@ class _Translations$yandex$ru extends Translations$yandex$en {
 	@override String get phoneMissing => 'К аккаунту Яндекс ID не привязан номер телефона. Добавьте его в Яндекс ID или войдите по номеру.';
 	@override String get invalidPhone => 'Номер телефона в Яндекс ID не подходит для входа. Войдите по номеру.';
 	@override String get unavailable => 'Яндекс ID сейчас недоступен. Попробуйте позже.';
+}
+
+// Path: vk
+class _Translations$vk$ru extends Translations$vk$en {
+	_Translations$vk$ru._(TranslationsRu root) : this._root = root, super.internal(root);
+
+	final TranslationsRu _root; // ignore: unused_field
+
+	// Translations
+	@override String get failed => 'Не удалось войти через VK ID. Попробуйте ещё раз.';
+	@override String get invalidToken => 'Не удалось подтвердить вход через VK ID. Попробуйте ещё раз.';
+	@override String get phoneMissing => 'VK ID не передал номер телефона аккаунта. Войдите по номеру телефона.';
+	@override String get invalidPhone => 'Номер телефона в VK ID не подходит для входа. Войдите по номеру.';
+	@override String get unavailable => 'VK ID сейчас недоступен. Попробуйте позже.';
 }
 
 // Path: chatAction
@@ -2150,6 +2166,7 @@ class _Translations$systemNotice$ru extends Translations$systemNotice$en {
 	@override String get methodSms => 'SMS';
 	@override String get methodPasskey => 'ключ доступа';
 	@override String get methodYandex => 'Яндекс ID';
+	@override String get methodVk => 'VK ID';
 	@override String get notMeHint => 'Если это были не вы, нажмите «Это не я», чтобы завершить сеанс, и включите облачный пароль.';
 	@override String get cloudPasswordSetTitle => 'Облачный пароль включён';
 	@override String get cloudPasswordSet => 'Теперь для входа в аккаунт на новом устройстве нужен облачный пароль.';
@@ -3678,6 +3695,7 @@ extension on TranslationsRu {
 			'screenAuth.callForFree' => 'Позвонить бесплатно',
 			'screenAuth.weAreExpectingYourCallWithin' => ({required Object duration}) => 'Мы ждём вашего звонка в течение ${duration}',
 			'screenAuth.signInWith' => 'Войти через',
+			'screenAuth.signInWithVk' => 'Войти через VK ID',
 			'screenAuth.kContinue' => _root.common.kContinue,
 			'screenAuth.invalidPhoneNumber' => 'Неверный номер телефона',
 			'screenAuthModerationApplicationStore.verificationCodeMismatch' => 'Неверный код подтверждения',
@@ -3792,6 +3810,11 @@ extension on TranslationsRu {
 			'yandex.phoneMissing' => 'К аккаунту Яндекс ID не привязан номер телефона. Добавьте его в Яндекс ID или войдите по номеру.',
 			'yandex.invalidPhone' => 'Номер телефона в Яндекс ID не подходит для входа. Войдите по номеру.',
 			'yandex.unavailable' => 'Яндекс ID сейчас недоступен. Попробуйте позже.',
+			'vk.failed' => 'Не удалось войти через VK ID. Попробуйте ещё раз.',
+			'vk.invalidToken' => 'Не удалось подтвердить вход через VK ID. Попробуйте ещё раз.',
+			'vk.phoneMissing' => 'VK ID не передал номер телефона аккаунта. Войдите по номеру телефона.',
+			'vk.invalidPhone' => 'Номер телефона в VK ID не подходит для входа. Войдите по номеру.',
+			'vk.unavailable' => 'VK ID сейчас недоступен. Попробуйте позже.',
 			'chatAction.createdYou' => ({required Object title}) => 'Вы создали группу «${title}»',
 			'chatAction.created' => ({required Object name, required Object title}) => '${name} создал(а) группу «${title}»',
 			'chatAction.addedYou' => ({required Object names}) => 'Вы добавили ${names}',
@@ -3934,6 +3957,7 @@ extension on TranslationsRu {
 			'systemNotice.methodSms' => 'SMS',
 			'systemNotice.methodPasskey' => 'ключ доступа',
 			'systemNotice.methodYandex' => 'Яндекс ID',
+			'systemNotice.methodVk' => 'VK ID',
 			'systemNotice.notMeHint' => 'Если это были не вы, нажмите «Это не я», чтобы завершить сеанс, и включите облачный пароль.',
 			'systemNotice.cloudPasswordSetTitle' => 'Облачный пароль включён',
 			'systemNotice.cloudPasswordSet' => 'Теперь для входа в аккаунт на новом устройстве нужен облачный пароль.',
@@ -3941,6 +3965,8 @@ extension on TranslationsRu {
 			'systemNotice.cloudPasswordChanged' => 'Облачный пароль вашего аккаунта изменён.',
 			'systemNotice.cloudPasswordDisabledTitle' => 'Облачный пароль выключен',
 			'systemNotice.cloudPasswordDisabled' => 'Двухэтапная проверка выключена: для входа облачный пароль больше не нужен.',
+			_ => null,
+		} ?? switch (path) {
 			'systemNotice.cloudPasswordResetTitle' => 'Облачный пароль сброшен',
 			'systemNotice.cloudPasswordReset' => 'Облачный пароль сброшен по коду из письма и задан заново.',
 			'systemNotice.cloudPasswordWrongTitle' => 'Неудачная попытка входа',
@@ -3948,8 +3974,6 @@ extension on TranslationsRu {
 			'systemNotice.cloudPasswordWrongHint' => 'Если это были не вы, значит, кто-то знает код входа. Не сообщайте его никому и не отключайте облачный пароль.',
 			'systemNotice.recoveryEmailSetTitle' => 'Почта для восстановления подтверждена',
 			'systemNotice.recoveryEmailSet' => ({required Object email}) => 'Сбросить облачный пароль теперь можно через ${email}.',
-			_ => null,
-		} ?? switch (path) {
 			'systemNotice.recoveryEmailSetNoEmail' => 'Сбросить облачный пароль теперь можно через почту.',
 			'systemNotice.passkeyAddedTitle' => 'Добавлен ключ доступа',
 			'systemNotice.passkeyAdded' => ({required Object label}) => 'К аккаунту добавлен ключ доступа «${label}»: с ним можно входить без звонка.',

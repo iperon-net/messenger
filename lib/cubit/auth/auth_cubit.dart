@@ -29,14 +29,16 @@ void _reportCrashlyticsError(Object error, StackTrace stackTrace, String reason)
 }
 
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit({PasskeySdk? passkeySdk, YandexSdk? yandexSdk, void Function(Object, StackTrace, String)? reportError})
+  AuthCubit({PasskeySdk? passkeySdk, YandexSdk? yandexSdk, VkSdk? vkSdk, void Function(Object, StackTrace, String)? reportError})
     : _passkeySdk = passkeySdk ?? NativePasskeySdk(),
       _yandexSdk = yandexSdk ?? NativeYandexSdk(),
+      _vkSdk = vkSdk ?? NativeVkSdk(),
       _reportError = reportError ?? _reportCrashlyticsError,
       super(AuthState());
 
   final PasskeySdk _passkeySdk;
   final YandexSdk _yandexSdk;
+  final VkSdk _vkSdk;
   final void Function(Object, StackTrace, String) _reportError;
 
   final logger = getIt.get<Logger>();
@@ -276,5 +278,78 @@ class AuthCubit extends Cubit<AuthState> {
 
     final completion = await AuthLoginCompleter().complete(response.confirmationSession);
     return (error: completion.error, redirectURI: completion.redirectURI);
+  }
+
+  /// Вход через VK ID доступен, если в сборку вшит client_id VK (iOS —
+  /// Info.plist, Android — манифест). Явной проверки платформы не нужно: на
+  /// macOS плагина нет, и `clientId()` вернёт пустую строку (см. auth_sdk.dart).
+  Future<bool> vkSignInAvailable() async => (await _vkSdk.clientId()).isNotEmpty;
+
+  /// Вход через VK ID: нативный SDK (приложение VK или браузер) → OAuth
+  /// access_token с правом `phone` → AUTH_VK. Сервер сам проверяет токен (в т.ч.
+  /// пару «client_id + токен» у VK), берёт телефон аккаунта и выдаёт
+  /// confirmationSession — дальше как у Яндекса: облачный пароль или
+  /// [AuthLoginCompleter]. Регион номера не ограничен.
+  ///
+  /// Возвращает результат для экрана (пустой [error]+[redirectURI] = пользователь
+  /// закрыл окно VK, ничего не показываем). Не бросает.
+  Future<({String error, String redirectURI})> vkSignIn() async {
+    if (!await utils.hasNetwork()) {
+      return (error: "grpcError.unableConnectServer", redirectURI: "");
+    }
+
+    // VK не настроен в этой сборке (нет client_id/секрета в нативной
+    // конфигурации) — кнопки на экране быть не должно, но на всякий случай.
+    final clientId = await _vkSdk.clientId();
+    if (clientId.isEmpty) {
+      return (error: "vk.failed", redirectURI: "");
+    }
+
+    final String token;
+    try {
+      token = await _vkSdk.signIn();
+    } on VkAuthCancelledException {
+      // Пользователь закрыл окно VK — не ошибка.
+      return (error: "", redirectURI: "");
+    } on VkAuthException catch (error, stackTrace) {
+      logger.handle(error, stackTrace, "vk sign in failed");
+      // Non-fatal в Crashlytics: причина сбоя SDK (текст) иначе не видна —
+      // запрос до нашего сервера в этом случае не доходит.
+      _reportError(error, stackTrace, "vk sign in failed: ${error.description}");
+      return (error: "vk.failed", redirectURI: "");
+    }
+    if (token.isEmpty) {
+      return (error: "vk.failed", redirectURI: "");
+    }
+
+    try {
+      final request = Message(
+        messageType: MessageType.AUTH_VK,
+        message: AuthVK_Request(token: token, clientId: clientId).writeToBuffer(),
+      );
+      late Message responseMessage;
+      final callError = await api.call(() async {
+        responseMessage = await api.client.unary(request);
+      });
+      if (callError.status == APIStatus.error) {
+        return (error: callError.error, redirectURI: "");
+      }
+      final response = AuthVK_Response.fromBuffer(responseMessage.message);
+
+      // Двухшаговая проверка: вход через VK её НЕ обходит.
+      if (response.hasTwoStepVerification) {
+        final confirmationSessionHex = utils.bytesToHex(Uint8List.fromList(response.confirmationSession));
+        return (error: "", redirectURI: Uri.parse("/auth/cloud_password?confirmationSession=$confirmationSessionHex").toString());
+      }
+
+      final completion = await AuthLoginCompleter().complete(response.confirmationSession);
+      return (error: completion.error, redirectURI: completion.redirectURI);
+    } finally {
+      // logout VK SDK — запрос на сервер VK, отзывающий токен: зовём строго
+      // после ответа AUTH_VK (иначе сервер не успел бы подтвердить номер), но
+      // обязательно — чтобы VK-сессия не оставалась на устройстве. Ошибки
+      // logout не важны — обёртка их не бросает.
+      unawaited(_vkSdk.logout());
+    }
   }
 }

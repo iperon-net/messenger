@@ -82,6 +82,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$screenCall$en screenCall = Translations$screenCall$en.internal(_root);
 	late final Translations$passkey$en passkey = Translations$passkey$en.internal(_root);
 	late final Translations$yandex$en yandex = Translations$yandex$en.internal(_root);
+	late final Translations$vk$en vk = Translations$vk$en.internal(_root);
 	late final Translations$chatAction$en chatAction = Translations$chatAction$en.internal(_root);
 	late final Translations$chatTtl$en chatTtl = Translations$chatTtl$en.internal(_root);
 	late final Translations$chatNoForwards$en chatNoForwards = Translations$chatNoForwards$en.internal(_root);
@@ -4193,6 +4194,9 @@ class Translations$screenAuth$en {
 	/// en: 'Sign in with'
 	String get signInWith => 'Sign in with';
 
+	/// en: 'Sign in with VK ID'
+	String get signInWithVk => 'Sign in with VK ID';
+
 	/// en: 'Continue'
 	String get kContinue => _root.common.kContinue;
 
@@ -4609,6 +4613,30 @@ class Translations$yandex$en {
 
 	/// en: 'Yandex ID is unavailable right now. Please try again later.'
 	String get unavailable => 'Yandex ID is unavailable right now. Please try again later.';
+}
+
+// Path: vk
+class Translations$vk$en {
+	Translations$vk$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Couldn't sign in with VK ID. Please try again.'
+	String get failed => 'Couldn\'t sign in with VK ID. Please try again.';
+
+	/// en: 'Couldn't verify the VK ID sign-in. Please try again.'
+	String get invalidToken => 'Couldn\'t verify the VK ID sign-in. Please try again.';
+
+	/// en: 'VK ID didn't provide the account's phone number. Sign in with your phone number.'
+	String get phoneMissing => 'VK ID didn\'t provide the account\'s phone number. Sign in with your phone number.';
+
+	/// en: 'The phone number in your VK ID can't be used to sign in. Sign in with your phone number.'
+	String get invalidPhone => 'The phone number in your VK ID can\'t be used to sign in. Sign in with your phone number.';
+
+	/// en: 'VK ID is unavailable right now. Please try again later.'
+	String get unavailable => 'VK ID is unavailable right now. Please try again later.';
 }
 
 // Path: chatAction
@@ -5110,6 +5138,9 @@ class Translations$systemNotice$en {
 
 	/// en: 'Yandex ID'
 	String get methodYandex => 'Yandex ID';
+
+	/// en: 'VK ID'
+	String get methodVk => 'VK ID';
 
 	/// en: 'If this wasn't you, tap “Not me” to end that session, and turn on a cloud password.'
 	String get notMeHint => 'If this wasn\'t you, tap “Not me” to end that session, and turn on a cloud password.';
@@ -6898,6 +6929,7 @@ extension on Translations {
 			'screenAuth.callForFree' => 'Call for free',
 			'screenAuth.weAreExpectingYourCallWithin' => ({required Object duration}) => 'We are expecting your call within ${duration}',
 			'screenAuth.signInWith' => 'Sign in with',
+			'screenAuth.signInWithVk' => 'Sign in with VK ID',
 			'screenAuth.kContinue' => _root.common.kContinue,
 			'screenAuth.invalidPhoneNumber' => 'Invalid phone number',
 			'screenAuthModerationApplicationStore.verificationCodeMismatch' => 'Verification code mismatch',
@@ -7012,6 +7044,11 @@ extension on Translations {
 			'yandex.phoneMissing' => 'Your Yandex ID has no phone number. Add one in Yandex ID or sign in with your phone number.',
 			'yandex.invalidPhone' => 'The phone number in your Yandex ID can\'t be used to sign in. Sign in with your phone number.',
 			'yandex.unavailable' => 'Yandex ID is unavailable right now. Please try again later.',
+			'vk.failed' => 'Couldn\'t sign in with VK ID. Please try again.',
+			'vk.invalidToken' => 'Couldn\'t verify the VK ID sign-in. Please try again.',
+			'vk.phoneMissing' => 'VK ID didn\'t provide the account\'s phone number. Sign in with your phone number.',
+			'vk.invalidPhone' => 'The phone number in your VK ID can\'t be used to sign in. Sign in with your phone number.',
+			'vk.unavailable' => 'VK ID is unavailable right now. Please try again later.',
 			'chatAction.createdYou' => ({required Object title}) => 'You created the group «${title}»',
 			'chatAction.created' => ({required Object name, required Object title}) => '${name} created the group «${title}»',
 			'chatAction.addedYou' => ({required Object names}) => 'You added ${names}',
@@ -7154,6 +7191,7 @@ extension on Translations {
 			'systemNotice.methodSms' => 'SMS',
 			'systemNotice.methodPasskey' => 'passkey',
 			'systemNotice.methodYandex' => 'Yandex ID',
+			'systemNotice.methodVk' => 'VK ID',
 			'systemNotice.notMeHint' => 'If this wasn\'t you, tap “Not me” to end that session, and turn on a cloud password.',
 			'systemNotice.cloudPasswordSetTitle' => 'Cloud password enabled',
 			'systemNotice.cloudPasswordSet' => 'A cloud password is now required to log in to your account on a new device.',
@@ -7161,6 +7199,8 @@ extension on Translations {
 			'systemNotice.cloudPasswordChanged' => 'The cloud password of your account has been changed.',
 			'systemNotice.cloudPasswordDisabledTitle' => 'Cloud password disabled',
 			'systemNotice.cloudPasswordDisabled' => 'Two-step verification is off: a cloud password is no longer required to log in.',
+			_ => null,
+		} ?? switch (path) {
 			'systemNotice.cloudPasswordResetTitle' => 'Cloud password reset',
 			'systemNotice.cloudPasswordReset' => 'Your cloud password was reset with a code from the email and set again.',
 			'systemNotice.cloudPasswordWrongTitle' => 'Failed login attempt',
@@ -7168,8 +7208,6 @@ extension on Translations {
 			'systemNotice.cloudPasswordWrongHint' => 'If this wasn\'t you, someone knows your login code. Never share it and keep your cloud password on.',
 			'systemNotice.recoveryEmailSetTitle' => 'Recovery email confirmed',
 			'systemNotice.recoveryEmailSet' => ({required Object email}) => 'You can now reset your cloud password via ${email}.',
-			_ => null,
-		} ?? switch (path) {
 			'systemNotice.recoveryEmailSetNoEmail' => 'You can now reset your cloud password via email.',
 			'systemNotice.passkeyAddedTitle' => 'Passkey added',
 			'systemNotice.passkeyAdded' => ({required Object label}) => 'Passkey “${label}” was added to your account: it lets you log in without a phone call.',

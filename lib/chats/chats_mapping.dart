@@ -256,6 +256,7 @@ String _deletionDate(pb.MessageSystemNotice notice) => notice.hasDeletionAfter()
     pb.MessageSystemNotice_LoginMethod.SMS => s.methodSms,
     pb.MessageSystemNotice_LoginMethod.PASSKEY => s.methodPasskey,
     pb.MessageSystemNotice_LoginMethod.YANDEX => s.methodYandex,
+    pb.MessageSystemNotice_LoginMethod.VK => s.methodVk,
     _ => '',
   };
   final details = [

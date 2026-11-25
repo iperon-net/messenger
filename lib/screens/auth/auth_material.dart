@@ -42,9 +42,13 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
   /// вернуться («Отмена»).
   bool _canReturn = false;
 
-  /// Вход по ключу доступа или через Яндекс ID: нативный промпт/окно →
+  /// Вход через VK ID: показываем кнопку, только если в сборку вшит client_id
+  /// VK (на macOS плагина нет). Узнаём один раз при появлении экрана.
+  bool _vkAvailable = false;
+
+  /// Вход по ключу доступа, через Яндекс ID или VK ID: нативный промпт/окно →
   /// навигация при успехе, SnackBar при ошибке. Отмена (пустой результат) ничего
-  /// не показывает. Пока идёт один вход, кнопки обоих заблокированы.
+  /// не показывает. Пока идёт один вход, все кнопки заблокированы.
   Future<void> _onSignIn(_SignInProvider provider) async {
     if (signInBusy != null) return;
     setState(() => signInBusy = provider);
@@ -52,6 +56,7 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
     final result = switch (provider) {
       _SignInProvider.passkey => await cubit.passkeySignIn(),
       _SignInProvider.yandex => await cubit.yandexSignIn(),
+      _SignInProvider.vk => await cubit.vkSignIn(),
     };
     if (!mounted) return;
     setState(() => signInBusy = null);
@@ -77,6 +82,11 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
     unawaited(
       returnAccount().then((id) {
         if (mounted && id != null) setState(() => _canReturn = true);
+      }),
+    );
+    unawaited(
+      context.read<AuthCubit>().vkSignInAvailable().then((available) {
+        if (mounted && available) setState(() => _vkAvailable = true);
       }),
     );
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -270,6 +280,31 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
                               ),
                             ),
                           ),
+                          if (_vkAvailable)
+                            Semantics(
+                              button: true,
+                              label: context.t.screenAuth.signInWithVk,
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: signInBusy != null ? null : () => _onSignIn(_SignInProvider.vk),
+                                child: SizedBox(
+                                  width: 42,
+                                  height: 42,
+                                  child: signInBusy == _SignInProvider.vk
+                                      ? Container(
+                                          decoration: BoxDecoration(color: const Color(0xFF0077FF), borderRadius: BorderRadius.circular(8)),
+                                          child: const Center(
+                                            child: SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xffffffff)),
+                                            ),
+                                          ),
+                                        )
+                                      : SvgPicture.asset('assets/images/vk_id.svg', width: 42, height: 42),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ],
@@ -284,4 +319,4 @@ class _AuthMaterialScreen extends State<AuthMaterialScreen> {
   }
 }
 
-enum _SignInProvider { passkey, yandex }
+enum _SignInProvider { passkey, yandex, vk }
