@@ -75,6 +75,8 @@ object ImageLoaderProvider {
 }
 
 
+// [iperon fork] Вызовы super.onStart/onSuccess/onError убраны: в Coil 2 это методы
+// интерфейса Target с пустой реализацией по умолчанию.
 open class SafeTarget(
     private val notificationId: Int,
     private val onLoaded: (Bitmap) -> Unit
@@ -83,7 +85,6 @@ open class SafeTarget(
     var isCancelled = false
 
     override fun onSuccess(result: Drawable) {
-        super.onSuccess(result)
         Log.d("onSuccess", "-")
         if (!isCancelled) {
             onLoaded((result as BitmapDrawable).bitmap)
@@ -91,12 +92,10 @@ open class SafeTarget(
     }
 
     override fun onStart(placeholder: Drawable?) {
-        super.onStart(placeholder)
         Log.d("onStart", "-")
     }
 
     override fun onError(error: Drawable?) {
-        super.onError(error)
         Log.d("onError", "-")
     }
 

@@ -64,5 +64,8 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-core:2.11.1'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.11.1'
     //noinspection GradleDependency
-    implementation "io.coil-kt:coil:1.4.0"
+    // [iperon fork] Coil 2.6.0 — та же версия, что тянет VK ID SDK (onetap-compose):
+    // в classpath приложения всё равно победила бы она, а код плагина написан
+    // под API Coil 1 (coil.bitmap.BitmapPool) и с ним не собирался бы R8.
+    implementation "io.coil-kt:coil:2.6.0"
 }
