@@ -102,3 +102,5 @@ jobs:
       android_keystore_password: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       android_key_alias: ${{ secrets.ANDROID_KEY_ALIAS }}
       android_key_password: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      vkid_android_client_id: ${{ secrets.VKID_ANDROID_CLIENT_ID }}
+      vkid_android_client_secret: ${{ secrets.VKID_ANDROID_CLIENT_SECRET }}

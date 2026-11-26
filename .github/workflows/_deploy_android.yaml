@@ -43,6 +43,13 @@ on:
         required: true
       android_key_password:
         required: true
+      # VK ID SDK (вход через VK): ключи приложения Android. Необязательные —
+      # их передаёт вызывающий workflow (build_and_deploy / android / warm_cache),
+      # без них сборка без публикации идёт с предупреждением.
+      vkid_android_client_id:
+        required: false
+      vkid_android_client_secret:
+        required: false
 
 jobs:
   android:
@@ -126,8 +133,12 @@ jobs:
           EOF
 
       # VK ID SDK (вход через VK, docs/plans/03-vk-id-login.md): ключи приложения
-      # Android читает android/app/build.gradle.kts (manifest placeholders). Без
-      # секретов сборка проходит, но вход через VK в ней не настроен — кнопки нет.
+      # Android читает android/app/build.gradle.kts (manifest placeholders). Здесь
+      # доступен только тот секрет, что объявлен в workflow_call.secrets и передан
+      # вызывающим workflow явно: v0.0.667 вышла без входа через VK, потому что
+      # секреты в этот workflow не были проброшены, а сборка прошла «зелёной».
+      # Поэтому публикуемая сборка без ключей падает; без публикации (прогрев
+      # кэша) — идёт дальше с предупреждением.
       - name: Restore VK ID credentials
         env:
           VKID_CLIENT_ID: ${{ secrets.vkid_android_client_id }}
@@ -135,7 +146,11 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "$VKID_CLIENT_ID" ] || [ -z "$VKID_CLIENT_SECRET" ]; then
-            echo "::warning::VK ID secrets are not set (vkid_android_client_id, vkid_android_client_secret) — the build will ship without VK ID sign-in"
+            if [ "${{ inputs.publish }}" = "true" ]; then
+              echo "::error::VK ID secrets are not set (vkid_android_client_id, vkid_android_client_secret) — pass them from the caller workflow and add them to repository secrets"
+              exit 1
+            fi
+            echo "::warning::VK ID secrets are not set — the build will have no VK ID sign-in"
             exit 0
           fi
           cat > android/vkid.properties <<EOF
@@ -154,6 +169,27 @@ jobs:
             --split-per-abi \
             --build-name="$BUILD_NAME" \
             --build-number="${{ inputs.build_number }}"
+
+      # Страховка перед публикацией: вход через VK должен быть настроен в самом
+      # APK, а не только в android/vkid.properties — проверяем манифест готовой
+      # сборки. SDK считает VK настроенным, только когда заданы оба ключа; в
+      # манифесте значение — число (54898051) или строка в кавычках, пустое — "".
+      - name: Check VK ID is configured in the APK
+        if: ${{ inputs.publish }}
+        run: |
+          set -euo pipefail
+          APK=build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          AAPT2="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/aapt2"
+          manifest=$("$AAPT2" dump xmltree --file AndroidManifest.xml "$APK")
+          for key in VKIDClientID VKIDClientSecret; do
+            meta=$(printf '%s\n' "$manifest" | grep -A1 "name(0x01010003)=\"$key\"" || true)
+            value=$(printf '%s\n' "$meta" | tail -1 | sed -E 's/.*value\(0x01010024\)=//; s/^"//; s/".*$//')
+            if [ -z "$value" ]; then
+              echo "::error::$key is empty in AndroidManifest.xml — VK ID is not configured in the APK"
+              exit 1
+            fi
+          done
+          echo "VK ID keys are set in the APK manifest"
 
       # Имена как у DMG: Iperon-<версия>-<abi>.apk — для версии, Iperon-<abi>.apk —
       # постоянная ссылка на последнюю.

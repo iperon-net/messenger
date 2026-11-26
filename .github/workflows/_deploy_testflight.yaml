@@ -31,6 +31,12 @@ on:
         required: true
       asc_key_p8_base64:
         required: true
+      # VK ID SDK (вход через VK): ключи приложения iOS. Необязательные — их
+      # передаёт вызывающий workflow (build_and_deploy) явно.
+      vkid_ios_client_id:
+        required: false
+      vkid_ios_client_secret:
+        required: false
 
 
 env:
@@ -225,8 +231,10 @@ jobs:
 
       # VK ID SDK (вход через VK, docs/plans/03-vk-id-login.md): ключи приложения
       # iOS (VK_APP_CLIENT_ID / VK_APP_CLIENT_SECRET) попадают в Info.plist через
-      # ios/Flutter/{Debug,Release}.xcconfig. Без секретов сборка проходит, но вход
-      # через VK в ней не настроен — кнопки нет.
+      # ios/Flutter/{Debug,Release}.xcconfig. Здесь доступен только тот секрет, что
+      # объявлен в workflow_call.secrets и передан вызывающим workflow явно: сборка
+      # v0.0.667 вышла без входа через VK, потому что секреты не были проброшены.
+      # Эта сборка всегда уходит в TestFlight, поэтому без ключей она падает.
       - name: Restore VK ID credentials
         env:
           VK_APP_CLIENT_ID: ${{ secrets.vkid_ios_client_id }}
@@ -234,8 +242,8 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "$VK_APP_CLIENT_ID" ] || [ -z "$VK_APP_CLIENT_SECRET" ]; then
-            echo "::warning::VK ID secrets are not set (vkid_ios_client_id, vkid_ios_client_secret) — the build will ship without VK ID sign-in"
-            exit 0
+            echo "::error::VK ID secrets are not set (vkid_ios_client_id, vkid_ios_client_secret) — pass them from the caller workflow and add them to repository secrets"
+            exit 1
           fi
           cat > ios/Flutter/VKIDCredentials.xcconfig <<EOF
           VK_APP_CLIENT_ID = $VK_APP_CLIENT_ID
@@ -272,6 +280,24 @@ jobs:
             --build-name="$BUILD_NAME" \
             --build-number="$BUILD_NUMBER" \
             --export-options-plist=ios/ExportOptions.plist
+
+      # Страховка перед выгрузкой: вход через VK должен быть настроен в самом
+      # приложении — ключи попадают в Info.plist из ios/Flutter/VKIDCredentials.xcconfig.
+      - name: Check VK ID is configured in the built app
+        run: |
+          set -euo pipefail
+          PLIST=$(find build/ios/archive -path '*Runner.app/Info.plist' | head -1)
+          if [ -z "$PLIST" ]; then
+            echo "::error::Runner.app/Info.plist not found in the archive"
+            exit 1
+          fi
+          for key in VK_APP_CLIENT_ID VK_APP_CLIENT_SECRET; do
+            if [ -z "$(/usr/libexec/PlistBuddy -c "Print :$key" "$PLIST" 2>/dev/null || true)" ]; then
+              echo "::error::$key is empty in the built Info.plist — VK ID is not configured"
+              exit 1
+            fi
+          done
+          echo "VK ID keys are set in the built Info.plist"
 
       - name: Locate IPA
         run: |
